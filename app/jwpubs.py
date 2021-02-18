@@ -1,4 +1,4 @@
-from jwfetcher import Fetcher
+from .jwfetcher import Fetcher
 from urllib.parse import urljoin, quote
 import re
 
@@ -54,14 +54,12 @@ class JWPubs(Fetcher):
 
 				# Periodicals will have a separate issue title and periodical title
 				if periodical_name is not None:
-					issue, issue_title = map(lambda i: re.sub(r"\s+", " ", i.strip()), name.split("|",1))
-					m = re.search(r' iss-(\S+) ', pub.attrib['class'])
+					m = re.search(r" iss-(\S+) ", pub.attrib['class'])
 					assert m
 					issue_code = m.group(1)
 					pubs.append(dict(
 						name = periodical_name,
-						issue = issue,
-						issue_title = issue_title,
+						issue = name,
 						code = code,
 						issue_code = issue_code,
 						href = href,
@@ -88,22 +86,4 @@ class JWPubs(Fetcher):
 			break
 
 		return pubs
-
-searcher = JWPubs()
-pubs = []
-for search_terms in (
-		#("библиотека/журналы/", dict(yearFilter="2018")),
-		#("библиотека/журналы/", dict(yearFilter="2019")),
-		#("библиотека/журналы/", dict(yearFilter="2020")),
-		#("библиотека/журналы/", dict(yearFilter="2021")),
-		#("библиотека/журналы/", dict(yearFilter="2018")),
-		#("библиотека/журналы/", dict(yearFilter="2019")),
-		#("библиотека/журналы/", dict(yearFilter="2020")),
-		("библиотека/журналы/", dict(yearFilter="2021")),
-		#("библиотека/книги/", dict()),
-	):
-	pubs.extend(searcher.search(*search_terms))
-
-for pub in pubs:
-	print(pub)
 

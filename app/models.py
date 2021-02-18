@@ -1,4 +1,5 @@
 from app import app
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy(app)
 
@@ -11,5 +12,5 @@ class Publications(db.Model):
 	href = db.Column(db.String)
 	thumbnail = db.Column(db.String)
 
-db.session.create()
+db.create_all()
 
