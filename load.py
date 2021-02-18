@@ -12,7 +12,7 @@ for search_terms in (
 		#("библиотека/журналы/", dict(yearFilter="2018")),
 		#("библиотека/журналы/", dict(yearFilter="2019")),
 		#("библиотека/журналы/", dict(yearFilter="2020")),
-		("библиотека/журналы/", dict(yearFilter="2021")),
+		#("библиотека/журналы/", dict(yearFilter="2021")),
 		("библиотека/книги/", dict()),
 	):
 	pubs.extend(searcher.search(*search_terms))

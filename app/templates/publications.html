@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <title>Публикации</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/static/base.css">
 </head>
 <body>
 <header>
@@ -14,7 +15,7 @@
 {% for category_name, category_pubs in categories %}
 <section>
 <h2>{{category_name}}</h2>
-<ul>
+<ul class="pubs">
 {% for pub in category_pubs %}
 	<li>
 		<a href="{{pub.href}}">
@@ -22,12 +23,13 @@
 			<div>
 				{{pub.name}}
 				{% if pub.issue %}{{pub.issue}}{%endif%}
+				({{pub.code}})
 			</div>
 		</a>
 	</li>
-{% endif %}
+{% endfor %}
 </ul>
 </section>
-{% endif %}
+{% endfor %}
 </body>
 </html>
