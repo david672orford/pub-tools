@@ -1,4 +1,4 @@
-from .jwfetcher import Fetcher
+from jwfetcher import Fetcher
 from urllib.parse import urljoin, quote
 import re
 
