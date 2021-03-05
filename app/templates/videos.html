@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Видеоролики</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="./static/base.css">
+</head>
+<body>
+<header>
+	<h1>Видеоролики</h1>
+	<nav>
+	</nav>
+</header>
+<table>
+<thead>
+<tr><th>Category</th><th>Subcategory</th><th>Name</th></tr>
+</thead>
+<tbody>
+{% for video in videos %}
+<tr>
+	<td>{{video.category}}</td>
+	<td>{{video.subcategory}}</td>
+	<td><a href="{{video.href}}">{{video.name}}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</body>
+</html>

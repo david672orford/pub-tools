@@ -29,7 +29,14 @@ class JWPubs(Fetcher):
 			container = html.get_element_by_id('pubsViewResults')
 
 			h2 = container.xpath("./h2")
-			periodical_name = h2[0].text if len(h2) > 0 else None
+			if len(h2) > 0:
+				periodical_name = h2[0].text
+			else:
+				h1 = html.xpath(".//h1")
+				if len(h1) > 0:
+					periodical_name = h1[0].text
+				else:
+					periodical_name = None
 
 			for pub in container.find_class('synopsis'):
 				if "textOnly" in pub.attrib['class']:
@@ -52,10 +59,9 @@ class JWPubs(Fetcher):
 				syn_body = pub.find_class('syn-body')[0]
 				name = syn_body.find_class('publicationDesc')[0].text_content().strip()
 
-				# Periodicals will have a separate issue title and periodical title
-				if periodical_name is not None:
+				# Periodicals will have a periodical name, an issue title, and an issue date.
+				if periodical_name is not None and " iss-" in pub.attrib['class']:
 					m = re.search(r" iss-(\S+) ", pub.attrib['class'])
-					assert m
 					issue_code = m.group(1)
 					pubs.append(dict(
 						name = periodical_name,

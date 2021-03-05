@@ -3,40 +3,67 @@
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "app"))
 
-from models import db, Publications
+from models import db, Publications, Videos
 from jwpubs import JWPubs
 from jwbroadcasting import VideoCategory
 
-searcher = JWPubs()
-pubs = []
-for search_terms in (
-		("библиотека/журналы/", dict(yearFilter="2018")),
-		("библиотека/журналы/", dict(yearFilter="2019")),
-		("библиотека/журналы/", dict(yearFilter="2020")),
-		("библиотека/журналы/", dict(yearFilter="2021")),
-		("библиотека/журналы/", dict(yearFilter="2018")),
-		("библиотека/журналы/", dict(yearFilter="2019")),
-		("библиотека/журналы/", dict(yearFilter="2020")),
-		("библиотека/журналы/", dict(yearFilter="2021")),
-		("библиотека/книги/", dict()),
-	):
-	pubs.extend(searcher.search(*search_terms))
+from rich.console import Console
+from rich.table import Table
 
-for video in VideoCategory("VODMinistryTools").videos:
-	pubs.append(dict(
-			name = video.name,
-			code = video.code,
-			href = video.player_href,
-			thumbnail = video.thumbnail
-		))
+def load_pubs():
+	searcher = JWPubs()
+	pubs = []
 
-for pub in pubs:
-	print("%-4s %-6s %-20s %s" % (pub['code'], pub.get('issue_code'), pub['name'], pub.get('issue')))
-	pubobj = Publications.query.filter_by(code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
-	if pubobj is None:
-		pubobj = Publications()
-		db.session.add(pubobj)
-	for name, value in pub.items():
-		setattr(pubobj, name, value)
-db.session.commit()
+	#for year in range(2000, 2022):
+	#	pubs.extend(searcher.search("библиотека/журналы/", dict(yearFilter=str(year))))
 
+	#for year in range(2010, 2016):
+	#	pubs.exend(searcher.search("библиотека/священное-служение/", dict(yearFilter=str(year)))
+
+	#for year in range(2016, 2022):
+	#	pubs.extend(searcher.search("библиотека/свидетелей-иеговы-встреча-рабочая-тетрадь/", dict(pubFilter="mwb", yearFilter=str(year)))
+
+	#pubs.extend("библиотека/книги/", dict())
+	pubs.extend(searcher.search("библиотека/библейские-аудиодрамы/", dict()))
+	pubs.extend(searcher.search("библиотека/художественное-чтение-библии/", dict()))
+
+	console = Console()
+	table = Table(show_header=True)
+	for column in ("Code", "Issue Code", "Name", "Issue"):
+		table.add_column(column)
+
+	for pub in pubs:
+		table.add_row(pub['code'], pub.get('issue_code'), pub['name'], pub.get('issue'))
+		pub_obj = Publications.query.filter_by(code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
+		if pub_obj is None:
+			pub_obj = Publications()
+			db.session.add(pub_obj)
+		for name, value in pub.items():
+			setattr(pub_obj, name, value)
+
+	console.print(table)
+
+	db.session.commit()
+
+def load_videos():
+	for category in VideoCategory("VideoOnDemand").subcategories:
+		print("Category:", category.name)
+		assert len(category.videos) == 0
+		for subcategory in category.subcategories:
+			print("Subcategory:", subcategory.name)
+			for video in subcategory.videos:
+				print("Video:", video.name)
+				video_obj = Videos.query.filter_by(code=video.code).one_or_none()
+				if video_obj is None:
+					video_obj = Videos()
+					db.session.add(video_obj)
+				video_obj.category = category.name
+				video_obj.subcategory = subcategory.name
+				video_obj.name = video.name
+				video_obj.code = video.code
+				video_obj.href = video.href
+				video_obj.thumbnail = video.thumbnail
+	db.session.commit()
+
+load_pubs()
+#load_videos()

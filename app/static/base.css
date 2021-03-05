@@ -11,6 +11,7 @@ HEADER {
 	}
 NAV {
 	}
+
 SECTION {
     border: 1px solid #c0c0c0;
 	margin: 5px;
@@ -54,3 +55,14 @@ UL.pubs LI IMG {
     width: 100%;
     border: 1px solid #c0c0c0;
     }
+
+TABLE {
+	border-collapse: collapse;
+	margin: 5px;
+	}
+TH, TD {
+	border: 1px solid black;
+	padding: .3em;
+	text-align: left;
+	}
+

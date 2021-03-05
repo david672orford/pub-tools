@@ -20,6 +20,7 @@ class VideoCategory(Fetcher):
 
 		self.videos = []
 		for media in category_dict.get('media',[]):
+			#self.dump_json(media)
 			self.videos.append(Video(self, media))
 
 		self.subcategories = []
@@ -33,11 +34,28 @@ class Video:
 	finder_url = 'https://www.jw.org/finder'
 	def __init__(self, category_obj, media):
 		self.name = media['title']
-		#print("  %s" % self.name)
 		self.code = media['naturalKey']
-		self.thumbnail = media['images']['wss']['sm']
-		self.player_href = self.finder_url + "?" + urlencode(dict(lank=media['languageAgnosticNaturalKey'], wtlocale=category_obj.language))
+		try:
+			self.thumbnail = media['images']['wss']['sm']		# 16:9, occassionally missing
+		except KeyError:
+			self.thumbnail = media['images']['lss']['lg']		# 2:1
+
+		self.href = self.finder_url + "?" + urlencode(dict(lank=media['languageAgnosticNaturalKey'], wtlocale=category_obj.language))
 		self.files = {}
 		for file in media['files']:
 			self.files[file['label']] = file['progressiveDownloadURL']
+
+if __name__ == "__main__":
+	def print_videos(category, indent=0):
+		print("%s%s (%s)" % (" " * indent, category.name, category.key))
+		for video in category.videos:
+			print("%s%s" % (" " * (indent+2), video.name))
+		for subcategory in category.subcategories:
+			print_videos(subcategory, indent=indent + 4)
+	
+	#category = VideoCategory("VideoOnDemand")
+	category = VideoCategory("VODMinistryTools")
+
+	print_videos(category)
+
 
