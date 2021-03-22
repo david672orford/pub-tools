@@ -1,5 +1,7 @@
 # Notes for the JW-Pubs project
 
+These are notes on how the links to publications and media files on JW.ORG work.
+
 ## Link to Songbook
 
 Sharing link to songbook in Russian:
