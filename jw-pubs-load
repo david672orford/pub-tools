@@ -14,12 +14,15 @@ def load_pubs():
 	searcher = JWPubs()
 	pubs = []
 
+	# Load magazines
 	#for year in range(2000, 2022):
 	#	pubs.extend(searcher.search("библиотека/журналы/", dict(yearFilter=str(year))))
 
+	# Load KM
 	#for year in range(2010, 2016):
 	#	pubs.exend(searcher.search("библиотека/священное-служение/", dict(yearFilter=str(year)))
 
+	# Load Meeting Workbooks
 	#for year in range(2016, 2022):
 	#	pubs.extend(searcher.search("библиотека/свидетелей-иеговы-встреча-рабочая-тетрадь/", dict(pubFilter="mwb", yearFilter=str(year)))
 
