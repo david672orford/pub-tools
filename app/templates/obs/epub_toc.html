@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block main %}
+<section>
+<h2>{{epub.opf.title}}</h2>
+<ul>
+{% for item in epub.opf.toc %}
+<li><a id={{item.id}} href="{{item.href}}">{{item.title}}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endblock %}

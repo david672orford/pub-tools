@@ -1,0 +1,78 @@
+from jworg.fetcher import Fetcher
+from urllib.parse import urlencode
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Retrieve a video category from JW.ORG. Returns a VideoCategory object.
+class VideoLister(Fetcher):
+	def get_category(self, category_key, category_dict=None):
+		logger.debug("get_category(\"%s\", %s)", category_key, category_dict)
+		if category_dict is None or len(category_dict['media']) == 0:
+			data = self.get_json(self.mediator_categories_url.format(language=self.language, category=category_key))
+			category_dict = data['category']
+			#self.dump_json(category_dict)
+		return VideoCategory(self, category_dict)
+
+# The contents of a video category from JW.ORG. Members:
+# .videos -- a list of Video objects representing the videos in this category
+# .subcategories -- a list of VideoCategory objects representing the subcategories
+#                   in this category
+# A VideoCategory will have either videos or subcategories, but not both.
+class VideoCategory:
+	def __init__(self, video_lister, category_dict):
+		self.language = video_lister.language
+		self.key = category_dict['key']
+		self.name = category_dict['name']
+		#print(self.key, self.name)
+
+		self.videos = []
+		for media in category_dict.get('media',[]):
+			logger.debug("Video title: %s", media['title'])
+			#video_lister.dump_json(media)
+			self.videos.append(Video(video_lister.language, media))
+
+		self.subcategories = []
+		for subcategory_dict in category_dict.get('subcategories',[]):
+			logger.debug("Subcategory name: %s", subcategory_dict['name'])
+			#video_lister.dump_json(subcategory_dict)
+			self.subcategories.append(video_lister.get_category(subcategory_dict['key'], category_dict=subcategory_dict))
+
+		# As we understand it a category can contain videos or subcategories, but not both.
+		assert len(self.videos) == 0 or len(self.subcategories) == 0
+
+# A single video from JW.ORG
+class Video:
+	finder_url = 'https://www.jw.org/finder'
+	def __init__(self, language, media):
+		self.name = media['title']
+		self.lank = media['languageAgnosticNaturalKey']
+		try:
+			self.thumbnail = media['images']['wss']['sm']		# 16:9 aspect ratio, occassionally missing
+		except KeyError:
+			self.thumbnail = media['images']['lss']['lg']		# 2:1 aspect ratio
+
+		self.href = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
+
+		self.files = {}
+		for file in media['files']:
+			self.files[file['label']] = file['progressiveDownloadURL']
+
+if __name__ == "__main__":
+	def print_videos(category, indent=0):
+		print("%s%s (%s)" % (" " * indent, category.name, category.key))
+		for video in category.videos:
+			print("%s%s" % (" " * (indent+2), video.name))
+		for subcategory in category.subcategories:
+			print_videos(subcategory, indent=indent + 4)
+
+	logging.basicConfig(level=logging.DEBUG)
+
+	video_lister = VideoLister()	
+	category = video_lister.get_category("VideoOnDemand")
+	#category = video_lister.get_category("VODMinistryTools")
+
+	print_videos(category)
+

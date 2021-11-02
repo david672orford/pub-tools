@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block main %}
+<header>
+	<h1>Articles</h2>
+</header>
+
+<section>
+<h2>By URL</h2>
+<form action="articles" method="POST">
+<input type="text" name="url" size=40>
+<button type="submit">Add</button>
+</form>
+</section>
+
+<section>
+<h2>By Week</h2>
+<table class="borders">
+<tbody>
+{% for week in weeks %}
+<tr>
+	<th>{{week.week_of()}}</th>
+	<td><a href="meetings?docid={{week.mwb_docid}}">Midweek</a></td>
+	<td><a href="meetings?docid={{week.watchtower_docid}}">Weekend</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</section>
+
+{% endblock %}

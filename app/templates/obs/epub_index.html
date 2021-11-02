@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block main %}
+<section>
+<ul>
+{% for periodical in periodicals %}
+<li><a href="{{periodical.pub_code}}-{{periodical.issue_code}}/">{{periodical.pub_code}} {{periodical.issue_code}}</a></li>
+{% endfor %}
+{% for book in books %}
+<li><a href="{{book.pub_code}}/">{{book.name}}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block main %}
+<header>
+	<h1>Videos</h2>
+</header>
+{% for category in videos.keys() %}
+<section>
+<h2>{{ category[0] }} -- {{ category[1] }}</h2>
+<ul>
+{% for video in videos[category] %}
+<li><a href="videos?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
+{% endfor %}
+</ul>
+</section>
+{% endfor %}
+{% endblock %}

@@ -1,10 +1,15 @@
-from jwfetcher import Fetcher
+from jworg.fetcher import Fetcher
 from urllib.parse import urljoin, quote
 import re
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # Search for publications on JW.ORG.
-class JWPubs(Fetcher):
-	base_url = "https://www.jw.org/ru/"
+class PubFinder(Fetcher):
+	#base_url = "https://www.jw.org/ru/"
+	base_url = "https://www.jw.org/en/library/"
 
 	# Perform the search. Each returned item:
 	# * Name of publication
@@ -92,4 +97,29 @@ class JWPubs(Fetcher):
 			break
 
 		return pubs
+
+	# Parse the index page of the web version of a periodical and extract
+	# a list of the articles in this issue.
+	# Document classes include:
+	# * 40 Watchtower study article
+	# * 106 Meeting Workbook week
+	# * 68 Table of contents
+	def get_toc(self, url, docClass_filter=None):
+		html = self.get_html(url)
+		toc = html.find_class('toc')
+		assert len(toc) == 1
+		toc = toc[0]
+		#self.dump_html(toc)
+		articles = []
+		for synopsis in toc.find_class('synopsis'):
+			#self.dump_html(synopsis)
+			docId = re.search(r" docId-(\d+) ", synopsis.attrib['class']).group(1)
+			docClass = re.search(r" docClass-(\d+) ", synopsis.attrib['class']).group(1)
+			syn_body = synopsis.find_class('syn-body')[0]
+			link = syn_body.xpath(".//a")[0]
+			if docClass_filter is not None:
+				if not docClass in docClass_filter:
+					continue
+			articles.append((docId, link.text_content().strip(), urljoin(url, link.attrib['href'])))
+		return articles
 
