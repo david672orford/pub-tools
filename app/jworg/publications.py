@@ -1,4 +1,4 @@
-from jworg.fetcher import Fetcher
+from .fetcher import Fetcher
 from urllib.parse import urljoin, quote
 import re
 import logging

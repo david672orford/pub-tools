@@ -1,57 +1,36 @@
+# Views for loading media from JW.ORG into OBS
+
 import os
-from flask import render_template, request, Response, redirect
+from flask import current_app, Blueprint, render_template, request, Response, redirect
 import logging
 from collections import defaultdict
-from . import app, obs_control, zoom_control, meeting_loader
-from .models import Weeks, Issues, Articles, Videos, Books
-from jwsite.epub import EpubLoader
+
+from ...models import Weeks, Issues, Articles, Videos, Books
+from ...jworg.meetings import MeetingLoader
+from ...jworg.epub import EpubLoader
+from .obs import ObsControl
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
-# Whenever an uncaught exception occurs in a view function Flask returns
-# HTTP error 500 (Internal Server Error). Here we catch this error so we
-# can display a page with a reload link. We added this during development
-# because we had trouble reloading OBS dockable webviews due to problems
-# getting the necessary context menu to open.
-@app.errorhandler(500)
-def handle_500(error):
-	return render_template("obs/500.html"), 500
+blueprint = Blueprint('obs', __name__, template_folder="templates", static_folder="static")
+meeting_loader = MeetingLoader()
+obs_control = ObsControl()
 
-@app.route("/")
+@blueprint.route("/")
 def page_index():
-	return render_template("obs/index.html")
+	return render_template("index.html")
 
-@app.route("/zoom")
-def page_zoom():
-	share = request.args.get("share")
-	error = None
-	try:
-		if share == "on":
-			zoom_control.start_screensharing()
-		elif share == "off":
-			zoom_control.stop_screensharing()
-	except Exception as e:
-		error = str(e)
-	return render_template("obs/zoom.html", error=error, sharing=zoom_control.is_sharing())
-
-@app.route("/obs", methods=['GET','POST'])
-def page_obs():
-	action = request.args.get("action")
-	if action == "start_virtual_camera":
-		obs_control.start_virtual_camera()
-	return render_template("obs/obs.html")
-
-@app.route("/songs", methods=['GET','POST'])
+@blueprint.route("/songs", methods=['GET','POST'])
 def page_songs():
 	if request.method == 'POST':
 		song = request.form['song']
 		media_url = meeting_loader.get_song_video_url(song)
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene("ПЕСНЯ %s" % song, media_file)
-	return render_template("obs/songs.html")
+	return render_template("songs.html")
 
-@app.route("/meetings", methods=['GET','POST'])
+@blueprint.route("/meetings", methods=['GET','POST'])
 def page_meetings():
 
 	if 'url' in request.args:
@@ -72,9 +51,9 @@ def page_meetings():
 				media_file = meeting_loader.download_media(media_url)
 				obs_control.add_scene(scene_name, media_type, media_file)
 
-	return render_template("obs/meetings.html", weeks=Weeks.query)
+	return render_template("meetings.html", weeks=Weeks.query)
 
-@app.route("/videos")
+@blueprint.route("/videos")
 def page_videos():
 	lank = request.args.get("lank")
 	if lank:
@@ -86,13 +65,13 @@ def page_videos():
 	videos = defaultdict(list)
 	for video in Videos.query.order_by(Videos.category, Videos.subcategory, Videos.name):
 		videos[(video.category, video.subcategory)].append(video)
-	return render_template("obs/videos.html", videos=videos)
+	return render_template("videos.html", videos=videos)
 
-@app.route("/epubs/")
+@blueprint.route("/epubs/")
 def epub_index():
-	return render_template("obs/epub_index.html", periodicals=Issues.query, books=Books.query)
+	return render_template("epub_index.html", periodicals=Issues.query, books=Books.query)
 
-@app.route("/epubs/<pub_code>/")
+@blueprint.route("/epubs/<pub_code>/")
 def epub_toc(pub_code):
 	epub = open_epub(pub_code)
 	id = request.args.get("id")
@@ -100,9 +79,9 @@ def epub_toc(pub_code):
 		for item in epub.opf.toc:
 			if item.id == id:
 				return redirect(item.href)
-	return render_template("obs/epub_toc.html", epub=epub)
+	return render_template("epub_toc.html", epub=epub)
 
-@app.route("/epubs/<pub_code>/<path:path>")
+@blueprint.route("/epubs/<pub_code>/<path:path>")
 def epub_file(pub_code, path):
 	epub = open_epub(pub_code)
 	item = epub.opf.manifest_by_href.get(path)
@@ -122,5 +101,5 @@ def open_epub(pub_code):
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
 	if pub is None:
 		abort(404)
-	return EpubLoader(os.path.join(app.cachedir, pub.epub_filename))
+	return EpubLoader(os.path.join(current_app.cachedir, pub.epub_filename))
 

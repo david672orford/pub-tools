@@ -15,8 +15,6 @@ class ObsControl:
 	def __init__(self):
 		self.virtual_cam_started = False
 		self.obs = obsws("localhost", 4444, "secret")
-		self.obs.register(self.on_VirtualCamStarted, VirtualCamStarted)
-		self.obs.register(self.on_VirtualCamStopped, VirtualCamStopped)
 
 	def connect(self):
 		try:
@@ -32,26 +30,12 @@ class ObsControl:
 		self.virtual_cam_started = vcam.isVirtualCam()
 		logger.info("Virtual cam started: %s" % self.virtual_cam_started)
 
-		self.start_virtual_camera()
+		#self.start_virtual_camera()
 
 		return True
 
 	def disconnect(self):
 		self.obs.disconnect()
-
-	def on_VirtualCamStarted(self, event):
-		logger.info("Virtual cam started")
-		self.virtual_cam_started = True
-
-	def on_VirtualCamStopped(self, event):
-		logger.info("Virtual cam stopped")
-		self.virtual_cam_started = False
-
-	# If the virtual camera is not running, start it.
-	def start_virtual_camera(self):
-		if not self.virtual_cam_started:
-			result = self.obs.call(StartVirtualCam())
-			assert result.status, result
 
 	# Dump the lists of scenes and their sources. We use this to better
 	# understand how to add scenes and sources.
@@ -148,33 +132,4 @@ class ObsControl:
 				monitorType = "monitorAndOutput"
 				))
 			assert result.status, result
-
-#=============================================================================
-# Not yet implemented in obs-websocket-py
-#=============================================================================
-
-class VirtualCamStarted(Baseevents):
-	def __init__(self):
-		super().__init__()
-		self.name = 'VirtualCamStarted'
-events.VirtualCamStarted = VirtualCamStarted
-
-class VirtualCamStopped(Baseevents):
-	def __init__(self):
-		super().__init__()
-		self.name = 'VirtualCamStopped'
-events.VirtualCamStopped = VirtualCamStopped
-
-class GetVirtualCamStatus(Baserequests):
-	def __init__(self):
-		super().__init__()
-		self.name = 'GetVirtualCamStatus'
-		self.datain['isVirtualCam'] = None
-	def isVirtualCam(self):
-		return self.datain['isVirtualCam']
-
-class StartVirtualCam(Baserequests):
-	def __init__(self):
-		super().__init__()
-		self.name = 'StartVirtualCam'
 

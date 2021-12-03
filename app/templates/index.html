@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block main %}
+<header>
+	<h1>JW-Pubs</h1>
+</header>
+<ul>
+{% for subapp in subapps %}
+<li><a href="{{subapp}}/">{{subapp}}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

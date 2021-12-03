@@ -1,32 +1,27 @@
-This is a simple Python-Flask app which visits JW.ORG and gets a list
-of the books, magazines, and videos available. It then displays very
-simple lists with links back to JW.ORG.
+# JW-Pubs
 
-# JW-Meeting
+This is a set of Python-Flask apps for downloading and displaying
+publications from JW.ORG.
 
-This set of tools was created during the COVID-19 pandemic to make it easier
-to download and play videos and illustrations used in the two weekly meetings
-held by Jehovah's Witnesses. The videos are loaded into OBS Studio for playing.
-Zoom screen sharing is started and stopped automatically. OBS plays through
-its virtual camera which Zoom sees as a second camera.
+## Teaching Toolbox
 
-## Install OBS Studio
+This app displays pages with links to the publications in the Teaching
+Toolbox on JW.ORG.
+
+## JW-Meeting
+
+This app helps you to load the vidoes and illustrations for a meeting
+into OBS Studio.
+
+### Install OBS Studio
 
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install obs-studio
 
-## Install the Video For Linux Loopback Device
-
-    $ sudo apt install v4l2loopback-dkms
-
-## Install OBS Websocket
+### Install OBS Websocket
 
     $ wget https://github.com/Palakis/obs-websocket/releases/download/4.9.1/obs-websocket_4.9.1-1_amd64.deb
     $ sudo dpkg -i obs-websocket_4.9.1-1_amd64.deb
     $ sudo apt install -f
     $ pip3 install obs-websocket-py
-
-## Start JW-Meeting
-
-    $ ./start.py
 
