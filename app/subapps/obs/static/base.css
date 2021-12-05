@@ -1,0 +1,33 @@
+HTML, BODY, HEADER, SECTION, H1, H2, UL, LI {
+	margin: 0;
+	padding: 0;
+	}
+HEADER {
+	padding: .5em;
+	background-color: #f0f0f0;
+	border-bottom: thin solid #808080;
+	}
+SECTION {
+	margin: .5em .5em 1em .5em;
+	}
+H1, H2 {
+	font-family: sans-serif;
+	}
+H1 {
+	font-size: 120%;
+	}
+H2 {
+	font-size: 100%;
+	margin: .2em 0;
+	}
+UL {
+	margin-left: 1.5em;
+	}
+TABLE.borders {
+	border-collapse: collapse;
+	}
+TABLE.borders TH, TABLE.borders TD {
+	border: thin solid black;
+	text-align: left;
+	padding: .3em;
+	}

@@ -20,6 +20,7 @@ class Issues(db.Model):
 	pub_code = db.Column(db.String)
 	issue_code = db.Column(db.String)
 	issue = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 	articles = db.relationship('Articles', order_by=lambda: Articles.docid)
@@ -33,6 +34,7 @@ class Articles(db.Model):
 	issue = db.relationship(Issues)
 	docid = db.Column(db.String)
 	title = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_href = db.Column(db.String)
 
@@ -46,14 +48,15 @@ class Videos(db.Model):
 	name = db.Column(db.String)
 	lank = db.Column(db.String)				# language agnostic natural key
 	docid = db.Column(db.String)			# MEPS document ID
-	href = db.Column(db.String)				# finder link
 	thumbnail = db.Column(db.String)
+	href = db.Column(db.String)				# finder link
 
 # Books, brocures, etc. on JW.ORG
 class Books(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String)
 	pub_code = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 

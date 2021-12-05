@@ -28,6 +28,7 @@ LANGUAGE = "ru"
 
 @pubs_cli.command("weeks", help="Load weekly meeting schedule")
 def cmd_load_weeks():
+	logging.basicConfig(level=logging.DEBUG)
 	load_weeks()
 
 def load_weeks():
@@ -57,14 +58,16 @@ def load_weeks():
 #=============================================================================
 
 @pubs_cli.command("study", help="Load current study Watchtowers and Meeting Workbooks")
-def cmd_load_study(toolbox):
+def cmd_load_study():
+	logging.basicConfig(level=logging.DEBUG)
 	load_periodicals((
 		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
 		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
 		))
 
 @pubs_cli.command("magazines", help="Load Watchtowers and Awakes")
-def cmd_load_magazines(toolbox):
+def cmd_load_magazines():
+	logging.basicConfig(level=logging.DEBUG)
 	# FIXME: get date 
 	load_periodicals([("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, 2023)])
 
@@ -94,6 +97,7 @@ def load_periodicals(searches):
 		issue.pub_code = pub['code']
 		issue.issue_code = pub['issue_code']
 		issue.issue = pub['issue']
+		issue.thumbnail = pub['thumbnail']
 		issue.href = pub['href']
 		#epub_url = pub_finder.get_epub_url(pub['code'],pub['issue_code'])
 		#issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
@@ -115,7 +119,7 @@ def cmd_load_articles():
 # From web version
 def load_articles():
 	pub_finder = PubFinder()
-	for issue in Issues.query:
+	for issue in Issues.query.filter(Issues.pub_code.in_(("w", "mwb"))):
 		print(issue, len(issue.articles))
 		if len(issue.articles) == 0:
 			for docid, title, href in pub_finder.get_toc(issue.href, docClass_filter=['40','106']):
@@ -165,6 +169,7 @@ def load_books():
 			db.session.add(book)
 		book.name = pub['name']
 		book.pub_code = pub['code']
+		book.thumbnail = pub['thumbnail']
 		book.href = pub['href']
 		#epub_url = pub_finder.get_epub_url(pub['code'])
 		#book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
@@ -206,18 +211,4 @@ def load_videos():
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
 	db.session.commit()
-
-#=============================================================================
-#
-#=============================================================================
-
-#@pubs_cli.command("all")
-#def cmd_load_all():
-#	logging.basicConfig(level=logging.DEBUG)
-#	load_weeks()
-#	load_periodicals()
-#	load_articles_web()
-#	#load_articles_epub()
-#	load_books()
-#	load_videos()
 

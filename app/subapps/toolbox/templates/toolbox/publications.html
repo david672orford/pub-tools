@@ -19,11 +19,10 @@
 {% for pub in category_pubs %}
 	<li>
 		<a href="{{pub.href}}">
-			<img src={{pub.thumbnail}}>
+			<img src="{{pub.thumbnail}}">
 			<div>
 				{{pub.name}}
 				{% if pub.issue %}{{pub.issue}}{%endif%}
-				<!-- ({{pub.code}}) -->
 			</div>
 		</a>
 	</li>

@@ -19,8 +19,8 @@
 <tbody>
 {% for video in videos %}
 <tr>
-	<td>{{video.category}}</td>
-	<td>{{video.subcategory}}</td>
+	<td>{{video.category_name}}</td>
+	<td>{{video.subcategory_name}}</td>
 	<td><a href="{{video.href}}">{{video.name}}</a></td>
 </tr>
 {% endfor %}

@@ -1,11 +1,12 @@
 # Views for loading media from JW.ORG into OBS
 
 import os
-from flask import current_app, Blueprint, render_template, request, Response, redirect
+from flask import Blueprint, render_template, request, Response, redirect
 import logging
 from collections import defaultdict
 
 from ...models import Weeks, Issues, Articles, Videos, Books
+from ... import app
 from ...jworg.meetings import MeetingLoader
 from ...jworg.epub import EpubLoader
 from .obs import ObsControl
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint('obs', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'OBS'
 
-meeting_loader = MeetingLoader()
+meeting_loader = MeetingLoader(cachedir=app.cachedir)
 obs_control = ObsControl()
 
 # Whenever an uncaught exception occurs in a view function Flask returns
@@ -74,8 +75,8 @@ def page_videos():
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene(video.name, media_file)
 	videos = defaultdict(list)
-	for video in Videos.query.order_by(Videos.category, Videos.subcategory, Videos.name):
-		videos[(video.category, video.subcategory)].append(video)
+	for video in Videos.query.order_by(Videos.category_name, Videos.subcategory_name, Videos.name):
+		videos[(video.category_name, video.subcategory_name)].append(video)
 	return render_template("obs/videos.html", videos=videos)
 
 @blueprint.route("/epubs/")
@@ -112,5 +113,5 @@ def open_epub(pub_code):
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
 	if pub is None:
 		abort(404)
-	return EpubLoader(os.path.join(current_app.cachedir, pub.epub_filename))
+	return EpubLoader(os.path.join(app.cachedir, pub.epub_filename))
 

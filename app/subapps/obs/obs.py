@@ -15,27 +15,10 @@ class ObsControl:
 	def __init__(self):
 		self.virtual_cam_started = False
 		self.obs = obsws("localhost", 4444, "secret")
-
-	def connect(self):
-		try:
-			self.obs.connect()
-		except exceptions.ConnectionFailure:
-			return False
-
+		self.obs.connect()
 		version = self.obs.call(requests.GetVersion())
 		logger.info("OBS Studio version: %s" % version.getObsStudioVersion())
 		logger.info("OBS-Websocket version: %s" % version.getObsWebsocketVersion())
-
-		vcam = self.obs.call(GetVirtualCamStatus())
-		self.virtual_cam_started = vcam.isVirtualCam()
-		logger.info("Virtual cam started: %s" % self.virtual_cam_started)
-
-		#self.start_virtual_camera()
-
-		return True
-
-	def disconnect(self):
-		self.obs.disconnect()
 
 	# Dump the lists of scenes and their sources. We use this to better
 	# understand how to add scenes and sources.
