@@ -6,7 +6,7 @@
 </header>
 <ul>
 {% for subapp in subapps %}
-<li><a href="{{subapp}}/">{{subapp}}</a></li>
+<li><a href="{{subapp.name}}/">{{subapp.display_name}}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

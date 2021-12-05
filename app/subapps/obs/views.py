@@ -14,12 +14,23 @@ logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('obs', __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = 'OBS'
+
 meeting_loader = MeetingLoader()
 obs_control = ObsControl()
 
+# Whenever an uncaught exception occurs in a view function Flask returns
+# HTTP error 500 (Internal Server Error). Here we catch this error so we
+# can display a page with a reload link. We added this during development
+# because we had trouble reloading OBS dockable webviews due to problems
+# getting the necessary context menu to open.
+@blueprint.errorhandler(500)
+def handle_500(error):
+	return render_template("obs/500.html"), 500
+
 @blueprint.route("/")
 def page_index():
-	return render_template("index.html")
+	return render_template("obs/index.html")
 
 @blueprint.route("/songs", methods=['GET','POST'])
 def page_songs():
@@ -28,7 +39,7 @@ def page_songs():
 		media_url = meeting_loader.get_song_video_url(song)
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene("ПЕСНЯ %s" % song, media_file)
-	return render_template("songs.html")
+	return render_template("obs/songs.html")
 
 @blueprint.route("/meetings", methods=['GET','POST'])
 def page_meetings():
@@ -51,7 +62,7 @@ def page_meetings():
 				media_file = meeting_loader.download_media(media_url)
 				obs_control.add_scene(scene_name, media_type, media_file)
 
-	return render_template("meetings.html", weeks=Weeks.query)
+	return render_template("obs/meetings.html", weeks=Weeks.query)
 
 @blueprint.route("/videos")
 def page_videos():
@@ -65,11 +76,11 @@ def page_videos():
 	videos = defaultdict(list)
 	for video in Videos.query.order_by(Videos.category, Videos.subcategory, Videos.name):
 		videos[(video.category, video.subcategory)].append(video)
-	return render_template("videos.html", videos=videos)
+	return render_template("obs/videos.html", videos=videos)
 
 @blueprint.route("/epubs/")
 def epub_index():
-	return render_template("epub_index.html", periodicals=Issues.query, books=Books.query)
+	return render_template("obs/epub_index.html", periodicals=Issues.query, books=Books.query)
 
 @blueprint.route("/epubs/<pub_code>/")
 def epub_toc(pub_code):
@@ -79,7 +90,7 @@ def epub_toc(pub_code):
 		for item in epub.opf.toc:
 			if item.id == id:
 				return redirect(item.href)
-	return render_template("epub_toc.html", epub=epub)
+	return render_template("obs/epub_toc.html", epub=epub)
 
 @blueprint.route("/epubs/<pub_code>/<path:path>")
 def epub_file(pub_code, path):

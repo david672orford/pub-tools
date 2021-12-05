@@ -12,4 +12,5 @@ app.cachedir = os.path.join(app.instance_path, "cache")
 
 from . import pubs_loader
 from . import views
+from . import subapps
 

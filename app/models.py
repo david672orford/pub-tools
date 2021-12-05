@@ -39,8 +39,10 @@ class Articles(db.Model):
 # Videos on JW.ORG
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	category = db.Column(db.String)
-	subcategory = db.Column(db.String)
+	category_key = db.Column(db.String)
+	category_name = db.Column(db.String)
+	subcategory_key = db.Column(db.String)
+	subcategory_name = db.Column(db.String)
 	name = db.Column(db.String)
 	lank = db.Column(db.String)				# language agnostic natural key
 	docid = db.Column(db.String)			# MEPS document ID

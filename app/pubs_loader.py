@@ -3,6 +3,7 @@ import logging
 from datetime import date, timedelta
 import re
 from flask.cli import AppGroup
+import click
 
 from app import app
 from .models import db, app, Issues, Articles, Videos, Weeks, Books
@@ -16,8 +17,10 @@ from rich.table import Table
 
 logger = logging.getLogger(__name__)
 
-pubs_cli = AppGroup("pubs", help="Download lists of publications on JW.ORG")
+pubs_cli = AppGroup("update", help="Download lists of publications available on JW.ORG")
 app.cli.add_command(pubs_cli)
+
+LANGUAGE = "ru"
 
 #=============================================================================
 # Load the weekly schedule from Watchtower Online Library
@@ -53,19 +56,24 @@ def load_weeks():
 # * The filename of the EPUB file which we download
 #=============================================================================
 
-@pubs_cli.command("periodicals", help="Load Watchtowers and Meeting Workbooks")
-def cmd_load_periodicals():
-	load_periodicals()
+@pubs_cli.command("study", help="Load current study Watchtowers and Meeting Workbooks")
+def cmd_load_study(toolbox):
+	load_periodicals((
+		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
+		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
+		))
 
-def load_periodicals():
+@pubs_cli.command("magazines", help="Load Watchtowers and Awakes")
+def cmd_load_magazines(toolbox):
+	# FIXME: get date 
+	load_periodicals([("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, 2023)])
+
+def load_periodicals(searches):
 	pub_finder = PubFinder(cachedir=app.cachedir)
 	pubs = []
 
-	# Current study Watchtowers
-	pubs.extend(pub_finder.search("magazines/", dict(pubFilter="w", contentLanguageFilter="ru")))
-
-	# Load Meeting Workbooks
-	pubs.extend(pub_finder.search("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter="ru")))
+	for path, filter_dict in searches:
+		pubs.extend(pub_finder.search(path, filter_dict))
 
 	# Print a table of what we are adding to the database
 	console = Console()
@@ -87,23 +95,25 @@ def load_periodicals():
 		issue.issue_code = pub['issue_code']
 		issue.issue = pub['issue']
 		issue.href = pub['href']
-		epub_url = pub_finder.get_epub_url(pub['code'],pub['issue_code'])
-		issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
+		#epub_url = pub_finder.get_epub_url(pub['code'],pub['issue_code'])
+		#issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 
 	console.print(table)
 
 	db.session.commit()
 
-# If load_periodicals() got any new issues, download their tables of contents
-# from and add the articles to the Articles table.
-@pubs_cli.command("articles")
+#=============================================================================
+# Download the table of contents of each periodical in the database
+# and add the articles to the Articles table.
+#=============================================================================
+
+@pubs_cli.command("articles", help="Download the table of contents from each periodical")
 def cmd_load_articles():
 	logging.basicConfig(level=logging.DEBUG)
-	load_articles_web()
-	#load_articles_epub()
+	load_articles()
 
 # From web version
-def load_articles_web():
+def load_articles():
 	pub_finder = PubFinder()
 	for issue in Issues.query:
 		print(issue, len(issue.articles))
@@ -116,37 +126,37 @@ def load_articles_web():
 					))
 	db.session.commit()
 
-# From the EPUB files
-def load_articles_epub():
-	for issue in Issues.query:
-		print(issue, len(issue.articles))
-		if len(issue.articles) == 0:
-			epub = EpubLoader(os.path.join(app.cachedir, issue.filename))
-			for article in epub.opf.toc:
-				print(article.title, article.href)
-				doc = epub.load_html(article.href)
-				classes = doc.xpath(".//body")[0].attrib['class']
-				m = re.search(r" docId-(\d+)", classes)
-				if m:
-					issue.articles.append(Articles(
-						docid = int(m.group(1)),
-						title = article.title,
-						epub_href = article.href,
-						))
-	db.session.commit()
+## From the EPUB files
+#def load_articles_epub():
+#	for issue in Issues.query:
+#		print(issue, len(issue.articles))
+#		if len(issue.articles) == 0:
+#			epub = EpubLoader(os.path.join(app.cachedir, issue.epub_filename))
+#			for article in epub.opf.toc:
+#				print(article.title, article.href)
+#				doc = epub.load_html(article.href)
+#				classes = doc.xpath(".//body")[0].attrib['class']
+#				m = re.search(r" docId-(\d+)", classes)
+#				if m:
+#					issue.articles.append(Articles(
+#						docid = int(m.group(1)),
+#						title = article.title,
+#						epub_href = article.href,
+#						))
+#	db.session.commit()
 
 #=============================================================================
-#
+# Books and brocures
 #=============================================================================
 
-@pubs_cli.command("books")
+@pubs_cli.command("books", help="Get a list of books and brocures")
 def cmd_load_books():
 	logging.basicConfig(level=logging.DEBUG)
 	load_books()
 
 def load_books():
 	pub_finder = PubFinder(cachedir=app.cachedir)
-	pubs = pub_finder.search("books/", dict(pubFilter="th", contentLanguageFilter="ru"))
+	pubs = pub_finder.search("books/", dict(contentLanguageFilter=LANGUAGE))
 	for pub in pubs:
 		print(pub)
 		book = Books.query.filter_by(pub_code=pub['code']).one_or_none()
@@ -156,8 +166,8 @@ def load_books():
 		book.name = pub['name']
 		book.pub_code = pub['code']
 		book.href = pub['href']
-		epub_url = pub_finder.get_epub_url(pub['code'])
-		book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
+		#epub_url = pub_finder.get_epub_url(pub['code'])
+		#book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 	db.session.commit()
 
 #=============================================================================
@@ -169,7 +179,7 @@ def load_books():
 #        -> Video 
 #=============================================================================
 
-@pubs_cli.command("videos")
+@pubs_cli.command("videos", help="Get list of all available videos")
 def cmd_load_videos():
 	logging.basicConfig(level=logging.DEBUG)
 	load_videos()
@@ -180,17 +190,19 @@ def load_videos():
 		print("Category:", category.name)
 		assert len(category.videos) == 0
 		for subcategory in category.subcategories:
-			print("Subcategory:", subcategory.name)
+			print("  Subcategory:", subcategory.name)
 			for video in subcategory.videos:
-				print("Video:", video.name)
+				print("    Video:", video.name)
 				video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 				if video_obj is None:
 					video_obj = Videos()
 					db.session.add(video_obj)
 				video_obj.lank = video.lank
 				video_obj.name = video.name
-				video_obj.category = category.name
-				video_obj.subcategory = subcategory.name
+				video_obj.category_key = category.key
+				video_obj.category_name = category.name
+				video_obj.subcategory_key = subcategory.key
+				video_obj.subcategory_name = subcategory.name
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
 	db.session.commit()
@@ -199,13 +211,13 @@ def load_videos():
 #
 #=============================================================================
 
-@pubs_cli.command("all")
-def cmd_load_all():
-	logging.basicConfig(level=logging.DEBUG)
-	load_weeks()
-	load_periodicals()
-	load_articles_web()
-	#load_articles_epub()
-	load_books()
-	load_videos()
+#@pubs_cli.command("all")
+#def cmd_load_all():
+#	logging.basicConfig(level=logging.DEBUG)
+#	load_weeks()
+#	load_periodicals()
+#	load_articles_web()
+#	#load_articles_epub()
+#	load_books()
+#	load_videos()
 

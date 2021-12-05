@@ -7,13 +7,11 @@ if __name__.startswith("_mod_wsgi_"):
 
 import sys
 import logging
-from app import app
-from app.subapps import load_subapps
 
 debug_mode = (len(sys.argv) >= 2 and sys.argv[1] == '--debug')
 logging.basicConfig(level=logging.DEBUG if debug_mode else logging.INFO)
 
-load_subapps()
+from app import app
 
 # For Docker or for standalone testing
 if __name__ == "__main__":

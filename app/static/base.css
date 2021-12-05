@@ -1,3 +1,21 @@
+HTML, BODY, H1, H2, UL, LI {
+	margin: 0;
+	padding: 0;
+	}
 BODY {
-	margin: 1em;
+	margin: .5em;
+	font-family: sans-serif;
+	}
+H1 {
+	font-size: 150%;
+	margin-bottom: .2em;
+	}
+H2 {
+	font-size: 100%;
+	}
+UL {
+	margin: .3em 0 .3em 1.5em;
+	}
+LI {
+	margin: .2em 0;
 	}

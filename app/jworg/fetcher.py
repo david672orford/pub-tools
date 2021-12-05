@@ -8,7 +8,7 @@ from time import sleep, time
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 class NoRedirects(HTTPErrorProcessor):
 	def http_response(self, request, response):
@@ -21,7 +21,7 @@ class Fetcher:
 	user_agent = "Mozilla/5.0"
 
 	# Minimum time between requests (in seconds)
-	min_request_interval = 1.5
+	min_request_interval = 2.5
 
 	# This API endpoint is used used to find the media files (MP3, MP4) which go
 	# with a printed publication or the publication itself in downloadable
