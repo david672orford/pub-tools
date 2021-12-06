@@ -45,6 +45,8 @@ def page_songs():
 @blueprint.route("/meetings", methods=['GET','POST'])
 def page_meetings():
 
+	# Get the URL of the article (from the Watchtower or the Meeting Workbook)
+	# which will be studied at this meeting.
 	if 'url' in request.args:
 		url = request.args.get('url')
 	elif 'docid' in request.args:
@@ -54,12 +56,14 @@ def page_meetings():
 	else:
 		url = None
 
+	# If we have the article's URL, scan it and download the songs, videos,
+	# and illustrations and add them to OBS as scenes.
 	if url is not None:
 		scenes = meeting_loader.extract_media(url)
 		for scene_name, media_type, media_url in scenes:
-			if media_type == "web":
+			if media_type == "web":		# HTML page
 				obs_control.add_scene(scene_name, media_type, media_url)
-			else:
+			else:						# video or image file
 				media_file = meeting_loader.download_media(media_url)
 				obs_control.add_scene(scene_name, media_type, media_file)
 

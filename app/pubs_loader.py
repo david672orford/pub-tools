@@ -17,8 +17,11 @@ from rich.table import Table
 
 logger = logging.getLogger(__name__)
 
-pubs_cli = AppGroup("update", help="Download lists of publications available on JW.ORG")
-app.cli.add_command(pubs_cli)
+cli_update = AppGroup("update", help="Download lists of publications available on JW.ORG")
+app.cli.add_command(cli_update)
+
+cli_download = AppGroup("download", help="Download publications")
+app.cli.add_command(cli_download)
 
 LANGUAGE = "ru"
 
@@ -26,7 +29,7 @@ LANGUAGE = "ru"
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
 
-@pubs_cli.command("weeks", help="Load weekly meeting schedule")
+@cli_update.command("weeks", help="Load weekly meeting schedule")
 def cmd_load_weeks():
 	logging.basicConfig(level=logging.DEBUG)
 	load_weeks()
@@ -57,7 +60,7 @@ def load_weeks():
 # * The filename of the EPUB file which we download
 #=============================================================================
 
-@pubs_cli.command("study", help="Load current study Watchtowers and Meeting Workbooks")
+@cli_update.command("study", help="Load current study Watchtowers and Meeting Workbooks")
 def cmd_load_study():
 	logging.basicConfig(level=logging.DEBUG)
 	load_periodicals((
@@ -65,7 +68,7 @@ def cmd_load_study():
 		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
 		))
 
-@pubs_cli.command("magazines", help="Load Watchtowers and Awakes")
+@cli_update.command("magazines", help="Load Watchtowers and Awakes")
 def cmd_load_magazines():
 	logging.basicConfig(level=logging.DEBUG)
 	# FIXME: get date 
@@ -99,8 +102,6 @@ def load_periodicals(searches):
 		issue.issue = pub['issue']
 		issue.thumbnail = pub['thumbnail']
 		issue.href = pub['href']
-		#epub_url = pub_finder.get_epub_url(pub['code'],pub['issue_code'])
-		#issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 
 	console.print(table)
 
@@ -111,7 +112,7 @@ def load_periodicals(searches):
 # and add the articles to the Articles table.
 #=============================================================================
 
-@pubs_cli.command("articles", help="Download the table of contents from each periodical")
+@cli_update.command("articles", help="Download the table of contents from each periodical")
 def cmd_load_articles():
 	logging.basicConfig(level=logging.DEBUG)
 	load_articles()
@@ -153,7 +154,7 @@ def load_articles():
 # Books and brocures
 #=============================================================================
 
-@pubs_cli.command("books", help="Get a list of books and brocures")
+@cli_update.command("books", help="Get a list of books and brocures")
 def cmd_load_books():
 	logging.basicConfig(level=logging.DEBUG)
 	load_books()
@@ -171,8 +172,6 @@ def load_books():
 		book.pub_code = pub['code']
 		book.thumbnail = pub['thumbnail']
 		book.href = pub['href']
-		#epub_url = pub_finder.get_epub_url(pub['code'])
-		#book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 	db.session.commit()
 
 #=============================================================================
@@ -184,8 +183,8 @@ def load_books():
 #        -> Video 
 #=============================================================================
 
-@pubs_cli.command("videos", help="Get list of all available videos")
-def cmd_load_videos():
+@cli_update.command("videos", help="Get list of all available videos")
+def cmd_update_videos():
 	logging.basicConfig(level=logging.DEBUG)
 	load_videos()
 
@@ -210,5 +209,28 @@ def load_videos():
 				video_obj.subcategory_name = subcategory.name
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
+	db.session.commit()
+
+#=============================================================================
+#
+#=============================================================================
+
+@cli_download.command("book", help="Download EPUB version of a book or brocure")
+@click.argument("pub_code")
+def cmd_download_book(pub_code):
+	book = Books.query.filter_by(pub_code=pub_code).one()
+	pub_finder = PubFinder(cachedir=app.cachedir)
+	epub_url = pub_finder.get_epub_url(pub_code)
+	book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
+	db.session.commit()
+
+@cli_download.command("issue", help="Download EPUB version of a periodical issue")
+@click.argument("pub_code")
+@click.argument("issue_code")
+def cmd_download_issue(pub_code, issue_code):
+	issue = Issues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one()
+	pub_finder = PubFinder(cachedir=app.cachedir)
+	epub_url = pub_finder.get_epub_url(pub_code, issue_code)
+	issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 	db.session.commit()
 
