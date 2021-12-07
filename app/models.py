@@ -38,19 +38,6 @@ class Articles(db.Model):
 	href = db.Column(db.String)
 	epub_href = db.Column(db.String)
 
-# Videos on JW.ORG
-class Videos(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	category_key = db.Column(db.String)
-	category_name = db.Column(db.String)
-	subcategory_key = db.Column(db.String)
-	subcategory_name = db.Column(db.String)
-	name = db.Column(db.String)
-	lank = db.Column(db.String)				# language agnostic natural key
-	docid = db.Column(db.String)			# MEPS document ID
-	thumbnail = db.Column(db.String)
-	href = db.Column(db.String)				# finder link
-
 # Books, brocures, etc. on JW.ORG
 class Books(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -59,5 +46,29 @@ class Books(db.Model):
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_filename = db.Column(db.String)
+
+# Videos on JW.ORG
+
+videos_rel = db.Table("videos_rel", db.Model.metadata,
+    db.Column('category_id', db.Integer, db.ForeignKey('video_categories.id'), primary_key=True),
+    db.Column('video_id', db.Integer, db.ForeignKey('videos.id'), primary_key=True)
+    )
+
+class VideoCategories(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	category_key = db.Column(db.String)
+	category_name = db.Column(db.String)
+	subcategory_key = db.Column(db.String)
+	subcategory_name = db.Column(db.String)
+	videos = db.relationship('Videos', secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
+
+class Videos(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String)
+	lank = db.Column(db.String)				# language agnostic natural key
+	docid = db.Column(db.String)			# MEPS document ID
+	thumbnail = db.Column(db.String)
+	href = db.Column(db.String)				# finder link
+	categories = db.relationship(VideoCategories, secondary=videos_rel, back_populates="videos")
 
 db.create_all()

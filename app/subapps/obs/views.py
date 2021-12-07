@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, Response, redirect
 import logging
 from collections import defaultdict
 
-from ...models import Weeks, Issues, Articles, Videos, Books
+from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
 from ... import app
 from ...jworg.meetings import MeetingLoader
 from ...jworg.epub import EpubLoader
@@ -69,7 +69,7 @@ def page_meetings():
 
 	return render_template("obs/meetings.html", weeks=Weeks.query)
 
-@blueprint.route("/videos")
+@blueprint.route("/videos/")
 def page_videos():
 	lank = request.args.get("lank")
 	if lank:
@@ -78,10 +78,15 @@ def page_videos():
 		media_url = meeting_loader.get_video_url(video.url)
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene(video.name, media_file)
-	videos = defaultdict(list)
-	for video in Videos.query.order_by(Videos.category_name, Videos.subcategory_name, Videos.name):
-		videos[(video.category_name, video.subcategory_name)].append(video)
-	return render_template("obs/videos.html", videos=videos)
+	categories = defaultdict(list)
+	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
+		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
+	return render_template("obs/video_categories.html", categories=categories.items())
+
+@blueprint.route("/videos/<category_key>/<subcategory_key>")
+def video_list(category_key, subcategory_key):
+	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
+	return render_template("obs/video_list.html", category=category)
 
 @blueprint.route("/epubs/")
 def epub_index():

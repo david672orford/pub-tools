@@ -5,6 +5,7 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/app.db' % os.path.abspath(app.instance_path),
 	SQLALCHEMY_TRACK_MODIFICATIONS = False,
+	SQLALCHEMY_ECHO = False,
 	ENABLED_SUBAPPS = ['toolbox', 'obs'],
 	)
 app.config.from_pyfile('config.py')

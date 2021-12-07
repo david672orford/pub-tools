@@ -1,0 +1,15 @@
+{% set title = "Видеоролики" %}
+{% extends "toolbox/base.html" %}
+
+{% block main %}
+<section>
+<ul>
+{% for category, subcategories in categories %}
+	<li>{{ category }}<ul>
+	{% for subcategory, category_key, subcategory_key in subcategories %}
+		<li><a href="{{category_key}}/{{subcategory_key}}">{{subcategory}}</a></li>
+	{% endfor %}
+	</ul>
+{% endfor %}
+</section>
+{% endblock %}

@@ -6,7 +6,7 @@ from flask.cli import AppGroup
 import click
 
 from app import app
-from .models import db, app, Issues, Articles, Videos, Weeks, Books
+from .models import db, app, Issues, Articles, Weeks, Books, VideoCategories, Videos
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
@@ -189,26 +189,32 @@ def cmd_update_videos():
 	load_videos()
 
 def load_videos():
-	video_lister = VideoLister()
-	for category in video_lister.get_category("VideoOnDemand").subcategories:
+	for category in VideoLister().get_category("VideoOnDemand").subcategories:
 		print("Category:", category.name)
 		assert len(category.videos) == 0
 		for subcategory in category.subcategories:
 			print("  Subcategory:", subcategory.name)
+			if subcategory.key.endswith("Featured"):
+				continue
+			category_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
+			if category_obj is None:
+				category_obj = VideoCategories(
+					category_key = category.key,
+					category_name = category.name,
+					subcategory_key = subcategory.key,
+					subcategory_name = subcategory.name,
+					)
+				db.session.add(category_obj)
 			for video in subcategory.videos:
 				print("    Video:", video.name)
 				video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 				if video_obj is None:
 					video_obj = Videos()
-					db.session.add(video_obj)
 				video_obj.lank = video.lank
 				video_obj.name = video.name
-				video_obj.category_key = category.key
-				video_obj.category_name = category.name
-				video_obj.subcategory_key = subcategory.key
-				video_obj.subcategory_name = subcategory.name
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
+				category_obj.videos.append(video_obj)
 	db.session.commit()
 
 #=============================================================================

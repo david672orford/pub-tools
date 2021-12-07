@@ -13,16 +13,20 @@ logger.setLevel(logging.INFO)
 
 class ObsControl:
 	def __init__(self):
-		self.virtual_cam_started = False
-		self.obs = obsws("localhost", 4444, "secret")
-		self.obs.connect()
-		version = self.obs.call(requests.GetVersion())
-		logger.info("OBS Studio version: %s" % version.getObsStudioVersion())
-		logger.info("OBS-Websocket version: %s" % version.getObsWebsocketVersion())
+		self.obs = None
+
+	def connect(self):
+		if self.obs is None:
+			self.obs = obsws("localhost", 4444, "secret")
+			self.obs.connect()
+			version = self.obs.call(requests.GetVersion())
+			logger.info("OBS Studio version: %s" % version.getObsStudioVersion())
+			logger.info("OBS-Websocket version: %s" % version.getObsWebsocketVersion())
 
 	# Dump the lists of scenes and their sources. We use this to better
 	# understand how to add scenes and sources.
 	def list_scenes(self):
+		self.connect()
 		for scene in self.obs.call(requests.GetSceneList()).getScenes():
 			print("==================================================================")
 			print("scene:", json.dumps(scene, indent=2, ensure_ascii=False))
@@ -34,6 +38,7 @@ class ObsControl:
 
 	def add_scene(self, scene_name, media_type, media_file):
 		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
+		self.connect()
 
 		# Get basename of media file
 		if re.match(r"^https?://", media_file, re.I):

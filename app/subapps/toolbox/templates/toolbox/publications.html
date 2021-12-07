@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<title>Публикации</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="./static/base.css">
-</head>
-<body>
-<header>
-	<h1>Публикации</h1>
-	<nav>
-	</nav>
-</header>
+{% set title = "Набор инструментов" %}
+{% extends "toolbox/base.html" %}
+
+{% block main %}
 {% for category_name, category_pubs in categories %}
-<section>
+<section class="pubs">
 <h2>{{category_name}}</h2>
-<ul class="pubs">
+<ul>
 {% for pub in category_pubs %}
 	<li>
 		<a href="{{pub.href}}">
@@ -30,5 +20,4 @@
 </ul>
 </section>
 {% endfor %}
-</body>
-</html>
+{% endblock %}

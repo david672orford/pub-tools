@@ -21,7 +21,10 @@ H2 {
 	margin: .2em 0;
 	}
 UL {
-	margin-left: 1.5em;
+	margin: 0 0 0 1.2em;
+	}
+LI {
+	margin: .2em 0;
 	}
 TABLE.borders {
 	border-collapse: collapse;
