@@ -16,13 +16,17 @@ class ObsToZoomBase:
 	def handle_message(self):
 		message = self.obs.recv_message()
 		logger.debug("Message: %s", json.dumps(message, indent=2))
-		if 'update-type' in message:
+		update_type = message.get('update-type')
+		if update_type is not None:
+			if update_type == "Exiting":
+				return False
 			try:
-				getattr(self, message['update-type'])(message)
+				getattr(self, update_type)(message)
 			except AttributeError:
 				pass
 			#except Exception as e:
 			#	logger.error("Exception: %s", str(e))
+			return True
 
 class ObsToZoomManual(ObsToZoomBase):
 

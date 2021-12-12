@@ -10,7 +10,7 @@ logging.basicConfig(
 	datefmt='%Y-%m-%d %H:%M:%S'
 	)
 
-from obs_ws import ObsEventReader
+from obs_api import ObsEventReader
 from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
 from zoom import ZoomControl
 
@@ -34,8 +34,6 @@ class MyObsScript(ObsScriptBase):
 		self.should_run = False
 		self.mode = None
 		self.thread = None
-		self.stop_event = threading.Event()
-		self.on_event_wrapped = lambda event: self.on_event(event)
 
 	# Called 1st at script startup to load the default settings
 	def script_defaults(self, settings):
@@ -96,15 +94,15 @@ class MyObsScript(ObsScriptBase):
 
 		if self.thread is not None:
 			print("Stopping thread...")
-			self.stop_event.set()
+			self.obs_reader.shutdown()
 			self.thread.join()
 			print("Thread stopped.")
 			self.thread = None
-			obs.obs_frontend_remove_event_callback(self.on_event_wrapped)
 
 		if self.should_run:
 			if self.obs_reader is None:
 				self.obs_reader = ObsEventReader()
+				self.obs_reader.startup()
 				self.zoom_controller = ZoomControl()
 
 			if self.mode == 1:
@@ -112,51 +110,14 @@ class MyObsScript(ObsScriptBase):
 			else:
 				self.policy = ObsToZoomAuto(self.obs_reader, self.zoom_controller)
 
-			self.stop_event.clear()
 			self.thread = threading.Thread(target=self.thread_body)
 			self.thread.daemon = True
 			self.thread.start()
 
-			obs.obs_frontend_add_event_callback(self.on_event_wrapped)
-
-			source_list = obs.obs_enum_sources()
-			for source in source_list:
-				print("source:", source)
-				self.on_source_create(source)
-			obs.source_list_release(source_list)
-
-			sh = obs.obs_get_signal_handler()
-			obs.signal_handler_connect(sh, "source_create", lambda data: self.on_source_create(obs.calldata_source(data,"source")))
-			#obs.signal_handler_connect(sh, "source_destroy", lambda data: self.on_source_destroy(data))
-
-
 	def thread_body(self):
 		print("Thread body")
-		while not self.stop_event.is_set():
-			self.policy.handle_message()
-
-	def on_event(self, event):
-		print("Event:", event)
-		if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
-			scene = obs.obs_frontend_get_current_scene()
-			print("Scene changed:", obs.obs_source_get_name(scene))
-		elif event == obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED:
-			print("Virtual camera started")
-		elif event == obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED:
-			print("Virtual camera stopped")
-
-	def on_source_create(self, source):
-		print("Source:", obs.obs_source_get_name(source))
-		handler = obs.obs_source_get_signal_handler(source)
-		obs.signal_handler_connect(handler, "media_started", lambda data: self.on_media_started(data))
-
-	def on_source_destroy(self, source):
-		pass
-
-	def on_media_started(self, data):
-		source = obs.calldata_source(data, "source")
-		name = obs.obs_source_get_name(source)
-		print("Media Started:", name)
+		while self.policy.handle_message():
+			pass
 
 MyObsScript()
 
