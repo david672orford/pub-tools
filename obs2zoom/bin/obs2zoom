@@ -2,12 +2,8 @@
 # obs2zoom
 
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
 import logging
-
-from obs_ws import ObsEventReader
-from obs2zoom import ObsToZoomManual, ObsToZoomAuto
-from zoom import ZoomControl
 
 # Modules have the logging level set to INFO except when we are debugging
 # them. Let the DEBUG messages through here.
@@ -25,13 +21,18 @@ with open("/proc/modules") as modules:
 		sys.stderr.write("Module v4l2loopback is not loaded.\n")
 		sys.exit(1)
 
+from obs_ws import ObsEventReader
+from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
+from zoom import ZoomControl
+
 obs = ObsEventReader()
 zoom = ZoomControl()
 
 if len(sys.argv) > 1 and sys.argv[1] == "--auto":
-	obs2zoom = ObsToZoomAuto(obs, zoom)
+	policy = ObsToZoomAuto(obs, zoom)
 else:
-	obs2zoom = ObsToZoomManual(obs, zoom)
+	policy = ObsToZoomManual(obs, zoom)
 
-obs2zoom.mainloop()
+while True:
+	policy.handle_message()
 

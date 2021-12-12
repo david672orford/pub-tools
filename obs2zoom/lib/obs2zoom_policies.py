@@ -3,6 +3,7 @@
 
 import json
 import logging
+from zoom import NoWidget
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -12,22 +13,24 @@ class ObsToZoomBase:
 		self.obs = obs
 		self.zoom = zoom
 
-	def mainloop(self):
-		while True:
-			message = self.obs.recv_message()
-			logger.debug("Message: %s", json.dumps(message, indent=2))
-			if 'update-type' in message:
-				try:
-					getattr(self, message['update-type'])(message)
-				except AttributeError:
-					pass
-				#except Exception as e:
-				#	logger.error("Exception: %s", str(e))
+	def handle_message(self):
+		message = self.obs.recv_message()
+		logger.debug("Message: %s", json.dumps(message, indent=2))
+		if 'update-type' in message:
+			try:
+				getattr(self, message['update-type'])(message)
+			except AttributeError:
+				pass
+			#except Exception as e:
+			#	logger.error("Exception: %s", str(e))
 
 class ObsToZoomManual(ObsToZoomBase):
 
 	def VirtualCamStarted(self, event):
-		self.zoom.start_screensharing()
+		try:
+			self.zoom.start_screensharing()
+		except NoWidget:
+			logger.error("Zoom window not found")
 
 	def VirtualCamStopped(self, event):
 		self.zoom.stop_screensharing()
@@ -78,7 +81,10 @@ class ObsToZoomAuto(ObsToZoomBase):
 	def start_screensharing(self):
 		if not self.screensharing_active:
 			self.pause_all(True)
-			self.zoom.start_screensharing()
+			try:
+				self.zoom.start_screensharing()
+			except NoWidget:
+				logger.error("Zoom window not found")
 			self.pause_all(False)
 			self.screensharing_active = True
 
