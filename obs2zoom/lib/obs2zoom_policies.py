@@ -6,7 +6,6 @@ import logging
 from zoom import NoWidget
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class ObsToZoomBase:
 	def __init__(self, obs, zoom):
@@ -16,6 +15,8 @@ class ObsToZoomBase:
 	def handle_message(self):
 		message = self.obs.recv_message()
 		logger.debug("Message: %s", json.dumps(message, indent=2))
+
+		# If this is an event, dispatch it to the appropriate handler (if it exists)
 		update_type = message.get('update-type')
 		if update_type is not None:
 			if update_type == "Exiting":
@@ -24,9 +25,8 @@ class ObsToZoomBase:
 				getattr(self, update_type)(message)
 			except AttributeError:
 				pass
-			#except Exception as e:
-			#	logger.error("Exception: %s", str(e))
-			return True
+
+		return True
 
 class ObsToZoomManual(ObsToZoomBase):
 
