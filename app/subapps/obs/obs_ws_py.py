@@ -1,4 +1,5 @@
 # Connect to OBS over websocket and manipulate its scene list
+# This version used OBS-Websocket-PY
 
 from urllib.parse import urlparse, unquote
 from obswebsocket import obsws, requests, events, exceptions

@@ -9,7 +9,7 @@ from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
 from ... import app
 from ...jworg.meetings import MeetingLoader
 from ...jworg.epub import EpubLoader
-from .obs import ObsControl
+from .obs_ws import ObsControl
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
@@ -39,7 +39,7 @@ def page_songs():
 		song = request.form['song']
 		media_url = meeting_loader.get_song_video_url(song)
 		media_file = meeting_loader.download_media(media_url)
-		obs_control.add_scene("ПЕСНЯ %s" % song, media_file)
+		obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
 	return render_template("obs/songs.html")
 
 @blueprint.route("/meetings", methods=['GET','POST'])
@@ -77,7 +77,7 @@ def page_videos():
 		logger.info("Load video: \"%s\" \"%s\"", video.name, video.url)
 		media_url = meeting_loader.get_video_url(video.url)
 		media_file = meeting_loader.download_media(media_url)
-		obs_control.add_scene(video.name, media_file)
+		obs_control.add_scene(video.name, "video", media_file)
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					

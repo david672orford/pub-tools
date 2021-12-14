@@ -33,6 +33,6 @@ if len(sys.argv) > 1 and sys.argv[1] == "--auto":
 else:
 	policy = ObsToZoomManual(obs, zoom)
 
-while True:
-	policy.handle_message()
+while policy.handle_message():
+	pass
 
