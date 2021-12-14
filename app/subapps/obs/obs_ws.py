@@ -1,4 +1,4 @@
-# Connect to OBS over websocket and manipulate its scene list
+# Add a scene with a single media item to OBS
 # This version uses OBS-Websocket
 
 import websocket
@@ -11,7 +11,6 @@ import hashlib
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 class ObsControl:
 	def __init__(self, hostname="localhost", port=4444, password="secret"):

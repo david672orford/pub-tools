@@ -8,8 +8,11 @@ from collections import defaultdict
 from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
 from ... import app
 from ...jworg.meetings import MeetingLoader
-from ...jworg.epub import EpubLoader
-from .obs_ws import ObsControl
+
+try:
+	from .obs_api import ObsControl
+except ModuleNotFoundError:
+	from .obs_ws import ObsControl
 
 logger = logging.getLogger(__name__)
 #logger.setLevel(logging.DEBUG)
@@ -32,6 +35,11 @@ def handle_500(error):
 @blueprint.route("/")
 def page_index():
 	return render_template("obs/index.html")
+
+@blueprint.route("/shutdown")
+def shutdown():
+	raise KeyboardInterrupt
+	return ""
 
 @blueprint.route("/songs", methods=['GET','POST'])
 def page_songs():
@@ -74,8 +82,8 @@ def page_videos():
 	lank = request.args.get("lank")
 	if lank:
 		video = Videos.query.filter_by(lank=lank).one()
-		logger.info("Load video: \"%s\" \"%s\"", video.name, video.url)
-		media_url = meeting_loader.get_video_url(video.url)
+		logger.info("Load video: \"%s\" \"%s\"", video.name, video.href)
+		media_url = meeting_loader.get_video_url(video.href)
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene(video.name, "video", media_file)
 	categories = defaultdict(list)
@@ -87,40 +95,4 @@ def page_videos():
 def video_list(category_key, subcategory_key):
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
 	return render_template("obs/video_list.html", category=category)
-
-@blueprint.route("/epubs/")
-def epub_index():
-	return render_template("obs/epub_index.html", periodicals=Issues.query, books=Books.query)
-
-@blueprint.route("/epubs/<pub_code>/")
-def epub_toc(pub_code):
-	epub = open_epub(pub_code)
-	id = request.args.get("id")
-	if id is not None:
-		for item in epub.opf.toc:
-			if item.id == id:
-				return redirect(item.href)
-	return render_template("obs/epub_toc.html", epub=epub)
-
-@blueprint.route("/epubs/<pub_code>/<path:path>")
-def epub_file(pub_code, path):
-	epub = open_epub(pub_code)
-	item = epub.opf.manifest_by_href.get(path)
-	if item is None:
-		abort(404)
-
-	file_handle, content_length = epub.open(item.href)
-	response = Response(file_handle, mimetype=item.mimetype)
-	response.make_conditional(request, complete_length = content_length)
-	return response
-
-def open_epub(pub_code):
-	if "-" in pub_code:
-		pub_code, issue_code = pub_code.split("-",1)
-		pub = Issues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
-	else:
-		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
-	if pub is None:
-		abort(404)
-	return EpubLoader(os.path.join(app.cachedir, pub.epub_filename))
 

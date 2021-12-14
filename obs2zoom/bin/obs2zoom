@@ -3,6 +3,7 @@
 
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
+import argparse
 import logging
 
 # Modules have the logging level set to INFO except when we are debugging
@@ -25,10 +26,20 @@ from obs_ws import ObsEventReader
 from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
 from zoom import ZoomControl
 
-obs = ObsEventReader()
+parser = argparse.ArgumentParser(description="Automatically stop and start sharing of OBS virtual camera in Zoom")
+parser.add_argument("--auto", dest="auto_mode", action="store_true", help="share screen when vcam on and media playing")
+parser.add_argument("--manual", dest="auto_mode", action="store_false", help="share screen when vcam on")
+options = parser.parse_args()
+
+try:
+	obs = ObsEventReader()
+except ConnectionRefusedError:
+	sys.stderr.write("%s: OBS-Websocket not running\n" % sys.argv[0])
+	sys.exit(1)
+
 zoom = ZoomControl()
 
-if len(sys.argv) > 1 and sys.argv[1] == "--auto":
+if options.auto_mode:
 	policy = ObsToZoomAuto(obs, zoom)
 else:
 	policy = ObsToZoomManual(obs, zoom)

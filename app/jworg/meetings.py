@@ -100,7 +100,7 @@ class MeetingLoader(Fetcher):
 						text = a.text_content().strip()
 						#scenes.append((text, "web", urljoin(url, a.attrib['href'])))
 						chapter = int(re.search(r"(\d+)$", text).group(1))
-						scenes.append((text, "web", "http://localhost:5000/obs/epubs/th/?id=chapter%d" % (chapter + 4)))
+						scenes.append((text, "web", "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4)))
 						is_a = "counsel point"
 						break
 
