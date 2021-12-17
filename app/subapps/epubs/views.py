@@ -1,25 +1,24 @@
 # Views for loading media from JW.ORG into OBS
 
+from flask import Blueprint, render_template, request, Response, redirect, abort
 import os
-from flask import Blueprint, render_template, request, Response, redirect
-import logging
 from collections import defaultdict
+import logging
 
 from ...models import Issues, Books
 from ... import app
 from ...jworg.epub import EpubLoader
 
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('epubs', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'Epubs'
 
-@blueprint.route("/epubs/")
+@blueprint.route("/")
 def epub_index():
 	return render_template("epubs/index.html", periodicals=Issues.query, books=Books.query)
 
-@blueprint.route("/epubs/<pub_code>/")
+@blueprint.route("/<pub_code>/")
 def epub_toc(pub_code):
 	epub = open_epub(pub_code)
 	id = request.args.get("id")
@@ -29,7 +28,7 @@ def epub_toc(pub_code):
 				return redirect(item.href)
 	return render_template("epubs/toc.html", epub=epub)
 
-@blueprint.route("/epubs/<pub_code>/<path:path>")
+@blueprint.route("/<pub_code>/<path:path>")
 def epub_file(pub_code, path):
 	epub = open_epub(pub_code)
 	item = epub.opf.manifest_by_href.get(path)
@@ -47,7 +46,7 @@ def open_epub(pub_code):
 		pub = Issues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
 	else:
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
-	if pub is None:
+	if pub is None or pub.epub_filename is None:
 		abort(404)
 	return EpubLoader(os.path.join(app.cachedir, pub.epub_filename))
 

@@ -8,7 +8,6 @@ from time import sleep, time
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class NoRedirects(HTTPErrorProcessor):
 	def http_response(self, request, response):

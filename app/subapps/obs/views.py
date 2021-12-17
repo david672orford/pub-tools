@@ -15,7 +15,6 @@ except ModuleNotFoundError:
 	from .obs_ws import ObsControl
 
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('obs', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'OBS'
@@ -32,14 +31,16 @@ obs_control = ObsControl()
 def handle_500(error):
 	return render_template("obs/500.html"), 500
 
-@blueprint.route("/")
-def page_index():
-	return render_template("obs/index.html")
-
+# The Werkzeig developement server sometimes does not respond to a shutdown
+# request until it gets the next HTTP request. So we use this instead.
+# It is called from the OBS plugin to shut down the server thread.
 @blueprint.route("/shutdown")
 def shutdown():
 	raise KeyboardInterrupt
-	return ""
+
+@blueprint.route("/")
+def page_index():
+	return render_template("obs/index.html")
 
 @blueprint.route("/songs", methods=['GET','POST'])
 def page_songs():

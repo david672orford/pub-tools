@@ -4,7 +4,6 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Scan a Meeting Workbook week or Watchtower study article and return
 # a list of the vidoes and pictures therein.

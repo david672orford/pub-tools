@@ -1,3 +1,5 @@
+# Used instead of obs_ws.py when we are running as an OBS script
+
 import obspython as obs
 from threading import Condition
 import logging

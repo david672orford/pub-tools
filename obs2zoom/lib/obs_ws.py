@@ -1,7 +1,4 @@
-# ## Simple OBS Websocket client library
-# * [OBS-Websocket plugin](https://github.com/Palakis/obs-websocket)
-# * [OBS-Websocket plugin Protocol](https://github.com/Palakis/obs-websocket/blob/4.x-current/docs/generated/protocol.md)
-# * [OBS-Websocket-Py client](https://github.com/Elektordi/obs-websocket-py)
+# A simple OBS Websocket client library
 
 import websocket
 import json

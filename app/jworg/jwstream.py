@@ -7,7 +7,6 @@ from urllib.parse import urlparse, unquote
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 #import http.client as http_client
 #http_client.HTTPConnection.debuglevel = 1

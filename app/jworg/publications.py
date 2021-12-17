@@ -4,7 +4,6 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Search for publications on JW.ORG.
 class PubFinder(Fetcher):

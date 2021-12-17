@@ -4,7 +4,6 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 # Retrieve a video category from JW.ORG. Returns a VideoCategory object.
 class VideoLister(Fetcher):
