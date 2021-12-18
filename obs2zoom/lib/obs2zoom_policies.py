@@ -53,7 +53,7 @@ class ObsToZoomAuto(ObsToZoomBase):
 			if source['type'] == 'image_source':
 				self.images_count += 1
 			elif source['type'] == 'ffmpeg_source':
-				self.videos_playing.add(event['sourceName'])
+				self.videos_playing.add(source['name'])
 		self.update_screensharing()
 
 	#===================================================================
