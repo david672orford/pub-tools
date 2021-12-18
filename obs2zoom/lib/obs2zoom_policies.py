@@ -44,8 +44,22 @@ class ObsToZoomAuto(ObsToZoomBase):
 		super().__init__(*args)
 		self.videos_playing = set()
 		self.images_count = 0
-		self.vcam_active = False
+		self.vcam_active = self.obs.get_virtualcam_active()
 		self.screensharing_active = False
+
+		# Catch up on what we missed.
+		# FIXME: assumes the videos are playing
+		for source in self.obs.get_current_sources():
+			if source['type'] == 'image_source':
+				self.images_count += 1
+			elif source['type'] == 'ffmpeg_source':
+				self.videos_playing.add(event['sourceName'])
+		self.update_screensharing()
+
+	#===================================================================
+	# Event receivers
+	# Keep track of what OBS Studio is doing
+	#===================================================================
 
 	def VirtualCamStarted(self, event):
 		self.vcam_active = True
@@ -70,11 +84,14 @@ class ObsToZoomAuto(ObsToZoomBase):
 		self.videos_playing.discard(event['sourceName'])
 		self.update_screensharing()
 
-	# Stop or start screen sharing based on:
+	#===================================================================
+	# The following functions stop or start screen sharing based on:
 	# * Whether videos are playing
 	# * Whether still pictures are present in this scene
 	# * Whether the virtual camera is enabled
 	# * Whether screen sharing is already in the proper state
+	#===================================================================
+
 	def update_screensharing(self):
 		logger.debug("vcam_active=%s, videos_playing=%s, images_count=%d", self.vcam_active, self.videos_playing, self.images_count)
 		if self.vcam_active and (len(self.videos_playing) > 0 or self.images_count > 0):

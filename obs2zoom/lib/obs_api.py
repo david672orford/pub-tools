@@ -70,6 +70,13 @@ class ObsEventReader:
 		self.condition.notify()
 		self.condition.release()
 
+	def get_virtualcam_active(self):
+		return obs.obs_frontend_virtualcam_active()
+
+	def get_current_sources(self):
+		scene = obs.obs_frontend_get_current_scene()
+		return self.get_scene_items(scene)
+
 	def on_frontend_event(self, event):
 		if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
 			scene = obs.obs_frontend_get_current_scene()

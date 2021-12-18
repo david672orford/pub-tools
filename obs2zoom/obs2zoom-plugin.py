@@ -2,17 +2,37 @@ import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 import obspython as obs
 import threading
-import logging
+import logging, logging.config
 
 from obs_api import ObsEventReader
 from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
 from zoom import ZoomControl
 
-logging.basicConfig(
-	level=logging.DEBUG,
-	format='%(asctime)s %(levelname)s %(name)s %(message)s',
-	datefmt='%H:%M:%S',
-	)
+logging.config.dictConfig({
+	'version': 1,
+	'formatters': {
+		'default': {
+			'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
+			'datefmt': '%H:%M:%S',
+			}
+		},
+	'handlers': {
+		'console': {
+			'class': 'logging.StreamHandler',
+			'formatter': 'default',
+			'level': 'WARN',	# cooresponds to initial setting of debug=False
+			},
+		},
+	'root': {
+		# Leave set to DEBUG. This will serve as a default for loggers which do not
+		# set their own level. We will raise and lower the level of the handler in
+		# order to control the logging level.
+		'level': 'DEBUG',
+		'handlers': ['console'],
+		},
+	'loggers': {
+		}
+	})
 
 class MyObsScript:
 	description = "Start and stop sharing of virtual camera in Zoom"
@@ -58,10 +78,9 @@ class MyObsScript:
 
 	# Accept settings (possibly changed)
 	def script_update(self, settings):
-		enable = obs.obs_data_get_bool(settings, "enable")
 		mode = obs.obs_data_get_int(settings, "mode")
 		debug = obs.obs_data_get_bool(settings, "debug")
-		self.logger.debug("Settings: enable=%s, mode=%s, debug=%s", enable, mode, debug)
+		self.logger.debug("Settings: mode=%s, debug=%s", mode, debug)
 
 		if debug != self.debug:
 			if debug:

@@ -32,6 +32,7 @@ class PubFinder(Fetcher):
 
 			container = html.get_element_by_id('pubsViewResults')
 
+			# Periodical name as section heading
 			h2 = container.xpath("./h2")
 			if len(h2) > 0:
 				periodical_name = h2[0].text
@@ -42,6 +43,7 @@ class PubFinder(Fetcher):
 				else:
 					periodical_name = None
 
+			# Step through the listed issues
 			for pub in container.find_class('synopsis'):
 				if "textOnly" in pub.attrib['class']:
 					continue
