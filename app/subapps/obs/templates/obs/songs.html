@@ -8,4 +8,12 @@
 <button type="submit">Add</button>
 </form>
 </section>
+
+<section>
+<ul>
+{% for video in videos %}
+<li><a href=".?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
+{% endfor %}
+</ul>
+</section>
 {% endblock %}

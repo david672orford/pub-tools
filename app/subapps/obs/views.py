@@ -1,9 +1,11 @@
 # Views for loading media from JW.ORG into OBS
 
-import os
 from flask import Blueprint, render_template, request, Response, redirect
+import os
 import logging
 from collections import defaultdict
+from sqlalchemy import or_, and_
+from datetime import date
 
 from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
 from ... import app
@@ -42,17 +44,11 @@ def shutdown():
 def page_index():
 	return render_template("obs/index.html")
 
-@blueprint.route("/songs", methods=['GET','POST'])
-def page_songs():
-	if request.method == 'POST':
-		song = request.form['song']
-		media_url = meeting_loader.get_song_video_url(song)
-		media_file = meeting_loader.download_media(media_url)
-		obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
-	return render_template("obs/songs.html")
-
-@blueprint.route("/meetings", methods=['GET','POST'])
+@blueprint.route("/meetings/", methods=['GET','POST'])
 def page_meetings():
+
+	url = None
+	error = None
 
 	# Get the URL of the article (from the Watchtower or the Meeting Workbook)
 	# which will be studied at this meeting.
@@ -60,10 +56,11 @@ def page_meetings():
 		url = request.args.get('url')
 	elif 'docid' in request.args:
 		docid = int(request.args.get('docid'))
-		article = Articles.query.filter_by(docid=docid).one()
-		url = article.href
-	else:
-		url = None
+		article = Articles.query.filter_by(docid=docid).one_or_none()
+		if article is not None:
+			url = article.href
+		else:
+			error = "Article for the requested week is not in the database."
 
 	# If we have the article's URL, scan it and download the songs, videos,
 	# and illustrations and add them to OBS as scenes.
@@ -76,24 +73,50 @@ def page_meetings():
 				media_file = meeting_loader.download_media(media_url)
 				obs_control.add_scene(scene_name, media_type, media_file)
 
-	return render_template("obs/meetings.html", weeks=Weeks.query)
+	weeks = Weeks.query
+	if not request.args.get("all", False):
+		now_year, now_week, now_weekday = date.today().isocalendar()
+		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
+
+	return render_template("obs/meetings.html", weeks=weeks, error=error)
+
+@blueprint.route("/songs/", methods=['GET','POST'])
+def page_songs():
+	if request.method == 'POST':
+		song = request.form['song']
+	else:
+		song = request.args.get('song')
+	if song is not None:
+		media_url = meeting_loader.get_song_video_url(song)
+		media_file = meeting_loader.download_media(media_url)
+		obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
+
+	lank = request.args.get("lank")
+	if lank:
+		add_video(lank)
+
+	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
+	return render_template("obs/songs.html", videos=category.videos)
 
 @blueprint.route("/videos/")
 def page_videos():
-	lank = request.args.get("lank")
-	if lank:
-		video = Videos.query.filter_by(lank=lank).one()
-		logger.info("Load video: \"%s\" \"%s\"", video.name, video.href)
-		media_url = meeting_loader.get_video_url(video.href)
-		media_file = meeting_loader.download_media(media_url)
-		obs_control.add_scene(video.name, "video", media_file)
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
 	return render_template("obs/video_categories.html", categories=categories.items())
 
-@blueprint.route("/videos/<category_key>/<subcategory_key>")
+@blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def video_list(category_key, subcategory_key):
+	lank = request.args.get("lank")
+	if lank:
+		add_video(lank)
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
 	return render_template("obs/video_list.html", category=category)
+
+def add_video(lank):
+	video = Videos.query.filter_by(lank=lank).one()
+	logger.info("Load video: \"%s\" \"%s\"", video.name, video.href)
+	media_url = meeting_loader.get_video_url(video.href)
+	media_file = meeting_loader.download_media(media_url)
+	obs_control.add_scene(video.name, "video", media_file)
 

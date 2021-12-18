@@ -1,14 +1,21 @@
 {% set title = "Epub Index" %}
-{% extends "obs/base.html" %}
+{% extends "epubs/base.html" %}
 
 {% block main %}
 <section>
+<h2>Periodicals</h2>
 <ul>
 {% for periodical in periodicals %}
 <li><a href="{{periodical.pub_code}}-{{periodical.issue_code}}/">{{periodical.pub_code}} {{periodical.issue_code}}</a></li>
 {% endfor %}
+</ul>
+</section>
+
+<section>
+<h2>Books and Brocures</h2>
+<ul>
 {% for book in books %}
-<li><a href="{{book.pub_code}}/">{{book.name}}</a></li>
+<li><a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a></li>
 {% endfor %}
 </ul>
 </section>

@@ -26,19 +26,3 @@ UL {
 LI {
 	margin: .2em 0;
 	}
-DIV.flash {
-	background-color: #C00000;
-	color: white;
-	border-radius: 5px;
-	margin: .5em;
-	padding: .5em;
-	font-family: sans-serif;
-	}
-TABLE.borders {
-	border-collapse: collapse;
-	}
-TABLE.borders TH, TABLE.borders TD {
-	border: thin solid black;
-	text-align: left;
-	padding: .3em;
-	}

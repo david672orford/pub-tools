@@ -17,7 +17,7 @@ from rich.table import Table
 
 logger = logging.getLogger(__name__)
 
-cli_update = AppGroup("update", help="Download lists of publications available on JW.ORG")
+cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 app.cli.add_command(cli_update)
 
 cli_download = AppGroup("download", help="Download publications")
@@ -29,12 +29,12 @@ LANGUAGE = "ru"
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
 
-@cli_update.command("weeks", help="Load weekly meeting schedule")
-def cmd_load_weeks():
+@cli_update.command("meetings", help="Load weekly meeting schedule")
+def cmd_load_meetings():
 	logging.basicConfig(level=logging.DEBUG)
-	load_weeks()
+	load_meetings()
 
-def load_weeks():
+def load_meetings():
 	meeting_loader = MeetingLoader()
 	current_day = date.today()
 	for i in range(4):
@@ -67,12 +67,17 @@ def cmd_load_study():
 		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
 		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
 		))
+	load_articles()
 
-@cli_update.command("magazines", help="Load Watchtowers and Awakes")
+@cli_update.command("magazines", help="Load all available Watchtowers and Awakes")
 def cmd_load_magazines():
 	logging.basicConfig(level=logging.DEBUG)
-	# FIXME: get date 
-	load_periodicals([("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, 2023)])
+	end_year = date.today().year
+	load_periodicals(
+		[("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, end_year)]
+		+ ["magazines/", dict(contentLanguage=LANGUAGE)]
+		)
+	load_articles()
 
 def load_periodicals(searches):
 	pub_finder = PubFinder(cachedir=app.cachedir)
@@ -107,16 +112,8 @@ def load_periodicals(searches):
 
 	db.session.commit()
 
-#=============================================================================
 # Download the table of contents of each periodical in the database
 # and add the articles to the Articles table.
-#=============================================================================
-
-@cli_update.command("articles", help="Download the table of contents from each periodical")
-def cmd_load_articles():
-	logging.basicConfig(level=logging.DEBUG)
-	load_articles()
-
 # From web version
 def load_articles():
 	pub_finder = PubFinder()
@@ -221,7 +218,7 @@ def load_videos():
 #
 #=============================================================================
 
-@cli_download.command("book", help="Download EPUB version of a book or brocure")
+@cli_download.command("epub-book", help="Download EPUB version of a book or brocure")
 @click.argument("pub_code")
 def cmd_download_book(pub_code):
 	book = Books.query.filter_by(pub_code=pub_code).one()
@@ -230,7 +227,7 @@ def cmd_download_book(pub_code):
 	book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 	db.session.commit()
 
-@cli_download.command("issue", help="Download EPUB version of a periodical issue")
+@cli_download.command("epub-issue", help="Download EPUB version of a periodical issue")
 @click.argument("pub_code")
 @click.argument("issue_code")
 def cmd_download_issue(pub_code, issue_code):

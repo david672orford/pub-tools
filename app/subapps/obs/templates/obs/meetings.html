@@ -3,13 +3,11 @@
 
 {% block main %}
 
-<section>
-<h2>By Article URL</h2>
-<form action="articles" method="POST">
-<input type="text" name="url" size=40>
-<button type="submit">Add</button>
-</form>
-</section>
+{% if error %}
+<div class="flash">
+{{ error }}
+</div>
+{% endif %}
 
 <section>
 <h2>By Week</h2>
@@ -18,12 +16,20 @@
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td><a href="meetings?docid={{week.mwb_docid}}">Midweek</a></td>
-	<td><a href="meetings?docid={{week.watchtower_docid}}">Weekend</a></td>
+	<td><a href=".?docid={{week.mwb_docid}}">Midweek</a></td>
+	<td><a href=".?docid={{week.watchtower_docid}}">Weekend</a></td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
+</section>
+
+<section>
+<h2>By Article URL</h2>
+<form action="articles" method="POST">
+<input type="text" name="url" size=40>
+<button type="submit">Add</button>
+</form>
 </section>
 
 {% endblock %}

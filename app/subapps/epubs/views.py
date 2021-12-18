@@ -16,7 +16,11 @@ blueprint.display_name = 'Epubs'
 
 @blueprint.route("/")
 def epub_index():
-	return render_template("epubs/index.html", periodicals=Issues.query, books=Books.query)
+	return render_template(
+		"epubs/index.html",
+		periodicals=Issues.query.order_by(Issues.pub_code, Issues.issue_code),
+		books=Books.query.order_by(Books.name),
+		)
 
 @blueprint.route("/<pub_code>/")
 def epub_toc(pub_code):

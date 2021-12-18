@@ -8,6 +8,11 @@ BODY {
 	}
 HEADER {
 	padding: 5px;
+	background-color: #f0f0f0;
+	border-bottom: thin solid grey;
+	}
+NAV {
+	padding: 5px 0;
 	}
 SECTION {
 	margin: 5px;
@@ -16,7 +21,7 @@ H1, H2 {
 	font-weight: bold;
 	}
 H1 {
-	font-size; 150%;
+	font-size: 150%;
 	}
 H2 {
 	font-size: 120%;
