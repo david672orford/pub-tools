@@ -18,14 +18,19 @@
 # 
 
 from ewmh import EWMH
+import Xlib
 from Xlib import X, protocol, XK, ext
 from time import sleep
 import logging
 
 logger = logging.getLogger(__name__)
 
-class NoWidget(Exception):
-	pass
+assert Xlib.__version__ == (0, 23)
+
+class NoZoomWindow(Exception):
+	def __init__(self, window_name):
+		window_name = window_name
+		super().__init__("No such window: " + window_name)
 
 class ZoomControl:
 	conference_window_title = "Конференция Zoom"
@@ -51,7 +56,7 @@ class ZoomControl:
 				if name == find_name:
 					return window
 			sleep(.25)
-		raise NoWidget("No window with title \"%s\"" % find_name)
+		raise NoZoomWindow(find_name)
 	
 	# Send keys to a window using the XTEST extension
 	def send_keys(self, window, keynames):

@@ -128,14 +128,18 @@ class Fetcher:
 			request = Request(url)
 			request.add_header("User-Agent", "Mozilla/5.0")
 			response = urlopen(request)
+			total_expected = response.headers.get("Content-Length")
 			with open(cachefile + ".tmp", "wb") as fh:
+				total_recv = 0
 				while True:
 					chunk = response.read(16384)
 					if not chunk:
 						break
 					fh.write(chunk)
+					total_recv += len(chunk)
+					logger.debug("%d of %s bytes received", total_recv, total_expected)
 			os.rename(cachefile + ".tmp", cachefile)
-			logger.info(" Download complete")
+			logger.info("Download complete %d bytes received", total_recv)
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number

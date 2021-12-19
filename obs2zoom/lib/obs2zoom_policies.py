@@ -3,7 +3,7 @@
 
 import json
 import logging
-from zoom import NoWidget
+from zoom import NoZoomWindow
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,10 @@ class ObsToZoomManual(ObsToZoomBase):
 	def VirtualCamStarted(self, event):
 		try:
 			self.zoom.start_screensharing()
-		except NoWidget:
-			logger.error("Zoom window not found")
+		except NoZoomWindow as e:
+			logger.error(str(e))
+		except Exception:
+			logger.exception("Failed to start screen sharing")
 
 	def VirtualCamStopped(self, event):
 		self.zoom.stop_screensharing()
@@ -104,8 +106,10 @@ class ObsToZoomAuto(ObsToZoomBase):
 			self.pause_all(True)
 			try:
 				self.zoom.start_screensharing()
-			except NoWidget:
-				logger.error("Zoom window not found")
+			except NoZoomWindow as e:
+				logger.error("NoZoomWindow: %s", str(e))
+			except Exception:
+				logger.exception("Failed to start screen sharing")
 			self.pause_all(False)
 			self.screensharing_active = True
 

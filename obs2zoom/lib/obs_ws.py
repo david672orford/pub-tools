@@ -4,13 +4,18 @@ import websocket
 import json
 import base64
 import hashlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ObsEventReader:
 	def __init__(self, hostname="localhost", port=4444, password="secret"):
+		logger.debug("Connecting to OBS...")
 		self.ws = websocket.WebSocket()
 		self.ws.connect("ws://%s:%d" % (hostname, port))
 		self.id = 1
 
+		logger.debug("Logging in...")
 		response = self.request({"request-type": "GetAuthRequired"})
 		assert response['status'] == 'ok'
 
@@ -19,6 +24,8 @@ class ObsEventReader:
 			auth = base64.b64encode(hashlib.sha256(secret + response['challenge'].encode('utf-8')).digest()).decode('utf-8')
 			response = self.request({"request-type": "Authenticate", "auth": auth})
 			assert response['status'] == 'ok'
+
+		logger.debug("Ready to receive messages from OBS.")
 
 	def send_message(self, data):
 		id = self.id

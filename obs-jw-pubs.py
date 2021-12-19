@@ -20,6 +20,10 @@ class MyWSGIRequestHandler(WSGIRequestHandler):
 
 from app import app
 
+# We control logging levels in the following way:
+# * The Debug checkbox changes the logging level of the console handler
+# * The level set on the "root" logger is the default for children 
+# * The level of specific children can be set by added lines to "loggers"
 logging.config.dictConfig({
 	'version': 1,
 	'formatters': {
@@ -32,28 +36,34 @@ logging.config.dictConfig({
 		'console': {
 			'class': 'logging.StreamHandler',
 			'formatter': 'default',
-			'level': 'WARN',	# cooresponds to initial setting of debug=False
+			},
+		'file': {
+			'class': 'logging.FileHandler',
+			'filename': '/tmp/obs-jw-pubs.log',
+			'formatter': 'default',
+			'level': 'DEBUG',
 			},
 		},
 	'root': {
-		# Leave set to DEBUG. This will serve as a default for loggers which do not
-		# set their own level. We will raise and lower the level of the handler in
-		# order to control the logging level.
 		'level': 'DEBUG',
-		'handlers': ['console'],
+		'handlers': ['console','file'],
 		},
 	'loggers': {
 		'werkzeug': { 'level': 'DEBUG' },
-		'app.subapps.epubs': { 'level': 'DEBUG' },
+		'app': { 'level': 'DEBUG' },
 		}
 	})
+
+# Show levels settings of all the loggers
+for logger_name, logger in logging.root.manager.loggerDict.items():
+	print("Logger", logger_name, logging.getLevelName(getattr(logger, "level", None)))
 
 class MyObsScript:
 	description = "Load videos and illustrations from JW.ORG"
 
 	def __init__(self):
 		self.enable = False		# should the HTTP server be running?
-		self.debug = False
+		self.debug = None
 		self.thread = None		# HTTP server thread
 
 		# Get the log handler of the root logger so that we can change its level
@@ -88,13 +98,8 @@ class MyObsScript:
 		self.logger.debug("Settings: enable=%s, debug=%s", enable, debug)
 
 		if debug != self.debug:
-			if debug:
-				self.log_handler.setLevel(logging.DEBUG)
-				self.logger.debug("log_level set to DEBUG")
-			else:
-				self.logger.debug("log_level set to WARN")
-				self.log_handler.setLevel(logging.WARN)
 			self.debug = debug
+			self.update_debug()
 
 		if enable != self.enable:
 			self.logger.debug("enable changed from %s to %s", self.enable, enable)
@@ -105,6 +110,15 @@ class MyObsScript:
 	def script_unload(self):
 		self.enable = False
 		self.update_thread()
+
+	def update_debug(self):
+		if self.debug:
+			self.log_handler.setLevel(logging.DEBUG)
+			self.logger.debug("log_level set to DEBUG")
+		else:
+			if self.log_handler.level != logging.NOTSET:
+				self.logger.debug("log_level set to WARN")
+			self.log_handler.setLevel(logging.WARN)
 
 	# Start or stop the HTTP server thread in accord with the current settings
 	def update_thread(self):
@@ -126,5 +140,6 @@ class MyObsScript:
 			self.thread = threading.Thread(target=server.serve_forever)
 			self.thread.daemon = True
 			self.thread.start()
+			self.logger.debug("Server is running.")
 
 MyObsScript()

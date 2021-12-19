@@ -24,13 +24,10 @@ logging.config.dictConfig({
 			},
 		},
 	'root': {
-		# Leave set to DEBUG. This will serve as a default for loggers which do not
-		# set their own level. We will raise and lower the level of the handler in
-		# order to control the logging level.
-		'level': 'DEBUG',
+		'level': 'DEBUG',		# default for child loggers
 		'handlers': ['console'],
 		},
-	'loggers': {
+	'loggers': {				# overrides for particular loggers
 		}
 	})
 

@@ -9,7 +9,6 @@ import re
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 class ObsControl:
 	def __init__(self):
@@ -47,12 +46,15 @@ class ObsControl:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
 
 		# Create a new scene. Naming conflicts resolved automatically.
+		logger.debug("Creating scene...")
 		scene = obs.obs_scene_create(scene_name)
 
 		# Create a source to play our file. Naming conflicts resolved automatically.
+		logger.debug("Creating source...")
 		source = obs.obs_source_create(source_type, source_name, source_settings, None)
 
 		# Add the source to the scene creating a scene item.
+		logger.debug("Adding source to scene...")
 		scene_item = obs.obs_scene_add(scene, source)
 
 		# Make the video fill the screen
@@ -68,7 +70,9 @@ class ObsControl:
 		if media_type == "video":
 			obs.obs_source_set_monitoring_type(source, obs.OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT)
 
+		logger.debug("Freeing objects...")
 		obs.obs_scene_release(scene)
 		obs.obs_data_release(source_settings)
 		obs.obs_source_release(source)
+		logger.debug("Done.")
 

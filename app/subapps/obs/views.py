@@ -65,6 +65,7 @@ def page_meetings():
 	# If we have the article's URL, scan it and download the songs, videos,
 	# and illustrations and add them to OBS as scenes.
 	if url is not None:
+		logger.info('Load meeting: %s', url)
 		scenes = meeting_loader.extract_media(url)
 		for scene_name, media_type, media_url in scenes:
 			if media_type == "web":		# HTML page
@@ -87,6 +88,7 @@ def page_songs():
 	else:
 		song = request.args.get('song')
 	if song is not None:
+		logger.info('Load song: "%s"', song)
 		media_url = meeting_loader.get_song_video_url(song)
 		media_file = meeting_loader.download_media(media_url)
 		obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
@@ -113,9 +115,10 @@ def video_list(category_key, subcategory_key):
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
 	return render_template("obs/video_list.html", category=category)
 
+# Download a video (if it is not already cached) and add it to OBS as a scene
 def add_video(lank):
 	video = Videos.query.filter_by(lank=lank).one()
-	logger.info("Load video: \"%s\" \"%s\"", video.name, video.href)
+	logger.info('Load video: "%s" "%s"', video.name, video.href)
 	media_url = meeting_loader.get_video_url(video.href)
 	media_file = meeting_loader.download_media(media_url)
 	obs_control.add_scene(video.name, "video", media_file)
