@@ -102,6 +102,7 @@ def load_periodicals(searches):
 		if issue is None:
 			issue = Issues()
 			db.session.add(issue)
+		issue.name = pub['name']
 		issue.pub_code = pub['code']
 		issue.issue_code = pub['issue_code']
 		issue.issue = pub['issue']

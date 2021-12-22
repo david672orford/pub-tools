@@ -18,14 +18,16 @@
 # 
 
 from ewmh import EWMH
-import Xlib
 from Xlib import X, protocol, XK, ext
+from Xlib.error import BadMatch
 from time import sleep
 import logging
 
-logger = logging.getLogger(__name__)
-
+# FIXME: temporary while we are diagnosing a problem
+import Xlib
 assert Xlib.__version__ == (0, 23)
+
+logger = logging.getLogger(__name__)
 
 class NoZoomWindow(Exception):
 	def __init__(self, window_name):
@@ -99,16 +101,24 @@ class ZoomControl:
 
 		# Do a screenshot of the "Share Audio" checkbox. If it has no blue, click on it.
 		while True:
-			image = self.dialog_window.get_image(10, geometry.height - 30, 20, 20, X.ZPixmap, 0xffffffff)
-			image_hex = image.data.hex('-',-4)
-			#logger.debug(image_hex)
-			if image_hex.startswith("ffffffff-ffffffff-ffffffff-"):						# white background of dialog box
-				break
-			sleep(0.2)
+			try:
+				image = self.dialog_window.get_image(10, geometry.height - 30, 20, 20, X.ZPixmap, 0xffffffff)
+				image_hex = image.data.hex('-',-4)
+				#logger.debug(image_hex)
+				# We are waiting for the white background of the dialog box.
+				if image_hex.startswith("ffffffff-ffffffff-ffffffff-"):
+					break
+			except BadMatch:
+				logger.warning("get_image() failed: BadMatch")
+			sleep(0.5)
+
+		# For debugging: show the image
 		#from PIL import Image
 		#Image.frombytes("RGB", (20, 20), image.data, "raw", "BGRX").show()
-		if not "-ed720eff-" in image_hex:		# if no blue pixels,
-			self.mouse_click(self.dialog_window, 10 + 10, geometry.height - 30 + 10)	# middle of image area
+
+		# If no blue pixels, click in the middle of hte image area.
+		if not "-ed720eff-" in image_hex:
+			self.mouse_click(self.dialog_window, 10 + 10, geometry.height - 30 + 10)
 
 		# Select the second camera as input
 		self.send_keys(self.dialog_window, [

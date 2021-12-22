@@ -32,7 +32,9 @@ class PubFinder(Fetcher):
 
 			container = html.get_element_by_id('pubsViewResults')
 
-			# Periodical name as section heading
+			# Pages listing periodicals (the Watchtower, Awake!, and the Meeting
+			# Workbook) give the periodical name as a section heading. Pages listing
+			# books and brocures lack this section heading.
 			h2 = container.xpath("./h2")
 			if len(h2) > 0:
 				periodical_name = h2[0].text
@@ -43,7 +45,7 @@ class PubFinder(Fetcher):
 				else:
 					periodical_name = None
 
-			# Step through the listed issues
+			# Step through the listed publications
 			for pub in container.find_class('synopsis'):
 				if "textOnly" in pub.attrib['class']:
 					continue

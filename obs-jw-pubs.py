@@ -95,11 +95,17 @@ class MyObsScript:
 	def script_update(self, settings):
 		enable = obs.obs_data_get_bool(settings, "enable")
 		debug = obs.obs_data_get_bool(settings, "debug")
-		self.logger.debug("Settings: enable=%s, debug=%s", enable, debug)
+		#self.logger.debug("Settings: enable=%s, debug=%s", enable, debug)
 
 		if debug != self.debug:
+			if debug:
+				self.log_handler.setLevel(logging.DEBUG)
+				self.logger.debug("log_level set to DEBUG")
+			else:
+				if self.log_handler.level != logging.NOTSET:
+					self.logger.debug("log_level set to WARN")
+				self.log_handler.setLevel(logging.WARN)
 			self.debug = debug
-			self.update_debug()
 
 		if enable != self.enable:
 			self.logger.debug("enable changed from %s to %s", self.enable, enable)
@@ -110,15 +116,6 @@ class MyObsScript:
 	def script_unload(self):
 		self.enable = False
 		self.update_thread()
-
-	def update_debug(self):
-		if self.debug:
-			self.log_handler.setLevel(logging.DEBUG)
-			self.logger.debug("log_level set to DEBUG")
-		else:
-			if self.log_handler.level != logging.NOTSET:
-				self.logger.debug("log_level set to WARN")
-			self.log_handler.setLevel(logging.WARN)
 
 	# Start or stop the HTTP server thread in accord with the current settings
 	def update_thread(self):

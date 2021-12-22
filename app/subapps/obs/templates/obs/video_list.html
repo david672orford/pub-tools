@@ -13,6 +13,12 @@
 {% endblock %}
 
 {% block main %}
+{% if error %}
+<div class="flash">
+{{ error }}
+</div>
+{% endif %}
+
 <section>
 <ul>
 {% for video in category.videos %}

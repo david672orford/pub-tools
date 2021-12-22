@@ -42,7 +42,7 @@ def shutdown():
 
 @blueprint.route("/")
 def page_index():
-	return render_template("obs/index.html")
+	return redirect("meetings/")
 
 @blueprint.route("/meetings/", methods=['GET','POST'])
 def page_meetings():
@@ -79,41 +79,50 @@ def page_meetings():
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 
-	return render_template("obs/meetings.html", weeks=weeks, error=error)
+	return render_template("obs/meetings.html", weeks=weeks, error=error, top="..")
 
 @blueprint.route("/songs/", methods=['GET','POST'])
 def page_songs():
-	if request.method == 'POST':
-		song = request.form['song']
-	else:
-		song = request.args.get('song')
-	if song is not None:
-		logger.info('Load song: "%s"', song)
-		media_url = meeting_loader.get_song_video_url(song)
-		media_file = meeting_loader.download_media(media_url)
-		obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
+	error = None
+	try:
+		# By song number entered in form
+		if request.method == 'POST' and 'song' in request.form:
+			song = request.form['song']
+			logger.info('Load song: "%s"', song)
+			media_url = meeting_loader.get_song_video_url(song)
+			media_file = meeting_loader.download_media(media_url)
+			obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
 
-	lank = request.args.get("lank")
-	if lank:
-		add_video(lank)
+		# By clicking on link to video
+		lank = request.args.get("lank")
+		if lank:
+			add_video(lank)
+	except Exception as e:
+		logger.exception("Failed to load song video")
+		error = str(e)
 
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
-	return render_template("obs/songs.html", videos=category.videos)
+	return render_template("obs/songs.html", videos=category.videos, top="..", error=error)
 
 @blueprint.route("/videos/")
 def page_videos():
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
-	return render_template("obs/video_categories.html", categories=categories.items())
+	return render_template("obs/video_categories.html", categories=categories.items(), top="..")
 
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def video_list(category_key, subcategory_key):
-	lank = request.args.get("lank")
-	if lank:
-		add_video(lank)
+	error = None
+	try:
+		lank = request.args.get("lank")
+		if lank:
+			add_video(lank)
+	except Exception as e:
+		logger.exception("Failed to load video")
+		error = str(e)
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("obs/video_list.html", category=category)
+	return render_template("obs/video_list.html", category=category, top="../../..", error=error)
 
 # Download a video (if it is not already cached) and add it to OBS as a scene
 def add_video(lank):

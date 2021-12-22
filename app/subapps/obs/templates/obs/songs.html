@@ -2,6 +2,12 @@
 {% extends "obs/base.html" %}
 
 {% block main %}
+{% if error %}
+<div class="flash">
+{{ error }}
+</div>
+{% endif %}
+
 <section>
 <form action="." method="POST">
 <input type="text" name="song">
@@ -10,7 +16,7 @@
 </section>
 
 <section>
-<ul>
+<ul class="nowrap">
 {% for video in videos %}
 <li><a href=".?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
 {% endfor %}

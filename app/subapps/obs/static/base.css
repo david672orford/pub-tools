@@ -2,10 +2,14 @@ HTML, BODY, HEADER, SECTION, H1, H2, UL, LI {
 	margin: 0;
 	padding: 0;
 	}
+BODY {
+	font-family: sans-serif;
+	}
 HEADER {
-	padding: .5em;
+	position: fixed;
+	top: 0; left: 0; right: 0;
 	background-color: #f0f0f0;
-	border-bottom: thin solid #808080;
+	border-bottom: 1px solid #a0a0a0;
 	}
 SECTION {
 	margin: .5em .5em 1em .5em;
@@ -15,6 +19,7 @@ H1, H2 {
 	}
 H1 {
 	font-size: 120%;
+	padding: .3em;
 	}
 H2 {
 	font-size: 100%;
@@ -26,6 +31,37 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+
+NAV UL {
+	display: flex;
+	list-style-type: none;
+	margin: 0;
+	background-color: #b0b0b0;
+	padding-top: 1px;
+	}
+NAV UL LI {
+	margin: 0 5px;
+	padding: .3em;
+	border-radius: 5px 5px 0 0;
+	background-color: #d0d0d0;
+	}
+NAV UL LI:hover {
+	}
+NAV UL LI A {
+	text-decoration: none;
+	color: inherit;
+	}
+NAV UL LI.current {
+	position: relative;
+	top: 1px;
+	background-color: #f0f0f0;
+	}
+
+HEADER H1 A {
+	color: inherit;
+	text-decoration: inherit;
+	}
+
 DIV.flash {
 	background-color: #C00000;
 	color: white;
@@ -34,6 +70,7 @@ DIV.flash {
 	padding: .5em;
 	font-family: sans-serif;
 	}
+
 TABLE.borders {
 	border-collapse: collapse;
 	}
@@ -42,3 +79,8 @@ TABLE.borders TH, TABLE.borders TD {
 	text-align: left;
 	padding: .3em;
 	}
+
+UL.nowrap LI {
+	white-space: nowrap;
+	}
+

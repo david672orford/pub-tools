@@ -17,10 +17,10 @@ class Weeks(db.Model):
 # Issues of the Watchtower or Meeting Workbook
 class Issues(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	#name = db.Column(db.String)
+	name = db.Column(db.String)
+	issue = db.Column(db.String)
 	pub_code = db.Column(db.String)
 	issue_code = db.Column(db.String)
-	issue = db.Column(db.String)
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_filename = db.Column(db.String)

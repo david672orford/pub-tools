@@ -16,9 +16,12 @@ blueprint.display_name = 'Epubs'
 
 @blueprint.route("/")
 def epub_index():
+	periodicals = defaultdict(list)
+	for periodical in Issues.query.order_by(Issues.pub_code, Issues.issue_code):
+		periodicals[periodical.name].append(periodical)
 	return render_template(
 		"epubs/index.html",
-		periodicals=Issues.query.order_by(Issues.pub_code, Issues.issue_code),
+		periodicals=periodicals.items(),
 		books=Books.query.order_by(Books.name),
 		)
 

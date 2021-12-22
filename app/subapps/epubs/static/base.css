@@ -10,15 +10,18 @@ HEADER {
 SECTION {
 	margin: .5em .5em 1em .5em;
 	}
-H1, H2 {
+H1, H2, H3 {
 	font-family: sans-serif;
 	}
 H1 {
 	font-size: 120%;
 	}
 H2 {
-	font-size: 100%;
+	font-size: 110%;
 	margin: .2em 0;
+	}
+H3 {
+	font-size: 100%;
 	}
 UL {
 	margin: 0 0 0 1.2em;

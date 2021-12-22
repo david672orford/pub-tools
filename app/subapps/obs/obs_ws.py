@@ -24,8 +24,9 @@ class ObsControl:
 		if self.ws is not None:
 			return
 
-		self.ws = websocket.WebSocket()
-		self.ws.connect("ws://%s:%d" % (self.hostname, self.port))
+		ws = websocket.WebSocket()
+		ws.connect("ws://%s:%d" % (self.hostname, self.port))
+		self.ws = ws		# we are connected
 
 		response = self.request({"request-type": "GetAuthRequired"})
 		assert response['status'] == 'ok'

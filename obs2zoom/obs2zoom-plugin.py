@@ -8,6 +8,10 @@ from obs_api import ObsEventReader
 from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
 from zoom import ZoomControl
 
+# We control logging levels in the following way:
+# * The Debug checkbox changes the logging level of the console handler
+# * The level set on the "root" logger is the default for children 
+# * The level of specific children can be set by added lines to "loggers"
 logging.config.dictConfig({
 	'version': 1,
 	'formatters': {
@@ -20,23 +24,32 @@ logging.config.dictConfig({
 		'console': {
 			'class': 'logging.StreamHandler',
 			'formatter': 'default',
-			'level': 'WARN',	# cooresponds to initial setting of debug=False
+			},
+		'file': {
+			'class': 'logging.FileHandler',
+			'filename': '/tmp/obs2zoom.log',
+			'formatter': 'default',
+			'level': 'DEBUG',
 			},
 		},
 	'root': {
-		'level': 'DEBUG',		# default for child loggers
+		'level': 'DEBUG',
 		'handlers': ['console'],
 		},
-	'loggers': {				# overrides for particular loggers
+	'loggers': {
 		}
 	})
+
+# Show levels settings of all the loggers
+for logger_name, logger in logging.root.manager.loggerDict.items():
+	print("Logger", logger_name, logging.getLevelName(getattr(logger, "level", None)))
 
 class MyObsScript:
 	description = "Start and stop sharing of virtual camera in Zoom"
 
 	def __init__(self):
 		self.mode = 0
-		self.debug = False
+		self.debug = None
 		self.obs_reader = None
 		self.zoom_controller = None
 		self.policy = None
@@ -77,15 +90,16 @@ class MyObsScript:
 	def script_update(self, settings):
 		mode = obs.obs_data_get_int(settings, "mode")
 		debug = obs.obs_data_get_bool(settings, "debug")
-		self.logger.debug("Settings: mode=%s, debug=%s", mode, debug)
+		#self.logger.debug("Settings: mode=%s, debug=%s", mode, debug)
 
 		if debug != self.debug:
 			if debug:
 				self.log_handler.setLevel(logging.DEBUG)
-				self.logger.debug("log_level changed to DEBUG")
+				self.logger.debug("log_level set to DEBUG")
 			else:
-				self.logger.debug("log_level changed to INFO")
-				self.log_handler.setLevel(logging.INFO)
+				if self.log_handler.level != logging.NOTSET:
+					self.logger.debug("log_level set to WARN")
+				self.log_handler.setLevel(logging.WARN)
 			self.debug = debug
 
 		if mode != self.mode:

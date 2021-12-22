@@ -5,8 +5,14 @@
 <section>
 <h2>Periodicals</h2>
 <ul>
-{% for periodical in periodicals %}
-<li><a href="{{periodical.pub_code}}-{{periodical.issue_code}}/">{{periodical.pub_code}} {{periodical.issue_code}}</a></li>
+{% for name, issues in periodicals %}
+  <li>
+    <h3>{{name}}</h3>
+    <ul>
+      {% for issue in issues %}
+      <li><a href="{{issue.pub_code}}-{{issue.issue_code}}/">{{issue.issue}}</a></li>
+      {% endfor %}
+    </ul>
 {% endfor %}
 </ul>
 </section>
