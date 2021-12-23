@@ -17,13 +17,13 @@ class ObsEventReader:
 
 		logger.debug("Logging in...")
 		response = self.request({"request-type": "GetAuthRequired"})
-		assert response['status'] == 'ok'
+		assert response['status'] == 'ok', response
 
 		if response.get('authRequired'):
 			secret = base64.b64encode(hashlib.sha256((password + response['salt']).encode('utf-8')).digest())
 			auth = base64.b64encode(hashlib.sha256(secret + response['challenge'].encode('utf-8')).digest()).decode('utf-8')
 			response = self.request({"request-type": "Authenticate", "auth": auth})
-			assert response['status'] == 'ok'
+			assert response['status'] == 'ok', response
 
 		logger.debug("Ready to receive messages from OBS.")
 

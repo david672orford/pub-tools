@@ -22,3 +22,7 @@ is started automatically whenever OBS Studio starts.
 
 Download and display Epub files from JW.ORG in a web browser.
 
+## TODO
+
+* Main chapter illustration not pulled from Happy Family
+

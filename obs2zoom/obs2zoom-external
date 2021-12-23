@@ -2,7 +2,7 @@
 # obs2zoom
 
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
+#sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 import argparse
 import logging
 
@@ -21,9 +21,9 @@ with open("/proc/modules") as modules:
 		sys.stderr.write("Module v4l2loopback is not loaded.\n")
 		sys.exit(1)
 
-from obs_ws import ObsEventReader
-from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
-from zoom import ZoomControl
+from obs2zoom.obs_ws import ObsEventReader
+from obs2zoom.policies import ObsToZoomManual, ObsToZoomAuto
+from obs2zoom.zoom import ZoomControl
 
 parser = argparse.ArgumentParser(description="Automatically stop and start sharing of OBS virtual camera in Zoom")
 parser.add_argument("--auto", dest="auto_mode", action="store_true", help="share screen when vcam on and media playing")
@@ -45,4 +45,5 @@ else:
 
 while policy.handle_message():
 	pass
+
 

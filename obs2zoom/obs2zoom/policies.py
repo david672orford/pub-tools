@@ -3,7 +3,7 @@
 
 import json
 import logging
-from zoom import NoZoomWindow
+from obs2zoom.zoom import NoZoomWindow
 
 logger = logging.getLogger(__name__)
 

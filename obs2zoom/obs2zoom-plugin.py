@@ -1,12 +1,12 @@
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
+#sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 import obspython as obs
 import threading
 import logging, logging.config
 
-from obs_api import ObsEventReader
-from obs2zoom_policies import ObsToZoomManual, ObsToZoomAuto
-from zoom import ZoomControl
+from obs2zoom.obs_api import ObsEventReader
+from obs2zoom.policies import ObsToZoomManual, ObsToZoomAuto
+from obs2zoom.zoom import ZoomControl
 
 # We control logging levels in the following way:
 # * The Debug checkbox changes the logging level of the console handler
@@ -34,7 +34,7 @@ logging.config.dictConfig({
 		},
 	'root': {
 		'level': 'DEBUG',
-		'handlers': ['console'],
+		'handlers': ['console','file'],
 		},
 	'loggers': {
 		}
@@ -119,7 +119,6 @@ class MyObsScript:
 			self.logger.info("Stopping event reader thread...")
 			self.obs_reader.shutdown()
 			self.thread.join()
-			self.logger.info("Event reader thread stopped.")
 			self.thread = None
 
 		if self.mode > 0:
@@ -139,10 +138,10 @@ class MyObsScript:
 
 	# Read OBS events and start and stop screen sharing in Zoom as needed.
 	def thread_body(self):
-		self.logger.debug("Thread body")
+		self.logger.debug("Event reader thread started.")
 		while self.policy.handle_message():
 			pass
-		self.logger.debug("Thread exiting")
+		self.logger.debug("Event reader thread exiting.")
 
 MyObsScript()
 
