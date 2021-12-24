@@ -10,4 +10,3 @@ for subapp_name in app.config['ENABLED_SUBAPPS']:
 	logger.info("Importing blueprint for %s subapp..." % subapp_name)
 	subapp_module = import_module("app.subapps.%s" % subapp_name)
 	app.register_blueprint(subapp_module.blueprint, url_prefix="/%s" % subapp_name)
-	#import_module("app.subapps.%s.admin" % subapp_name)

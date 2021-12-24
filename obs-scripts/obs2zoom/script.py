@@ -1,53 +1,15 @@
-import os, sys
-#sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 import obspython as obs
 import threading
-import logging, logging.config
+import logging
 
 from obs2zoom.obs_api import ObsEventReader
 from obs2zoom.policies import ObsToZoomManual, ObsToZoomAuto
 from obs2zoom.zoom import ZoomControl
 
-# We control logging levels in the following way:
-# * The Debug checkbox changes the logging level of the console handler
-# * The level set on the "root" logger is the default for children 
-# * The level of specific children can be set by added lines to "loggers"
-logging.config.dictConfig({
-	'version': 1,
-	'formatters': {
-		'default': {
-			'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
-			'datefmt': '%H:%M:%S',
-			}
-		},
-	'handlers': {
-		'console': {
-			'class': 'logging.StreamHandler',
-			'formatter': 'default',
-			},
-		'file': {
-			'class': 'logging.FileHandler',
-			'filename': '/tmp/obs2zoom.log',
-			'formatter': 'default',
-			'level': 'DEBUG',
-			},
-		},
-	'root': {
-		'level': 'DEBUG',
-		'handlers': ['console','file'],
-		},
-	'loggers': {
-		}
-	})
-
-# Show levels settings of all the loggers
-for logger_name, logger in logging.root.manager.loggerDict.items():
-	print("Logger", logger_name, logging.getLevelName(getattr(logger, "level", None)))
-
 class MyObsScript:
 	description = "Start and stop sharing of virtual camera in Zoom"
 
-	def __init__(self):
+	def __init__(self, g):
 		self.mode = 0
 		self.debug = None
 		self.obs_reader = None
@@ -55,16 +17,13 @@ class MyObsScript:
 		self.policy = None
 		self.thread = None
 
-		# Get the log handler of the root logger so that we can change its level
-		self.log_handler = logging.getLogger().handlers[0]
-
 		# This is the logger to which this class will log
-		self.logger = logging.getLogger(__name__)
+		self.logger = logging.getLogger("obs2zoom")
 
 		# Create global hooks which will be called by OBS-Studio which connect
 		# our our methods. They are called in the order listed here except it
 		# is unclear when script_save() is called.
-		g = globals()
+		#g = globals()
 		g['script_defaults'] = lambda settings: self.script_defaults(settings)
 		g['script_description'] = lambda: self.description
 		g['script_update'] = lambda settings: self.script_update(settings)
@@ -94,12 +53,12 @@ class MyObsScript:
 
 		if debug != self.debug:
 			if debug:
-				self.log_handler.setLevel(logging.DEBUG)
+				self.logger.setLevel(logging.DEBUG)
 				self.logger.debug("log_level set to DEBUG")
 			else:
-				if self.log_handler.level != logging.NOTSET:
+				if self.logger.level != logging.NOTSET:
 					self.logger.debug("log_level set to WARN")
-				self.log_handler.setLevel(logging.WARN)
+				self.logger.setLevel(logging.WARN)
 			self.debug = debug
 
 		if mode != self.mode:
@@ -142,6 +101,4 @@ class MyObsScript:
 		while self.policy.handle_message():
 			pass
 		self.logger.debug("Event reader thread exiting.")
-
-MyObsScript()
 

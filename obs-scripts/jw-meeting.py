@@ -1,62 +1,19 @@
 # OBS Studio Plugin which embeds the Flask web server
 
-import sys
 import obspython as obs
 import threading
-import logging, logging.config
+import logging
 from urllib.request import urlopen
 from werkzeug.serving import make_server, WSGIRequestHandler
-
-# Remove escape codes and date from Werkzeug log lines
-class MyWSGIRequestHandler(WSGIRequestHandler):
-	logger = None
-	def log_request(self, code="-", size="-"):
-		msg = self.requestline
-		self.log("info", '"%s" %s %s', msg, code, size)
-	def log(self, type, message, *args):
-		if self.logger is None:
-			self.logger = logging.getLogger("werkzeug")
-		getattr(self.logger, type)(message, *args)
+from app.werkzeug_logging import MyWSGIRequestHandler
 
 from app import app
 
-# We control logging levels in the following way:
-# * The Debug checkbox changes the logging level of the console handler
-# * The level set on the "root" logger is the default for children 
-# * The level of specific children can be set by added lines to "loggers"
-logging.config.dictConfig({
-	'version': 1,
-	'formatters': {
-		'default': {
-			'format': '%(asctime)s %(levelname)s %(name)s %(message)s',
-			'datefmt': '%H:%M:%S',
-			}
-		},
-	'handlers': {
-		'console': {
-			'class': 'logging.StreamHandler',
-			'formatter': 'default',
-			},
-		'file': {
-			'class': 'logging.FileHandler',
-			'filename': '/tmp/obs-jw-pubs.log',
-			'formatter': 'default',
-			'level': 'DEBUG',
-			},
-		},
-	'root': {
-		'level': 'DEBUG',
-		'handlers': ['console','file'],
-		},
-	'loggers': {
-		'werkzeug': { 'level': 'DEBUG' },
-		'app': { 'level': 'DEBUG' },
-		}
-	})
-
-# Show levels settings of all the loggers
-for logger_name, logger in logging.root.manager.loggerDict.items():
-	print("Logger", logger_name, logging.getLevelName(getattr(logger, "level", None)))
+logging.basicConfig(
+	level=logging.DEBUG,
+	format='%(asctime)s %(levelname)s %(name)s %(message)s',
+	datefmt='%H:%M:%S'
+	)
 
 class MyObsScript:
 	description = "Load videos and illustrations from JW.ORG"
@@ -66,11 +23,8 @@ class MyObsScript:
 		self.debug = None
 		self.thread = None		# HTTP server thread
 
-		# Get the log handler of the root logger so that we can change its level
-		self.log_handler = logging.getLogger().handlers[0]
-
 		# This is the logger to which this class will log
-		self.logger = logging.getLogger(__name__)
+		self.logger = logging.getLogger("app")
 
 		g = globals()
 		g['script_defaults'] = lambda settings: self.script_defaults(settings)
@@ -99,12 +53,12 @@ class MyObsScript:
 
 		if debug != self.debug:
 			if debug:
-				self.log_handler.setLevel(logging.DEBUG)
+				self.logger.setLevel(logging.DEBUG)
 				self.logger.debug("log_level set to DEBUG")
 			else:
-				if self.log_handler.level != logging.NOTSET:
+				if self.logger.level != logging.NOTSET:
 					self.logger.debug("log_level set to WARN")
-				self.log_handler.setLevel(logging.WARN)
+				self.logger.setLevel(logging.WARN)
 			self.debug = debug
 
 		if enable != self.enable:

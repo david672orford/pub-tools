@@ -9,12 +9,12 @@ can be enabled and disabled individually in the config file.
 This app displays pages with links to the publications in the Teaching
 Toolbox on JW.ORG.
 
-## JW-Meeting
+## JW-Meeting and OBS to Zoom
 
 This app helps you to load the vidoes and illustrations for a meeting into OBS
 Studio. If run externally, it will try to connect to OBS Studio over 
 Websocket on order to add the requested scenes. Alternatively, you can install
-the **obs-jw-meeting.py** script in OBS Studio where it can use the scripting
+the **jw-meeting.py** script in OBS Studio where it can use the scripting
 API to add the scenes. This is also more convenient because the web server
 is started automatically whenever OBS Studio starts.
 
