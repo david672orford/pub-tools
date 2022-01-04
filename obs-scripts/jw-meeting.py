@@ -14,6 +14,7 @@ logging.basicConfig(
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
+logging.getLogger("app").addHandler(logging.FileHandler("/tmp/jw-meeting.log"))
 
 class MyObsScript:
 	description = "Load videos and illustrations from JW.ORG"

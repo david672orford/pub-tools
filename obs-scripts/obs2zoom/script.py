@@ -2,7 +2,8 @@ import obspython as obs
 import threading
 import logging
 
-from obs2zoom.obs_api import ObsEventReader
+#from obs2zoom.obs_api import ObsEventReader
+from obs2zoom.obs_ws import ObsEventReader
 from obs2zoom.policies import ObsToZoomManual, ObsToZoomAuto
 from obs2zoom.zoom import ZoomControl
 

@@ -7,6 +7,7 @@ logging.basicConfig(
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
+logging.getLogger("obs2zoom").addHandler(logging.FileHandler("/tmp/obs-to-zoom.log"))
 
 if __name__ == "__main__":
 	from obs2zoom.main import main

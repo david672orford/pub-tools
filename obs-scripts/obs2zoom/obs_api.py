@@ -18,13 +18,17 @@ class ObsEventReader:
 		self.signal_handlers_installed = False
 
 	def startup(self):
+
+		# Scene changes, virtual camera
 		obs.obs_frontend_add_event_callback(self.on_frontend_event_wrapped)
 
+		# Current sources
 		source_list = obs.obs_enum_sources()
 		for source in source_list:
 			self.on_source_create(source)
 		obs.source_list_release(source_list)
 
+		# Future changes
 		sh = obs.obs_get_signal_handler()
 		obs.signal_handler_connect(sh, "source_create", self.on_source_create_wrapped)
 		obs.signal_handler_connect(sh, "source_destroy", self.on_source_destroy_wrapped)
@@ -32,21 +36,25 @@ class ObsEventReader:
 		self.signal_handlers_installed = True
 
 	def shutdown(self):
-		if self.signal_handlers_installed:
+		assert self.signal_handlers_installed
 
-			obs.obs_frontend_remove_event_callback(self.on_frontend_event_wrapped)
+		# Scene changes, virtual camera
+		obs.obs_frontend_remove_event_callback(self.on_frontend_event_wrapped)
 
-			source_list = obs.obs_enum_sources()
-			for source in source_list:
-				self.on_source_destroy(source)
-			obs.source_list_release(source_list)
+		# Stop watching source changes
+		sh = obs.obs_get_signal_handler()
+		obs.signal_handler_disconnect(sh, "source_create", self.on_source_create_wrapped)
+		obs.signal_handler_disconnect(sh, "source_destroy", self.on_source_destroy_wrapped)
 
-			sh = obs.obs_get_signal_handler()
-			obs.signal_handler_disconnect(sh, "source_create", self.on_source_create_wrapped)
-			obs.signal_handler_disconnect(sh, "source_destroy", self.on_source_destroy_wrapped)
+		# Drop monitoring of sources already know
+		source_list = obs.obs_enum_sources()
+		for source in source_list:
+			self.on_source_destroy(source)
+		obs.source_list_release(source_list)
 
-			self.signal_handlers_installed = False
+		self.signal_handlers_installed = False
 
+		# Tell event reader thread to stop
 		self.enqueue_message({'update-type': 'Exiting'})
 
 	# In the OBS-Websocket version of this module this method sends a message
@@ -86,6 +94,7 @@ class ObsEventReader:
 		return self.get_scene_items(scene)
 
 	def on_frontend_event(self, event):
+		logger.debug("on_frontend_event: %s", event)
 		if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
 			scene = obs.obs_frontend_get_current_scene()
 			self.enqueue_message({
@@ -99,16 +108,18 @@ class ObsEventReader:
 			self.enqueue_message({ 'update-type': 'VirtualCamStopped' })
 
 	def on_source_create(self, source):
-		logger.debug("Source create: %s", obs.obs_source_get_name(source))
-		handler = obs.obs_source_get_signal_handler(source)
-		obs.signal_handler_connect(handler, "media_started", self.on_media_started_wrapped)
-		obs.signal_handler_connect(handler, "media_ended", self.on_media_ended_wrapped)
+		logger.debug("Source create: %s %s", obs.obs_source_get_name(source), obs.obs_source_get_id(source))
+		if obs.obs_source_get_id(source) == "ffmpeg_source":
+			handler = obs.obs_source_get_signal_handler(source)
+			obs.signal_handler_connect(handler, "media_started", self.on_media_started_wrapped)
+			obs.signal_handler_connect(handler, "media_ended", self.on_media_ended_wrapped)
 
 	def on_source_destroy(self, source):
-		logger.debug("Source destroy: %s", obs.obs_source_get_name(source))
-		handler = obs.obs_source_get_signal_handler(source)
-		obs.signal_handler_disconnect(handler, "media_started", self.on_media_started_wrapped)
-		obs.signal_handler_disconnect(handler, "media_ended", self.on_media_ended_wrapped)
+		logger.debug("Source destroy: %s %s", obs.obs_source_get_name(source), obs.obs_source_get_id(source))
+		if obs.obs_source_get_id(source) == "ffmpeg_source":
+			handler = obs.obs_source_get_signal_handler(source)
+			obs.signal_handler_disconnect(handler, "media_started", self.on_media_started_wrapped)
+			obs.signal_handler_disconnect(handler, "media_ended", self.on_media_ended_wrapped)
 
 	def on_media_started(self, data):
 		source = obs.calldata_source(data, "source")

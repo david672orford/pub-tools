@@ -1,7 +1,7 @@
 from werkzeug.serving import WSGIRequestHandler
 import logging
 
-logger = logging.getLogger("werkzeug")
+logger = logging.getLogger("app.werkzeug")
 
 # Remove escape codes and date from Werkzeug log lines
 class MyWSGIRequestHandler(WSGIRequestHandler):

@@ -50,7 +50,7 @@ class ObsToZoomAuto(ObsToZoomBase):
 		self.screensharing_active = False
 
 		# Catch up on what we missed.
-		# FIXME: assumes the videos are playing
+		# FIXME: assumes any videos found in the current scene are playing
 		for source in self.obs.get_current_sources():
 			if source['type'] == 'image_source':
 				self.images_count += 1

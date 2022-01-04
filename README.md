@@ -1,13 +1,13 @@
 # JW-Pubs
 
-This is a set of Python-Flask apps for downloading and displaying
-publications from JW.ORG. It is divided into a number of modules which
-can be enabled and disabled individually in the config file.
+This is a Python-Flask app for downloading and displaying publications from
+JW.ORG. It is divided into a number of modules which can be enabled and
+disabled individually in the config file.
 
 ## Teaching Toolbox
 
-This app displays pages with links to the publications in the Teaching
-Toolbox on JW.ORG.
+This subapp is intended to help publishers witnessing by phone to quickly find
+the online versions of the publications in the Teaching Toolbox. 
 
 ## JW-Meeting and OBS to Zoom
 
