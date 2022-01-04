@@ -43,3 +43,9 @@ class ObsEventReader:
 		assert response['message-id'] == str(id)
 		return response
 
+	def get_virtualcam_active(self):
+		return False
+
+	def get_current_sources(self):
+		return []
+
