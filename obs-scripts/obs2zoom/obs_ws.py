@@ -27,25 +27,33 @@ class ObsEventReader:
 
 		logger.debug("Ready to receive messages from OBS.")
 
-	def send_message(self, data):
-		id = self.id
+	# Send a request to OBS-Websocket. Wait for the response. Discard any
+	# events which may come in before the response.
+	def request(self, data, wait=True):
+		data["message-id"] = str(self.id)
 		self.id += 1
-		data["message-id"] = str(id)
+		logger.debug("request: %s", json.dumps(data, indent=2, ensure_ascii=False))
 		self.ws.send(json.dumps(data))
-		return id
+		if not wait:
+			return None
+		while True:
+			response = json.loads(self.ws.recv())
+			logger.debug("response: %s", json.dumps(response, indent=2, ensure_ascii=False))
+			if response.get('message-id') == data['message-id']:
+				break
+		return response
 
+	# We use this to receive events.
 	def recv_message(self):
 		return json.loads(self.ws.recv())
 
-	def request(self, data):
-		id = self.send_message(data)
-		response = self.recv_message()
-		assert response['message-id'] == str(id)
-		return response
-
 	def get_virtualcam_active(self):
-		return False
+		response = self.request({"request-type": "GetVirtualCamStatus"})
+		assert response['status'] == 'ok', response
+		return response['isVirtualCam']
 
 	def get_current_sources(self):
-		return []
+		response = self.request({"request-type": "GetCurrentScene"})
+		assert response['status'] == 'ok', response
+		return response['sources']
 

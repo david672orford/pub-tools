@@ -14,7 +14,7 @@ class ObsToZoomBase:
 
 	def handle_message(self):
 		message = self.obs.recv_message()
-		logger.debug("Message: %s", json.dumps(message, indent=2))
+		logger.debug("Message: %s", json.dumps(message, indent=2, ensure_ascii=False))
 
 		# If this is an event, dispatch it to the appropriate handler (if it exists)
 		update_type = message.get('update-type')
@@ -121,6 +121,6 @@ class ObsToZoomAuto(ObsToZoomBase):
 	def pause_all(self, pause):
 		for source_name in self.videos_playing:
 			request = {"request-type": "PlayPauseMedia", "sourceName": source_name, "playPause": pause}
-			logger.debug("Request: %s", json.dumps(request, indent=2))
-			self.obs.send_message(request)
+			logger.debug("Request: %s", json.dumps(request, indent=2, ensure_ascii=False))
+			self.obs.request(request, wait=False)
 

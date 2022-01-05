@@ -37,14 +37,16 @@ class ObsControl:
 			response = self.request({"request-type": "Authenticate", "auth": auth})
 			assert response['status'] == 'ok'
 
-	def request(self, data):
+	def request(self, data, wait=True):
 		data["message-id"] = str(self.id)
 		self.id += 1
-		print("request:", json.dumps(data, indent=2, ensure_ascii=False))
+		logger.debug("request: %s", json.dumps(data, indent=2, ensure_ascii=False))
 		self.ws.send(json.dumps(data))
+		if not wait:
+			return None
 		while True:
 			response = json.loads(self.ws.recv())
-			print("response:", json.dumps(response, indent=2, ensure_ascii=False))
+			logger.debug("response: %s", json.dumps(response, indent=2, ensure_ascii=False))
 			if response.get('message-id') == data['message-id']:
 				break
 		return response

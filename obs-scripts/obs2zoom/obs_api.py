@@ -59,7 +59,7 @@ class ObsEventReader:
 
 	# In the OBS-Websocket version of this module this method sends a message
 	# to OBS. Here we implement the only command we need in terms of the OSB API.
-	def send_message(self, data):
+	def request(self, data, wait=None):
 		assert data['request-type'] == 'PlayPauseMedia'
 		source_name = data['sourceName']
 		play_pause = data['playPause']
@@ -68,7 +68,7 @@ class ObsEventReader:
 
 	# In the OBS-Websocket version of this module this method is used to receive
 	# event messages from OBS. Here we read message placed in a queue by
-	# enqueue_message().
+	# .enqueue_message().
 	def recv_message(self):
 		self.condition.acquire()
 		while len(self.queue) == 0:
@@ -77,8 +77,8 @@ class ObsEventReader:
 		self.condition.release()
 		return item
 
-	# Called from OBS API callbacks to insert event messages like those
-	# sent by OBS-Websocket.
+	# Called from OBS API callbacks to insert event messages like those sent
+	# by OBS-Websocket into a queue from which .recv_message() pulls them.
 	def enqueue_message(self, message):
 		logger.debug("Message: %s", message)
 		self.condition.acquire()
