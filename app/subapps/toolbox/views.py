@@ -22,21 +22,3 @@ def toolbox():
 		("Пробудуйтесь!", Issues.query.filter_by(pub_code="g").order_by(Issues.issue_code))
 		])
 
-@blueprint.route("/рабочая-тетрадь/")
-def workbook():
-	return render_template("toolbox/publications.html", path_prefix="../", categories=[
-		("Рабочая тетрадь", Issues.query.filter_by(pub_code="mwb").order_by(Issues.issue_code))
-		])
-
-@blueprint.route("/видеоролики/")
-def video_categories():
-	categories = defaultdict(list)
-	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
-		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
-	return render_template("toolbox/video_categories.html", path_prefix="../", categories=categories.items())
-
-@blueprint.route("/видеоролики/<category_key>/<subcategory_key>/")
-def video_list(category_key, subcategory_key):
-	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("toolbox/video_list.html", path_prefix="../../../", category=category)
-

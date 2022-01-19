@@ -11,7 +11,7 @@ import logging
 debug_mode = (len(sys.argv) >= 2 and sys.argv[1] == '--debug')
 
 logging.basicConfig(
-	level=logging.DEBUG if debug_mode else logging.WARN,
+	level=logging.DEBUG if debug_mode else logging.INFO,
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)

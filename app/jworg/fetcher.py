@@ -1,6 +1,7 @@
 import os
-from urllib.request import urlopen, Request, HTTPRedirectHandler, HTTPErrorProcessor, build_opener
+from urllib.request import urlopen, Request, HTTPHandler, HTTPSHandler, HTTPErrorProcessor, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote, urljoin
+from gzip import GzipFile
 import lxml.html
 import json
 import re
@@ -15,6 +16,16 @@ class NoRedirects(HTTPErrorProcessor):
 			return response
 		else:
 			return super.http_response(request, response)
+
+class GzipResponseWrapper:
+	def __init__(self, response):
+		self.response = response
+		self.gzip = GzipFile(fileobj=response)
+	def read(self, size=None):
+		return self.gzip.read(size)	
+	@property
+	def headers(self):
+		return self.response.headers
 
 class Fetcher:
 	user_agent = "Mozilla/5.0"
@@ -49,14 +60,17 @@ class Fetcher:
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
 	week_url = "https://wol.jw.org/en/wol/meetings/r1/lp-e/{year}/{week}"
 
-	def __init__(self, language="U", cachedir="cache"):
+	def __init__(self, language="U", cachedir="cache", debuglevel=0):
 		self.language = language
 		self.cachedir = cachedir
 		self.last_request_time = 0
-		self.no_redirects_opener = build_opener(NoRedirects)
+		http_handler = HTTPHandler(debuglevel=debuglevel)
+		https_handler = HTTPSHandler(debuglevel=debuglevel)
+		self.opener = build_opener(http_handler, https_handler)
+		self.no_redirects_opener = build_opener(NoRedirects, http_handler, https_handler)
 
 	# Send an HTTP GET request
-	def get(self, url, query=None, follow_redirects=True):
+	def get(self, url, query=None, accept="text/html, */*", follow_redirects=True):
 		left_to_wait = (self.min_request_interval - (time() - self.last_request_time))
 		if left_to_wait > 0:
 			sleep(left_to_wait)
@@ -65,12 +79,19 @@ class Fetcher:
 		logger.debug("Fetching %s...", unquote(url))
 		request = Request(
 			url,
-			headers={'User-Agent': self.user_agent}
+			headers={
+				"Accept": accept,
+				"Accept-Encoding": "gzip",
+				"Accept-Language": "en-US",
+				"User-Agent": self.user_agent,
+				}
 			)
 		if follow_redirects:
-			response = urlopen(request)
+			response = self.opener.open(request)
 		else:
 			response = self.no_redirects_opener.open(request)
+		if response.headers.get("Content-Encoding") == "gzip":
+			response = GzipResponseWrapper(response)
 		self.last_request_time = time()
 		return response
 
@@ -78,6 +99,11 @@ class Fetcher:
 	def get_html(self, url, query=None):
 		response = self.get(url, query=query)
 		return lxml.html.parse(response).getroot()
+
+	# Send an HTTP GET request and parse the result as JSON
+	def get_json(self, url, query=None):
+		response = self.get(url, query, accept="application/json")
+		return json.load(response)
 
 	# Pretty print a parsed HTML element and its children. We need this because
 	# in a browser JavaScript code transforms the page a bit after it is loaded,
@@ -89,11 +115,6 @@ class Fetcher:
 		text = lxml.html.tostring(el, encoding="UNICODE") 
 		print(text) 
  
-	# Send an HTTP GET request and parse the result as JSON
-	def get_json(self, url, query=None):
-		response = self.get(url, query)
-		return json.load(response)
-
 	@staticmethod 
 	def dump_json(data):
 		print("=======================================================") 
@@ -125,9 +146,10 @@ class Fetcher:
 		if os.path.exists(cachefile):
 			logger.info(" Satisfied from cache")
 		else:
-			request = Request(url)
-			request.add_header("User-Agent", "Mozilla/5.0")
-			response = urlopen(request)
+			#request = Request(url)
+			#request.add_header("User-Agent", "Mozilla/5.0")
+			#response = urlopen(request)
+			response = self.get(url)
 			total_expected = response.headers.get("Content-Length")
 			with open(cachefile + ".tmp", "wb") as fh:
 				total_recv = 0

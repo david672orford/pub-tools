@@ -10,16 +10,20 @@
 
 <section>
 <form action="." method="POST">
-<input type="text" name="song">
+<input type="text" name="song" placeholder="Enter song number">
 <button type="submit">Add</button>
 </form>
 </section>
 
 <section>
+{% if videos %}
 <ul class="nowrap">
 {% for video in videos %}
 <li><a href=".?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
 {% endfor %}
 </ul>
+{% else %}
+<p>Update videos to see a list of songs here.</p>
+{% endif %}
 </section>
 {% endblock %}

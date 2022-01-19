@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 # Search for publications on JW.ORG.
 class PubFinder(Fetcher):
-	#base_url = "https://www.jw.org/ru/"
 	base_url = "https://www.jw.org/en/library/"
 
 	# Perform the search. Each returned item:

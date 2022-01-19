@@ -1,6 +1,7 @@
 from .fetcher import Fetcher
 from urllib.parse import urlencode
 import re
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,8 @@ class Video:
 	def __init__(self, language, media):
 		self.name = media['title']
 		self.lank = media['languageAgnosticNaturalKey']
+		self.date = datetime.fromisoformat(media['firstPublished'][:-1])	# cut off Z
+
 		try:
 			self.thumbnail = media['images']['wss']['sm']		# 16:9 aspect ratio, occassionally missing
 		except KeyError:

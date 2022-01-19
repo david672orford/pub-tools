@@ -4,6 +4,7 @@ from datetime import date, timedelta
 import re
 from flask.cli import AppGroup
 import click
+import json
 
 from app import app
 from .models import db, app, Issues, Articles, Weeks, Books, VideoCategories, Videos
@@ -60,29 +61,31 @@ def load_meetings():
 # * The filename of the EPUB file which we download
 #=============================================================================
 
-@cli_update.command("study", help="Load current study Watchtowers and Meeting Workbooks")
-def cmd_load_study():
+@cli_update.command("study", help="Update list of study Watchtowers and Meeting Workbooks")
+def cmd_update_study():
 	logging.basicConfig(level=logging.DEBUG)
-	load_periodicals((
+	update_periodicals((
 		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
 		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
 		))
-	load_articles()
+	update_articles()
 
-@cli_update.command("magazines", help="Load all available Watchtowers and Awakes")
-def cmd_load_magazines():
+@cli_update.command("magazines", help="Update list of all available Watchtowers and Awakes")
+def cmd_update_magazines():
 	logging.basicConfig(level=logging.DEBUG)
 	end_year = date.today().year
-	load_periodicals(
+	update_periodicals(
 		[("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, end_year)]
-		+ ["magazines/", dict(contentLanguage=LANGUAGE)]
+		+
+		[["magazines/", dict(contentLanguage=LANGUAGE)]]
 		)
-	load_articles()
+	update_articles()
 
-def load_periodicals(searches):
-	pub_finder = PubFinder(cachedir=app.cachedir)
+def update_periodicals(searches):
+	pub_finder = PubFinder(cachedir=app.cachedir, debuglevel=0)
 	pubs = []
 
+	print(json.dumps(searches, indent=2))
 	for path, filter_dict in searches:
 		pubs.extend(pub_finder.search(path, filter_dict))
 
@@ -116,7 +119,7 @@ def load_periodicals(searches):
 # Download the table of contents of each periodical in the database
 # and add the articles to the Articles table.
 # From web version
-def load_articles():
+def update_articles():
 	pub_finder = PubFinder()
 	for issue in Issues.query.filter(Issues.pub_code.in_(("w", "mwb"))):
 		print(issue, len(issue.articles))
@@ -129,30 +132,11 @@ def load_articles():
 					))
 	db.session.commit()
 
-## From the EPUB files
-#def load_articles_epub():
-#	for issue in Issues.query:
-#		print(issue, len(issue.articles))
-#		if len(issue.articles) == 0:
-#			epub = EpubLoader(os.path.join(app.cachedir, issue.epub_filename))
-#			for article in epub.opf.toc:
-#				print(article.title, article.href)
-#				doc = epub.load_html(article.href)
-#				classes = doc.xpath(".//body")[0].attrib['class']
-#				m = re.search(r" docId-(\d+)", classes)
-#				if m:
-#					issue.articles.append(Articles(
-#						docid = int(m.group(1)),
-#						title = article.title,
-#						epub_href = article.href,
-#						))
-#	db.session.commit()
-
 #=============================================================================
-# Books and brocures
+# Books and brochures
 #=============================================================================
 
-@cli_update.command("books", help="Get a list of books and brocures")
+@cli_update.command("books", help="Get a list of books and brochures")
 def cmd_load_books():
 	logging.basicConfig(level=logging.DEBUG)
 	load_books()
@@ -181,12 +165,12 @@ def load_books():
 #        -> Video 
 #=============================================================================
 
-@cli_update.command("videos", help="Get list of all available videos")
+@cli_update.command("videos", help="Update list of all available videos")
 def cmd_update_videos():
 	logging.basicConfig(level=logging.DEBUG)
-	load_videos()
+	update_videos()
 
-def load_videos():
+def update_videos():
 	for category in VideoLister().get_category("VideoOnDemand").subcategories:
 		print("Category:", category.name)
 		assert len(category.videos) == 0
@@ -210,16 +194,17 @@ def load_videos():
 					video_obj = Videos()
 				video_obj.lank = video.lank
 				video_obj.name = video.name
+				video_obj.date = video.date
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
 				category_obj.videos.append(video_obj)
 	db.session.commit()
 
 #=============================================================================
-#
+# Epubs
 #=============================================================================
 
-@cli_download.command("epub-book", help="Download EPUB version of a book or brocure")
+@cli_download.command("epub-book", help="Download EPUB version of a book or brochure")
 @click.argument("pub_code")
 def cmd_download_book(pub_code):
 	book = Books.query.filter_by(pub_code=pub_code).one()

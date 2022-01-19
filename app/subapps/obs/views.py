@@ -97,22 +97,23 @@ def page_songs():
 		lank = request.args.get("lank")
 		if lank:
 			add_video(lank)
+
 	except Exception as e:
 		logger.exception("Failed to load song video")
 		error = str(e)
 
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
-	return render_template("obs/songs.html", videos=category.videos, top="..", error=error)
+	return render_template("obs/songs.html", videos=category.videos if category else None, top="..", error=error)
 
 @blueprint.route("/videos/")
-def page_videos():
+def page_video_categories():
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
 	return render_template("obs/video_categories.html", categories=categories.items(), top="..")
 
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
-def video_list(category_key, subcategory_key):
+def page_video_list(category_key, subcategory_key):
 	error = None
 	try:
 		lank = request.args.get("lank")

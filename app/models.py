@@ -67,6 +67,7 @@ class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String)
 	lank = db.Column(db.String)				# language agnostic natural key
+	date = db.Column(db.DateTime)
 	docid = db.Column(db.String)			# MEPS document ID
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)				# finder link

@@ -21,7 +21,7 @@
 
 <section>
 <ul>
-{% for video in category.videos %}
+{% for video in category.videos | sort(attribute="date", reverse=True) %}
 <li><a href=".?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
 {% endfor %}
 </ul>

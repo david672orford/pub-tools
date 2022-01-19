@@ -3,6 +3,7 @@
 
 {% block main %}
 <section>
+{% if categories %}
 <ul>
 {% for category, subcategories in categories %}
 	<li>{{ category }}<ul>
@@ -12,5 +13,8 @@
 	</ul>
 {% endfor %}
 </ul>
+{% else %}
+<p>Update videos to see a list of them here.</p>
+{% endif %}
 </section>
 {% endblock %}
