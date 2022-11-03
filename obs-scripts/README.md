@@ -8,6 +8,8 @@
 ## Install the Video For Linux Loopback Device
 
     $ sudo apt install v4l2loopback-dkms
+    $ sudo modprobel v4l2loopback
+    $ v4l2-ctl --list-devices
 
 ## Install OBS-Websocket Module Version 0.4.1
 

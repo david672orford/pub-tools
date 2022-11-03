@@ -4,6 +4,11 @@ This is a Python-Flask app for downloading and displaying publications from
 JW.ORG. It is divided into a number of modules which can be enabled and
 disabled individually in the config file.
 
+## Install
+
+    $ sudo apt-get install python3-pip
+    $ pip3 install flask flask-sqlalchemy
+
 ## Teaching Toolbox
 
 This subapp is intended to help publishers witnessing by phone to quickly find
