@@ -153,7 +153,12 @@ class MeetingLoader(Fetcher):
 				figcaption = "%s %s: %s" % (title, n, figcaption[0].text_content().strip())
 			else:
 				figcaption = "%s %d" % (title, n)
-			figures.append((figcaption, "image", figure.find_class("jsRespImg")[0].attrib['data-zoom']))
+			
+			try:
+				print("figure:", figure, figure.attrib)
+				figures.append((figcaption, "image", figure.find_class("jsRespImg")[0].attrib['data-zoom']))
+			except Exception:
+				pass		# FIXME
 			n += 1
 		#self.dump_json(figures)
 		return figures

@@ -11,7 +11,7 @@
 
 ## Install OBS-Websocket Module Version 0.4.1
 
-OBS-Websocket is needed only if you play to run JW-Pubs or OBS to Zoom
+OBS-Websocket is needed only if you plan to run JW-Pubs or OBS-to-Zoom
 from outside of OBS. It is not required when they are installed in OBS as
 scripts where they can communicate with OBS directly using its API.
 
