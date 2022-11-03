@@ -24,6 +24,9 @@ H2 {
 	font-size: 120%;
 	margin: 5px;
 	}
+P {
+	margin: 0 5px 10px 5px;
+	}
 UL {
 	margin-left: 1.2em;
 	}

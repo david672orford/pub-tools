@@ -22,7 +22,9 @@ class GzipResponseWrapper:
 		self.response = response
 		self.gzip = GzipFile(fileobj=response)
 	def read(self, size=None):
-		return self.gzip.read(size)	
+		return self.gzip.read(size)
+	def geturl(self):
+		return self.response.geturl()
 	@property
 	def headers(self):
 		return self.response.headers
