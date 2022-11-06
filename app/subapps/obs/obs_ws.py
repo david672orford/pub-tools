@@ -45,7 +45,12 @@ class ObsControl:
 		if not wait:
 			return None
 		while True:
-			response = json.loads(self.ws.recv())
+			response = self.ws.recv()
+			try:
+				response = json.loads(response)
+			except JSONDecodeError as e:
+				logger.error("JSON Decode error:", response)
+				raise e
 			logger.debug("response: %s", json.dumps(response, indent=2, ensure_ascii=False))
 			if response.get('message-id') == data['message-id']:
 				break
