@@ -1,3 +1,5 @@
+# Load lists of publications
+
 import sys, os
 import logging
 from datetime import date, timedelta
@@ -11,7 +13,6 @@ from .models import db, app, Issues, Articles, Weeks, Books, VideoCategories, Vi
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
-from .jworg.epub import EpubLoader, namespaces
 
 from rich.console import Console
 from rich.table import Table
@@ -20,9 +21,6 @@ logger = logging.getLogger(__name__)
 
 cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 app.cli.add_command(cli_update)
-
-cli_download = AppGroup("download", help="Download publications")
-app.cli.add_command(cli_download)
 
 LANGUAGE = "ru"
 
@@ -54,14 +52,15 @@ def load_meetings():
 	db.session.commit()
 
 #=============================================================================
-# Get a list of the current issues of the Meeting Workbook and Watchtower
-# (Study Edition) by scraping the appropriate pages of JW.ORG.
-# We create an Issues model instance for each issue in which we record:
+# Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
+# the DB. We create an Issues model instance for each issue.
 # * The URL of the web version on JW.ORG
-# * The filename of the EPUB file which we download
+# * The filename of the EPUB file in case we want to download it
+# We then download the table of contents of each new issue and create an
+# Articles model instance for each article.
 #=============================================================================
 
-@cli_update.command("study", help="Update list of study Watchtowers and Meeting Workbooks")
+@cli_update.command("study-pubs", help="Add current study Watchtowers and Meeting Workbooks to DB")
 def cmd_update_study():
 	logging.basicConfig(level=logging.DEBUG)
 	update_periodicals((
@@ -70,7 +69,7 @@ def cmd_update_study():
 		))
 	update_articles()
 
-@cli_update.command("magazines", help="Update list of all available Watchtowers and Awakes")
+@cli_update.command("magazines", help="Add all available Watchtowers and Awakes to DB")
 def cmd_update_magazines():
 	logging.basicConfig(level=logging.DEBUG)
 	end_year = date.today().year
@@ -81,6 +80,8 @@ def cmd_update_magazines():
 		)
 	update_articles()
 
+# Scrape a periodical lists from JW.ORG and add them to the Periodicals
+# model in the DB if they are not there already.
 def update_periodicals(searches):
 	pub_finder = PubFinder(cachedir=app.cachedir, debuglevel=0)
 	pubs = []
@@ -117,8 +118,8 @@ def update_periodicals(searches):
 	db.session.commit()
 
 # Download the table of contents of each periodical in the database
-# and add the articles to the Articles table.
-# From web version
+# and add the articles to the Articles model in the DB if they are
+# not there already.
 def update_articles():
 	pub_finder = PubFinder()
 	for issue in Issues.query.filter(Issues.pub_code.in_(("w", "mwb"))):
@@ -198,28 +199,5 @@ def update_videos():
 				video_obj.href = video.href
 				video_obj.thumbnail = video.thumbnail
 				category_obj.videos.append(video_obj)
-	db.session.commit()
-
-#=============================================================================
-# Epubs
-#=============================================================================
-
-@cli_download.command("epub-book", help="Download EPUB version of a book or brochure")
-@click.argument("pub_code")
-def cmd_download_book(pub_code):
-	book = Books.query.filter_by(pub_code=pub_code).one()
-	pub_finder = PubFinder(cachedir=app.cachedir)
-	epub_url = pub_finder.get_epub_url(pub_code)
-	book.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
-	db.session.commit()
-
-@cli_download.command("epub-issue", help="Download EPUB version of a periodical issue")
-@click.argument("pub_code")
-@click.argument("issue_code")
-def cmd_download_issue(pub_code, issue_code):
-	issue = Issues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one()
-	pub_finder = PubFinder(cachedir=app.cachedir)
-	epub_url = pub_finder.get_epub_url(pub_code, issue_code)
-	issue.epub_filename = os.path.basename(pub_finder.download_media(epub_url))
 	db.session.commit()
 

@@ -16,7 +16,7 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 	)
 
-from app import app
+from app import app, socketio
 
 # Show levels settings of all the loggers
 for logger_name, logger in logging.root.manager.loggerDict.items():
@@ -31,5 +31,6 @@ if __name__ == "__main__":
 	from werkzeug.middleware.proxy_fix import ProxyFix
 	from app.werkzeug_logging import MyWSGIRequestHandler
 	app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_for=1)
-	run_simple('0.0.0.0', 5000, app, request_handler=MyWSGIRequestHandler, threaded=True)
+	#run_simple('0.0.0.0', 5000, app, request_handler=MyWSGIRequestHandler, threaded=True)
+	socketio.run(app, host="0.0.0.0", port=5000)
 

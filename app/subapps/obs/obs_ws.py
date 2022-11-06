@@ -13,10 +13,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ObsControl:
-	def __init__(self, hostname="localhost", port=4444, password="secret"):
-		self.hostname = hostname
-		self.port = port
-		self.password = password
+	def __init__(self, config):
+		self.hostname = config['hostname']
+		self.port = config['port']
+		self.password = config['password']
 		self.ws = None
 		self.id = 1
 

@@ -5,8 +5,8 @@ import os
 from collections import defaultdict
 import logging
 
-from ...models import Issues, Books
 from ... import app
+from ...models import Issues, Books
 from ...jworg.epub import EpubLoader
 
 logger = logging.getLogger(__name__)

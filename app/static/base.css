@@ -1,4 +1,4 @@
-HTML, BODY, H1, H2, UL, LI {
+HTML, BODY, H1, H2, H3, UL, LI {
 	margin: 0;
 	padding: 0;
 	}
@@ -6,11 +6,17 @@ BODY {
 	margin: .5em;
 	font-family: sans-serif;
 	}
+H1, H2, H3 {
+	font-weight: bold;
+	}
 H1 {
-	font-size: 150%;
+	font-size: 120%;
 	margin-bottom: .2em;
 	}
 H2 {
+	font-size: 110%;
+	}
+H3 {
 	font-size: 100%;
 	}
 UL {

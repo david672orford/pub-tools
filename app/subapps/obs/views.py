@@ -8,9 +8,13 @@ from sqlalchemy import or_, and_
 from datetime import date
 
 from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
-from ... import app
+from ... import app, socketio
 from ...jworg.meetings import MeetingLoader
 
+# Load a client API for controlling OBS. There are two versions of it.
+# The first in obs_api.py works when we are running inside OBS. The
+# second which is in obs_ws.py is what we use when we are running outside.
+# It communicates with OBS through the OBS Websocket plugin.
 try:
 	from .obs_api import ObsControl
 except ModuleNotFoundError:
@@ -22,7 +26,7 @@ blueprint = Blueprint('obs', __name__, template_folder="templates", static_folde
 blueprint.display_name = 'OBS'
 
 meeting_loader = MeetingLoader(cachedir=app.cachedir)
-obs_control = ObsControl()
+obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
 
 # Whenever an uncaught exception occurs in a view function Flask returns
 # HTTP error 500 (Internal Server Error). Here we catch this error so we
@@ -33,17 +37,21 @@ obs_control = ObsControl()
 def handle_500(error):
 	return render_template("obs/500.html"), 500
 
-# The Werkzeig developement server sometimes does not respond to a shutdown
+# The Werkzeig development server sometimes does not respond to a shutdown
 # request until it gets the next HTTP request. So we use this instead.
 # It is called from the OBS plugin to shut down the server thread.
 @blueprint.route("/shutdown")
 def shutdown():
-	raise KeyboardInterrupt
+	print("/shutdown")
+	#raise KeyboardInterrupt
+	socketio.stop()
 
+# Redirect to default tab
 @blueprint.route("/")
 def page_index():
 	return redirect("meetings/")
 
+# List upcoming meetings for which we can load media into OBS
 @blueprint.route("/meetings/", methods=['GET','POST'])
 def page_meetings():
 
@@ -81,6 +89,7 @@ def page_meetings():
 
 	return render_template("obs/meetings.html", weeks=weeks, error=error, top="..")
 
+# List all the songs in the songbook. Clicking on a song loads it into OBS.
 @blueprint.route("/songs/", methods=['GET','POST'])
 def page_songs():
 	error = None
@@ -105,6 +114,7 @@ def page_songs():
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
 	return render_template("obs/songs.html", videos=category.videos if category else None, top="..", error=error)
 
+# List all the categories of videos on JW.org.
 @blueprint.route("/videos/")
 def page_video_categories():
 	categories = defaultdict(list)
@@ -112,6 +122,7 @@ def page_video_categories():
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
 	return render_template("obs/video_categories.html", categories=categories.items(), top="..")
 
+# List all the videos in a category. Clicking on a video loads it into OBS.
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def page_video_list(category_key, subcategory_key):
 	error = None

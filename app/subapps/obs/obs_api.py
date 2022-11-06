@@ -11,6 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ObsControl:
+	def __init__(self, config=None):
+		pass
+
 	def add_scene(self, scene_name, media_type, media_file):
 		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 

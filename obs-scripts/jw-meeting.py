@@ -1,10 +1,11 @@
-# OBS Studio Plugin which embeds the Flask web server
+# OBS Studio Plugin which embeds the Flask web server to run
+# the same apps as ../start.py does.
 
 import obspython as obs
 import threading
 import logging
 from urllib.request import urlopen
-from werkzeug.serving import make_server, WSGIRequestHandler
+from werkzeug.serving import make_server
 from app.werkzeug_logging import MyWSGIRequestHandler
 
 from app import app

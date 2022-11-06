@@ -1,4 +1,4 @@
-{% set title = "Epub Index" %}
+{% set title = "JW ePub Index" %}
 {% extends "epubs/base.html" %}
 
 {% block main %}
@@ -18,7 +18,7 @@
 </section>
 
 <section>
-<h2>Books and Brocures</h2>
+<h2>Books and Brochures</h2>
 <ul>
 {% for book in books %}
 <li><a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a></li>

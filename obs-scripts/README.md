@@ -11,7 +11,7 @@
     $ sudo modprobel v4l2loopback
     $ v4l2-ctl --list-devices
 
-## Install OBS-Websocket Module Version 0.4.1
+## Install OBS-Websocket Module Version 4.9.1
 
 OBS-Websocket is needed only if you plan to run JW-Pubs or OBS-to-Zoom
 from outside of OBS. It is not required when they are installed in OBS as
@@ -20,6 +20,8 @@ scripts where they can communicate with OBS directly using its API.
     $ wget https://github.com/Palakis/obs-websocket/releases/download/4.9.1/obs-websocket_4.9.1-1_amd64.deb
     $ sudo dpkg -i obs-websocket_4.9.1-1_amd64.deb
     $ sudo apt install -f
+
+OBS-Websocket 5.x will not work since it uses a different protocol.
 
 ## Run External Tool Versions
 
