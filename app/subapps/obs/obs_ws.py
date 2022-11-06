@@ -1,5 +1,5 @@
 # Add a scene with a single media item to OBS
-# This version uses OBS-Websocket
+# This version communicates with OBS through its Websocket plugin.
 
 import websocket
 from urllib.parse import urlparse, unquote
