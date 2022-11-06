@@ -1,4 +1,7 @@
 #! /usr/bin/python3
+#
+# Run JW-Pubs as a web browser with embedded web server
+#
 # PyWebview documentation
 # https://github.com/r0x0r/pywebview
 

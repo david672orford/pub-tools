@@ -18,7 +18,7 @@ from ...jworg.meetings import MeetingLoader
 try:
 	from .obs_api import ObsControl
 except ModuleNotFoundError:
-	from .obs_ws import ObsControl
+	from .obs_ws_4 import ObsControl
 
 logger = logging.getLogger(__name__)
 
