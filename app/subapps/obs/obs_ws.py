@@ -48,7 +48,7 @@ class ObsControl:
 			response = self.ws.recv()
 			try:
 				response = json.loads(response)
-			except JSONDecodeError as e:
+			except json.JSONDecodeError as e:
 				logger.error("JSON Decode error:", response)
 				raise e
 			logger.debug("response: %s", json.dumps(response, indent=2, ensure_ascii=False))
