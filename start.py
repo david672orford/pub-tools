@@ -19,11 +19,11 @@ logging.basicConfig(
 from app import app, socketio
 
 # Show levels settings of all the loggers
-for logger_name, logger in logging.root.manager.loggerDict.items():
-	if type(logger) is logging.PlaceHolder:
-		print("Logger", logger_name)
-	else:
-		print("Logger", logger_name, logging.getLevelName(logger.level), logging.getLevelName(logger.getEffectiveLevel()))
+#for logger_name, logger in logging.root.manager.loggerDict.items():
+#	if type(logger) is logging.PlaceHolder:
+#		print("Logger", logger_name)
+#	else:
+#		print("Logger", logger_name, logging.getLevelName(logger.level), logging.getLevelName(logger.getEffectiveLevel()))
 
 # For Docker or for standalone testing
 if __name__ == "__main__":

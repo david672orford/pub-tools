@@ -6,16 +6,25 @@ import webview
 from threading import Thread
 from werkzeug.serving import make_server
 from urllib.request import urlopen
+import logging
 
 from app.werkzeug_logging import MyWSGIRequestHandler
 from app import app, socketio
 
-def server():
-	socketio.run(app, host="0.0.0.0", port=5000)
+logging.basicConfig(
+	level=logging.DEBUG,
+	format='%(asctime)s %(levelname)s %(name)s %(message)s',
+	datefmt='%H:%M:%S'
+	)
 
-#server = make_server(host="127.0.0.1", port=5000, app=app, request_handler=MyWSGIRequestHandler)
-#server_thread = Thread(target=server.serve_forever)
-server_thread = Thread(target=server)
+
+if False:
+	server = make_server(host="127.0.0.1", port=5000, app=app, request_handler=MyWSGIRequestHandler)
+	server_thread = Thread(target=server.serve_forever)
+else:
+	def server():
+		socketio.run(app, host="127.0.0.1", port=5000, log_output=True)
+	server_thread = Thread(target=server)
 server_thread.daemon = True
 server_thread.start()
 
