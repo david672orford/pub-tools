@@ -89,7 +89,17 @@ def page_meetings_submit():
 	if url is not None:
 		logger.info('Load meeting: %s', url)
 		scenes = meeting_loader.extract_media(url)
-		for scene_name, media_type, media_url in scenes:
+		for pub_code, scene_name, media_type, media_url in scenes:
+
+			# Add a symbol to the front of the scene name to indicate its type.
+			print(pub_code, scene_name, media_type, media_url)
+			if pub_code is not None and pub_code.startswith("sjj"):
+				scene_name = "♫ " + scene_name
+			elif media_type == "video":
+				scene_name = "▷ " + scene_name
+			elif media_type == "image":
+				scene_name = "□ " + scene_name	
+
 			if media_type == "web":		# HTML page
 				#obs_control.add_scene(scene_name, media_type, media_url)
 				pass

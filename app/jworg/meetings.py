@@ -36,13 +36,21 @@ class MeetingLoader(Fetcher):
 		return result
 
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
-	# the content of the <article> tag which is inside the <main> tag.
-	# If main is True, return the contents of the <main> tag instead.
+	# the article content. Normally this is the the content of the <article>
+	# tag which is inside the <main> tag. But, if main is True, return the
+	# contents of the <main> tag instead.
 	def get_article_html(self, url, main=False):
 		html = self.get_html(url)
+
 		container = html.xpath(".//main" if main else ".//main//article")
 		assert len(container) == 1, "Found %d main containers!" % len(container)
-		return container[0]
+		container = container[0]
+
+		# Remove the section which has the page images
+		for el in container.xpath(".//div[@id='docSubImg']"):
+			el.getparent().remove(el)
+		
+		return container
 
 	# Fetch the web version of an article, figure out whether it is a Workbook week
 	# or a Watchtower study article and invoke the appropriate media extractor function.
@@ -90,7 +98,7 @@ class MeetingLoader(Fetcher):
 					# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
 					# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 					if a.attrib.get("data-video") is not None:
-						scenes.append((a.text_content(), "video", self.get_video_url(a.attrib['href'])))
+						scenes.append((None, a.text_content(), "video", self.get_video_url(a.attrib['href'])))
 						is_a = "video"
 						break
 
@@ -108,18 +116,18 @@ class MeetingLoader(Fetcher):
 
 					# Song from our songbook
 					if pub_code == "sjj":
-						song = a.text_content().strip()
-						song_number = re.search(r'(\d+)$', song).group(1)
-						scenes.append((song, "video", self.get_song_video_url(song_number)))
+						song_text = a.text_content().strip()
+						song_number = re.search(r'(\d+)$', song_text).group(1)
+						scenes.append(("sjj %s" % song_number, song_text, "video", self.get_song_video_url(song_number)))
 						is_a = "song"
 						break
 
 					# Counsel point
 					if pub_code == "th":
 						text = a.text_content().strip()
-						#scenes.append((text, "web", urljoin(url, a.attrib['href'])))
 						chapter = int(re.search(r"(\d+)$", text).group(1))
-						scenes.append((text, "web", "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4)))
+						#scenes.append(("th %d" % chapter, text, "web", urljoin(url, a.attrib['href'])))
+						scenes.append(("th %s" % chapter, text, "web", "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4)))
 						is_a = "counsel point"
 						break
 
@@ -128,6 +136,7 @@ class MeetingLoader(Fetcher):
 					# ijwpk -- become Jehovah's friend
 					if pub_code.startswith("ijw"):
 						docid = a.attrib.get('data-page-id')
+						# FIXME
 						is_a = "video"
 						break
 
@@ -179,6 +188,7 @@ class MeetingLoader(Fetcher):
 		print("=========================================================")
 		print(title)
 		#self.dump_html(container)
+
 		figures = []
 		n = 1
 		for figure in container.xpath(".//figure"):
@@ -188,11 +198,30 @@ class MeetingLoader(Fetcher):
 				figcaption = "%s %s: %s" % (title, n, figcaption[0].text_content().strip())
 			else:
 				figcaption = "%s %d" % (title, n)
-			
-			try:
-				figures.append((figcaption, "image", figure.find_class("jsRespImg")[0].attrib['data-zoom']))
-			except Exception:
-				print("No data-zoom in figure:", figure, figure.attrib)
+
+			#
+			# In the unmodified HTML the figure looks like this:
+			# <figure>
+			#  <span class="jsRespImg"...>
+			#    <noscript>
+			#       <img srv="..." alt="...">
+			#    </noscript>
+			#  </span>
+			# </figure>
+			#
+			# If the image is a video thumbnail, there will be an <a> element wrapping the <span>
+			#
+
+			links = figure.xpath("./a")
+			if len(links) > 0:
+				a = links[0]
+				if a.attrib.get("data-video") is not None:
+					figures.append((None, "%s %d" % (title, n), "video", self.get_video_url(a.attrib['href'])))
+
+			else:
+				img = figure.xpath("./span[@class='jsRespImg']")[0]
+				figures.append((None, figcaption, "image", img.attrib['data-zoom']))
+
 			n += 1
 		#self.dump_json(figures)
 		return figures
