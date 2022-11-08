@@ -32,17 +32,17 @@ server_thread.daemon = True
 server_thread.start()
 
 webview.create_window(
-	title='JW-Pubs: OBS',
-	url='http://localhost:5000/obs/',
+	title='JW-Pubs',
+	url='http://localhost:5000/khplayer/songs/',
 	width=1024,
-	height=1024,
+	height=768,
 	)
-webview.start()
+webview.start(debug=True)
 print("Webview has exited.")
 
 print("Shutting down server...")
 try:
-	urlopen('http://127.0.0.1:5000/obs/shutdown')
+	urlopen('http://127.0.0.1:5000/khplayer/shutdown')
 except Exception as e:
 	pass
 server_thread.join()

@@ -7,7 +7,7 @@ app.config.from_mapping(
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/app.db' % os.path.abspath(app.instance_path),
 	SQLALCHEMY_TRACK_MODIFICATIONS = False,
 	SQLALCHEMY_ECHO = False,
-	ENABLED_SUBAPPS = ['toolbox', 'obs', 'epubs'],
+	ENABLED_SUBAPPS = ['toolbox', 'khplayer', 'epubs'],
 	)
 app.config.from_pyfile('config.py')
 app.cachedir = os.path.join(app.instance_path, "cache")

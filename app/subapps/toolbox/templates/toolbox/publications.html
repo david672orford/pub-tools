@@ -2,25 +2,21 @@
 {% extends "toolbox/base.html" %}
 
 {% block main %}
-<p>Это набор ссылок ни публикации из нашего Набора инструментов. Нажмите на
-обложку чтобы отправить заинтересованному ссылку на сооветствующую публикацию на JW.ORG.
-Сама это страница преднажначена только для возвещаетелей.</p>
-<p>This is a collection of links to the publications in our Teaching Toolbox
-on JW.ORG. Click on a publication to send the link to an interested person.
-This page itself is intended only for publishers.</p>
+<p>
+	These are the publications in the Toolbox. Next to each is the
+	sharing link to JW.ORG.
+</p>
 {% for category_name, category_pubs in categories %}
 <section class="pubs">
 <h2>{{category_name}}</h2>
 <ul>
 {% for pub in category_pubs %}
 	<li>
-		<a href="{{pub.href}}">
-			<img src="{{pub.thumbnail}}">
-			<div>
-				{{pub.name}}
-				{% if pub.issue %}{{pub.issue}}{% endif %}
-			</div>
-		</a>
+		<img src="{{pub.thumbnail}}">
+		<div>
+			<span>{{pub.name}}{% if pub.issue %} {{pub.issue}}{% endif %}</span>
+			<a href="{{pub.href}}">{{pub.href}}</a>
+		</div>
 	</li>
 {% endfor %}
 </ul>

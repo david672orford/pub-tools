@@ -18,12 +18,13 @@ from ...jworg.meetings import MeetingLoader
 try:
 	from .obs_api import ObsControl
 except ModuleNotFoundError:
-	from .obs_ws_4 import ObsControl
+	#from .obs_ws_4 import ObsControl
+	from .obs_ws_5 import ObsControl
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('obs', __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = 'OBS'
+blueprint = Blueprint('khplayer', __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = 'KH Player'
 
 meeting_loader = MeetingLoader(cachedir=app.cachedir)
 obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
@@ -35,7 +36,7 @@ obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
 # getting the necessary context menu to open.
 @blueprint.errorhandler(500)
 def handle_500(error):
-	return render_template("obs/500.html"), 500
+	return render_template("khplayer/500.html"), 500
 
 # The Werkzeig development server sometimes does not respond to a shutdown
 # request until it gets the next HTTP request. So we use this instead.
@@ -87,7 +88,7 @@ def page_meetings():
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 
-	return render_template("obs/meetings.html", weeks=weeks, error=error, top="..")
+	return render_template("khplayer/meetings.html", weeks=weeks, error=error, top="..")
 
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
 @blueprint.route("/songs/", methods=['GET','POST'])
@@ -112,7 +113,7 @@ def page_songs():
 		error = str(e)
 
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
-	return render_template("obs/songs.html", videos=category.videos if category else None, top="..", error=error)
+	return render_template("khplayer/songs.html", videos=category.videos if category else None, top="..", error=error)
 
 # List all the categories of videos on JW.org.
 @blueprint.route("/videos/")
@@ -120,7 +121,7 @@ def page_video_categories():
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
-	return render_template("obs/video_categories.html", categories=categories.items(), top="..")
+	return render_template("khplayer/video_categories.html", categories=categories.items(), top="..")
 
 # List all the videos in a category. Clicking on a video loads it into OBS.
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
@@ -134,7 +135,7 @@ def page_video_list(category_key, subcategory_key):
 		logger.exception("Failed to load video")
 		error = str(e)
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("obs/video_list.html", category=category, top="../../..", error=error)
+	return render_template("khplayer/video_list.html", category=category, top="../../..", error=error)
 
 # Download a video (if it is not already cached) and add it to OBS as a scene
 def add_video(lank):
@@ -143,4 +144,11 @@ def add_video(lank):
 	media_url = meeting_loader.get_video_url(video.href)
 	media_file = meeting_loader.download_media(media_url)
 	obs_control.add_scene(video.name, "video", media_file)
+
+@blueprint.route("/obs/")
+def page_obs():
+	obs_control.connect()
+	#scenes = obs_control.ws.get_scene_list()
+	scene_items = obs_control.ws.get_scene_item_list("Scene")
+	return render_template("khplayer/obs.html", scene_items=scene_items.scene_items, top="..")
 

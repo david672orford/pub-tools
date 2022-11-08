@@ -1,0 +1,16 @@
+{% set title = "JW Meetings" %}
+{% extends "khplayer/base.html" %}
+
+{% block main %}
+
+{% if error %}
+<div class="flash">
+{{ error }}
+</div>
+{% endif %}
+
+<div>
+{{scene_items}}
+</div>
+
+{% endblock %}

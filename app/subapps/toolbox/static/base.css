@@ -40,36 +40,36 @@ SECTION.pubs {
     border-radius: 5px;
 	background-color: #f8f8f8;
 	}
-SECTION.pubs UL {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    grid-auto-rows: 1fr;
+SECTION.pubs > UL {
     list-style: none;
 	margin: 0;
     }
-SECTION.pubs UL LI {
+SECTION.pubs > UL > LI {
+	display: flex;
     border: 1px solid #c0c0c0;
     border-radius: 5px;
     margin: 2.5px;
+	padding: 0.15em;
 	background-color: white;
     }
-SECTION.pubs UL LI A {
-    display: block;
-    color: inherit;
-    text-decoration: inherit;
-    text-align: left;
-	padding: 5px;
-	height: 100%;
-    }
-SECTION.pubs UL LI A:hover {
-    background-color: #f0f0f0;
-    }
-SECTION.pubs UL LI IMG {
-    display: block;
-    width: 100%;
+SECTION.pubs > UL > LI > * {
+	margin: 0.15em;
+	}
+SECTION.pubs > UL > LI > IMG {
+	width: 96px;
+	height: 96px;
+	object-fit: cover;
+	object-position: 50% top;
+	flex-grow: 0;
+	flex-shrink: 0;
     border: 1px solid #c0c0c0;
     }
+SECTION.pubs > UL > LI > DIV {
+	display: flex;
+	flex-direction: column;
+	}
 
+/*
 TABLE {
 	border-collapse: collapse;
 	margin: 5px;
@@ -79,4 +79,4 @@ TH, TD {
 	padding: .3em;
 	text-align: left;
 	}
-
+*/
