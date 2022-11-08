@@ -37,10 +37,11 @@ class MeetingLoader(Fetcher):
 
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
 	# the content of the <article> tag which is inside the <main> tag.
-	def get_article_html(self, url):
+	# If main is True, return the contents of the <main> tag instead.
+	def get_article_html(self, url, main=False):
 		html = self.get_html(url)
-		container = html.xpath(".//main//article")
-		assert len(container) == 1		
+		container = html.xpath(".//main" if main else ".//main//article")
+		assert len(container) == 1, "Found %d main containers!" % len(container)
 		return container[0]
 
 	# Fetch the web version of an article, figure out whether it is a Workbook week
@@ -48,6 +49,8 @@ class MeetingLoader(Fetcher):
 	def extract_media(self, url):
 		container = self.get_article_html(url)
 		logger.info("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
+
+		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib['class'])
 		assert m
 		return getattr(self, "extract_media_%s" % m.group(1))(url, container)
@@ -55,16 +58,31 @@ class MeetingLoader(Fetcher):
 	# Extract the media URL's from the web version of an article in the Meeting Workbook
 	def extract_media_mwb(self, url, container):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
+
+		# In the inner for loop we add what we want to keep to this list
 		scenes = []
+
+		# The workbook page has four <sections>:
+		# 1) The title which gives the date, Bible reading, and opening song number
+		# 2) СОКРОВИЩА ИЗ СЛОВА БОГА
+		# 3) ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ
+		# 4) ХРИСТИАНСКАЯ ЖИЗНЬ
 		for section in container:
 			assert section.tag == "div" and section.attrib['class'] == "section"
 			section_id = section.attrib['id']
 			h2s = section.xpath(".//h2")
 			section_title = h2s[0].text_content() if len(h2s) > 0 else None
 			logger.info("Section: id=%s class=%s title=\"%s\"" % (section_id, section.attrib.get("class"), section_title))
+
+			# Go through all of the hyperlinks in this section
 			for a in section.xpath(".//a"):
 				logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
+
+				# Not an actual loop. We always break out on the first iteration.
 				while True:
+
+					# This is for the log message which is printed after we break out of this 'loop'
+					is_a = None
 
 					# Meeting Workbook sample presentation video
 					# (Other videos occasionally have them too.)
@@ -80,13 +98,15 @@ class MeetingLoader(Fetcher):
 						is_a = "verse"
 						break
 
+					# Extract publication code and document ID. We will use these below
+					# to figure out what we've got.
 					try:
 						pub_code = re.match(r"^pub-(\S+)$", a.attrib['class']).group(1)
 						docid = re.match(r"^mid(\d+)$", a.attrib['data-page-id']).group(1)
 					except AttributeError:
 						raise AssertionError("Not as expected: <%s %s>%s" % (a.tag, str(a.attrib), a.text))
 
-					# Songbook
+					# Song from our songbook
 					if pub_code == "sjj":
 						song = a.text_content().strip()
 						song_number = re.search(r'(\d+)$', song).group(1)
@@ -94,7 +114,7 @@ class MeetingLoader(Fetcher):
 						is_a = "song"
 						break
 
-					# Counsel points
+					# Counsel point
 					if pub_code == "th":
 						text = a.text_content().strip()
 						#scenes.append((text, "web", urljoin(url, a.attrib['href'])))
@@ -108,14 +128,24 @@ class MeetingLoader(Fetcher):
 					# ijwpk -- become Jehovah's friend
 					if pub_code.startswith("ijw"):
 						docid = a.attrib.get('data-page-id')
+						is_a = "video"
 						break
 
-					# Links to other publications. Omit those in section three because the
-					# are just the source material for demonstrations.
+					# Links to other publications. Download the article or chapter and extract illustrations.
+					# (Omit those in 3rd section because the are just the source material for demonstrations.)
 					if section_id != "section3":
+
+						# Take the text inside the <a> tag as the article title
 						article_title = a.text_content().strip()
-						article_main = self.get_article_html(urljoin(url, a.attrib['href']))
+
+						# Download the article and extract the contents of the <main> tag
+						# (The articles for the first talk in the MWB have the first illustration
+						# between the <main> tag and the <article> tag inside it.)
+						article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
+
+						# Pull out illustrations
 						scenes.extend(self.extract_illustrations(article_title, article_main))
+
 						is_a = "article"
 						break
 
@@ -128,7 +158,7 @@ class MeetingLoader(Fetcher):
 	# Extract the media URL's from the web version of a Watchtower study article.
 	def extract_media_w(self, url, container):
 
-		# <a class='pub-sjj' is a song. There should always be two.
+		# <a class='pub-sjj' is a song. There should always be two, opening and closing.
 		songs = []
 		for a in container.xpath(".//a[@class='pub-sjj']"):
 			song = a.text_content().strip()
@@ -142,12 +172,17 @@ class MeetingLoader(Fetcher):
 		return [songs[0]] + illustrations + [songs[1]]
 
 	# Find the illustrations (<figure> tags) from an article or chapter body.
-	# This is used for Watchtower articles and the Congregation Bible Study material.
+	# The Watchtower extractor runs this on the whole article
+	# The Meeting Workbook extractor runs this on articles to which the
+	# week's page links, omiting only the source material for demonstrations.
 	def extract_illustrations(self, title, container):
+		print("=========================================================")
+		print(title)
+		#self.dump_html(container)
 		figures = []
 		n = 1
 		for figure in container.xpath(".//figure"):
-			#self.dump_html(figure)
+			self.dump_html(figure)
 			figcaption = figure.xpath("./figcaption")
 			if len(figcaption) > 0:
 				figcaption = "%s %s: %s" % (title, n, figcaption[0].text_content().strip())
@@ -155,10 +190,9 @@ class MeetingLoader(Fetcher):
 				figcaption = "%s %d" % (title, n)
 			
 			try:
-				print("figure:", figure, figure.attrib)
 				figures.append((figcaption, "image", figure.find_class("jsRespImg")[0].attrib['data-zoom']))
 			except Exception:
-				pass		# FIXME
+				print("No data-zoom in figure:", figure, figure.attrib)
 			n += 1
 		#self.dump_json(figures)
 		return figures

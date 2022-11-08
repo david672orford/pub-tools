@@ -88,6 +88,18 @@ UL.nowrap LI {
 	white-space: nowrap;
 	}
 
+UL.bare {
+	list-style-type: none;
+	margin-left: 0;
+	}
+UL.bare LABEL {
+	display: block;
+	width: 100%;
+	}
+UL.bare LABEL:hover {
+	background-color: #f0f0f0;
+	}
+
 DIV#popup {
 	display: none;
 	}

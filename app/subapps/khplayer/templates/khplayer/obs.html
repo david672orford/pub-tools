@@ -1,4 +1,4 @@
-{% set title = "JW Meetings" %}
+{% set title = "OBS Control" %}
 {% extends "khplayer/base.html" %}
 
 {% block main %}
@@ -9,8 +9,19 @@
 </div>
 {% endif %}
 
-<div>
-{{scene_items}}
-</div>
+<section>
+<form action="submit" method="POST">
+<ul class="bare">
+{% for scene in scenes %}
+<li><label><input type="checkbox" name="del" value="{{scene['sceneName']}}"> {{scene['sceneName']}}</label></li>
+{% endfor %}
+</ul>
+<button type="submit" name="action" value="delete">Delete Selected</button>
+<button type="submit" name="action" value="delete-all">Delete All</button>
+<br>
+<input type="text" name="collection" placeholder="New collection name">
+<button type="submit" name="action" value="new">Create</button>
+</form>
+</section>
 
 {% endblock %}

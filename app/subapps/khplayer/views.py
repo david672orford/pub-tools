@@ -6,6 +6,7 @@ import logging
 from collections import defaultdict
 from sqlalchemy import or_, and_
 from datetime import date
+from urllib.parse import urlencode
 
 from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
 from ... import app, socketio
@@ -19,7 +20,7 @@ try:
 	from .obs_api import ObsControl
 except ModuleNotFoundError:
 	#from .obs_ws_4 import ObsControl
-	from .obs_ws_5 import ObsControl
+	from .obs_ws_5 import ObsControl, OBSError
 
 logger = logging.getLogger(__name__)
 
@@ -52,19 +53,31 @@ def shutdown():
 def page_index():
 	return redirect("meetings/")
 
-# List upcoming meetings for which we can load media into OBS
-@blueprint.route("/meetings/", methods=['GET','POST'])
-def page_meetings():
+#======================================================
+# Meetings Tab
+#======================================================
 
+# List upcoming meetings for which we can load media into OBS
+@blueprint.route("/meetings/")
+def page_meetings():
+	error = request.args.get("error")
+	weeks = Weeks.query
+	if not request.args.get("all", False):
+		now_year, now_week, now_weekday = date.today().isocalendar()
+		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
+	return render_template("khplayer/meetings.html", weeks=weeks, error=error, top="..")
+
+@blueprint.route("/meetings/submit", methods=['POST'])
+def page_meetings_submit():
 	url = None
 	error = None
 
 	# Get the URL of the article (from the Watchtower or the Meeting Workbook)
 	# which will be studied at this meeting.
-	if 'url' in request.args:
-		url = request.args.get('url')
-	elif 'docid' in request.args:
-		docid = int(request.args.get('docid'))
+	if request.form.get("action") == "add":
+		url = request.form.get('url')
+	elif 'docid' in request.form:
+		docid = int(request.form.get('docid'))
 		article = Articles.query.filter_by(docid=docid).one_or_none()
 		if article is not None:
 			url = article.href
@@ -78,17 +91,19 @@ def page_meetings():
 		scenes = meeting_loader.extract_media(url)
 		for scene_name, media_type, media_url in scenes:
 			if media_type == "web":		# HTML page
-				obs_control.add_scene(scene_name, media_type, media_url)
+				#obs_control.add_scene(scene_name, media_type, media_url)
+				pass
 			else:						# video or image file
 				media_file = meeting_loader.download_media(media_url)
 				obs_control.add_scene(scene_name, media_type, media_file)
 
-	weeks = Weeks.query
-	if not request.args.get("all", False):
-		now_year, now_week, now_weekday = date.today().isocalendar()
-		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
+	if error is not None:
+		return redirect(".?%s" % urlencode({"error": error}))
+	return redirect(".")
 
-	return render_template("khplayer/meetings.html", weeks=weeks, error=error, top="..")
+#======================================================
+# Songs Tab
+#======================================================
 
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
 @blueprint.route("/songs/", methods=['GET','POST'])
@@ -114,6 +129,10 @@ def page_songs():
 
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
 	return render_template("khplayer/songs.html", videos=category.videos if category else None, top="..", error=error)
+
+#======================================================
+# Videos Tab
+#======================================================
 
 # List all the categories of videos on JW.org.
 @blueprint.route("/videos/")
@@ -145,10 +164,41 @@ def add_video(lank):
 	media_file = meeting_loader.download_media(media_url)
 	obs_control.add_scene(video.name, "video", media_file)
 
+#======================================================
+# OBS Tab
+#======================================================
+
 @blueprint.route("/obs/")
 def page_obs():
 	obs_control.connect()
-	#scenes = obs_control.ws.get_scene_list()
-	scene_items = obs_control.ws.get_scene_item_list("Scene")
-	return render_template("khplayer/obs.html", scene_items=scene_items.scene_items, top="..")
+	scenes = reversed(obs_control.ws.get_scene_list().scenes)
+	return render_template("khplayer/obs.html", scenes=scenes, top="..")
+
+@blueprint.route("/obs/submit", methods=["POST"])
+def page_obs_submit():
+	action = request.form.get("action")
+	print("action:", action)
+
+	obs_control.connect()
+
+	if action == "delete":
+		for scene in request.form.getlist("del"):
+			print(scene)
+			try:
+				obs_control.ws.remove_scene(scene)
+			except OBSError:
+				pass
+
+	elif action == "delete-all":
+		for scene in obs_control.ws.get_scene_list().scenes:
+			print(scene)
+			obs_control.ws.remove_scene(scene["sceneName"])
+
+	elif action == "new":
+		collection = request.form.get("collection").strip()
+		if collection != "":
+			obs_control.ws.create_scene_collection(collection)
+
+	return redirect(".")
+
 
