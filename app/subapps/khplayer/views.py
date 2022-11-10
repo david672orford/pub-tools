@@ -8,7 +8,7 @@ from sqlalchemy import or_, and_
 from datetime import date
 from urllib.parse import urlencode
 
-from ...models import Weeks, Issues, Articles, Books, VideoCategories, Videos
+from ...models import Weeks, Articles, VideoCategories, Videos
 from ... import app, socketio
 from ...jworg.meetings import MeetingLoader
 

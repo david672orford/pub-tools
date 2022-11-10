@@ -60,14 +60,14 @@ def load_meetings():
 # Articles model instance for each article.
 #=============================================================================
 
-@cli_update.command("study-pubs", help="Add current study Watchtowers and Meeting Workbooks to DB")
-def cmd_update_study():
-	logging.basicConfig(level=logging.DEBUG)
-	update_periodicals((
-		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
-		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
-		))
-	update_articles()
+#@cli_update.command("study-pubs", help="Add current study Watchtowers and Meeting Workbooks to DB")
+#def cmd_update_study():
+#	logging.basicConfig(level=logging.DEBUG)
+#	update_periodicals((
+#		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
+#		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
+#		))
+#	update_articles()
 
 @cli_update.command("magazines", help="Add all available Watchtowers and Awakes to DB")
 def cmd_update_magazines():

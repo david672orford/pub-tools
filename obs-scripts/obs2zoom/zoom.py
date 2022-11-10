@@ -24,8 +24,8 @@ from time import sleep
 import logging
 
 # FIXME: temporary while we are diagnosing a problem
-import Xlib
-assert Xlib.__version__ == (0, 23)
+#import Xlib
+#assert Xlib.__version__ == (0, 23)
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class ZoomControl:
 			self.mouse_click(self.dialog_window, 10 + 10, geometry.height - 30 + 10)
 
 		# Select the second camera as input
-		self.send_keys(self.dialog_window, [
+		key_seq = (
 			"Tab",		# Focus on "Share Sound" checkbox
 			"Tab",		# Focus on "Optimize for Video" checkbox
 			"Tab",		# Focus on "Start Sharing" button
@@ -130,10 +130,11 @@ class ZoomControl:
 			"Tab",		# move into body of tab
 			"Right",	# From "Share part of screen" to "Share computer sound"
 			"Right",	# From "Share computer sound" to "2nd camera"
-			])
+			)
+		key_seq = ["Right"]	
+		self.send_keys(self.dialog_window, key_seq)
 
 		# Click the star Start Sharing button. This closes the dialog.
-		#self.mouse_click(self.dialog_window, 675, 420)
 		self.mouse_click(self.dialog_window, geometry.width - 70, geometry.height - 16)
 		self.dialog_window = None
 

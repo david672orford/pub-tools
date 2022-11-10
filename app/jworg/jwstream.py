@@ -15,20 +15,26 @@ class StreamRequester:
 	user_agent = "Mozilla/5.0"
 
 	def __init__(self, url):
+		self.url = url
+		self.session = None
+		self.ajax_headers = None
+		self.video_info = None
+
+	def connect(self):
 		self.session = requests.Session()
 		self.session.headers.update({
 			'User-Agent': self.user_agent
 			})
 
 		# Extract the token from an invitation URL
-		token = unquote(urlparse(url).path.split("/")[-1])
+		token = unquote(urlparse(self.url).path.split("/")[-1])
 
 		# Load the invitation page in order to get the cookies
-		page_response = self.session.get(url)
+		page_response = self.session.get(self.url)
 		assert page_response.status_code == 200
 
 		# Headers to simulate an AJAX request from a browser
-		ajax_headers = {
+		self.ajax_headers = {
 			"Content-Type": "application/json;charset=UTF-8",
 			"Referer": "https://fle.stream.jw.org/video/ru-ukr",
 			"Accept": "application/json, text/plain, */*",
@@ -38,15 +44,16 @@ class StreamRequester:
 
 		# Use the token from the invitation URL to log in
 		response = self.session.post("https://fle.stream.jw.org/token/check",
-			headers = ajax_headers,
+			headers = self.ajax_headers,
 			json = { 'token': token }
 			)
 		assert response.status_code == 200
 		assert response.json()[0]
 
+	def get_videos(self):
 		# Ask for the list of current videos
 		response = self.session.post("https://fle.stream.jw.org/event/languageVideos",
-			headers = ajax_headers,
+			headers = self.ajax_headers,
 			data = json.dumps({
 				"language": {
 					"id_language": "749",
@@ -85,11 +92,17 @@ class StreamRequester:
 				return event
 		return None
 
-	def get_event(self, index=0):
+	def get_event(self, name_prefix, resolution):
 		event = self.find_event(name_prefix)
 		assert event
 		chapters = list(map(lambda chapter: chapter['time'], event['chapters']))
-		url = event['vod_files'][-2]['url']
+		print(json.dumps(event['vod_files'], indent=2))
+		for vod_file in event['vod_files']:
+			if vod_file['height'] == resolution:
+				url = vod_file['url']
+				break
+		else:
+			return None
 
 		# Try to fetch the video file. The result will be a redirect to a CDN.
 		result = self.session.get(url, allow_redirects=False)
@@ -99,7 +112,9 @@ class StreamRequester:
 if __name__ == "__main__":
 	import sys
 	requester = StreamRequester(sys.argv[1])
-	video_url, chapters = requester.get_event(sys.argv[2])
+	requester.connect()
+	requester.get_videos()
+	video_url, chapters = requester.get_event(sys.argv[2], int(sys.argv[3] if len(sys.argv) >= 4 else 234))
 	print("Video URL:", video_url)
 	print("Chapters:", chapters)
 

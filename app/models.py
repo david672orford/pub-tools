@@ -4,15 +4,25 @@ from datetime import date
 
 db = SQLAlchemy(app)
 
+#=============================================================================
+# Meetings
+#=============================================================================
+
 # Workbook meeting outline and Watchtower Study article for each week
 class Weeks(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	year = db.Column(db.Integer)
 	week = db.Column(db.Integer)
 	mwb_docid = db.Column(db.Integer)
+	#mwb_url = db.Column(db.String)
 	watchtower_docid = db.Column(db.Integer)
+	#watchtower_url = db.Column(db.String)
 	def week_of(self):
 		return date.fromisocalendar(self.year, self.week, 1).isoformat()
+
+#=============================================================================
+# Publications
+#=============================================================================
 
 # Issues of the Watchtower or Meeting Workbook
 class Issues(db.Model):
@@ -48,7 +58,9 @@ class Books(db.Model):
 	href = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 
+#=============================================================================
 # Videos on JW.ORG
+#=============================================================================
 
 videos_rel = db.Table("videos_rel", db.Model.metadata,
     db.Column('category_id', db.Integer, db.ForeignKey('video_categories.id'), primary_key=True),
