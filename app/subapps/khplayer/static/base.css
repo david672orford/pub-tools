@@ -100,10 +100,10 @@ UL.bare LABEL:hover {
 	background-color: #f0f0f0;
 	}
 
+/* Experimental */
 DIV#popup {
 	display: none;
 	}
-
 DIV#popup.show {
 	display: block;
 	position: absolute;

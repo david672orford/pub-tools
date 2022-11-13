@@ -144,15 +144,17 @@ class StreamRequester:
 					timestamp = int(time()),
 					), fh, indent=2, ensure_ascii=False)
 
-	def find_event(self, name_prefix):
+	def get_events(self):
 		for event in self.video_info:
-			if event['title'].startswith(name_prefix):
-				return event
-		return None
+			yield (event['data']['id'], event['title'])
 
-	def get_event(self, name_prefix, resolution):
-		event = self.find_event(name_prefix)
-		assert event
+	def get_event(self, id, resolution):
+		for event in self.video_info:
+			if event['data']['id'] == id:
+				break
+		else:
+			return None
+
 		chapters = list(map(lambda chapter: chapter['time'], event['chapters']))
 		print(json.dumps(event['vod_files'], indent=2))
 		for vod_file in event['vod_files']:
@@ -165,16 +167,16 @@ class StreamRequester:
 		# Try to fetch the video file. The result will be a redirect to a CDN.
 		result = self.session.get(url, allow_redirects=False)
 		assert result.status_code == 302
-		return (result.headers['Location'], chapters)
+		return (event['title'], result.headers['Location'], chapters)
 
 if __name__ == "__main__":
 	import sys
-	requester = StreamRequester(sys.argv[1], cachefile="jwstream-cache.json", debug=True)
+	requester = StreamRequester(sys.argv[1], cachefile="jwstream-cache.json", debug=False)
 	requester.connect()
-	for event in requester.video_info:
-		print("Event:", event['title'])
+	for id, name in requester.get_events():
+		print("Event: %d: %s" % (id, name))
 
-	video_url, chapters = requester.get_event(sys.argv[2], int(sys.argv[3] if len(sys.argv) >= 4 else 234))
+	video_url, chapters = requester.get_event(int(sys.argv[2]), 234)
 	print("Video URL:", video_url)
 	print("Chapters:", chapters)
 

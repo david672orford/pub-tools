@@ -111,11 +111,15 @@ class Fetcher:
 	# in a browser JavaScript code transforms the page a bit after it is loaded,
 	# so we can't completely trust what we seen in the browser's debugger.
 	@staticmethod 
-	def dump_html(el): 
+	def dump_html(el, filename=None): 
 		print("=======================================================") 
 		Fetcher._indent(el) 
 		text = lxml.html.tostring(el, encoding="UNICODE") 
-		print(text) 
+		if filename:
+			with open(filename, "w") as fh:
+				fh.write(text)
+		else:
+			print(text) 
  
 	@staticmethod 
 	def dump_json(data):

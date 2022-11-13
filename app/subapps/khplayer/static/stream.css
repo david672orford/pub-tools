@@ -1,0 +1,9 @@
+.video-caption {
+	font-weight: bold;
+	}
+.video-sizer {
+	border thin solid black;
+	}
+INPUT.time INPUT {
+	width: 5em;
+	}

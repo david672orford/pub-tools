@@ -1,0 +1,33 @@
+{% set title = "JW Stream" %}
+{% extends "khplayer/base.html" %}
+
+{% block head_add %}
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='stream.css')}}">
+{% endblock %}
+
+{% block main %}
+
+{% if error %}
+<div class="flash">
+{{ error }}
+</div>
+{% endif %}
+
+<section>
+<form action="{{id}}/trim" method="POST">
+<div class="video-caption">
+	{{video_name}}
+</div>
+<div class="video-sizer">
+	<video controls src="{{video_url}}" style="width: 100%">
+	</video>
+</div>
+<div class="bottom-controls">
+	<input type="text" name="start" class="time">
+	<input type="text" name="end" class="time">
+	<button type="submit">Trim</button>
+</div>
+</form>
+</section>
+
+{% endblock %}

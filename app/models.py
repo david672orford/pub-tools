@@ -14,9 +14,9 @@ class Weeks(db.Model):
 	year = db.Column(db.Integer)
 	week = db.Column(db.Integer)
 	mwb_docid = db.Column(db.Integer)
-	#mwb_url = db.Column(db.String)
+	mwb_url = db.Column(db.String)
 	watchtower_docid = db.Column(db.Integer)
-	#watchtower_url = db.Column(db.String)
+	watchtower_url = db.Column(db.String)
 	def week_of(self):
 		return date.fromisocalendar(self.year, self.week, 1).isoformat()
 

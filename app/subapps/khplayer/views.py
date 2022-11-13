@@ -7,10 +7,12 @@ from collections import defaultdict
 from sqlalchemy import or_, and_
 from datetime import date
 from urllib.parse import urlencode
+import subprocess
 
 from ...models import Weeks, Articles, VideoCategories, Videos
 from ... import app, socketio
 from ...jworg.meetings import MeetingLoader
+from ...jworg.jwstream import StreamRequester
 
 # Load a client API for controlling OBS. There are two versions of it.
 # The first in obs_api.py works when we are running inside OBS. The
@@ -69,18 +71,32 @@ def page_meetings_submit():
 		url = request.form.get('url')
 	elif 'docid' in request.form:
 		docid = int(request.form.get('docid'))
-		article = Articles.query.filter_by(docid=docid).one_or_none()
-		if article is not None:
-			url = article.href
-		else:
-			error = "Article for the requested week is not in the database."
+
+		# First attempt, requires us to index all Watchtower and MWB articles in the DB
+		#article = Articles.query.filter_by(docid=docid).one_or_none()
+		#if article is not None:
+		#	url = article.href
+		#else:
+		#	error = "Article for the requested week is not in the database."
+
+		# Second attempt, WOL pages are harder to interpret since the HTML attribute reveal less
+		#week = Weeks.query.filter(or_(Weeks.watchtower_docid==docid, Weeks.mwb_docid==docid)).one()
+		#if week.watchtower_docid == docid:
+		#	url = week.watchtower_url
+		#elif week.mwb_docid == docid:
+		#	url = week.mwb_url
+
+		# Third attempt, use sharing URL of version on main site
+		url = "https://www.jw.org/finder?wtlocale=U&docid=%s&srcid=share" % docid
 
 	# If we have the article's URL, scan it and download the songs, videos,
 	# and illustrations and add them to OBS as scenes.
 	if url is not None:
 		logger.info('Load meeting: %s', url)
 		scenes = meeting_loader.extract_media(url)
-		for pub_code, scene_name, media_type, media_url in scenes:
+		for scene in scenes:
+			print(scene)
+			pub_code, scene_name, media_type, media_url = scene
 
 			# Add a symbol to the front of the scene name to indicate its type.
 			print(pub_code, scene_name, media_type, media_url)
@@ -169,9 +185,35 @@ def add_video(lank):
 # Stream
 #======================================================
 
+def make_jwstream_requester():
+	cachefile = os.path.join(app.instance_path, "jwstream-cache.json")
+	requester = StreamRequester(app.config['JW_STREAM']['url'], cachefile=cachefile) 
+	requester.connect()
+	return requester
+
 @blueprint.route("/stream/")
 def page_stream():
-	return render_template("khplayer/stream.html", top="..")
+	requester = make_jwstream_requester()
+	return render_template("khplayer/stream.html", events=requester.get_events(), top="..")
+
+@blueprint.route("/stream/<int:id>")
+def page_stream_player(id):
+	requester = make_jwstream_requester()
+	video_name, video_url, chapters = requester.get_event(id, 234)
+	return render_template("khplayer/stream_player.html", id=id, video_name=video_name, video_url=video_url, chapters=chapters, top="..")
+
+@blueprint.route("/stream/<int:id>/trim", methods=["POST"])
+def page_stream_trim(id):
+	requester = make_jwstream_requester()
+	video_name, video_url, chapters = requester.get_event(id, 720)
+	start = request.form.get("start")
+	end = request.form.get("end")
+	video_name = "%s %s-%s" % (video_name, start, end)
+	media_file = os.path.join(app.cachedir, "jwstream-%d-%s-%s.mp4" % (id, start, end))
+	if not os.path.exists(media_file):
+		result = subprocess.run(["ffmpeg", "-i", video_url, "-ss", start, "-to", end, "-c", "copy", media_file])
+	obs_control.add_scene(video_name, "video", media_file)
+	return redirect("..")
 
 #======================================================
 # OBS Tab
@@ -209,5 +251,4 @@ def page_obs_submit():
 			obs_control.ws.create_scene_collection(collection)
 
 	return redirect(".")
-
 

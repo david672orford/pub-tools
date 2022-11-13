@@ -22,15 +22,21 @@ class MeetingLoader(Fetcher):
 		# directly from the todayItem tag.
 		mwb_class = today_items[0].attrib['class']
 		assert " pub-mwb " in mwb_class
+
+		item_data = today_items[1].find_class('itemData')[0]
+		result['mwb_url'] = urljoin(url, item_data.xpath('.//a')[0].attrib['href'])
+
 		result['mwb_docid'] = int(re.search(r" docId-(\d+) ", mwb_class).group(1))
 
 		# For the Watchtower article we have to follow the link. It will
 		# redirect to a URL which has the MEPS docId at the end.
 		watchtower_class = today_items[1].attrib['class']
 		assert " pub-w" in watchtower_class
+
 		item_data = today_items[1].find_class('itemData')[0]
-		watchtower_href = urljoin(url, item_data.xpath('.//a')[0].attrib['href'])
-		response = self.get(watchtower_href, follow_redirects=False)
+		result['watchtower_url'] = urljoin(url, item_data.xpath('.//a')[0].attrib['href'])
+
+		response = self.get(result['watchtower_url'], follow_redirects=False)
 		result['watchtower_docid'] = response.geturl().split('/')[-1]
 
 		return result
@@ -42,7 +48,11 @@ class MeetingLoader(Fetcher):
 	def get_article_html(self, url, main=False):
 		html = self.get_html(url)
 
-		container = html.xpath(".//main" if main else ".//main//article")
+		#print("URL:", url)
+		#self.dump_html(html, "watchtower.html")
+
+		#container = html.xpath(".//main" if main else ".//main//article")
+		container = html.xpath(".//main" if main else ".//article")
 		assert len(container) == 1, "Found %d main containers!" % len(container)
 		container = container[0]
 
@@ -173,7 +183,7 @@ class MeetingLoader(Fetcher):
 			song = a.text_content().strip()
 			m = re.search(r'(\d+)$', song)
 			assert m
-			songs.append((song, "video", self.get_song_video_url(m.group(1))))
+			songs.append(("sjj", song, "video", self.get_song_video_url(m.group(1))))
 		assert len(songs) == 2, songs
 
 		illustrations = self.extract_illustrations("СБ", container)
