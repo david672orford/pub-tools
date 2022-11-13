@@ -20,73 +20,74 @@ Then open http://localhost:5000 in a web browser.
 ## JW-Meeting and OBS to Zoom
 
 This app helps you to load the vidoes and illustrations for a meeting into OBS
-Studio. To run it, first download the publication lists:
+Studio ready to play.
 
-  $ flask update meetings
-  $ flask update study-pubs
-  $ flask update videos
-
-If run externally, this app will connect to OBS Studio over Websocket in
-order to add the requested scenes. Configure it by adding something like
-this to instance/config.py:
+First open OBS 2.8 or later and enable the websocket plugin. Note the port
+and password. Then open **instance/config.py** in a text editor and add
+this:
 
     OBS_WEBSOCKET = {
       'hostname': 'localhost',
-      'port': 4444,
+      'port': 4455,
       'password': 'secret',
       }
 
-Alternatively, you can install the **jw-meeting.py** script in OBS Studio
-where it can use the scripting API to add the scenes. This mode seems less
-stable at the moment.
+Change the *secret* to the actual password.
 
-Whichever mode you use, open http://localhost:5000/obs/ in a web browser
-or create a browser dock with this URL in OBS.
+Now download the lists of upcoming meetings and videos from JW.ORG:
 
-There will be three tabs, for Meetings, Songs, and Videos. Clicking on the
-link to one of these things will download the necessary material add each
-item as a scene in OBS.
+    $ flask update meetings
+    $ flask update videos
+
+Finally, run this command:
+
+    $ ./jw-pubs khplayer
+
+A window will appear with three tabs labeledr **Meetings**, **Songs**,
+**Videos**, and **OBS**.. Clicking on a meeting, song, or video to
+download it and add it to the scene list in OBS.
 
 ## Teaching Toolbox
 
-This subapp is intended to help publishers witnessing by phone to quickly find
-the online versions of the publications in the Teaching Toolbox.
+This subapp displays a list of the publications from the Teaching Toolbox
+along with the link to it on JW.ORG. It is intended to help publishers
+to send links to interested persons.
 
-First load the lists of publications:
+To run it, first load the lists of publications:
 
-  $ flask update magazines
-  $ flask update books
-  $ flask update videos
+    $ flask update magazines
+    $ flask update books
+    $ flask update videos
 
-Then open http://localhost:5000/toolbox/ in a web browser.
+Then run this command command:
+
+    $ ./jw-pubs toolbox
 
 ## ePub Viewer
 
-Download and display Epub files from JW.ORG in a web browser.
+This is an experimental framework for downloading and viewing Epub files
+from JW.ORG in a web browser.
 
-First load one or more of these lists:
+To see what it can do so far, first run one or more of the following commands
+to download the lists of available publications:
 
-  $ flask update study-pubs
-  $ flask update magazines
-  $ flask update books
-  $ flask update videos
+    $ flask update magazines
+    $ flask update books
 
-Then browser to http://localhost:5000/epub/
+Then run this command:
+
+    $ ./jw-pubs epubs
 
 If you click on a link, you will get 404. To download the ePub file, note the last
 element in the URL. This is the publication or issue code. Then run one of the
 following commands:
 
-  $ flask epub download-book **publications code**
+    $ flask epub download-book **publications code**
 
 or
 
-  $ flask epub download-issue **issue code**
+    $ flask epub download-issue **issue code**
 
 If the ePub viewer ever moves beyond the experimental state, we will implement
 downloading of ePub files from the web interface.
-
-## TODO
-
-* Main chapter illustration not pulled from Happy Family
 

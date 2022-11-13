@@ -1,4 +1,7 @@
-# Running JW Meeting and OBS to Zoom
+# Running KH Player and OBS with Output to Zoom
+
+These are preliminary instructions. The programs described are all
+changing and not everything described below will work.
 
 ## Install OBS Studio
 
@@ -26,7 +29,7 @@ OBS-Websocket 5.x will not work since it uses a different protocol.
 ## Run External Tool Versions
 
 1. Enable OBS-Websocket
-2. Start **start.py** from the directory above.
+2. Start **start.py** or **jw-pubs khplayer** from the directory above.
 2. Start **obs-to-zoom.py**.
 3. Start a conference in Zoom
 4. Start the virtual camera. Screen sharing will start.
@@ -38,9 +41,11 @@ away from the scene or the video ends, screen sharing will be stopped.
 
 ## Run as a OBS Studio Scripts
 
+It is also possible to run **khplayer** and **obs2zoom** inside of OBS.
+
 1. In OBS-Studio go to **Tools**, **Scripts** and press the **Add** button.
 2. Browse to the obs-scripts directory of this project.
-3. Select the jw-meeting.py and obs-to-zoom.py scripts and press OK.
-4. Select jw-meeting.py and enable it.
-5. Select obs-to-zoom.py and set the mode to **Manual** or **When Playing**.
+3. Select the **khplayer.py** and **obs-to-zoom.py** scripts and press OK.
+4. Select **khplayer.py** and enable it.
+5. Select **obs-to-zoom.py** and set the mode to **Manual** or **When Playing**.
 

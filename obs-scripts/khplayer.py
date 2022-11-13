@@ -4,9 +4,6 @@
 import obspython as obs
 import threading
 import logging
-from urllib.request import urlopen
-from werkzeug.serving import make_server
-from app.werkzeug_logging import MyWSGIRequestHandler
 
 from app import app
 
@@ -15,7 +12,7 @@ logging.basicConfig(
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
-logging.getLogger("app").addHandler(logging.FileHandler("/tmp/jw-meeting.log"))
+logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
 
 class MyObsScript:
 	description = "Load videos and illustrations from JW.ORG"
@@ -79,18 +76,16 @@ class MyObsScript:
 
 		if self.thread is not None:
 			self.logger.info("Stopping HTTP server...")
-			try:
-				urlopen('http://127.0.0.1:5000/obs/shutdown')
-			except Exception as e:
-				self.logger.debug("urlopen(): %s" % str(e))
+			socketio.stop()
 			self.thread.join()
 			self.thread = None
 			self.logger.info("HTTP server stopped.")
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			server = make_server(host="127.0.0.1", port=5000, app=app, request_handler=MyWSGIRequestHandler)
-			self.thread = threading.Thread(target=server.serve_forever)
+			def server():
+				socketio.run(app, host="127.0.0.1", port=5000, log_output=True)
+			self.thread = threading.Thread(target=server)
 			self.thread.daemon = True
 			self.thread.start()
 			self.logger.debug("Server is running.")

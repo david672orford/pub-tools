@@ -37,16 +37,7 @@ obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
 # getting the necessary context menu to open.
 @blueprint.errorhandler(500)
 def handle_500(error):
-	return render_template("khplayer/500.html"), 500
-
-# The Werkzeig development server sometimes does not respond to a shutdown
-# request until it gets the next HTTP request. So we use this instead.
-# It is called from the OBS plugin to shut down the server thread.
-@blueprint.route("/shutdown")
-def shutdown():
-	print("/shutdown")
-	#raise KeyboardInterrupt
-	socketio.stop()
+	return render_template("khplayer/500.html", top=".."), 500
 
 # Redirect to default tab
 @blueprint.route("/")
@@ -173,6 +164,14 @@ def add_video(lank):
 	media_url = meeting_loader.get_video_url(video.href)
 	media_file = meeting_loader.download_media(media_url)
 	obs_control.add_scene(video.name, "video", media_file)
+
+#======================================================
+# Stream
+#======================================================
+
+@blueprint.route("/stream/")
+def page_stream():
+	return render_template("khplayer/stream.html", top="..")
 
 #======================================================
 # OBS Tab
