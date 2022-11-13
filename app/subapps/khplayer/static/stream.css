@@ -4,6 +4,28 @@
 .video-sizer {
 	border thin solid black;
 	}
-INPUT.time INPUT {
+.video-sizer VIDEO {
+	display: block;
+	}
+
+.controls {
+	display: flex;
+	margin: .2em -0.05em;
+	}
+.controls > * {
+	margin: 0 0.05em;
+	}
+
+#jog-controls BUTTON {
+	display: flex;
+	align-items: center;
+	padding: 0;
+	}
+#jog-controls BUTTON SPAN {
+	font-size: 50%;
+	}
+
+#trim-controls INPUT {
 	width: 5em;
 	}
+

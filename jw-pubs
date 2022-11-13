@@ -28,7 +28,7 @@ webview.create_window(
 	title = "JW-Pubs",
 	url = "http://localhost:5000/" + "/".join(sys.argv[1:]),
 	width = 1024,
-	height = 768,
+	height = 800,
 	)
 webview.start(debug=True)
 print("Webview has exited.")

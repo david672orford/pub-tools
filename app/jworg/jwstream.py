@@ -155,7 +155,8 @@ class StreamRequester:
 		else:
 			return None
 
-		chapters = list(map(lambda chapter: chapter['time'], event['chapters']))
+		#chapters = list(map(lambda chapter: chapter['time'], event['chapters']))
+
 		print(json.dumps(event['vod_files'], indent=2))
 		for vod_file in event['vod_files']:
 			if vod_file['height'] == resolution:
@@ -167,7 +168,7 @@ class StreamRequester:
 		# Try to fetch the video file. The result will be a redirect to a CDN.
 		result = self.session.get(url, allow_redirects=False)
 		assert result.status_code == 302
-		return (event['title'], result.headers['Location'], chapters)
+		return (event['title'], result.headers['Location'], event['chapters'])
 
 if __name__ == "__main__":
 	import sys

@@ -19,14 +19,80 @@
 	{{video_name}}
 </div>
 <div class="video-sizer">
-	<video controls src="{{video_url}}" style="width: 100%">
+	<video id="player" controls src="{{video_url}}" style="width: 100%">
 	</video>
 </div>
-<div class="bottom-controls">
-	<input type="text" name="start" class="time">
-	<input type="text" name="end" class="time">
+<div id="jog-controls" class="controls">
+	<button type="button">&#x23EA;<span>5:00</span></button>
+	<button type="button">&#x23EA;<span>1:00</span></button>
+	<button type="button">&#x23EA;<span>0:30</span></button>
+	<button type="button">&#x23EA;<span>0:05</span></button>
+	<button type="button">&#x23EA;<span>0:01</span></button>
+
+	<button type="button">Set Start</button>
+	<button type="button">Set End</button>
+
+	<button type="button">&#x23E9;<span>0:01</span></button>
+	<button type="button">&#x23E9;<span>0:05</span></button>
+	<button type="button">&#x23E9;<span>0:30</span></button>
+	<button type="button">&#x23E9;<span>1:00</span></button>
+	<button type="button">&#x23E9;<span>5:00</span></button>
+</div>
+<div id="chapter-controls" class="controls">
+{% for chapter in chapters %}
+<button type="button" data-time="{{chapter['time']}}">{{chapter['name']}}</button>
+{% endfor %}
+</div>
+<div id="trim-controls" class="controls">
+	<label>Start: <input type="text" id="start" name="start" class="time"></label>
+	<label>End: <input type="text" id="end" name="end" class="time"></label>
 	<button type="submit">Trim</button>
 </div>
+<script>
+const player = document.getElementById("player");
+
+const jog_controls = document.getElementById("jog-controls").children;
+console.debug(jog_controls);
+function jog_button(index, amount)
+	{
+	jog_controls[index].addEventListener('click', function() {
+		player.currentTime = Math.floor(player.currentTime + amount + 0.5);
+		});
+	}
+function copy_time_button(index, target)
+	{
+	jog_controls[index].addEventListener('click', function()
+		{
+		let seconds = player.currentTime;
+		let minutes = Math.floor(seconds / 60);
+		seconds = Math.floor(seconds % 60 + 0.5);
+		let formatted_time = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+		document.getElementById(target).value = formatted_time;
+		});
+	}
+jog_button(0, -300);
+jog_button(1, -60);
+jog_button(2, -30);
+jog_button(3, -5);
+jog_button(4, -1);
+copy_time_button(5, "start");
+copy_time_button(6, "end");
+jog_button(7, 1);
+jog_button(8, 5);
+jog_button(9, 30);
+jog_button(10, 60);
+jog_button(11, 300);
+
+const chapter_controls = document.getElementById("chapter-controls").children;
+function on_chapter_button(event)
+	{
+	player.currentTime = this.dataset.time;	
+	}
+for(let i=0; i < chapter_controls.length; i++)
+	{
+	chapter_controls[i].addEventListener("click", on_chapter_button);
+	}
+</script>
 </form>
 </section>
 
