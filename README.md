@@ -13,13 +13,17 @@ disabled individually in the config file.
 
 ## Run
 
+    $ ./pub-tools
+
+Or:
+
     $ ./start.py
 
-Then open http://localhost:5000 in a web browser.
+and then open http://localhost:5000 in a web browser.
 
 ## KH-Meeting Module
 
-This app helps you to load the vidoes and illustrations for a meeting into OBS
+This app helps you to load the videos and illustrations for a meeting into OBS
 Studio ready to play.
 
 First open OBS 2.8 or later and enable the websocket plugin. Note the port
