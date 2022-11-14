@@ -22,8 +22,6 @@ logger = logging.getLogger(__name__)
 cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 app.cli.add_command(cli_update)
 
-LANGUAGE = "ru"
-
 #=============================================================================
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
@@ -60,39 +58,33 @@ def load_meetings():
 # Articles model instance for each article.
 #=============================================================================
 
-#@cli_update.command("study-pubs", help="Add current study Watchtowers and Meeting Workbooks to DB")
-#def cmd_update_study():
-#	logging.basicConfig(level=logging.DEBUG)
-#	update_periodicals((
-#		("magazines/", dict(pubFilter="w", contentLanguageFilter=LANGUAGE)),
-#		("jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguageFilter=LANGUAGE)),
-#		))
-#	update_articles()
-
-@cli_update.command("magazines", help="Add all available Watchtowers and Awakes to DB")
-def cmd_update_magazines():
+@cli_update.command("periodicals", help="Add all available Watchtowers, Awakes, and Meeting Workbooks to DB")
+def cmd_update_periodicals():
 	logging.basicConfig(level=logging.DEBUG)
-	end_year = date.today().year
-	update_periodicals(
-		[("magazines/", dict(yearFilter=year, contentLanguageFilter=LANGUAGE)) for year in range(2018, end_year)]
-		+
-		[["magazines/", dict(contentLanguage=LANGUAGE)]]
-		)
+
+	language = app.config["PUB_LANGUAGE"]
+
+	for year in range(2018, date.today().year):
+		update_periodicals("Magazines for %d" % year, "magazines/", dict(yearFilter=year, contentLanguageFilter=language))
+
+	update_periodicals("Current Magazines", "magazines/", dict(contentLanguageFilter=language))
+
+	update_periodicals("Current Meeting Workbooks", "jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguage=language))
+
+	# Get the table of contents of each issue for which we do not have it already.
 	update_articles()
 
-# Scrape a periodical lists from JW.ORG and add them to the Periodicals
-# model in the DB if they are not there already.
-def update_periodicals(searches):
-	pub_finder = PubFinder(cachedir=app.cachedir, debuglevel=0)
-	pubs = []
+# Using the search parameters provided, get a publications list page from JW.ORG
+# and extract the links to the publications listed. Save the information in our DB.
+def update_periodicals(title, search_path, search_query):
 
-	print(json.dumps(searches, indent=2))
-	for path, filter_dict in searches:
-		pubs.extend(pub_finder.search(path, filter_dict))
+	pub_finder = PubFinder(cachedir=app.cachedir, debuglevel=0)
+
+	pubs = pub_finder.search(search_path, search_query)
 
 	# Print a table of what we are adding to the database
 	console = Console()
-	table = Table(show_header=True)
+	table = Table(show_header=True, title=title)
 	for column in ("Code", "Issue Code", "Issue"):
 		table.add_column(column)
 

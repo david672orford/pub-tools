@@ -7,13 +7,18 @@ app.config.from_mapping(
 	SQLALCHEMY_TRACK_MODIFICATIONS = False,
 	SQLALCHEMY_ECHO = False,
 	APP_DISPLAY_NAME = "JW Pubs",
-	ENABLED_SUBAPPS = ['khplayer', 'toolbox', 'epub-viewer'],
+	ENABLED_SUBAPPS = ['khplayer', 'toolbox', 'epubs'],
+	PUB_LANGUAGE = "ru",
 	)
 app.config.from_pyfile('config.py')
 app.cachedir = os.path.join(app.instance_path, "cache")
 
+try:
+	from . import admin
+except ModuleNotFound:
+	pass
+
 from . import cli_update
 from . import views
 from . import subapps
-from . import admin
 

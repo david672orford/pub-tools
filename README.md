@@ -83,14 +83,10 @@ Then run this command to see the list of publications:
     $ ./pub-tools epub-viewer
 
 If you click on a link, you will get 404. To download the ePub file, note the
-publication code and issue code (in the case of periodicals) at the end of the
-URL. For a periodical:
+publication code which is the last component of the URL path. Then run this
+command:
 
-    $ flask epub download **pub code** **issue code**
-
-For a book, brocure, tract, or other non-periodical:
-
-    $ flask epub download
+    $ flask epub download **pub code**
 
 If the ePub Viewer module ever moves beyond the experimental state, we will
 add a button or other control for downloading the ePub files directly from

@@ -11,7 +11,7 @@ from ...jworg.epub import EpubLoader
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('epub-viewer', __name__, template_folder="templates", static_folder="static")
+blueprint = Blueprint('epubs', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'Epub Viewer'
 
 @blueprint.route("/")
