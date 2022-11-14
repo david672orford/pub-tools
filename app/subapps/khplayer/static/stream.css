@@ -7,6 +7,10 @@
 .video-sizer VIDEO {
 	display: block;
 	}
+VIDEO::-webkit-media-controls-panel {		/* controls always visible */
+   display: flex !important;
+   opacity: 1 !important;
+}
 
 .controls {
 	display: flex;

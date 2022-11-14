@@ -11,6 +11,7 @@ from threading import Thread
 import logging
 
 from app import app, socketio
+from app.socketio import socketio
 
 logging.basicConfig(
 	level=logging.DEBUG,

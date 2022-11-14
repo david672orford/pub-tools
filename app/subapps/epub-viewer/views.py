@@ -6,18 +6,18 @@ from collections import defaultdict
 import logging
 
 from ... import app
-from ...models import Issues, Books
+from ...models import PeriodicalIssues, Books
 from ...jworg.epub import EpubLoader
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('epubs', __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = 'ePubs'
+blueprint = Blueprint('epub-viewer', __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = 'Epub Viewer'
 
 @blueprint.route("/")
 def epub_index():
 	periodicals = defaultdict(list)
-	for periodical in Issues.query.order_by(Issues.pub_code, Issues.issue_code):
+	for periodical in PeriodicalIssues.query.order_by(PeriodicalIssues.pub_code, PeriodicalIssues.issue_code):
 		periodicals[periodical.name].append(periodical)
 	return render_template(
 		"epubs/index.html",
@@ -28,7 +28,7 @@ def epub_index():
 @blueprint.route("/рабочая-тетрадь/")
 def workbook():
 	return render_template("toolbox/publications.html", path_prefix="../", categories=[
-		("Рабочая тетрадь", Issues.query.filter_by(pub_code="mwb").order_by(Issues.issue_code))
+		("Рабочая тетрадь", PeriodicalIssues.query.filter_by(pub_code="mwb").order_by(PeriodicalIssues.issue_code))
 		])
 
 @blueprint.route("/<pub_code>/")
@@ -56,7 +56,7 @@ def epub_file(pub_code, path):
 def open_epub(pub_code):
 	if "-" in pub_code:
 		pub_code, issue_code = pub_code.split("-",1)
-		pub = Issues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
+		pub = PeriodicalIssues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
 	else:
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
 	if pub is None or pub.epub_filename is None:

@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 import subprocess
 
 from ...models import Weeks, Articles, VideoCategories, Videos
-from ... import app, socketio
+from ... import app
 from ...jworg.meetings import MeetingLoader
 from ...jworg.jwstream import StreamRequester
 

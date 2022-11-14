@@ -1,6 +1,5 @@
 import os
 from flask import Flask
-from flask_socketio import SocketIO
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -8,12 +7,10 @@ app.config.from_mapping(
 	SQLALCHEMY_TRACK_MODIFICATIONS = False,
 	SQLALCHEMY_ECHO = False,
 	APP_DISPLAY_NAME = "JW Pubs",
-	ENABLED_SUBAPPS = ['toolbox', 'khplayer', 'epubs'],
+	ENABLED_SUBAPPS = ['khplayer', 'toolbox', 'epub-viewer'],
 	)
 app.config.from_pyfile('config.py')
 app.cachedir = os.path.join(app.instance_path, "cache")
-
-socketio = SocketIO(app, logger=True, engineio_logger=True)
 
 from . import cli_update
 from . import views

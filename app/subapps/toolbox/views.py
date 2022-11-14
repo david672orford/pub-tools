@@ -3,7 +3,7 @@
 from flask import Blueprint, render_template
 from collections import defaultdict
 import logging
-from ...models import Issues, Books, VideoCategories, Videos
+from ...models import PeriodicalIssues, Books, VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ def toolbox():
 		("Видио", VideoCategories.query.filter_by(subcategory_key="VODMinistryTools").one_or_none().videos),
 		("Книги", Books.query.filter(Books.pub_code.in_(("lffi", "ld", "ll", "bh","bhs","lv","lvs","jl"))).order_by(Books.pub_code)),
 		("Буклеты", Books.query.filter(Books.pub_code.like("t-3%")).order_by(Books.pub_code)),
-		("Сторожевая башня", Issues.query.filter_by(pub_code="wp").order_by(Issues.issue_code)),
-		("Пробудуйтесь!", Issues.query.filter_by(pub_code="g").order_by(Issues.issue_code))
+		("Сторожевая башня", PeriodicalIssues.query.filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code)),
+		("Пробудуйтесь!", PeriodicalIssues.query.filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code))
 		])
 

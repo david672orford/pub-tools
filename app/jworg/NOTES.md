@@ -57,12 +57,3 @@ Black detection using FFmpeg:
 
     $ ffmpeg -i clip.mp4 -vf blackdetect=d=0.1:pix_th=.1 -f rawvideo -y /dev/null
 
-## Other Downloaders for JW.ORG
-
-* [JW-Scripts](https://github.com/allejok96/jw-scripts) -- Simple Python scripts to download videos and sound recordings
-* [Periodic Publication Downloader](https://github.com/mikiTesf/ppd) -- Downloads the periodicals
-* [Library API](https://github.com/BenShelton/library-api) -- Library for downloading publications and apps all written in TypeScript, JavaScript, and Vue
-* [JWP](https://github.com/Dimoshka/JWP) -- Old Android app which reportedly uses the RSS feeds
-* [JW Meeting Media Manager](https://github.com/sircharlo/jw-meeting-media-manager) -- Full-featured program for download and playing media at meetings
-* [Abdon Gadgets](https://github.com/abdon-gadgets/abdon-gadgets) -- Download VTT subtitles
-

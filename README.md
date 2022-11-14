@@ -1,6 +1,6 @@
-# JW-Pubs
+# Pub-Tools
 
-This is a Python-Flask app for downloading and displaying publications from
+Pub-Tools Python-Flask app for downloading and displaying publications from
 JW.ORG. It is divided into a number of modules which can be enabled and
 disabled individually in the config file.
 
@@ -17,7 +17,7 @@ disabled individually in the config file.
 
 Then open http://localhost:5000 in a web browser.
 
-## JW-Meeting and OBS to Zoom
+## KH-Meeting Module
 
 This app helps you to load the vidoes and illustrations for a meeting into OBS
 Studio ready to play.
@@ -41,13 +41,13 @@ Now download the lists of upcoming meetings and videos from JW.ORG:
 
 Finally, run this command:
 
-    $ ./jw-pubs khplayer
+    $ ./pub-tools khplayer
 
 A window will appear with three tabs labeledr **Meetings**, **Songs**,
 **Videos**, and **OBS**.. Clicking on a meeting, song, or video to
 download it and add it to the scene list in OBS.
 
-## Teaching Toolbox
+## Toolbox Module
 
 This subapp displays a list of the publications from the Teaching Toolbox
 along with the link to it on JW.ORG. It is intended to help publishers
@@ -61,9 +61,9 @@ To run it, first load the lists of publications:
 
 Then run this command command:
 
-    $ ./jw-pubs toolbox
+    $ ./pub-tools toolbox
 
-## ePub Viewer
+## Epub Viewer Module
 
 This is an experimental framework for downloading and viewing Epub files
 from JW.ORG in a web browser.
@@ -74,20 +74,21 @@ to download the lists of available publications:
     $ flask update magazines
     $ flask update books
 
-Then run this command:
+Then run this command to see the list of publications:
 
-    $ ./jw-pubs epubs
+    $ ./pub-tools epub-viewer
 
-If you click on a link, you will get 404. To download the ePub file, note the last
-element in the URL. This is the publication or issue code. Then run one of the
-following commands:
+If you click on a link, you will get 404. To download the ePub file, note the
+publication code and issue code (in the case of periodicals) at the end of the
+URL. For a periodical:
 
-    $ flask epub download-book **publications code**
+    $ flask epub download **pub code** **issue code**
 
-or
+For a book, brocure, tract, or other non-periodical:
 
-    $ flask epub download-issue **issue code**
+    $ flask epub download
 
-If the ePub viewer ever moves beyond the experimental state, we will implement
-downloading of ePub files from the web interface.
+If the ePub Viewer module ever moves beyond the experimental state, we will
+add a button or other control for downloading the ePub files directly from
+the web interface.
 

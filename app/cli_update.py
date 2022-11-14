@@ -9,7 +9,7 @@ import click
 import json
 
 from app import app
-from .models import db, app, Issues, Articles, Weeks, Books, VideoCategories, Videos
+from .models import db, app, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
@@ -53,7 +53,7 @@ def load_meetings():
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
-# the DB. We create an Issues model instance for each issue.
+# the DB. We create an PeriodicalIssues model instance for each issue.
 # * The URL of the web version on JW.ORG
 # * The filename of the EPUB file in case we want to download it
 # We then download the table of contents of each new issue and create an
@@ -102,9 +102,9 @@ def update_periodicals(searches):
 		if not 'issue_code' in pub:		# Midweek Meeting instructions
 			continue
 		table.add_row(pub['code'], pub.get('issue_code'), pub.get('issue'))
-		issue = Issues.query.filter_by(pub_code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
+		issue = PeriodicalIssues.query.filter_by(pub_code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
 		if issue is None:
-			issue = Issues()
+			issue = PeriodicalIssues()
 			db.session.add(issue)
 		issue.name = pub['name']
 		issue.pub_code = pub['code']
@@ -122,7 +122,7 @@ def update_periodicals(searches):
 # not there already.
 def update_articles():
 	pub_finder = PubFinder()
-	for issue in Issues.query.filter(Issues.pub_code.in_(("w", "mwb"))):
+	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.pub_code.in_(("w", "mwb"))):
 		print(issue, len(issue.articles))
 		if len(issue.articles) == 0:
 			for docid, title, href in pub_finder.get_toc(issue.href, docClass_filter=['40','106']):

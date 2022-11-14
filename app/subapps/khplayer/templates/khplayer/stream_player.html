@@ -1,4 +1,4 @@
-{% set title = "JW Stream" %}
+{% set title = "Stream" %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -23,6 +23,7 @@
 	</video>
 </div>
 <div id="jog-controls" class="controls">
+	<button type="button">&#x23EA;<span>30:00</span></button>
 	<button type="button">&#x23EA;<span>5:00</span></button>
 	<button type="button">&#x23EA;<span>1:00</span></button>
 	<button type="button">&#x23EA;<span>0:30</span></button>
@@ -37,6 +38,7 @@
 	<button type="button">&#x23E9;<span>0:30</span></button>
 	<button type="button">&#x23E9;<span>1:00</span></button>
 	<button type="button">&#x23E9;<span>5:00</span></button>
+	<button type="button">&#x23E9;<span>30:00</span></button>
 </div>
 <div id="chapter-controls" class="controls">
 {% for chapter in chapters %}
@@ -70,18 +72,20 @@ function copy_time_button(index, target)
 		document.getElementById(target).value = formatted_time;
 		});
 	}
-jog_button(0, -300);
-jog_button(1, -60);
-jog_button(2, -30);
-jog_button(3, -5);
-jog_button(4, -1);
-copy_time_button(5, "start");
-copy_time_button(6, "end");
-jog_button(7, 1);
-jog_button(8, 5);
-jog_button(9, 30);
-jog_button(10, 60);
-jog_button(11, 300);
+jog_button(0, -1800);
+jog_button(1, -300);
+jog_button(2, -60);
+jog_button(3, -30);
+jog_button(4, -5);
+jog_button(5, -1);
+copy_time_button(6, "start");
+copy_time_button(7, "end");
+jog_button(8, 1);
+jog_button(9, 5);
+jog_button(10, 30);
+jog_button(11, 60);
+jog_button(12, 300);
+jog_button(13, 1800);
 
 const chapter_controls = document.getElementById("chapter-controls").children;
 function on_chapter_button(event)

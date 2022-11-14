@@ -5,7 +5,7 @@ from datetime import date
 db = SQLAlchemy(app)
 
 #=============================================================================
-# Meetings
+# Meeting dates and links to the article used at each on JW.ORG
 #=============================================================================
 
 # Workbook meeting outline and Watchtower Study article for each week
@@ -21,11 +21,20 @@ class Weeks(db.Model):
 		return date.fromisocalendar(self.year, self.week, 1).isoformat()
 
 #=============================================================================
-# Publications
+# Lists of Publications and links to them on JW.ORG
 #=============================================================================
 
-# Issues of the Watchtower or Meeting Workbook
-class Issues(db.Model):
+# Books, brocures, tracts, invitations, etc. on JW.ORG
+class Books(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String)
+	pub_code = db.Column(db.String)
+	thumbnail = db.Column(db.String)
+	href = db.Column(db.String)
+	epub_filename = db.Column(db.String)
+
+# PeriodicalIssues of the Watchtower, Awake!, or Meeting Workbook
+class PeriodicalIssues(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String)
 	issue = db.Column(db.String)
@@ -36,27 +45,18 @@ class Issues(db.Model):
 	epub_filename = db.Column(db.String)
 	articles = db.relationship('Articles', order_by=lambda: Articles.docid)
 	def __str__(self):
-		return "<Issues id=%d pub_code=%s issue_code=%s issue=\"%s\" href=\"%s\" epub_filename=\"%s\">" % (self.id, self.pub_code, self.issue_code, self.issue, self.href, self.epub_filename)
+		return "<PeriodicalIssues id=%d pub_code=%s issue_code=%s issue=\"%s\" href=\"%s\" epub_filename=\"%s\">" % (self.id, self.pub_code, self.issue_code, self.issue, self.href, self.epub_filename)
 
 # Articles from the Watchtower or the Meeting Workbook
 class Articles(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	issue_id = db.Column(db.Integer, db.ForeignKey('issues.id'))
-	issue = db.relationship(Issues)
+	issue_id = db.Column(db.Integer, db.ForeignKey('periodical_issues.id'))
+	issue = db.relationship(PeriodicalIssues, back_populates="articles")
 	docid = db.Column(db.String)
 	title = db.Column(db.String)
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
 	epub_href = db.Column(db.String)
-
-# Books, brocures, etc. on JW.ORG
-class Books(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String)
-	pub_code = db.Column(db.String)
-	thumbnail = db.Column(db.String)
-	href = db.Column(db.String)
-	epub_filename = db.Column(db.String)
 
 #=============================================================================
 # Videos on JW.ORG

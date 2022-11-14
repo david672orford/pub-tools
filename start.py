@@ -14,5 +14,5 @@ logging.basicConfig(
 	)
 
 from app import app
-from app import socketio
+from app.socketio import socketio
 socketio.run(app, host="127.0.0.1", port=5000)
