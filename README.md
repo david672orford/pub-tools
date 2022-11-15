@@ -4,11 +4,10 @@ Pub-Tools Python-Flask app for downloading and displaying publications from
 JW.ORG. It is divided into a number of modules which can be enabled and
 disabled individually in the config file.
 
-## Install
+## Install on Ubuntu and other Debian-Family Linuxes
 
-    $ sudo apt-get install python3-pip
+    $ sudo apt-get install python3-pip ffmpeg
     $ pip3 install -r requirements.txt
-    $ mkdir instance instance/cache
     $ touch instance/config.py
 
 ## Run

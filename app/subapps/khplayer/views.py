@@ -26,8 +26,9 @@ except ModuleNotFoundError:
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('khplayer', __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = 'KH Player'
+blueprint = Blueprint("khplayer", __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = "KH Player"
+blueprint.blurb = "Download videos and illustrations from JW.ORG and load them into OBS"
 
 meeting_loader = MeetingLoader(cachedir=app.cachedir)
 obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))

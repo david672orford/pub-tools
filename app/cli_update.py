@@ -34,7 +34,7 @@ def cmd_load_meetings():
 def load_meetings():
 	meeting_loader = MeetingLoader()
 	current_day = date.today()
-	for i in range(4):
+	for i in range(6):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
 		if week_obj is None:

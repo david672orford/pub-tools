@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('toolbox', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'Toolbox'
+blueprint.blurb = "Get lists of publications from the Teaching Toolbox"
 
 @blueprint.route("/")
 def toolbox():

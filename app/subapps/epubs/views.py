@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 blueprint = Blueprint('epubs', __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = 'Epub Viewer'
+blueprint.blurb = "Display ePub files from JW.ORG"
 
 @blueprint.route("/")
 def epub_index():

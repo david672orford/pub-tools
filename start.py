@@ -1,6 +1,15 @@
 #! /usr/bin/python3
-# Run JW-Pubs as a standalone web server
-# Connect your own browser to http://127.0.0.1:5000
+#
+# This script runs Pub-Tools as a standalone web server.
+#
+# To start it:
+#
+#   ./start.py
+#
+# Then browser to:
+#
+#   http://127.0.0.1:5000
+#
 
 import sys
 import logging

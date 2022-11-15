@@ -1,9 +1,8 @@
 #! /usr/bin/python3
 #
-# Run JW-Pubs as a web browser with embedded web server
+# This script starts an HTTP server for Pub-Tools and then create a browser
+# widget which connects to it.
 #
-# PyWebview documentation
-# https://github.com/r0x0r/pywebview
 
 import sys
 import webview
@@ -19,14 +18,16 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 	)
 
+print("Starting embedded web server...")
 def server():
 	socketio.run(app, host="127.0.0.1", port=5000, log_output=True)
 server_thread = Thread(target=server)
 server_thread.daemon = True
 server_thread.start()
 
+print("Starting webview...")
 webview.create_window(
-	title = "JW-Pubs",
+	title = "Pub-Tools",
 	url = "http://localhost:5000/" + "/".join(sys.argv[1:]),
 	width = 1024,
 	height = 800,

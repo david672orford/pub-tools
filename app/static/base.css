@@ -25,3 +25,26 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+
+UL.grid {
+	display: table;
+	margin: .3em 0;
+	border-color: #808080;
+	border-style: solid none none solid;
+	border-width: 1px;
+	}
+UL.grid LI {
+	display: table-row;
+	margin: 0;
+	}
+UL.grid LI > * {
+	display: table-cell;
+	border-color: #808080;
+	border-style: none solid solid none;
+	border-width: 1px;
+	padding: .75em;
+	}
+UL.grid A {
+	white-space: nowrap;
+	}
+

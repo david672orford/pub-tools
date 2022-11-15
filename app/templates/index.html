@@ -4,9 +4,9 @@
 <header>
 	<h1>Pub-Tools</h1>
 </header>
-<ul>
+<ul class="grid">
 {% for subapp in subapps %}
-<li><a href="{{subapp.name}}/">{{subapp.display_name}}</a></li>
+<li><a href="{{subapp.name}}/">{{subapp.display_name}}</a><span>{{subapp.blurb}}</span></li>
 {% endfor %}
 </ul>
 {% endblock %}

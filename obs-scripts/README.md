@@ -16,7 +16,7 @@ changing and not everything described below will work.
 
 ## Install OBS-Websocket Module Version 4.9.1
 
-OBS-Websocket is needed only if you plan to run JW-Pubs or OBS-to-Zoom
+OBS-Websocket is needed only if you plan to run Pub-Tools or OBS-to-Zoom
 from outside of OBS. It is not required when they are installed in OBS as
 scripts where they can communicate with OBS directly using its API.
 
@@ -29,7 +29,7 @@ OBS-Websocket 5.x will not work since it uses a different protocol.
 ## Run External Tool Versions
 
 1. Enable OBS-Websocket
-2. Start **start.py** or **jw-pubs khplayer** from the directory above.
+2. Start **start.py** or **pub-tools khplayer** from the directory above.
 2. Start **obs-to-zoom.py**.
 3. Start a conference in Zoom
 4. Start the virtual camera. Screen sharing will start.

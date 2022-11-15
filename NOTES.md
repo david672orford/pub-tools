@@ -2,6 +2,7 @@
 
 ## Web Programming
 
+# [PyWebview](https://github.com/r0x0r/pywebview)
 * https://www.javascripttutorial.net/web-apis/javascript-formdata/
 * https://pqina.nl/blog/async-form-posts-with-a-couple-lines-of-vanilla-javascript/
 
@@ -14,3 +15,9 @@
 * [QPWgraph](https://gitlab.freedesktop.org/rncbc/qpwgraph) -- GUI interface to Pipewire's graph, clutters with MIDI and video, one box for each OBS audio source
 * [QjackCtl](https://qjackctl.sourceforge.io/) -- GUI for the JACK audio server, compatibel with Pipewire, clutters with MIDI, one box for all OBS sources
 * [Catia](https://kx.studio/Applications:Catia) -- Another GUI for JACK which can be used with Pipewire, clutters with MIDI, one box for all OBS sources
+
+## FFmpeg
+
+* https://pypi.org/project/python-ffmpeg/
+* https://superuser.com/questions/326629/how-can-i-make-ffmpeg-be-quieter-less-verbose
+
