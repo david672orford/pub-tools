@@ -5,6 +5,7 @@
 # [PyWebview](https://github.com/r0x0r/pywebview)
 * https://www.javascripttutorial.net/web-apis/javascript-formdata/
 * https://pqina.nl/blog/async-form-posts-with-a-couple-lines-of-vanilla-javascript/
+* [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
 
 ## Pipewire Audio Server for Linux
 
@@ -20,4 +21,11 @@
 
 * https://pypi.org/project/python-ffmpeg/
 * https://superuser.com/questions/326629/how-can-i-make-ffmpeg-be-quieter-less-verbose
+
+## OBS
+
+* [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
+* [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
+* [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
+* [VDO.Ninja](https://docs.vdo.ninja/)
 

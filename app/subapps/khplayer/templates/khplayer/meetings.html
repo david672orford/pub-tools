@@ -2,22 +2,9 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-
-{% if error %}
-<div class="flash">
-{{ error }}
-</div>
-{% endif %}
-
 <form action="submit" method="POST" class="_socketio">
 <section>
-<p>Select a week below to load it into OBS Studio. Alternatively
-you can paste in the URL of the <i>Watchtower</i> study article
-or <i>Meeting Workbook</i> page for the week.</p>
-</section>
-
-<section>
-<h2>By Week</h2>
+<h2>Available Weeks</h2>
 <table class="borders">
 <tbody>
 {% for week in weeks %}
@@ -30,17 +17,5 @@ or <i>Meeting Workbook</i> page for the week.</p>
 </tbody>
 </table>
 </section>
-
-<section>
-<h2>By Article URL</h2>
-<input type="text" name="url" size=40>
-<button type="submit" name="action" value="add">Add</button>
-</section>
-
 </form>
-
-<div id="popup">
-
-</div>
-
 {% endblock %}

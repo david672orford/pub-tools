@@ -2,7 +2,8 @@
 # the same apps as ../start.py does.
 
 import obspython as obs
-import threading
+from threading import Thread
+from werkzeug.serving import make_server
 import logging
 
 from app import app
@@ -21,6 +22,7 @@ class MyObsScript:
 		self.enable = False		# should the HTTP server be running?
 		self.debug = None
 		self.thread = None		# HTTP server thread
+		self.server = None		# HTTP server object
 
 		# This is the logger to which this class will log
 		self.logger = logging.getLogger("app")
@@ -76,16 +78,16 @@ class MyObsScript:
 
 		if self.thread is not None:
 			self.logger.info("Stopping HTTP server...")
-			socketio.stop()
+			self.server.shutdown()
 			self.thread.join()
 			self.thread = None
+			self.server = None
 			self.logger.info("HTTP server stopped.")
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			def server():
-				socketio.run(app, host="127.0.0.1", port=5000, log_output=True)
-			self.thread = threading.Thread(target=server)
+			self.server = make_server("127.0.0.1", port=5000, app=app, threaded=True)
+			self.thread = Thread(target=lambda: self.server.serve_forever())
 			self.thread.daemon = True
 			self.thread.start()
 			self.logger.debug("Server is running.")

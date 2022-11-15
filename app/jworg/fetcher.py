@@ -146,17 +146,14 @@ class Fetcher:
 				elem.tail = i 
 
 	# Download a video or picture, store it in the cache directory, and return its path.
-	def download_media(self, url):
+	def download_media(self, url, callback=None):
 		logger.info("Download media file %s...", url)
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if os.path.exists(cachefile):
 			logger.info(" Satisfied from cache")
 		else:
-			#request = Request(url)
-			#request.add_header("User-Agent", "Mozilla/5.0")
-			#response = urlopen(request)
 			response = self.get(url)
-			total_expected = response.headers.get("Content-Length")
+			total_expected = int(response.headers.get("Content-Length"))
 			with open(cachefile + ".tmp", "wb") as fh:
 				total_recv = 0
 				while True:
@@ -166,6 +163,8 @@ class Fetcher:
 					fh.write(chunk)
 					total_recv += len(chunk)
 					logger.debug("%d of %s bytes received", total_recv, total_expected)
+					if callback:
+						callback(total_recv, total_expected)
 			os.rename(cachefile + ".tmp", cachefile)
 			logger.info("Download complete %d bytes received", total_recv)
 		return os.path.abspath(cachefile)

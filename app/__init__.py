@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from turbo_flask import Turbo
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -11,8 +12,11 @@ app.config.from_mapping(
 	PUB_LANGUAGE = "ru",
 	)
 app.config.from_pyfile('config.py')
-app.cachedir = os.path.join(app.instance_path, "cache")
 
+turbo = Turbo()
+turbo.init_app(app)
+
+app.cachedir = os.path.join(app.instance_path, "cache")
 if not os.path.exists(app.cachedir):
 	os.mkdir(app.cachedir)
 

@@ -1,28 +1,20 @@
 # Views for loading media from JW.ORG into OBS
 
-from flask import Blueprint, render_template, request, Response, redirect
+from flask import Blueprint, render_template, request, redirect, flash
 import os
 import logging
 from collections import defaultdict
 from sqlalchemy import or_, and_
 from datetime import date
 from urllib.parse import urlencode
+from threading import Thread
 import subprocess
+from time import sleep
 
 from ...models import Weeks, Articles, VideoCategories, Videos
-from ... import app
+from ... import app, turbo
 from ...jworg.meetings import MeetingLoader
 from ...jworg.jwstream import StreamRequester
-
-# Load a client API for controlling OBS. There are two versions of it.
-# The first in obs_api.py works when we are running inside OBS. The
-# second which is in obs_ws.py is what we use when we are running outside.
-# It communicates with OBS through the OBS Websocket plugin.
-try:
-	from .obs_api import ObsControl
-except ModuleNotFoundError:
-	#from .obs_ws_4 import ObsControl
-	from .obs_ws_5 import ObsControl, OBSError
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +22,32 @@ blueprint = Blueprint("khplayer", __name__, template_folder="templates", static_
 blueprint.display_name = "KH Player"
 blueprint.blurb = "Download videos and illustrations from JW.ORG and load them into OBS"
 
+# For fetching articles and media files from JW.ORG
 meeting_loader = MeetingLoader(cachedir=app.cachedir)
-obs_control = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
+
+# Load a client API for controlling OBS. There are two versions of it.
+# The first in obs_api.py works when we are running inside OBS. The
+# second which is in obs_ws_N.py is what we use when we are running outside.
+# It communicates with OBS through the OBS Websocket plugin.
+try:
+	from .obs_api import ObsControl
+except ModuleNotFoundError:
+	#from .obs_ws_4 import ObsControl
+	from .obs_ws_5 import ObsControl, OBSError
+
+# Page handlers call this to connect to OBS of it is not connected already.
+def obs_connect():
+	if not hasattr(obs_connect, "handle"):
+		if not "OBS_WEBSOCKET" in app.config:
+			flash("Connexion to OBS not configured")
+			return None
+		try:
+			obs_connect.handle = ObsControl(config=app.config["OBS_WEBSOCKET"])
+			obs_connect.handle.connect()
+		except ConnectionRefusedError:
+			flash("Can't connect to OBS")
+			obs_connect.handle = None
+	return obs_connect.handle
 
 # Whenever an uncaught exception occurs in a view function Flask returns
 # HTTP error 500 (Internal Server Error). Here we catch this error so we
@@ -47,24 +63,22 @@ def handle_500(error):
 def page_index():
 	return redirect("meetings/")
 
-#======================================================
-# Meetings Tab
-#======================================================
+#=============================================================================
+# Endpoints for the Meetings Tab
+#=============================================================================
 
 # List upcoming meetings for which we can load media into OBS
 @blueprint.route("/meetings/")
 def page_meetings():
-	error = request.args.get("error")
 	weeks = Weeks.query
 	if not request.args.get("all", False):
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
-	return render_template("khplayer/meetings.html", weeks=weeks, error=error, top="..")
+	return render_template("khplayer/meetings.html", weeks=weeks, top="..")
 
 @blueprint.route("/meetings/submit", methods=['POST'])
 def page_meetings_submit():
 	url = None
-	error = None
 
 	# Get the URL of the article (from the Watchtower or the Meeting Workbook)
 	# which will be studied at this meeting.
@@ -72,22 +86,6 @@ def page_meetings_submit():
 		url = request.form.get('url')
 	elif 'docid' in request.form:
 		docid = int(request.form.get('docid'))
-
-		# First attempt, requires us to index all Watchtower and MWB articles in the DB
-		#article = Articles.query.filter_by(docid=docid).one_or_none()
-		#if article is not None:
-		#	url = article.href
-		#else:
-		#	error = "Article for the requested week is not in the database."
-
-		# Second attempt, WOL pages are harder to interpret since the HTML attribute reveal less
-		#week = Weeks.query.filter(or_(Weeks.watchtower_docid==docid, Weeks.mwb_docid==docid)).one()
-		#if week.watchtower_docid == docid:
-		#	url = week.watchtower_url
-		#elif week.mwb_docid == docid:
-		#	url = week.mwb_url
-
-		# Third attempt, use sharing URL of version on main site
 		url = "https://www.jw.org/finder?wtlocale=U&docid=%s&srcid=share" % docid
 
 	# If we have the article's URL, scan it and download the songs, videos,
@@ -95,46 +93,50 @@ def page_meetings_submit():
 	if url is not None:
 		logger.info('Load meeting: %s', url)
 		scenes = meeting_loader.extract_media(url)
-		for scene in scenes:
-			print(scene)
-			pub_code, scene_name, media_type, media_url = scene
+		obs = obs_connect()
+		if obs is not None:
+			for scene in scenes:
+				print(scene)
+				pub_code, scene_name, media_type, media_url = scene
+	
+				# Add a symbol to the front of the scene name to indicate its type.
+				print(pub_code, scene_name, media_type, media_url)
+				if pub_code is not None and pub_code.startswith("sjj"):
+					scene_name = "♫ " + scene_name
+				elif media_type == "video":
+					scene_name = "▷ " + scene_name
+				elif media_type == "image":
+					scene_name = "□ " + scene_name	
+	
+				if media_type == "web":		# HTML page
+					#obs.add_scene(scene_name, media_type, media_url)
+					pass
+				else:						# video or image file
+					media_file = meeting_loader.download_media(media_url)
+					obs.add_scene(scene_name, media_type, media_file)
 
-			# Add a symbol to the front of the scene name to indicate its type.
-			print(pub_code, scene_name, media_type, media_url)
-			if pub_code is not None and pub_code.startswith("sjj"):
-				scene_name = "♫ " + scene_name
-			elif media_type == "video":
-				scene_name = "▷ " + scene_name
-			elif media_type == "image":
-				scene_name = "□ " + scene_name	
-
-			if media_type == "web":		# HTML page
-				#obs_control.add_scene(scene_name, media_type, media_url)
-				pass
-			else:						# video or image file
-				media_file = meeting_loader.download_media(media_url)
-				obs_control.add_scene(scene_name, media_type, media_file)
-
-	if error is not None:
-		return redirect(".?%s" % urlencode({"error": error}))
 	return redirect(".")
 
-#======================================================
-# Songs Tab
-#======================================================
+#=============================================================================
+# Endpoints for the Songs Tab
+#=============================================================================
 
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
-@blueprint.route("/songs/", methods=['GET','POST'])
+@blueprint.route("/songs/")
 def page_songs():
-	error = None
+	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
+	return render_template("khplayer/songs.html", videos=category.videos if category else None, top="..")
+
+@blueprint.route("/songs/submit", methods=["POST"])
+def page_songs_submit():
 	try:
 		# By song number entered in form
-		if request.method == 'POST' and 'song' in request.form:
-			song = request.form['song']
+		song = request.form.get('song')
+		if song:
 			logger.info('Load song: "%s"', song)
-			media_url = meeting_loader.get_song_video_url(song)
-			media_file = meeting_loader.download_media(media_url)
-			obs_control.add_scene("ПЕСНЯ %s" % song, "video", media_file)
+			thread = Thread(target=lambda: load_song(song))
+			thread.daemon = True
+			thread.start()
 
 		# By clicking on link to video
 		lank = request.args.get("lank")
@@ -142,15 +144,27 @@ def page_songs():
 			add_video(lank)
 
 	except Exception as e:
+		flash(str(e))
 		logger.exception("Failed to load song video")
-		error = str(e)
 
-	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
-	return render_template("khplayer/songs.html", videos=category.videos if category else None, top="..", error=error)
+	return(".")
 
-#======================================================
-# Videos Tab
-#======================================================
+def load_song(song):
+	def callback(total_recv, total_expected):
+		print("%d of %s..." % (total_recv, total_expected))
+		turbo.push(turbo.replace('<div id="progress">%d of %s</div>' % (total_recv, total_expected), target="progress"))
+	media_url = meeting_loader.get_song_video_url(song)
+	media_file = meeting_loader.download_media(media_url, callback=callback)
+	obs = obs_connect()
+	if obs is not None:
+		obs.add_scene("ПЕСНЯ %s" % song, "video", media_file)
+	turbo.push(turbo.replace('<div id="progress">Download finished</div>', target="progress"))
+	sleep(5)
+	turbo.push(turbo.replace('<div id="progress"></div>', target="progress"))
+
+#=============================================================================
+# Endpoints for the Videos Tab
+#=============================================================================
 
 # List all the categories of videos on JW.org.
 @blueprint.route("/videos/")
@@ -163,16 +177,15 @@ def page_video_categories():
 # List all the videos in a category. Clicking on a video loads it into OBS.
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def page_video_list(category_key, subcategory_key):
-	error = None
 	try:
 		lank = request.args.get("lank")
 		if lank:
 			add_video(lank)
 	except Exception as e:
 		logger.exception("Failed to load video")
-		error = str(e)
+		flash(str(e))
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("khplayer/video_list.html", category=category, top="../../..", error=error)
+	return render_template("khplayer/video_list.html", category=category, top="../../..")
 
 # Download a video (if it is not already cached) and add it to OBS as a scene
 def add_video(lank):
@@ -180,50 +193,69 @@ def add_video(lank):
 	logger.info('Load video: "%s" "%s"', video.name, video.href)
 	media_url = meeting_loader.get_video_url(video.href)
 	media_file = meeting_loader.download_media(media_url)
-	obs_control.add_scene(video.name, "video", media_file)
+	obs = obs_connect()
+	if obs is not None:
+		obs.add_scene(video.name, "video", media_file)
 
 #======================================================
-# Stream
+# Sendpoints for the Stream tab
 #======================================================
 
 def make_jwstream_requester():
+	if not "JW_STREAM" in app.config:
+		flash("JW_STREAM not found in config.py")
+		return None
 	cachefile = os.path.join(app.instance_path, "jwstream-cache.json")
-	requester = StreamRequester(app.config['JW_STREAM']['url'], cachefile=cachefile) 
-	requester.connect()
+	try:
+		requester = StreamRequester(app.config['JW_STREAM'], cachefile=cachefile) 
+		requester.connect()
+	except AssertionError as e:
+		flash(str(e))
+		return None
 	return requester
 
 @blueprint.route("/stream/")
 def page_stream():
 	requester = make_jwstream_requester()
-	return render_template("khplayer/stream.html", events=requester.get_events(), top="..")
+	if requester is not None:
+		events = requester.get_events()
+	else:
+		events = []
+	return render_template("khplayer/stream.html", events=events, top="..")
 
 @blueprint.route("/stream/<int:id>")
 def page_stream_player(id):
 	requester = make_jwstream_requester()
-	video_name, video_url, chapters = requester.get_event(id, 234)
+	video_name, video_url, chapters = requester.get_event(id, preview=True)
 	return render_template("khplayer/stream_player.html", id=id, video_name=video_name, video_url=video_url, chapters=chapters, top="..")
 
 @blueprint.route("/stream/<int:id>/trim", methods=["POST"])
 def page_stream_trim(id):
 	requester = make_jwstream_requester()
-	video_name, video_url, chapters = requester.get_event(id, 720)
+	video_name, video_url, chapters = requester.get_event(id, preview=False)
 	start = request.form.get("start")
 	end = request.form.get("end")
 	video_name = "%s %s-%s" % (video_name, start, end)
 	media_file = os.path.join(app.cachedir, "jwstream-%d-%s-%s.mp4" % (id, start, end))
 	if not os.path.exists(media_file):
 		result = subprocess.run(["ffmpeg", "-i", video_url, "-ss", start, "-to", end, "-c", "copy", media_file])
-	obs_control.add_scene(video_name, "video", media_file)
+	obs = obs_connect()
+	if obs is not None:
+		obs.add_scene(video_name, "video", media_file)
 	return redirect("..")
 
 #======================================================
-# OBS Tab
+# Endpoints for the OBS tab
 #======================================================
 
 @blueprint.route("/obs/")
 def page_obs():
-	obs_control.connect()
-	scenes = reversed(obs_control.ws.get_scene_list().scenes)
+	obs = obs_connect()
+	if obs is None:
+		scenes = []
+	else:
+		print(obs, obs.ws)
+		scenes = reversed(obs.ws.get_scene_list().scenes)
 	return render_template("khplayer/obs.html", scenes=scenes, top="..")
 
 @blueprint.route("/obs/submit", methods=["POST"])
@@ -231,25 +263,28 @@ def page_obs_submit():
 	action = request.form.get("action")
 	print("action:", action)
 
-	obs_control.connect()
+	obs = obs_connect()
 
-	if action == "delete":
+	if obs is None:
+		pass
+
+	elif action == "delete":
 		for scene in request.form.getlist("del"):
 			print(scene)
 			try:
-				obs_control.ws.remove_scene(scene)
+				obs.ws.remove_scene(scene)
 			except OBSError:
 				pass
 
 	elif action == "delete-all":
-		for scene in obs_control.ws.get_scene_list().scenes:
+		for scene in obs.ws.get_scene_list().scenes:
 			print(scene)
-			obs_control.ws.remove_scene(scene["sceneName"])
+			obs.ws.remove_scene(scene["sceneName"])
 
 	elif action == "new":
 		collection = request.form.get("collection").strip()
 		if collection != "":
-			obs_control.ws.create_scene_collection(collection)
+			obs.ws.create_scene_collection(collection)
 
 	return redirect(".")
 

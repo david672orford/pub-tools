@@ -66,6 +66,11 @@ HEADER H1 A {
 	text-decoration: inherit;
 	}
 
+HEADER DIV#progress {
+	float: right;
+	margin: .5em;
+	}
+
 DIV.flash {
 	background-color: #C00000;
 	color: white;

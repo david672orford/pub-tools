@@ -7,10 +7,10 @@
 import sys
 import webview
 from threading import Thread
+from werkzeug.serving import make_server
 import logging
 
-from app import app, socketio
-from app.socketio import socketio
+from app import app
 
 logging.basicConfig(
 	level=logging.DEBUG,
@@ -19,9 +19,8 @@ logging.basicConfig(
 	)
 
 print("Starting embedded web server...")
-def server():
-	socketio.run(app, host="127.0.0.1", port=5000, log_output=True)
-server_thread = Thread(target=server)
+server = make_server("127.0.0.1", port=5000, app=app, threaded=True)
+server_thread = Thread(target=lambda: server.serve_forever())
 server_thread.daemon = True
 server_thread.start()
 
@@ -36,7 +35,7 @@ webview.start(debug=True)
 print("Webview has exited.")
 
 print("Shutting down the web server...")
-socketio.stop()
+server.shutdown()
 server_thread.join()
 print("Server has stopt.")
 

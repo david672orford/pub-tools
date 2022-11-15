@@ -6,15 +6,8 @@
 {% endblock %}
 
 {% block main %}
-
-{% if error %}
-<div class="flash">
-{{ error }}
-</div>
-{% endif %}
-
-<section>
 <form action="{{id}}/trim" method="POST">
+<section>
 <div class="video-caption">
 	{{video_name}}
 </div>
@@ -97,7 +90,6 @@ for(let i=0; i < chapter_controls.length; i++)
 	chapter_controls[i].addEventListener("click", on_chapter_button);
 	}
 </script>
-</form>
 </section>
-
+</form>
 {% endblock %}

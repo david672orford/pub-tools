@@ -2,15 +2,8 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-
-{% if error %}
-<div class="flash">
-{{ error }}
-</div>
-{% endif %}
-
-<section>
 <form action="submit" method="POST">
+<section>
 <ul class="bare">
 {% for scene in scenes %}
 <li><label><input type="checkbox" name="del" value="{{scene['sceneName']}}"> {{scene['sceneName']}}</label></li>
@@ -21,7 +14,6 @@
 <br>
 <input type="text" name="collection" placeholder="New collection name">
 <button type="submit" name="action" value="new">Create</button>
-</form>
 </section>
-
+</form>
 {% endblock %}

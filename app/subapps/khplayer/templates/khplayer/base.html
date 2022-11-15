@@ -4,7 +4,7 @@
 <title>{{title}}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='base.css')}}">
-<script src="https://cdn.socket.io/4.5.3/socket.io.min.js"></script>
+{{ turbo() }}
 {% block head_add %}
 {% endblock %}
 </head>
@@ -24,6 +24,7 @@
 		{{ menu_item("OBS", "/obs/") }}
 		</ul>
 	</nav>
+	<div id="progress"></div>
 	{% block header %}
 	<h1>{{title}}</h1>
 	{% endblock %}
@@ -32,43 +33,17 @@
 document.getElementsByTagName("body")[0].style.paddingTop
 	= document.getElementsByTagName("header")[0].offsetHeight + "px";
 </script>
+
+{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		{% for message in messages %}
+			<div class="flash">{{ message }}</div>
+		{% endfor %}
+	{% endif %}
+{% endwith %}
+
 {% block main %}
 {% endblock %}
-<script type="text/javascript" charset="utf-8">
-/*
-    const socket = io();
-	socket.on("update", function(message)
-		{
 
-		});
-
-	const submit = async (form) =>
-		{
-		try {
-			let response = await fetch(form.target, {
-				method: form.method,
-				body: new FormData(form),
-				});
-			const result = await response.json();
-			console.log("result:", result);
-			}
-		catch (error)
-			{
-			console.error("Form submission failed:", error.message);
-			}
-		}
-
-	const forms = document.querySelectorAll("FORM.socketio");
-	let form;
-	for(let i = 0; i < forms.length; i++)
-		{
-		form = forms[i];
-		form.addEventListener("submit", (event) => {
-			submit(event.target);
-			event.preventDefault();
-			});
-		}
-*/
-</script>
 </body>
 </html>

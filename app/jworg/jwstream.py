@@ -15,8 +15,19 @@ logger = logging.getLogger(__name__)
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
 
-	def __init__(self, url, cachefile=None, debug=False):
-		self.url = url
+	def __init__(self, config, cachefile=None, debug=False):
+		self.config = dict(
+			url = None,
+			preview_resolution = 234,
+			download_resolution = 720,
+			)
+		self.config.update(config)
+		assert "url" in self.config, "JW Stream url not set"
+		for usage in ("preview", "download"):
+			res = self.config.get(usage + "_resolution")
+			assert res in (234, 360, 540, 720), "Invalid %s_resolution: %s" % (usage, res)
+
+		self.config = config
 		self.cachefile = cachefile
 		self.debug = debug
 
@@ -24,7 +35,7 @@ class StreamRequester:
 		self.video_info = None
 
 		# Extract the token from an invitation URL. It is the last segment of the path.
-		self.token = unquote(urlparse(self.url).path.split("/")[-1])
+		self.token = unquote(urlparse(self.config['url']).path.split("/")[-1])
 
 	def connect(self):
 		self.session = requests.Session()
@@ -49,7 +60,7 @@ class StreamRequester:
 		# Load the invitation page in order to get the cookies.
 		# One of these cookies contains a token which we must use when
 		# making AJAX requests.
-		page_response = self.session.get(self.url)
+		page_response = self.session.get(self.config['url'])
 		assert page_response.status_code == 200
 
 		# Headers to simulate an AJAX request from a browser
@@ -148,16 +159,15 @@ class StreamRequester:
 		for event in self.video_info:
 			yield (event['data']['id'], event['title'])
 
-	def get_event(self, id, resolution):
+	def get_event(self, id, preview=True):
 		for event in self.video_info:
 			if event['data']['id'] == id:
 				break
 		else:
 			return None
 
-		#chapters = list(map(lambda chapter: chapter['time'], event['chapters']))
-
 		print(json.dumps(event['vod_files'], indent=2))
+		resolution = self.config["preview_resolution" if preview else "download_resolution"]
 		for vod_file in event['vod_files']:
 			if vod_file['height'] == resolution:
 				url = vod_file['url']
@@ -177,7 +187,7 @@ if __name__ == "__main__":
 	for id, name in requester.get_events():
 		print("Event: %d: %s" % (id, name))
 
-	video_url, chapters = requester.get_event(int(sys.argv[2]), 234)
+	video_url, chapters = requester.get_event(int(sys.argv[2]))
 	print("Video URL:", video_url)
 	print("Chapters:", chapters)
 

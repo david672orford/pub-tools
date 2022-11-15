@@ -2,21 +2,13 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-
-{% if error %}
-<div class="flash">
-{{ error }}
-</div>
-{% endif %}
-
-<section>
 <form action="submit" method="POST">
+<section>
 <ul>
 {% for event_id, event_name in events %}
 <li><a href="{{event_id}}">{{event_name}}</a></li>
 {% endfor %}
 </ul>
-</form>
 </section>
-
+</form>
 {% endblock %}
