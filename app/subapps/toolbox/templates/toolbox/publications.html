@@ -1,25 +1,47 @@
-{% set title = "Набор инструментов" %}
-{% extends "toolbox/base.html" %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Инструменты для служения: {{title}}</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="{{url_for('.static', filename='base.css')}}">
+</head>
+<body>
+<header>
+	{% macro menu_item(name, href) %}
+		<li{% if href in request.path %} class="current"{% endif %}>
+			<a href="{{href}}">{{ name }}</a>
+		</li>
+	{% endmacro %}
+	<nav>
+		<ul>
+		{{ menu_item("Приглашения", "invitations") }}
+		{{ menu_item("Буклеты", "tracts") }}
+		{{ menu_item("Видео", "video") }}
+		{{ menu_item("Книги", "books") }}
+		{{ menu_item("СБ", "watchtower") }}
+		{{ menu_item("Пробудитесь!", "awake") }}
+		</ul>
+	</nav>
+	<h1>{{title}}</h1>
+</header>
+<script>
+document.getElementsByTagName("body")[0].style.paddingTop
+	= document.getElementsByTagName("header")[0].offsetHeight + "px";
+</script>
 
-{% block main %}
-<p>
-	These are the publications in the Toolbox. Next to each is the
-	sharing link to JW.ORG.
-</p>
-{% for category_name, category_pubs in categories %}
-<section class="pubs">
-<h2>{{category_name}}</h2>
+<section class="{{classes}}">
 <ul>
-{% for pub in category_pubs %}
+{% for pub in items %}
 	<li>
 		<img src="{{pub.thumbnail}}">
 		<div>
-			<span>{{pub.name}}{% if pub.issue %} {{pub.issue}}{% endif %}</span>
-			<a href="{{pub.href}}">{{pub.href}}</a>
+			<a href="{{pub.href}}">{{pub.name}}{% if pub.issue %} {{pub.issue}}{% endif %}</a>
+			<div>{{share(pub)}}</div>
 		</div>
 	</li>
 {% endfor %}
 </ul>
 </section>
-{% endfor %}
-{% endblock %}
+</body>
+</html>

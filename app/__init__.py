@@ -7,6 +7,7 @@ app.config.from_mapping(
 	SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 	SQLALCHEMY_TRACK_MODIFICATIONS = False,
 	SQLALCHEMY_ECHO = False,
+	FLASK_ADMIN_FLUID_LAYOUT = True,
 	APP_DISPLAY_NAME = "JW Pubs",
 	ENABLED_SUBAPPS = ['khplayer', 'toolbox', 'epubs'],
 	PUB_LANGUAGE = "ru",
