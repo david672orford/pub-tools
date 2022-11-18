@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
+	session_timeout = 7200
 
 	def __init__(self, config, cachefile=None, debug=False):
 		self.config = dict(
@@ -27,15 +28,21 @@ class StreamRequester:
 			res = self.config.get(usage + "_resolution")
 			assert res in (234, 360, 540, 720), "Invalid %s_resolution: %s" % (usage, res)
 
-		self.config = config
 		self.cachefile = cachefile
 		self.debug = debug
 
 		self.session = None
+		self.timestamp = 0
+		self.ajax_headers = None
+		self.language_blob = None
 		self.video_info = None
 
 		# Extract the token from an invitation URL. It is the last segment of the path.
 		self.token = unquote(urlparse(self.config['url']).path.split("/")[-1])
+
+	def connect_hook(self):
+		if self.session is None or (int(time()) - self.timestamp) >= self.session_timeout:
+			self.connect()
 
 	def connect(self):
 		self.session = requests.Session()
@@ -49,12 +56,15 @@ class StreamRequester:
 			with open(self.cachefile,"r") as fh:
 				try:
 					cache = json.load(fh)
-					for cookie in cache['cookies']:
-						self.session.cookies.set(**cookie)
-					self.video_info = cache['video_info']
-					print("Satisified from cache")
-					return
-				except json.JSONDecodeError:
+					self.timestamp = cache['timestamp']
+					if (int(time()) - self.timestamp) < self.session_timeout:
+						for cookie in cache['cookies']:
+							self.session.cookies.set(**cookie)
+						self.ajax_headers = cache['ajax_headers']
+						self.video_info = cache['video_info']
+						print("JW Stream session found in cache")
+						return
+				except json.JSONDecodeError:		# bad cache file
 					pass
 
 		# Load the invitation page in order to get the cookies.
@@ -64,7 +74,7 @@ class StreamRequester:
 		assert page_response.status_code == 200
 
 		# Headers to simulate an AJAX request from a browser
-		ajax_headers = {
+		self.ajax_headers = {
 			"Content-Type": "application/json;charset=UTF-8",
 			"Referer": "https://fle.stream.jw.org/video/ru-ukr",
 			"Accept": "application/json, text/plain, */*",
@@ -74,7 +84,7 @@ class StreamRequester:
 
 		# This returns a list of the available languages. On reloads it
 		# returns only the language indicated in the response to getinfo.
-		response = self.session.post("https://fle.stream.jw.org/language/getlanguages", headers=ajax_headers)
+		response = self.session.post("https://fle.stream.jw.org/language/getlanguages", headers=self.ajax_headers)
 		assert response.status_code == 200, response.text
 		getlanguages = response.json()
 		if self.debug:
@@ -83,14 +93,14 @@ class StreamRequester:
 
 		# Use the token from the invitation URL to log in
 		response = self.session.post("https://fle.stream.jw.org/token/check",
-			headers = ajax_headers,
+			headers = self.ajax_headers,
 			json = { 'token': self.token }
 			)
 		assert response.status_code == 200, response.text
 		assert response.json()[0]			# response should be [True]
 
 		# Get a JSON blob of information about this sharing link.
-		response = self.session.post("https://fle.stream.jw.org/member/getinfo", headers=ajax_headers)
+		response = self.session.post("https://fle.stream.jw.org/member/getinfo", headers=self.ajax_headers)
 		assert response.status_code == 200, response.text
 		getinfo = response.json()
 		if self.debug:
@@ -106,25 +116,30 @@ class StreamRequester:
 		else:
 			raise AssertionError("Failed to find language: %s" % language)
 
-		language_blob.update({
+		self.language_blob.update({
 			# No idea whether these are actually important.
 			# "русский"
 			"translatedName": self.language_blob['vernacular'],
 			# "русский (Україна)",
-			"translatedNameWithCountry": "{vernacular} ({country_description})".format(**language_blob),
+			"translatedNameWithCountry": "{vernacular} ({country_description})".format(**self.language_blob),
 			# "русский (Україна) (ru)"
-			"translatedNameWithSymbol":  "{vernacular} ({country_description}) ({symbol})".format(**language_blob),
+			"translatedNameWithSymbol":  "{vernacular} ({country_description}) ({symbol})".format(**self.language_blob),
 			# "русский (Україна) (ru-ukr)"
-			"translatedNameWithLocale":  "{vernacular} ({country_description}) ({locale})".format(**language_blob),
+			"translatedNameWithLocale":  "{vernacular} ({country_description}) ({locale})".format(**self.language_blob),
 			})
 
-		# Ask for the list of current videos
-		# Though we supply the language and country information, this actually gets
-		# all of the programs shared through this sharing link irrespective of language.
+		self.timestamp = int(time())
+		self.update_videos()
+		self.write_cache()
+
+	# Ask for the list of current videos
+	# Though we supply the language and country information, this actually gets
+	# all of the programs shared through this sharing link irrespective of language.
+	def update_videos(self):
 		response = self.session.post("https://fle.stream.jw.org/event/languageVideos",
-			headers = ajax_headers,
+			headers = self.ajax_headers,
 			data = json.dumps(
-				dict(language = language_blob),
+				dict(language = self.language_blob),
 				ensure_ascii = False,
 				separators = (',', ':')
 				).encode("utf-8")
@@ -136,7 +151,8 @@ class StreamRequester:
 			with open("debug-languageVideos.json", "w") as fh:
 				json.dump(self.video_info, fh, indent=2, ensure_ascii=False)
 
-		# Write the cookies and the list of videos to a cache file
+	# Write the cookies and the list of videos to a cache file
+	def write_cache(self):
 		if self.cachefile is not None:
 			cookies = []
 			for cookie in self.session.cookies:
@@ -150,16 +166,24 @@ class StreamRequester:
 			print("cookies:", cookies)
 			with open(self.cachefile, "w") as fh:
 				json.dump(dict(
+					timestamp = self.timestamp,
 					cookies = cookies,
+					ajax_headers = self.ajax_headers,
 					video_info = self.video_info,
-					timestamp = int(time()),
 					), fh, indent=2, ensure_ascii=False)
 
+	def reload(self):
+		self.connect_hook()
+		self.update_videos()
+		self.write_cache()
+
 	def get_events(self):
+		self.connect_hook()
 		for event in self.video_info:
 			yield (event['data']['id'], event['title'])
 
 	def get_event(self, id, preview=True):
+		self.connect_hook()
 		for event in self.video_info:
 			if event['data']['id'] == id:
 				break
@@ -176,6 +200,8 @@ class StreamRequester:
 			return None
 
 		# Try to fetch the video file. The result will be a redirect to a CDN.
+		# That is the URL we want. Note though that if the session has expired,
+		# we will get a redirect to the login screen.
 		result = self.session.get(url, allow_redirects=False)
 		assert result.status_code == 302
 		return (event['title'], result.headers['Location'], event['chapters'])

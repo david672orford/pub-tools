@@ -24,7 +24,7 @@ if not os.path.exists(app.cachedir):
 # The Flask-Admin interface is not actually needed.
 try:
 	from . import admin
-except ModuleNotFound:
+except ModuleNotFoundError:
 	pass
 
 from . import views

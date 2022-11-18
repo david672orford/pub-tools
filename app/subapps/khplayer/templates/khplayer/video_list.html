@@ -13,11 +13,13 @@
 {% endblock %}
 
 {% block main %}
+<form action="submit" method="POST">
 <section>
 <ul>
 {% for video in category.videos | sort(attribute="date", reverse=True) %}
-<li><a href=".?lank={{video.lank|urlencode}}">{{video.name}}</a></li>
+<li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
 {% endfor %}
 </ul>
 </section>
+</form>
 {% endblock %}
