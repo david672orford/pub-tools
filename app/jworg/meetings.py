@@ -230,7 +230,13 @@ class MeetingLoader(Fetcher):
 
 			else:
 				img = figure.xpath("./span[@class='jsRespImg']")[0]
-				figures.append((None, figcaption, "image", img.attrib['data-zoom']))
+				for variant in ("data-zoom", "data-img-size-lg", "data-img-size-md", "data-img-size-sm", "data-img-size-xs"):
+					src = img.attrib.get(variant)
+					if src is not None:
+						break
+				else:
+					raise AssertionError("No image source in jsRespImg")
+				figures.append((None, figcaption, "image", src))
 
 			n += 1
 		#self.dump_json(figures)

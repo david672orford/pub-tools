@@ -22,23 +22,26 @@ logger = logging.getLogger(__name__)
 cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 app.cli.add_command(cli_update)
 
+def default_callback(message):
+	print(message)
+
 #=============================================================================
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
 
 @cli_update.command("meetings", help="Load weekly meeting schedule")
-def cmd_load_meetings():
+def cmd_update_meetings():
 	logging.basicConfig(level=logging.DEBUG)
 	load_meetings()
 
-def load_meetings():
+def update_meetings(callback=default_callback):
 	meeting_loader = MeetingLoader()
 	current_day = date.today()
 	for i in range(6):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
 		if week_obj is None:
-			print("Fetching week:", year, week)
+			callback("Fetching week %s %s" % (year, week))
 			week_data = meeting_loader.get_week(year, week)
 			week_obj = Weeks()
 			week_obj.year = year
@@ -48,6 +51,7 @@ def load_meetings():
 			db.session.add(week_obj)
 		current_day += timedelta(weeks=1)
 	db.session.commit()
+	callback("Meetings loaded.")
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
@@ -163,12 +167,13 @@ def cmd_update_videos():
 	logging.basicConfig(level=logging.DEBUG)
 	update_videos()
 
-def update_videos():
+def update_videos(callback=default_callback):
+	callback("Updating videos list...")
 	for category in VideoLister().get_category("VideoOnDemand").subcategories:
-		print("Category:", category.name)
+		callback("%s" % category.name)
 		assert len(category.videos) == 0
 		for subcategory in category.subcategories:
-			print("  Subcategory:", subcategory.name)
+			callback("%s — %s" % (category.name, subcategory.name))
 			if subcategory.key.endswith("Featured"):
 				continue
 			category_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
@@ -181,7 +186,7 @@ def update_videos():
 					)
 				db.session.add(category_obj)
 			for video in subcategory.videos:
-				print("    Video:", video.name)
+				print(" Video:", video.name)
 				video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 				if video_obj is None:
 					video_obj = Videos()
@@ -192,4 +197,5 @@ def update_videos():
 				video_obj.thumbnail = video.thumbnail
 				category_obj.videos.append(video_obj)
 	db.session.commit()
+	callback("Videos list updated.")
 

@@ -7,7 +7,8 @@ import logging
 
 from ... import app, turbo
 from ...models import Weeks
-from .views import blueprint, meeting_loader, obs_connect
+from ...cli_update import update_meetings
+from .views import blueprint, meeting_loader, obs_connect, ObsError, progress_callback
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +25,15 @@ def page_meetings():
 def page_meetings_submit():
 	url = None
 
-	# Get the URL of the article (from the Watchtower or the Meeting Workbook)
-	# which will be studied at this meeting.
-	if request.form.get("action") == "add":
-		url = request.form.get('url')
-	elif 'docid' in request.form:
-		docid = int(request.form.get('docid'))
-		url = "https://www.jw.org/finder?wtlocale=U&docid=%s&srcid=share" % docid
+	if 'update' in request.form:
+		update_meetings(callback=progress_callback)
 
-	# If we have the article's URL, scan it and download the songs, videos,
-	# and illustrations and add them to OBS as scenes.
-	if url is not None:
+	# If the user clicked on a meeting button, download the article, scan it
+	# and the articles to which it links for links to videos and illustrations.
+	# Load the videos and illustrations into OBS as scenes.
+	if 'docid' in request.form:
+		docid = int(request.form.get('docid'))
+		url = "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
 		logger.info('Load meeting: %s', url)
 		scenes = meeting_loader.extract_media(url)
 		obs = obs_connect()
@@ -56,7 +55,7 @@ def page_meetings_submit():
 					#obs.add_scene(scene_name, media_type, media_url)
 					pass
 				else:						# video or image file
-					media_file = meeting_loader.download_media(media_url)
+					media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 					obs.add_scene(scene_name, media_type, media_file)
 
 	return redirect(".")

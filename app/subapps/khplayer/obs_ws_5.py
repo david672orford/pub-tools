@@ -3,9 +3,9 @@
 #
 # We use this library:
 # https://pypi.org/project/obsws-python/
-
-import obsws_python as obs
-from obsws_python.error import OBSSDKError as OBSError
+import websocket
+import base64
+import hashlib
 from urllib.parse import urlparse, unquote
 import os
 import json
@@ -14,18 +14,90 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class ObsError(Exception):
+	def __init__(self, response):
+		super().__init__()
+		if type(response) is dict:
+			self.code = response["d"]["requestStatus"]["code"]
+			self.comment = response["d"]["requestStatus"].get("comment")
+		elif type(response) is ObsError:
+			self.code = response.code
+			self.comment = response.comment
+		else:
+			self.code = 0
+			self.comment = response
+	def __str__(self):
+		return "<ObsError code=%d comment=%s" % (self.code, repr(self.comment))
+
 class ObsControl:
 	def __init__(self, config):
 		self.hostname = config['hostname']
 		self.port = config['port']
 		self.password = config['password']
 		self.ws = None
+		self.reqid = 0
 
 	def connect(self):
-		if self.ws is not None:
-			return
-		self.ws = obs.ReqClient(host=self.hostname, port=self.port, password=self.password)
-		print("Version:", self.ws.get_version())
+		self.ws = websocket.WebSocket()
+		self.ws.connect("ws://%s:%d" % (self.hostname, self.port))
+
+		hello = json.loads(self.ws.recv())
+		print("hello:", hello)
+		assert hello["d"]["rpcVersion"] == 1
+
+		req = {
+			"op": 1,
+			"d": {
+				"rpcVersion": 1,
+				"eventSubscriptions": 0,
+				}
+			}
+
+		if "authentication" in hello["d"]:			# if server requires authentication,
+			req["d"]["authentication"] = base64.b64encode(
+				hashlib.sha256(
+						(
+						base64.b64encode(
+							hashlib.sha256(
+								(self.password + hello["d"]["authentication"]["salt"]).encode()
+								).digest()
+							).decode()
+						+ hello["d"]["authentication"]["challenge"]
+						).encode()
+					).digest()
+				).decode()
+
+		self.ws.send(json.dumps(req))
+		response = json.loads(self.ws.recv())
+		print("auth response:", response)
+		assert response["op"] == 2
+
+	def request(self, req_type, req_data, raise_on_error=True):
+		self.reqid += 1
+
+		self.ws.send(json.dumps({
+			"op": 6,		# request
+			"d": {
+				"requestId": str(self.reqid),
+				"requestType": req_type,
+				"requestData": req_data,
+				}
+			}))
+
+		try:
+			response = json.loads(self.ws.recv())
+			print("OBS response:", response)
+			assert response["op"] == 7, "incorrect opcode"
+			assert response["d"]["requestType"] == req_type, "incorrect requestType"
+			assert response["d"]["requestId"] == str(self.reqid), "incorrect requestId"
+		except json.JSONDecodeError:
+			raise ObsError("Unparsable response")
+		except AssertionError as e:
+			raise ObsError("Assertion failed: %s" % e)
+
+		if raise_on_error and not response["d"]["requestStatus"]["result"]:
+			raise ObsError(response)
+		return response["d"]	
 
 	def add_scene(self, scene_name, media_type, media_file):
 		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
@@ -64,19 +136,19 @@ class ObsControl:
 			try_scene_name = scene_name
 			if i > 1:
 				try_scene_name += " (%d)" % i
-			#payload = {
-			#	"sceneName": scene_name,
-			#	}
+			payload = {
+				"sceneName": try_scene_name,
+				}
 			try:
-				#self.ws.send("CreateScene", payload)
-				self.ws.create_scene(try_scene_name)
+				result = self.request("CreateScene", payload)
+				scene_name = try_scene_name
 				break
-			except OBSError as e:
-				if not "already exists" in str(e):
-					raise AssertionError(e)
+			except ObsError as e:
+				if e.code != 601:		# resource already exists
+					raise ObsError(e)
 			i += 1
 
-		# Create a source to play our file. Resolve naming conflicts.
+		# Create a source (no called input) to play our file. Resolve naming conflicts.
 		i = 1
 		scene_item_id = None
 		while True:
@@ -90,12 +162,13 @@ class ObsControl:
 				'inputSettings': source_settings,
 				}
 			try:
-				response = self.ws.send('CreateInput', payload)
-				scene_item_id = response.scene_item_id
+				response = self.request('CreateInput', payload)
+				source_name = try_source_name
+				scene_item_id = response["responseData"]["sceneItemId"]
 				break
-			except OBSError as e:
-				if not "already exists" in str(e):
-					raise AssertionError(e)
+			except ObsError as e:
+				if e.code != 601:		# resource already exists
+					raise ObsError(e)
 			i += 1
 
 		# Scale the image to fit the screen
@@ -109,7 +182,7 @@ class ObsControl:
 				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
 				}
 			}
-		self.ws.send('SetSceneItemTransform', payload)
+		self.request('SetSceneItemTransform', payload)
 
 		# Enable audio for video files
 		if media_type == "video":
@@ -117,5 +190,14 @@ class ObsControl:
 				'inputName': source_name,
 				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
 				}
-			self.ws.send('SetInputAudioMonitorType', payload)
+			self.request('SetInputAudioMonitorType', payload)
+
+	def get_scene_list(self):
+		return self.request("GetSceneList", {})["responseData"]["scenes"]
+
+	def remove_scene(self, scene_name):
+		self.request("RemoveScene", {"sceneName": scene_name})
+
+	def create_scene_collection(self, name):
+		self.request("CreateSceneCollection", {"sceneCollectionName": name})
 

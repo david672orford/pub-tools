@@ -14,7 +14,10 @@
 {% endfor %}
 </ul>
 {% else %}
-<p>Run <b>flask update videos</b> to see video categories here.</p>
+<p>Run <b>Update</b> to see video categories here.</p>
 {% endif %}
+<form action="submit" method="POST">
+<p><button type="submit" name="update" value="1">Update</button></p>
+</form>
 </section>
 {% endblock %}

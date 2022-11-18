@@ -148,29 +148,31 @@ class Fetcher:
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
 		logger.info("Download media file %s...", url)
-		callback(message="Downloading media file...")
+		if callback:
+			callback("Downloading media file...")
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if os.path.exists(cachefile):
 			logger.info(" Satisfied from cache")
-			callback(message="Satisfied from cache")
+			if callback:
+				callback("Satisfied from cache")
 		else:
 			response = self.get(url)
 			total_expected = int(response.headers.get("Content-Length"))
 			with open(cachefile + ".tmp", "wb") as fh:
 				total_recv = 0
 				while True:
-					#chunk = response.read(16384)
 					chunk = response.read(65536)
 					if not chunk:
 						break
 					fh.write(chunk)
 					total_recv += len(chunk)
-					logger.debug("%d of %s bytes received", total_recv=total_recv, total_expected=total_expected)
+					logger.debug("%s of %s bytes received", total_recv, total_expected)
 					if callback:
-						callback(total_recv, total_expected)
+						callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
 			os.rename(cachefile + ".tmp", cachefile)
 			logger.info("Download complete %d bytes received", total_recv)
-			callback(message="Download finished.")
+			if callback:
+				callback("Download finished.")
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number

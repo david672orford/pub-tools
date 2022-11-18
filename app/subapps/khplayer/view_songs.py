@@ -1,9 +1,10 @@
 from flask import render_template, request, redirect, flash
+from time import sleep
 import logging
 
 from ... import app, turbo
 from ...models import VideoCategories
-from .views import blueprint, meeting_loader, obs_connect, run_thread, download_progress_callback
+from .views import blueprint, meeting_loader, obs_connect, run_thread, progress_callback
 from .view_videos import load_video
 
 logger = logging.getLogger(__name__)
@@ -31,10 +32,11 @@ def page_songs_submit():
 	return redirect(".")
 
 def load_song(song):
-	download_progress_callback(message="Getting video URL...")
+	progress_callback(message="Getting song video URL...")
 	media_url = meeting_loader.get_song_video_url(song)
-	media_file = meeting_loader.download_media(media_url, callback=download_progress_callback)
-	obs = obs_connect()
+	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
+	obs = obs_connect(callback=progress_callback)
 	if obs is not None:
 		obs.add_scene("ПЕСНЯ %s" % song, "video", media_file)
+		progress_callback("Song video loaded.")
 

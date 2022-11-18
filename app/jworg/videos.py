@@ -13,7 +13,6 @@ class VideoLister(Fetcher):
 		if category_dict is None or len(category_dict['media']) == 0:
 			data = self.get_json(self.mediator_categories_url.format(language=self.language, category=category_key))
 			category_dict = data['category']
-			#self.dump_json(category_dict)
 		return VideoCategory(self, category_dict)
 
 # The contents of a video category from JW.ORG. Members:
@@ -23,25 +22,26 @@ class VideoLister(Fetcher):
 # A VideoCategory will have either videos or subcategories, but not both.
 class VideoCategory:
 	def __init__(self, video_lister, category_dict):
+		self.video_lister = video_lister
+		self.category_dict = category_dict
+
 		self.language = video_lister.language
 		self.key = category_dict['key']
 		self.name = category_dict['name']
-		#print(self.key, self.name)
 
 		self.videos = []
 		for media in category_dict.get('media',[]):
 			logger.debug("Video title: %s", media['title'])
-			#video_lister.dump_json(media)
 			self.videos.append(Video(video_lister.language, media))
 
-		self.subcategories = []
-		for subcategory_dict in category_dict.get('subcategories',[]):
-			logger.debug("Subcategory name: %s", subcategory_dict['name'])
-			#video_lister.dump_json(subcategory_dict)
-			self.subcategories.append(video_lister.get_category(subcategory_dict['key'], category_dict=subcategory_dict))
-
 		# As we understand it a category can contain videos or subcategories, but not both.
-		assert len(self.videos) == 0 or len(self.subcategories) == 0
+		assert len(self.videos) == 0 or len(category_dict.get('subcategories',[])) == 0
+
+	@property
+	def subcategories(self):
+		for subcategory_dict in self.category_dict.get('subcategories',[]):
+			logger.debug("Subcategory name: %s", subcategory_dict['name'])
+			yield self.video_lister.get_category(subcategory_dict['key'], category_dict=subcategory_dict)
 
 # A single video from JW.ORG
 class Video:
