@@ -67,7 +67,7 @@ def page_stream_clip(id):
 	except ValueError as e:
 		# Send the user back to try again while preserving what he entered.
 		flash(str(e))
-		return retirect(return_url)
+		return redirect(return_url)
 
 	# Ask stream.jw.org for the current URL of a low-resolution version
 	# of the MP4 file suitable for preview use.
