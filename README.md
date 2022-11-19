@@ -20,7 +20,7 @@ Or:
 
 and then open http://localhost:5000 in a web browser.
 
-## KH-Meeting Module
+## The KH-Meeting Module
 
 This app helps you to load the videos and illustrations for a meeting into OBS
 Studio ready to play.
@@ -37,20 +37,19 @@ this:
 
 Change the *secret* to the actual password.
 
-Now download the lists of upcoming meetings and videos from JW.ORG:
-
-    $ flask update meetings
-    $ flask update videos
-
-Finally, run this command:
+Then run this command:
 
     $ ./pub-tools khplayer
 
-A window will appear with three tabs labeledr **Meetings**, **Songs**,
-**Videos**, and **OBS**.. Clicking on a meeting, song, or video to
+A window will appear with three tabs labeled **Meetings**, **Songs**,
+**Videos**, **Stream**, and **OBS**.. Clicking on a meeting, song, or video to
 download it and add it to the scene list in OBS.
 
-## Toolbox Module
+You can also point a web browser at http://localhost:5000 to open the
+interface in a web browser. The script **start.py** runs the web server
+without a GUI.
+
+## The Teaching Toolbox Module
 
 This subapp displays a list of the publications from the Teaching Toolbox
 along with the link to it on JW.ORG. It is intended to help publishers
@@ -66,7 +65,7 @@ Then run this command command:
 
     $ ./pub-tools toolbox
 
-## Epub Viewer Module
+## The Epub Viewer Module
 
 This is an experimental framework for downloading and viewing Epub files
 from JW.ORG in a web browser.
