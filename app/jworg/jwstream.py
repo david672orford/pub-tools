@@ -163,7 +163,6 @@ class StreamRequester:
 					path = cookie.path,
 					expires = cookie.expires,
 					))
-			print("cookies:", cookies)
 			with open(self.cachefile, "w") as fh:
 				json.dump(dict(
 					timestamp = self.timestamp,
@@ -190,7 +189,7 @@ class StreamRequester:
 		else:
 			return None
 
-		print(json.dumps(event['vod_files'], indent=2))
+		#print(json.dumps(event['vod_files'], indent=2))
 		resolution = self.config["preview_resolution" if preview else "download_resolution"]
 		for vod_file in event['vod_files']:
 			if vod_file['height'] == resolution:

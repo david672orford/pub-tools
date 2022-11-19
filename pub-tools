@@ -28,7 +28,7 @@ print("Starting webview...")
 webview.create_window(
 	title = "Pub-Tools",
 	url = "http://localhost:5000/" + "/".join(sys.argv[1:]),
-	width = 1024,
+	width = 900,
 	height = 800,
 	)
 webview.start(debug=True)

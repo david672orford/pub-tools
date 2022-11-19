@@ -5,49 +5,60 @@
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='stream.css')}}">
 {% endblock %}
 
+{% block header %}
+<h1><a href="..">&lt; {{video_name}}</a></h1>
+{% endblock %}
+
 {% block main %}
-<form action="{{id}}/trim" method="POST">
+<form id="form" action="clip" method="POST">
 <section>
-<div class="video-caption">
-	{{video_name}}
-</div>
+
 <div class="video-sizer">
 	<video id="player" controls src="{{video_url}}" style="width: 100%">
 	</video>
 </div>
+
 <div id="jog-controls" class="controls">
-	<button type="button"><img src="../static/button-backward.svg"><span>30:00</span></button>
-	<button type="button"><img src="../static/button-backward.svg"><span>5:00</span></button>
-	<button type="button"><img src="../static/button-backward.svg"><span>1:00</span></button>
-	<button type="button"><img src="../static/button-backward.svg"><span>0:30</span></button>
-	<button type="button"><img src="../static/button-backward.svg"><span>0:05</span></button>
-	<button type="button"><img src="../static/button-backward.svg"><span>0:01</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>30:00</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>5:00</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>1:00</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>0:30</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>0:05</span></button>
+	<button type="button"><img src="../../static/button-backward.svg"><span>0:01</span></button>
 
 	<button type="button">Set Start</button>
 	<button type="button">Set End</button>
 
-	<button type="button"><span>0:01</span><img src="../static/button-forward.svg"></button>
-	<button type="button"><span>0:05</span><img src="../static/button-forward.svg"></button>
-	<button type="button"><span>0:30</span><img src="../static/button-forward.svg"></button>
-	<button type="button"><span>1:00</span><img src="../static/button-forward.svg"></button>
-	<button type="button"><span>5:00</span><img src="../static/button-forward.svg"></button>
-	<button type="button"><span>30:00</span><img src="../static/button-forward.svg"></button>
+	<button type="button"><span>0:01</span><img src="../../static/button-forward.svg"></button>
+	<button type="button"><span>0:05</span><img src="../../static/button-forward.svg"></button>
+	<button type="button"><span>0:30</span><img src="../../static/button-forward.svg"></button>
+	<button type="button"><span>1:00</span><img src="../../static/button-forward.svg"></button>
+	<button type="button"><span>5:00</span><img src="../../static/button-forward.svg"></button>
+	<button type="button"><span>30:00</span><img src="../../static/button-forward.svg"></button>
 </div>
+
 <div id="chapter-controls" class="controls">
+<label>Chapters:</label>
 {% for chapter in chapters %}
-<button type="button" data-time="{{chapter['time']}}">{{chapter['name']}}</button>
+<button type="button" class="chapter-button" data-time="{{chapter['time']}}">{{chapter['name']}}</button>
 {% endfor %}
 </div>
-<div id="trim-controls" class="controls">
-	<label>Start: <input type="text" id="start" name="start" class="time"></label>
-	<label>End: <input type="text" id="end" name="end" class="time"></label>
-	<button type="submit">Trim</button>
-</div>
-<script>
-const player = document.getElementById("player");
 
+<div id="trim-controls" class="controls">
+	<label>Clip Start: <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
+	<label>Clip End: <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
+	<label class="grow"><span>Clip Title:</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
+	<button type="submit">Make Clip</button>
+</div>
+
+<script>
+(function() {
+
+const player = document.getElementById("player");
+const form = document.getElementById("form");
+
+/* First control bar */
 const jog_controls = document.getElementById("jog-controls").children;
-console.debug(jog_controls);
 function jog_button(index, amount)
 	{
 	jog_controls[index].addEventListener('click', function() {
@@ -62,7 +73,7 @@ function copy_time_button(index, target)
 		let minutes = Math.floor(seconds / 60);
 		seconds = Math.floor(seconds % 60 + 0.5);
 		let formatted_time = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
-		document.getElementById(target).value = formatted_time;
+		form.elements[target].value = formatted_time;
 		});
 	}
 jog_button(0, -1800);
@@ -71,8 +82,8 @@ jog_button(2, -60);
 jog_button(3, -30);
 jog_button(4, -5);
 jog_button(5, -1);
-copy_time_button(6, "start");
-copy_time_button(7, "end");
+copy_time_button(6, "clip_start");
+copy_time_button(7, "clip_end");
 jog_button(8, 1);
 jog_button(9, 5);
 jog_button(10, 30);
@@ -80,15 +91,18 @@ jog_button(11, 60);
 jog_button(12, 300);
 jog_button(13, 1800);
 
-const chapter_controls = document.getElementById("chapter-controls").children;
+/* Second control bar */
+const chapter_buttons = document.getElementsByClassName("chapter-button");
 function on_chapter_button(event)
 	{
 	player.currentTime = this.dataset.time;	
 	}
-for(let i=0; i < chapter_controls.length; i++)
+for(let i=0; i < chapter_buttons.length; i++)
 	{
-	chapter_controls[i].addEventListener("click", on_chapter_button);
+	chapter_buttons[i].addEventListener("click", on_chapter_button);
 	}
+
+})();
 </script>
 </section>
 </form>
