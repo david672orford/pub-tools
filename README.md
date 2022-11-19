@@ -8,7 +8,19 @@ disabled individually in the config file.
 
     $ sudo apt-get install python3-pip ffmpeg
     $ pip3 install -r requirements.txt
-    $ touch instance/config.py
+
+## Configure
+
+Create a file instance/config.py with contents like this:
+
+    OBS_WEBSOCKET = {
+        'hostname': 'localhost',
+        'port': 4455,
+        'password': 'secret',
+        }
+
+Replace *secret* with the password you set for the Websocket plugin
+in OBS.
 
 ## Run
 
@@ -44,10 +56,6 @@ Then run this command:
 A window will appear with three tabs labeled **Meetings**, **Songs**,
 **Videos**, **Stream**, and **OBS**.. Clicking on a meeting, song, or video to
 download it and add it to the scene list in OBS.
-
-You can also point a web browser at http://localhost:5000 to open the
-interface in a web browser. The script **start.py** runs the web server
-without a GUI.
 
 ## The Teaching Toolbox Module
 

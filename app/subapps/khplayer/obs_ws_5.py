@@ -1,8 +1,6 @@
 # Add a scene with a single media item to OBS
-# This version communicates with OBS through its Websocket plugin.
-#
-# We use this library:
-# https://pypi.org/project/obsws-python/
+# This version communicates with OBS through the OBS-Websocket plugin version 5.x.
+
 import websocket
 import base64
 import hashlib

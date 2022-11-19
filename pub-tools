@@ -31,7 +31,7 @@ webview.create_window(
 	width = 900,
 	height = 800,
 	)
-webview.start(debug=True)
+webview.start(debug=False)
 print("Webview has exited.")
 
 print("Shutting down the web server...")
