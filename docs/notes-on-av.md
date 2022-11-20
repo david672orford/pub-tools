@@ -15,6 +15,10 @@
 * https://pypi.org/project/python-ffmpeg/
 * https://superuser.com/questions/326629/how-can-i-make-ffmpeg-be-quieter-less-verbose
 
+Black detection using FFmpeg:
+
+    $ ffmpeg -i clip.mp4 -vf blackdetect=d=0.1:pix_th=.1 -f rawvideo -y /dev/null
+
 ## OBS
 
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
