@@ -10,8 +10,9 @@ These are notes on the libraries, API's and frameworks used in this project.
 
 * [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
 
-## Javascript
+## Javascript API's
 
 * https://www.javascripttutorial.net/web-apis/javascript-formdata/
 * https://pqina.nl/blog/async-form-posts-with-a-couple-lines-of-vanilla-javascript/
+* https://germano.dev/sse-websockets/
 
