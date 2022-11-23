@@ -138,6 +138,7 @@ zoom.start_meeting(config.ZOOM["meetingid"])
 sleep(10)
 
 # Zoom sometimes crashes if the virtual audio cable is already present when it starts.
-os.system(os.path.join(os.path.dirname(__file__), "virtual-audio-cable"))
+microphone = config.ZOOM["microphone"]
+os.system(os.path.join(os.path.dirname(__file__), "virtual-audio-cable" + " " + microphone))
 
 

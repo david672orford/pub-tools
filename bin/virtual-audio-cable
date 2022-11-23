@@ -39,5 +39,8 @@ sleep .1
 pw-link To-Zoom:monitor_MONO From-OBS:input_MONO
 
 # Connect microphone
-#pw-link "LCS USB Audio:capture_MONO" From-OBS:input_MONO
+if [ -n "$1" ]
+	then
+	pw-link "$1" From-OBS:input_MONO
+	fi
 
