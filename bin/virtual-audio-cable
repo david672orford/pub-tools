@@ -1,9 +1,15 @@
 #! /bin/sh
+#
+# Create a virtual audio cable to connect the output of OBS to the
+# microphone input of Zoom.
+#
 
 if [ "$1" = "--delete" ]
 	then
+	# FIXME: we are just guessing here
 	pactl unload-module 536870912
 	pactl unload-module 536870913
+	pactl unload-module 536870914
 	exit 0
 	fi
 
