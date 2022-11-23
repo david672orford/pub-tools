@@ -1,0 +1,43 @@
+#! /bin/sh
+
+if [ "$1" = "--delete" ]
+	then
+	pactl unload-module 536870912
+	pactl unload-module 536870913
+	exit 0
+	fi
+
+# A virtual sink that can be set as a monitor in OBS
+if pw-link -i | grep To-Zoom:playback >/dev/null
+	then
+	echo "To-Zoom already exists."
+	else
+	echo "Creating To-Zoom..."
+	pactl load-module module-null-sink \
+		sink_name=To-Zoom \
+		sink_properties=device.description="To-Zoom" \
+		channel_map=mono
+	fi
+
+# A virtual source that is selectable as a microphone in Zoom
+if pw-link -o | grep From-OBS:capture >/dev/null
+	then
+	echo "From-OBS already exists."
+	else
+	echo "Creating From-OBS..."
+	pactl load-module module-null-sink \
+		media.class=Audio/Source/Virtual \
+		sink_name=From-OBS \
+		sink_properties=device.description="From-OBS" \
+		channel_map=mono
+	fi
+
+# Give them a chance to settle
+sleep .1
+
+# Connect them
+pw-link To-Zoom:monitor_MONO From-OBS:input_MONO
+
+# Connect microphone
+#pw-link "LCS USB Audio:capture_MONO" From-OBS:input_MONO
+
