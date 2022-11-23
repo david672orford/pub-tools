@@ -14,8 +14,14 @@
 import sys
 import logging
 from werkzeug.serving import run_simple
+from app import app
 
-debug_mode = (len(sys.argv) >= 2 and sys.argv[1] == '--debug')
+debug_mode = listen_all = False
+for arg in sys.argv[1:]:
+	if arg == "--debug":
+		debug_mode = True
+	elif arg == "--listen-all":
+		listen_all = True
 
 logging.basicConfig(
 	level=logging.DEBUG if debug_mode else logging.INFO,
@@ -23,6 +29,4 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 	)
 
-from app import app
-#run_simple("127.0.0.1", 5000, app, threaded=True)
-run_simple("0.0.0.0", 5000, app, threaded=True)
+run_simple("0.0.0.0" if listen_all else "127.0.0.1", 5000, app, threaded=True)
