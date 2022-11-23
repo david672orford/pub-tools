@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
 import os, types
-from subprocess import Popen
+import subprocess
 from ewmh import EWMH
 from Xlib import X, protocol, XK, ext
 from Xlib.error import BadMatch
@@ -131,7 +131,7 @@ with open(config.__file__, mode="rb") as config_file:
 while os.system("killall zoom") == 0:
 	sleep(1)
 
-Popen(["zoom"])
+subprocess.Popen(["zoom"])
 zoom = ZoomControl(config.ZOOM)
 
 zoom.start_meeting(config.ZOOM["meetingid"])
