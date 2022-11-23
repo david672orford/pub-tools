@@ -1,0 +1,16 @@
+#! /usr/bin/python3
+
+import os, types
+import subprocess
+
+# Load the Flask configuration file
+config = types.ModuleType("config")
+config.__file__ = os.path.join(os.path.dirname(__file__), "..", "instance", "config.py")
+with open(config.__file__, mode="rb") as config_file:
+	exec(compile(config_file.read(), config.__file__, "exec"), config.__dict__)
+
+subprocess.run(["pw-link", config.ZOOM["microphone"], "From-OBS:input_MONO"])
+
+for speaker in config.ZOOM["speakers"]:
+	subprocess.run(["pw-link", "From-OBS:capture_MONO", speaker])
+

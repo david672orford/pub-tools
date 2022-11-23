@@ -38,9 +38,3 @@ sleep .1
 # Connect them
 pw-link To-Zoom:monitor_MONO From-OBS:input_MONO
 
-# Connect microphone
-if [ -n "$1" ]
-	then
-	pw-link "$1" From-OBS:input_MONO
-	fi
-
