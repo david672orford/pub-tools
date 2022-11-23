@@ -131,7 +131,6 @@ class ZoomControl:
 			"Right",	# From "Share part of screen" to "Share computer sound"
 			"Right",	# From "Share computer sound" to "2nd camera"
 			)
-		key_seq = ["Right"]	
 		self.send_keys(self.dialog_window, key_seq)
 
 		# Click the star Start Sharing button. This closes the dialog.

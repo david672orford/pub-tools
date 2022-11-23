@@ -46,8 +46,7 @@ class ObsToZoomAuto(ObsToZoomBase):
 		super().__init__(*args)
 		self.videos_playing = set()
 		self.images_count = 0
-		#self.vcam_active = self.obs.get_virtualcam_active()
-		self.vcam_active = True
+		self.vcam_active = self.obs.get_virtualcam_active()
 		self.screensharing_active = False
 
 		# Catch up on what we missed.
@@ -69,7 +68,7 @@ class ObsToZoomAuto(ObsToZoomBase):
 		self.update_screensharing()
 
 	def VirtualCamStopped(self, event):
-		#self.vcam_active = False
+		self.vcam_active = False
 		self.update_screensharing()
 
 	def SwitchScenes(self, event):

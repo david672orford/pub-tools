@@ -1,5 +1,10 @@
 # Add a scene with a single media item to OBS
 # This version communicates with OBS through the OBS-Websocket plugin version 5.x.
+#
+# References:
+# * https://github.com/obsproject/obs-websocket
+# * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
+#
 
 import websocket
 import base64
@@ -190,12 +195,35 @@ class ObsControl:
 				}
 			self.request('SetInputAudioMonitorType', payload)
 
+	def create_scene_collection(self, name):
+		self.request("CreateSceneCollection", {"sceneCollectionName": name})
+
 	def get_scene_list(self):
 		return self.request("GetSceneList", {})["responseData"]["scenes"]
 
 	def remove_scene(self, scene_name):
 		self.request("RemoveScene", {"sceneName": scene_name})
 
-	def create_scene_collection(self, name):
-		self.request("CreateSceneCollection", {"sceneCollectionName": name})
+	def set_current_program_scene(self, scene_name):
+		self.request("SetCurrentProgramScene", {"sceneName": scene_name})
+
+	def get_virtual_camera_status(self):
+		return self.request("GetVirtualCamStatus", {})["responseData"]["outputActive"]
+
+	def set_virtual_camera_status(self, status):
+		if status is None:
+			self.request("ToggleVirtualCam", {})
+		elif status:
+			self.request("StartVirtualCam", {})
+		else:
+			self.request("StopVirtualCam", {})
+
+	def get_monitor_list(self):
+		return self.request("GetMonitorList", {})["responseData"]["monitors"]
+
+	def start_output_projector(self, monitor):
+		self.request("OpenVideoMixProjector", {
+			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+			"monitorIndex": monitor,
+			})
 

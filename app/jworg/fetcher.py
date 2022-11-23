@@ -37,15 +37,25 @@ class Fetcher:
 
 	# This API endpoint is used used to find the media files (MP3, MP4) which go
 	# with a printed publication or the publication itself in downloadable
-	# electronic form (such as PDF or Epub). Query string parameters:
+	# electronic form (such as PDF or Epub).
+	#
+	# Query string parameters:
 	# * pub -- the publication abbreviation
-	# * docid -- the MEPS document ID (can this really be used?)
 	# * output -- set to "json"
 	# * fileformat -- a comma-separated list of file extensions such as "m4v,mp4,3gp,mp3"
 	# * alllangs -- generally "0"
 	# * track -- song number
 	# * langwritten -- language code ("U" for Russian)
 	# * txtCMSLang -- language code (not clear how different from langwritten)
+	#
+	# Alternatively:
+	# * docid -- the MEPS document ID
+	# * output=json
+	# * fileformat=mp4,mp3
+	# * alllangs=1
+	# * track=1
+	# * langwritten=
+	# * txtCMSLang=
 	pub_media_url = 'https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS'
 
 	# Used for listing videos from JW Broadcasting by category
@@ -197,13 +207,30 @@ class Fetcher:
 	# download URL for the MP4 file.
 	def get_video_url(self, url):
 		query = dict(parse_qsl(urlparse(url).query))
-		media = self.get_json(self.mediator_items_url.format(
-			language = query['wtlocale'],
-			video = query['lank'],
-			), query = { 'clientType': 'www' })
-		return media['media'][0]['files'][2]['progressiveDownloadURL']
+		if "lank" in query:
+			media = self.get_json(self.mediator_items_url.format(
+				language = query["wtlocale"],
+				video = query["lank"],
+				), query = { "clientType": "www" })
+			return media["media"][0]["files"][2]["progressiveDownloadURL"]
+		elif "docid" in query:
+			media = self.get_json(self.pub_media_url,
+				query = {
+					'docid': query["docid"],
+					"output": "json",
+					"fileformat": "mp4,mp3",
+					"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
+					"track": "1",
+					"langwritten": query["wtlocale"],
+					"txtCMSLang": query["wtlocale"],
+					}
+				)
+			return media['files'][query["wtlocale"]]['MP4'][2]['file']['url']		# 480i
+		else:
+			raise AssertionError
 
 	# Find the EPUB download URL of a periodical
+	# FIXME: is this really just for periodicals? Note that issue_code is optional
 	def get_epub_url(self, pub_code, issue_code=None):
 		logger.info("get_epub_url(%s, %s)", pub_code, issue_code)
 		query = {

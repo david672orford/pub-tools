@@ -24,6 +24,5 @@ logging.basicConfig(
 	)
 
 from app import app
-#from app.socketio import socketio
-#socketio.run(app, host="127.0.0.1", port=5000)
-run_simple("127.0.0.1", 5000, app, threaded=True)
+#run_simple("127.0.0.1", 5000, app, threaded=True)
+run_simple("0.0.0.0", 5000, app, threaded=True)

@@ -1,4 +1,4 @@
-HTML, BODY, HEADER, SECTION, H1, H2, UL, LI {
+HTML, BODY, HEADER, SECTION, H1, H2, P, PRE, UL, LI {
 	margin: 0;
 	padding: 0;
 	}
@@ -15,7 +15,7 @@ HEADER {
 	border-bottom: 1px solid #a0a0a0;
 	}
 SECTION {
-	margin: .5em .5em 1em .5em;
+	margin: .5em;
 	}
 H1, H2 {
 	font-family: sans-serif;
@@ -27,6 +27,9 @@ H1 {
 H2 {
 	font-size: 100%;
 	margin: .2em 0;
+	}
+P {
+	margin-bottom: .5em;
 	}
 UL {
 	margin: 0 0 0 1.2em;
@@ -45,7 +48,7 @@ NAV UL {
 	}
 NAV UL LI {
 	margin: 0 5px;
-	padding: .3em;
+	padding: .5em;
 	border-radius: 5px 5px 0 0;
 	background-color: #d0d0d0;
 	}
@@ -80,8 +83,18 @@ DIV.flash {
 	font-family: sans-serif;
 	}
 
+SECTION.bordered {
+	border: thin solid #808080;
+	border-radius: .2em;
+	margin: .4em;
+	}
+SECTION.bordered > * {
+	margin: .5em;
+	}
+
 TABLE.borders {
 	border-collapse: collapse;
+	margin-bottom: .5em;	
 	}
 TABLE.borders TH, TABLE.borders TD {
 	border: thin solid black;
@@ -91,31 +104,5 @@ TABLE.borders TH, TABLE.borders TD {
 
 UL.nowrap LI {
 	white-space: nowrap;
-	}
-
-UL.bare {
-	list-style-type: none;
-	margin-left: 0;
-	}
-UL.bare LABEL {
-	display: block;
-	width: 100%;
-	}
-UL.bare LABEL:hover {
-	background-color: #f0f0f0;
-	}
-
-/* Experimental */
-DIV#popup {
-	display: none;
-	}
-DIV#popup.show {
-	display: block;
-	position: absolute;
-	top: 15px;
-	left: 15px;
-	width: calc(100% - 15px);
-	background-color: white;
-	border: solid thin black;
 	}
 

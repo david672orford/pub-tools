@@ -1,0 +1,25 @@
+UL.scenes {
+	list-style-type: none;
+	margin-left: 0;
+	}
+UL.scenes > LI {
+	display: flex;
+	margin: 0 .5em;
+	}
+UL.scenes > LI > * {
+	margin: .5em;
+	}
+UL.scenes > LI > BUTTON {
+	flex-grow: 1;
+	text-align: left;
+	padding: .5em;
+	}
+
+BUTTON {
+	padding: .5em;
+	}
+
+INPUT[type=text] {
+	padding: .5em;
+	}
+
