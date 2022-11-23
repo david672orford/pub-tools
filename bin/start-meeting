@@ -1,0 +1,143 @@
+#! /usr/bin/python3
+
+import os, types
+from subprocess import Popen
+from ewmh import EWMH
+from Xlib import X, protocol, XK, ext
+from Xlib.error import BadMatch
+from time import sleep
+
+class NoZoomWindow(Exception):
+	def __init__(self, window_name):
+		window_name = window_name
+		super().__init__("No such window: " + window_name)
+
+class ZoomControl:
+	def __init__(self, config):
+		self.config = config
+		self.wm = EWMH()
+		self.display = self.wm.display
+
+	# Find a window in the list of the window manager's clients.
+	def find_wm_window(self, find_name):
+		print("find_wm_window:", find_name)
+		for attempt in range(20):
+			for window in self.wm.getClientList():
+				name = self.wm.getWmName(window)
+				if name is not None:
+					name = name.decode("utf-8")
+				#print("Window name: '%s'" % name)
+				if name == find_name:
+					return window
+			sleep(.25)
+		raise NoZoomWindow(find_name)
+
+	def focus_window(self, window):
+		self.display.set_input_focus(window, X.RevertToParent, X.CurrentTime)
+
+	def get_window(self, window_name):
+		window = self.find_wm_window(window_name)
+		self.focus_window(window)
+
+	# Send keys to a window using the XTEST extension
+	def send_keys(self, keynames):
+		print("send_keys:", keynames)
+		for keyname in keynames:
+			keycode_stack = []	
+			for keyname_part in keyname.split("-"):
+				keysym = XK.string_to_keysym(keyname_part)
+				assert keysym != 0, "No keysym for %s" % keyname_part
+				keycode = self.display.keysym_to_keycode(keysym)
+				#print("KeyPress:", keycode)
+				ext.xtest.fake_input(self.display, X.KeyPress, keycode)
+				keycode_stack.insert(0, keycode)
+			for keycode in keycode_stack:
+				#print("KeyRelease:", keycode)
+				ext.xtest.fake_input(self.display, X.KeyRelease, keycode)
+		self.display.flush()
+
+	# See:
+	# https://chromium.googlesource.com/chromiumos/platform/autox/+/8b510c7d95f89c46d8349f9e13eaf5fd422795a0/autox.py
+	keysyms = {
+		" ": "space",
+		"@": "Shift_L-2",
+		".": "period",
+		"/": "slash",
+		"$": "Shift_L-dollar",
+		}
+	def send_text(self, text):
+		keynames = []
+		for char in text:
+			if char in self.keysyms:
+				keynames.append(self.keysyms[char])
+			elif char.isupper():
+				keynames.append("Shift_L-" + char)
+			else:
+				keynames.append(char)
+		self.send_keys(keynames)
+
+	def start_meeting(self, meetingid):
+		self.get_window("Zoom Cloud Meetings")
+
+		# Tab to "Sign In" button, give it a second to settle, and press Return
+		self.send_keys(["Tab", "Tab"])
+		sleep(1)
+		self.send_keys(["Return"])
+		sleep(1)
+
+		self.get_window("Zoom Cloud Meetings")
+		self.send_keys(["Tab", "Tab", "Tab"])
+		self.send_text(self.config["username"])
+		self.send_keys(["Tab"])
+		self.send_text(self.config["password"])
+		sleep(2)
+		self.send_keys(["Tab", "Tab", "Return"])
+
+		self.get_window("Zoom - Licensed Account")
+		self.send_keys([
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Return",
+			])
+
+		self.get_window("Zoom")
+		sleep(2)
+		self.send_keys(["Tab", "Tab"])
+		self.send_text(meetingid)
+		sleep(2)
+		self.send_keys([
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Tab",
+			"Return",
+			])
+
+# Load the Flask configuration file
+config = types.ModuleType("config")
+config.__file__ = os.path.join(os.path.dirname(__file__), "..", "instance", "config.py")
+with open(config.__file__, mode="rb") as config_file:
+	exec(compile(config_file.read(), config.__file__, "exec"), config.__dict__)
+
+while os.system("killall zoom") == 0:
+	sleep(1)
+
+Popen(["zoom"])
+zoom = ZoomControl(config.ZOOM)
+
+zoom.start_meeting(config.ZOOM["meetingid"])
+sleep(10)
+
+# Zoom sometimes crashes if the virtual audio cable is already present when it starts.
+os.system(os.path.join(os.path.dirname(__file__), "virtual-audio-cable"))
+
+
