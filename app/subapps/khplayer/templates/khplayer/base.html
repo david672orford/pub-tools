@@ -3,6 +3,7 @@
 <head>
 <title>{{title}}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='base.css')}}">
 {{ turbo() }}
 {% block head_add %}
