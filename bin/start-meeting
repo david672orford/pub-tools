@@ -122,7 +122,7 @@ class ZoomControl:
 			])
 		if participant_name:
 			self.send_keys([
-				"Control-A",		# select all
+				"Control_L-A",		# select all
 				"Backspace",
 				])	
 			self.send_text(participant_name)
