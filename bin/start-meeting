@@ -121,6 +121,7 @@ class ZoomControl:
 			"Tab",
 			])
 		if participant_name:
+			sleep(2)
 			self.send_keys([
 				"Control_L-a",		# select all
 				"BackSpace",
