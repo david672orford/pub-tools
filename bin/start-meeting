@@ -107,6 +107,7 @@ class ZoomControl:
 			"Tab",
 			"Tab",
 			"Tab",
+			"Tab",		# Required under kh account
 			"Return",
 			])
 
