@@ -76,7 +76,7 @@ class ZoomControl:
 				keynames.append(char)
 		self.send_keys(keynames)
 
-	def start_meeting(self, meetingid, name=None):
+	def start_meeting(self, meetingid, participant_name=None):
 		self.get_window("Zoom Cloud Meetings")
 
 		# Tab to "Sign In" button, give it a second to settle, and press Return
@@ -119,8 +119,9 @@ class ZoomControl:
 		self.send_keys([
 			"Tab",
 			"Tab",
-		if name:
-			self.send_text(name)
+			])
+		if participant_name:
+			self.send_text(participant_name)
 		self.send_keys([
 			"Tab",
 			"Tab",
