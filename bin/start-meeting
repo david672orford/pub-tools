@@ -54,7 +54,7 @@ class ZoomControl:
 			for keycode in keycode_stack:
 				#print("KeyRelease:", keycode)
 				ext.xtest.fake_input(self.display, X.KeyRelease, keycode)
-		self.display.flush()
+			self.display.flush()
 
 	# See:
 	# https://chromium.googlesource.com/chromiumos/platform/autox/+/8b510c7d95f89c46d8349f9e13eaf5fd422795a0/autox.py
