@@ -17,5 +17,5 @@ subprocess.run(["pw-link", config.ZOOM["microphone"], "From-OBS:input_MONO"])
 # same virtual audio cable. This allows those physically present to hear
 # what OBS is sending to Zoom.
 for speaker in config.ZOOM["speakers"]:
-	subprocess.run(["pw-link", "From-OBS:capture_MONO", speaker])
+	subprocess.run(["pw-link", "To-Zoom:capture_MONO", speaker])
 
