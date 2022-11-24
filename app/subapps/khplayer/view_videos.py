@@ -5,7 +5,8 @@ import logging
 from ... import app, turbo
 from ...models import VideoCategories, Videos
 from ...cli_update import update_videos
-from .views import blueprint, meeting_loader, obs_connect, run_thread, progress_callback
+from .views import blueprint
+from .utils import meeting_loader, obs_connect, run_thread, make_progress_callback
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +32,12 @@ def page_videos_list(category_key, subcategory_key):
 @blueprint.route("/videos/<category_key>/<subcategory_key>/submit", methods=["POST"])
 def page_videos_category_subcategory_submit(category_key, subcategory_key):
 	lank = request.form.get("lank")
-	run_thread(lambda: load_video(lank))
+	progress_callback = make_progress_callback()
+	run_thread(lambda: load_video(lank, progress_callback))
 	return redirect(".")
 
 # Download a video (if it is not already cached) and add it to OBS as a scene
-def load_video(lank):
+def load_video(lank, progress_callback):
 	video = Videos.query.filter_by(lank=lank).one()
 	logger.info('Load video: "%s" "%s"', video.name, video.href)
 	progress_callback("Getting video URL...")

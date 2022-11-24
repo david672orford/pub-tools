@@ -2,8 +2,9 @@ from flask import Blueprint, render_template, request, redirect, flash
 from time import sleep
 import json
 
-from .views import blueprint, obs_connect, ObsError, run_thread
-from ... import app, turbo
+from ... import app
+from .views import blueprint
+from .utils import obs_connect, ObsError, run_thread
 
 @blueprint.route("/obs/")
 def page_obs():

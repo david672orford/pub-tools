@@ -76,7 +76,7 @@ class ZoomControl:
 				keynames.append(char)
 		self.send_keys(keynames)
 
-	def start_meeting(self, meetingid):
+	def start_meeting(self, meetingid, name=None):
 		self.get_window("Zoom Cloud Meetings")
 
 		# Tab to "Sign In" button, give it a second to settle, and press Return
@@ -85,6 +85,7 @@ class ZoomControl:
 		self.send_keys(["Return"])
 		sleep(1)
 
+		# Enter username and password
 		self.get_window("Zoom Cloud Meetings")
 		self.send_keys(["Tab", "Tab", "Tab"])
 		self.send_text(self.config["username"])
@@ -93,6 +94,7 @@ class ZoomControl:
 		sleep(2)
 		self.send_keys(["Tab", "Tab", "Return"])
 
+		# Tab to Join Meeting and 'press' it
 		self.get_window("Zoom - Licensed Account")
 		self.send_keys([
 			"Tab",
@@ -108,6 +110,7 @@ class ZoomControl:
 			"Return",
 			])
 
+		# Wait for the join meeting dialog, enter meeeting ID
 		self.get_window("Zoom")
 		sleep(2)
 		self.send_keys(["Tab", "Tab"])
@@ -116,6 +119,9 @@ class ZoomControl:
 		self.send_keys([
 			"Tab",
 			"Tab",
+		if name:
+			self.send_text(name)
+		self.send_keys([
 			"Tab",
 			"Tab",
 			"Tab",
@@ -134,11 +140,10 @@ while os.system("killall zoom") == 0:
 subprocess.Popen(["zoom"])
 zoom = ZoomControl(config.ZOOM)
 
-zoom.start_meeting(config.ZOOM["meetingid"])
+zoom.start_meeting(config.ZOOM["meetingid"], config.ZOOM.get("participant-name"))
 sleep(10)
 
-# Zoom sometimes crashes if the virtual audio cable is already present when it starts.
+# At one point Zoom was crashing if the virtual cable already existed, so we put this here.
 subprocess.run([os.path.join(os.path.dirname(__file__), "virtual-audio-cable")])
-
 subprocess.run([os.path.join(os.path.dirname(__file__), "connect-audio-peripherals")])
 

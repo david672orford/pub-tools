@@ -64,17 +64,18 @@ class MeetingLoader(Fetcher):
 
 	# Fetch the web version of an article, figure out whether it is a Workbook week
 	# or a Watchtower study article and invoke the appropriate media extractor function.
-	def extract_media(self, url):
+	def extract_media(self, url, callback=None):
+		callback("Downloading article...")
 		container = self.get_article_html(url)
-		logger.info("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
+		callback("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib['class'])
 		assert m
-		return getattr(self, "extract_media_%s" % m.group(1))(url, container)
+		return getattr(self, "extract_media_%s" % m.group(1))(url, container, callback)
 
 	# Extract the media URL's from the web version of an article in the Meeting Workbook
-	def extract_media_mwb(self, url, container):
+	def extract_media_mwb(self, url, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
 		# In the inner for loop we add what we want to keep to this list
@@ -156,6 +157,7 @@ class MeetingLoader(Fetcher):
 
 						# Take the text inside the <a> tag as the article title
 						article_title = a.text_content().strip()
+						callback("Getting media list from %s..." % article_title)
 
 						# Download the article and extract the contents of the <main> tag
 						# (The articles for the first talk in the MWB have the first illustration
@@ -175,7 +177,7 @@ class MeetingLoader(Fetcher):
 		return scenes
 
 	# Extract the media URL's from the web version of a Watchtower study article.
-	def extract_media_w(self, url, container):
+	def extract_media_w(self, url, container, callback):
 
 		# <a class='pub-sjj' is a song. There should always be two, opening and closing.
 		songs = []

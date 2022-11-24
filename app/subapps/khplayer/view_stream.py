@@ -6,7 +6,8 @@ import logging
 
 from ... import app, turbo
 from ...jworg.jwstream import StreamRequester
-from .views import blueprint, obs_connect, progress_callback
+from .views import blueprint
+from .utils import obs_connect, make_progress_callback
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,7 @@ def page_stream_clip(id):
 	clip_end = request.form.get("clip_end").strip()
 	clip_title = request.form.get("clip_title").strip()
 	return_url = ".?" + urlencode(dict(clip_start=clip_start, clip_end=clip_end, clip_title=clip_title))
+	progress_callback = make_progress_callback()
 
 	try:
 		try:

@@ -140,7 +140,8 @@ def cmd_load_books():
 
 def load_books():
 	pub_finder = PubFinder(cachedir=app.cachedir)
-	pubs = pub_finder.search("books/", dict(contentLanguageFilter=LANGUAGE))
+	language = app.config["PUB_LANGUAGE"]
+	pubs = pub_finder.search("books/", dict(contentLanguageFilter=language))
 	for pub in pubs:
 		print(pub)
 		book = Books.query.filter_by(pub_code=pub['code']).one_or_none()

@@ -20,6 +20,11 @@ class Weeks(db.Model):
 	def week_of(self):
 		return date.fromisocalendar(self.year, self.week, 1).isoformat()
 
+class MeetingCache(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	docid = db.Column(db.Integer)
+	media = db.Column(db.JSON)
+
 #=============================================================================
 # Lists of Publications and links to them on JW.ORG
 #=============================================================================

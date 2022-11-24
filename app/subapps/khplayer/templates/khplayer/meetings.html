@@ -2,21 +2,27 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-<form action="submit" method="POST" class="_socketio">
 <section>
 <h2>Available Weeks</h2>
+
 <table class="borders">
 <tbody>
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td><button type="submit" name="docid" value="{{week.mwb_docid}}">Midweek</button></td>
-	<td><button type="submit" name="docid" value="{{week.watchtower_docid}}">Weekend</button></td>
+	<td><a href="{{week.mwb_docid}}/">Midweek</a></td>
+	<td><a href="{{week.watchtower_docid}}/">Weekend</a></td>
 </tr>
 {% endfor %}
 </tbody>
 </table>
-<p><button type="submit" name="update" value="1">Update</button></p>
+
+{% if weeks|length < 6 %}
+<p>
+	<form action="update" method="POST">
+	<button type="submit">Load More Weeks</button>
+	</form>
+</p>
+{% endif %}
 </section>
-</form>
 {% endblock %}
