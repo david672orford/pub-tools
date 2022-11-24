@@ -20,6 +20,7 @@ def page_videos():
 
 @blueprint.route("/videos/submit", methods=["POST"])
 def page_videos_submit():
+	progress_callback = make_progress_callback()
 	update_videos(callback=progress_callback)
 	return redirect(".")
 
