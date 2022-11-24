@@ -11,11 +11,13 @@ with open(config.__file__, mode="rb") as config_file:
 
 # Connect the microphone specified in config.py to the input of the virtual
 # audio cable which connects the output of OBS to the micriphone input of Zoom.
+print("Connecting microphone %s..." % config.ZOOM["microphone"])
 subprocess.run(["pw-link", config.ZOOM["microphone"], "From-OBS:input_MONO"])
 
 # Connect each set of speakers specified in config.py to the output of the
 # same virtual audio cable. This allows those physically present to hear
 # what OBS is sending to Zoom.
 for speaker in config.ZOOM["speakers"]:
-	subprocess.run(["pw-link", "To-Zoom:capture_MONO", speaker])
+	print("Connecting speaker %s..." % speaker)
+	subprocess.run(["pw-link", "To-Zoom:monitor_MONO", speaker])
 
