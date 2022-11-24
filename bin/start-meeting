@@ -121,6 +121,10 @@ class ZoomControl:
 			"Tab",
 			])
 		if participant_name:
+			self.send_keys([
+				"Ctrl-A",		# select all
+				"Backspace",
+				])	
 			self.send_text(participant_name)
 		self.send_keys([
 			"Tab",
