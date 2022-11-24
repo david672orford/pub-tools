@@ -69,7 +69,7 @@ def _progress_callback(to, message, kwargs):
 	try:
 		turbo.push(turbo.replace('<div id="progress">%s</div>' % escape(message), target="progress"), to=to)
 	except KeyError:
-		logger.warning("Turbo web socket not connected:", to)
+		logger.warning("Turbo web socket not connected: %s", to)
 
 def make_progress_callback():
 	to = get_session_id()
