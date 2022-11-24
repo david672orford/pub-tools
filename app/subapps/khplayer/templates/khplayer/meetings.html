@@ -10,8 +10,8 @@
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td><a href="{{week.mwb_docid}}/">Midweek</a></td>
-	<td><a href="{{week.watchtower_docid}}/">Weekend</a></td>
+	<td><a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Midweek')|urlencode}}">Midweek</a></td>
+	<td><a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Weekend')|urlencode}}">Weekend</a></td>
 </tr>
 {% endfor %}
 </tbody>

@@ -29,8 +29,9 @@ def page_meetings_update():
 
 @blueprint.route("/meetings/<int:docid>/")
 def page_meetings_view(docid):
+	title = request.args.get("title")
 	media = get_meeting_media_cached(docid)
-	return render_template("khplayer/meeting_media.html", media=media, top="../..")
+	return render_template("khplayer/meeting_media.html", meeting_title=title, media=media, top="../..")
 
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_submit(docid):
