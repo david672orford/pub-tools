@@ -1,6 +1,6 @@
 # Reimplementation of Turbo-Flask using Server Side Events instead of Websocket
 
-from flask import Response
+from flask import request, Response
 from markupsafe import Markup
 import queue
 import logging
@@ -54,6 +54,15 @@ class Turbo:
 	def user_id(self, callback):
 		self.user_id_callback = callback
 		return callback
+
+	def turbo_frame(self):
+		return request.headers.get("Turbo-Frame")
+
+	def can_stream(self):
+		return "text/vnd.turbo-stream.html" in request.accept_mimetypes
+
+	def can_push(self, to=None):
+		return to in self.clients
 
 	# Queue a Turbo Stream message for delivery to a client
 	def push(self, message, to=None):

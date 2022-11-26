@@ -22,19 +22,22 @@ def page_meetings():
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 	return render_template("khplayer/meetings.html", weeks=weeks.all(), top="..")
 
+# Load more weeks
 @blueprint.route("/meetings/update", methods=["POST"])
 def page_meetings_update():
 	update_meetings(callback=progress_callback)
 	return redirect(".")
 
+# Download a meeting article, extract the media list, and display it
 @blueprint.route("/meetings/<int:docid>/")
 def page_meetings_view(docid):
 	title = request.args.get("title")
 	media = get_meeting_media_cached(docid)
 	return render_template("khplayer/meeting_media.html", meeting_title=title, media=media, top="../..")
 
+# Download the times on the media list and create scenes for them in OBS
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
-def page_meetings_submit(docid):
+def page_meetings_load(docid):
 	media = get_meeting_media_cached(docid)
 	add_scenes(obs, media)
 	return redirect(".")
@@ -52,9 +55,15 @@ def get_meeting_media_cached(docid):
 
 def get_meeting_media(docid):
 	progress_callback("Loading meeting...")
+
+	# Construct the sharing URL for the meeting article. This will redirect to the article itself.
 	url = "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
-	scenes = meeting_loader.extract_media(url, callback=progress_callback)
-	return scenes
+
+	# Use the meeting loader to download the article and scan it for
+	# media such as videos and illustrations.
+	media = meeting_loader.extract_media(url, callback=progress_callback)
+
+	return media
 
 def add_scenes(obs, scenes):
 	for scene in scenes:
