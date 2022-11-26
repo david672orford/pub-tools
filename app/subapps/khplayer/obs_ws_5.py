@@ -30,7 +30,10 @@ class ObsError(Exception):
 			self.code = 0
 			self.comment = response
 	def __str__(self):
-		return "<ObsError code=%d comment=%s" % (self.code, repr(self.comment))
+		if self.code == 0:
+			return self.comment
+		else:
+			return "<ObsError code=%d comment=%s>" % (self.code, repr(self.comment))
 
 class ObsControl:
 	def __init__(self, config):
@@ -41,62 +44,83 @@ class ObsControl:
 		self.reqid = 0
 
 	def connect(self):
-		self.ws = websocket.WebSocket()
-		self.ws.connect("ws://%s:%d" % (self.hostname, self.port))
-
-		hello = json.loads(self.ws.recv())
-		print("hello:", hello)
-		assert hello["d"]["rpcVersion"] == 1
-
-		req = {
-			"op": 1,
-			"d": {
-				"rpcVersion": 1,
-				"eventSubscriptions": 0,
+		try:
+			ws = websocket.WebSocket()
+			ws.connect("ws://%s:%d" % (self.hostname, self.port))
+	
+			hello = json.loads(ws.recv())
+			print("hello:", hello)
+			if hello["d"]["rpcVersion"] != 1:
+				raise ObsError("Incorrect protocol version")
+	
+			req = {
+				"op": 1,
+				"d": {
+					"rpcVersion": 1,
+					"eventSubscriptions": 0,
+					}
 				}
-			}
+	
+			if "authentication" in hello["d"]:			# if server requires authentication,
+				req["d"]["authentication"] = base64.b64encode(
+					hashlib.sha256(
+							(
+							base64.b64encode(
+								hashlib.sha256(
+									(self.password + hello["d"]["authentication"]["salt"]).encode()
+									).digest()
+								).decode()
+							+ hello["d"]["authentication"]["challenge"]
+							).encode()
+						).digest()
+					).decode()
+	
+			ws.send(json.dumps(req))
+			response = json.loads(ws.recv())
+			print("auth response:", response)
+			if response["op"] != 2:
+				raise ObsError("incorrect opcode")
 
-		if "authentication" in hello["d"]:			# if server requires authentication,
-			req["d"]["authentication"] = base64.b64encode(
-				hashlib.sha256(
-						(
-						base64.b64encode(
-							hashlib.sha256(
-								(self.password + hello["d"]["authentication"]["salt"]).encode()
-								).digest()
-							).decode()
-						+ hello["d"]["authentication"]["challenge"]
-						).encode()
-					).digest()
-				).decode()
+			# We are connected
+			self.ws = ws
 
-		self.ws.send(json.dumps(req))
-		response = json.loads(self.ws.recv())
-		print("auth response:", response)
-		assert response["op"] == 2
+		except Exception as e:
+			raise ObsError(str(e))
 
 	def request(self, req_type, req_data, raise_on_error=True):
+		if self.ws is None:
+			self.connect()
+
 		self.reqid += 1
 
-		self.ws.send(json.dumps({
-			"op": 6,		# request
-			"d": {
-				"requestId": str(self.reqid),
-				"requestType": req_type,
-				"requestData": req_data,
-				}
-			}))
-
 		try:
-			response = json.loads(self.ws.recv())
-			print("OBS response:", response)
-			assert response["op"] == 7, "incorrect opcode"
-			assert response["d"]["requestType"] == req_type, "incorrect requestType"
-			assert response["d"]["requestId"] == str(self.reqid), "incorrect requestId"
-		except json.JSONDecodeError:
-			raise ObsError("Unparsable response")
-		except AssertionError as e:
-			raise ObsError("Assertion failed: %s" % e)
+			self.ws.send(json.dumps({
+				"op": 6,		# request
+				"d": {
+					"requestId": str(self.reqid),
+					"requestType": req_type,
+					"requestData": req_data,
+					}
+				}))
+
+			response = self.ws.recv()
+			logger.debug("OBS response: %s", response)
+			if len(response) == 0:
+				raise ObsError("Empty response")
+
+			response = json.loads(response)
+
+			if response["op"] != 7:
+				raise ObsError("incorrect opcode")
+			if response["d"]["requestType"] != req_type:
+				raise ObsError("incorrect requestType")
+			if response["d"]["requestId"] != str(self.reqid):
+				raise ObsError("incorrect requestId")
+
+		except Exception as e:
+			self.ws.close()
+			self.ws = None
+			raise ObsError(str(e))
 
 		if raise_on_error and not response["d"]["requestStatus"]["result"]:
 			raise ObsError(response)
@@ -104,7 +128,6 @@ class ObsControl:
 
 	def add_scene(self, scene_name, media_type, media_file):
 		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
-		self.connect()
 
 		# Get basename of media file
 		if re.match(r"^https?://", media_file, re.I):

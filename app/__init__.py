@@ -1,6 +1,6 @@
 import os
-from flask import Flask
-from turbo_flask import Turbo
+import uuid
+from flask import Flask, session
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -14,19 +14,21 @@ app.config.from_mapping(
 	)
 app.config.from_pyfile('config.py')
 
-turbo = Turbo()
-turbo.init_app(app)
-
+# Create the directory to which we download media.
 app.cachedir = os.path.join(app.instance_path, "cache")
 if not os.path.exists(app.cachedir):
 	os.mkdir(app.cachedir)
 
-# The Flask-Admin interface is not actually needed.
+# Try to load the admin interface. This will fail if Flask-Admin
+# is not installed. We ignore failure since the admin interface
+# is of use only to the developers.
 try:
 	from . import admin
 except ModuleNotFoundError:
 	pass
 
+from .turbo_ws import turbo
+from .utils import *
 from . import views
 from . import subapps
 from . import cli_update

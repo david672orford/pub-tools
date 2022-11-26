@@ -6,10 +6,15 @@ These are notes on the libraries, API's and frameworks used in this project.
 
 * [The Pallets Projects](https://palletsprojects.com/)
 * [Flask](https://flask.palletsprojects.com/)
+* [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
+
+## Turbo Flask
+
 * [Turbo-Flask](https://github.com/miguelgrinberg/turbo-flask)
 * [Flask-Sock](https://github.com/miguelgrinberg/flask-sock)
-* [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
 * [Pure Python & Flask server-side event source](https://gist.github.com/jelmervdl/5a9861f7298907179c20a54c0e154560)
+* [Server-sent events in Flask without extra dependencies](https://github.com/MaxHalford/flask-sse-no-deps)
+* [Hotwire Turbo Express](https://github.com/twelve17/hotwire-turbo-express) -- For server-side Javascript, but good docs on Hotwire Turbo
 
 ## Javascript API's
 
@@ -25,7 +30,6 @@ These are notes on the libraries, API's and frameworks used in this project.
 
 * [FFmpeg](https://ffmpeg.org/)
 * [How to Trim and Reencode Video Files](http://tech-for-teaching.nuhub.net/howto/trim-video/)
-
 
 Black detection using FFmpeg:
 

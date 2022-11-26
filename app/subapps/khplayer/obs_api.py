@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class OBSError(Exception):
+class ObsError(Exception):
 	pass
 
 class ObsControl:
@@ -46,7 +46,7 @@ class ObsControl:
 			obs.obs_data_set_int(source_settings, 'height', 720)
 			obs.obs_data_set_string(source_settings, 'css', '')
 		else:
-			raise OBSError("Unsupported media_type: %s" % media_type)
+			raise ObsError("Unsupported media_type: %s" % media_type)
 
 		# Create a new scene. Naming conflicts resolved automatically.
 		logger.debug("Creating scene...")

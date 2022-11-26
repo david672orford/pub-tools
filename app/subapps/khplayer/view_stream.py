@@ -4,10 +4,10 @@ import subprocess
 from urllib.parse import urlencode
 import logging
 
-from ... import app, turbo
+from ... import app, turbo, progress_callback
 from ...jworg.jwstream import StreamRequester
 from .views import blueprint
-from .utils import obs_connect, make_progress_callback
+from .utils import obs
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,6 @@ def page_stream_clip(id):
 	clip_end = request.form.get("clip_end").strip()
 	clip_title = request.form.get("clip_title").strip()
 	return_url = ".?" + urlencode(dict(clip_start=clip_start, clip_end=clip_end, clip_title=clip_title))
-	progress_callback = make_progress_callback()
 
 	try:
 		try:
@@ -110,9 +109,10 @@ def page_stream_clip(id):
 		flash("Extraction of clip failed!")
 
 	# Connect to OBS and tell it to make a new scene with this file as the input.
-	obs = obs_connect()
-	if obs is not None:
+	try:
 		obs.add_scene(clip_title, "video", media_file)
+	except ObsError as e:
+		flash("Communcation with OBS failed: %s" % str(e))
 
 	# Go back to the player page in case the user wants to make another clip.
 	return redirect(return_url)
