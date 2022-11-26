@@ -27,7 +27,7 @@ try:
 except ModuleNotFoundError:
 	pass
 
-from .turbo_ws import turbo
+from .turbo import turbo
 from .utils import *
 from . import views
 from . import subapps
