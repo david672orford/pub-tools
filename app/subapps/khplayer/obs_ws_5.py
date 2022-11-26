@@ -37,55 +37,75 @@ class ObsError(Exception):
 
 class ObsControl:
 	def __init__(self, config):
-		self.hostname = config['hostname']
-		self.port = config['port']
-		self.password = config['password']
+		self.config = config
 		self.ws = None
 		self.reqid = 0
 
 	def connect(self):
+		if self.config is None:
+			raise ObsError("Connection not configured")
+
+		try:
+			hostname = self.config['hostname']
+			port = self.config['port']
+			password = self.config['password']
+		except KeyError:
+			raise ObsError("Incorrect connection configuration")
+
 		try:
 			ws = websocket.WebSocket()
-			ws.connect("ws://%s:%d" % (self.hostname, self.port))
+			ws.connect("ws://%s:%d" % (hostname, port))
 	
-			hello = json.loads(ws.recv())
+			hello = ws.recv()
 			print("hello:", hello)
+			hello = json.loads(hello)
+
 			if hello["d"]["rpcVersion"] != 1:
 				raise ObsError("Incorrect protocol version")
+
+		except Exception as e:
+			raise ObsError("Cannot connect: " + str(e))
 	
-			req = {
-				"op": 1,
-				"d": {
-					"rpcVersion": 1,
-					"eventSubscriptions": 0,
-					}
+		req = {
+			"op": 1,
+			"d": {
+				"rpcVersion": 1,
+				"eventSubscriptions": 0,
 				}
-	
-			if "authentication" in hello["d"]:			# if server requires authentication,
-				req["d"]["authentication"] = base64.b64encode(
-					hashlib.sha256(
-							(
-							base64.b64encode(
-								hashlib.sha256(
-									(self.password + hello["d"]["authentication"]["salt"]).encode()
-									).digest()
-								).decode()
-							+ hello["d"]["authentication"]["challenge"]
-							).encode()
-						).digest()
-					).decode()
-	
+			}
+
+		if "authentication" in hello["d"]:			# if server requires authentication,
+			req["d"]["authentication"] = base64.b64encode(
+				hashlib.sha256(
+						(
+						base64.b64encode(
+							hashlib.sha256(
+								(password + hello["d"]["authentication"]["salt"]).encode()
+								).digest()
+							).decode()
+						+ hello["d"]["authentication"]["challenge"]
+						).encode()
+					).digest()
+				).decode()
+
+		try:	
 			ws.send(json.dumps(req))
-			response = json.loads(ws.recv())
+			response = ws.recv()
 			print("auth response:", response)
+
+			if response == "":
+				raise ObsError("Incorrect password")
+
+			response = json.loads(response)
+
 			if response["op"] != 2:
 				raise ObsError("incorrect opcode")
 
-			# We are connected
-			self.ws = ws
-
 		except Exception as e:
-			raise ObsError(str(e))
+			raise ObsError("Login failure: " + str(e))
+
+		# We are connected
+		self.ws = ws
 
 	def request(self, req_type, req_data, raise_on_error=True):
 		if self.ws is None:
