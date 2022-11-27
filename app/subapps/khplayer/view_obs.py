@@ -12,7 +12,7 @@ def page_obs():
 		scenes = reversed(obs.get_scene_list())
 		virtual_camera_status = obs.get_virtual_camera_status()
 	except ObsError as e:
-		flash("Communication with OBS failed: %s" % str(e))
+		flash("OBS: %s" % str(e))
 		scenes = []
 		virtual_camera_status = None
 
@@ -42,14 +42,6 @@ def page_obs_submit():
 					flash(str(e))
 			sleep(1)
 	
-		elif action == "create-collection":
-			collection = request.form.get("collection").strip()
-			if collection != "":
-				try:
-					obs.create_scene_collection(collection)
-				except ObsError as e:
-					flash(str(e))
-	
 		elif action == "start-virtualcam":
 			obs.set_virtual_camera_status(True)
 	
@@ -60,7 +52,7 @@ def page_obs_submit():
 			obs.start_output_projector(1)
 
 	except ObsError as e:
-		flash("Communication with OBS failed: %s" % str(e))
+		flash("OBS: %s" % str(e))
 
 	return redirect(".")
 

@@ -4,7 +4,7 @@ import subprocess
 from urllib.parse import urlencode
 import logging
 
-from ... import app, turbo, progress_callback
+from ... import app, turbo, progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequester
 from .views import blueprint
 from .utils import obs
@@ -27,10 +27,19 @@ def jwstream_requester():
 @blueprint.route("/stream/")
 def page_stream():
 	requester = jwstream_requester()
-	if requester and request.args.get("reload"):
-		requester.reload()
 	events = requester.get_events() if requester else []
 	return render_template("khplayer/stream.html", events=events, top="..")
+
+# User has pressed Update button
+@blueprint.route("/stream/update", methods=["POST"])
+def page_stream_update():
+	progress_callback("Updating program list...")
+	requester = jwstream_requester()
+	if requester is not None:
+		requester.reload()
+		return progress_callback_response("Program list updated.")
+	else:
+		return redirect(".")	# so flash() message will be displayed
 
 @blueprint.route("/stream/<int:id>/")
 def page_stream_player(id):
@@ -51,6 +60,8 @@ def page_stream_clip(id):
 	clip_start = request.form.get("clip_start").strip()
 	clip_end = request.form.get("clip_end").strip()
 	clip_title = request.form.get("clip_title").strip()
+
+	# URL which returns us to the form with the fill-in values preserved
 	return_url = ".?" + urlencode(dict(clip_start=clip_start, clip_end=clip_end, clip_title=clip_title))
 
 	try:
@@ -66,56 +77,70 @@ def page_stream_clip(id):
 		if clip_duration <= 0:
 			raise ValueError("Duration is zero or negative!")
 	except ValueError as e:
-		# Send the user back to try again while preserving what he entered.
 		flash(str(e))
+		# Send the user back to try again while preserving what he entered.
 		return redirect(return_url)
 
-	# Ask stream.jw.org for the current URL of a low-resolution version
-	# of the MP4 file suitable for preview use.
+	# Ask stream.jw.org for the current URL of the full-resolution version.
+	progress_callback("Requesting download URL...")
 	video_name, video_url, chapters = jwstream_requester().get_event(id, preview=False)
 
+	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:
 		clip_title = "%s %s-%s" % (video_name, clip_start, clip_end)
 
 	# This is the file into which we will save the downloaded clip.
 	media_file = os.path.join(app.cachedir, "jwstream-%d-%s-%s.mp4" % (id, clip_start, clip_end))
 
-	print("Making clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, video_name, media_file))
+	print("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, video_name, media_file))
 
-	# If the file is not already in the cache, use FFMpeg to download the part
-	# we need. The HTTP server supports seeking, so we do not have to download
-	# the whole thing.
-	if not os.path.exists(media_file):
-		cmd = [
-			"ffmpeg", "-nostats", "-loglevel", "0", "-progress", "pipe:1",
-				"-i", video_url,
-				"-ss", clip_start,
-				"-to", clip_end,
-				"-c", "copy", media_file
-			]
-		print("Download cmd:", cmd)
-		ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
-		for line in ffmpeg.stdout:
-			print("Output:", line)
-			m = re.match(r"out_time_us=(\d+)", line)
-			if m:
-				done = int(int(m.group(1)) / 1000000)
-				progress_callback("%d of %d seconds" % (done, clip_duration))
-		ffmpeg_retcode = ffmpeg.wait()
-		print("FFmpeg done:", ffmpeg_retcode)
-
-	# Sanity check: is the file there?
-	if not os.path.exists(media_file):
-		flash("Extraction of clip failed!")
-
-	# Connect to OBS and tell it to make a new scene with this file as the input.
-	try:
-		obs.add_scene(clip_title, "video", media_file)
-	except ObsError as e:
-		flash("Communcation with OBS failed: %s" % str(e))
+	# If the this clip was made earlier, make the scene right away, otherwise
+	# spawn a background thread to download it and create the scene when the
+	# download is done.
+	if os.path.exists(media_file):
+		create_clip_scene(clip_title, media_file)
+	else:
+		run_thread(lambda: download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
 	return redirect(return_url)
+
+def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration):
+	# Use FFMpeg to download the part of the video file we need. This is possible
+	# because FFMpeg can take a URL as input and the server supports range requests.
+	cmd = [
+		"ffmpeg", "-nostats", "-loglevel", "0", "-progress", "pipe:1",
+			"-i", video_url,
+			"-ss", clip_start,
+			"-to", clip_end,
+			"-c", "copy", media_file
+		]
+	logger.info("Download cmd: %s", cmd)
+	ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
+	for line in ffmpeg.stdout:
+		logger.debug("Output: %s", line)
+		m = re.match(r"out_time_us=(\d+)", line)
+		if m:
+			done = int(int(m.group(1)) / 1000000)
+			progress_callback("{total_recv} of {total_expected}", total_recv=done, total_expected=clip_duration)
+	ffmpeg_retcode = ffmpeg.wait()
+	logger.info("FFmpeg exit code: %s", ffmpeg_retcode)
+
+	# Sanity check: is the file there now?
+	if not os.path.exists(media_file):
+		progress_callback("Extraction of clip failed!")
+
+	else:
+		create_clip_scene(clip_title, media_file)
+
+# Connect to OBS and tell it to make a new scene with this file as the input.
+def create_clip_scene(clip_title, media_file):
+	try:
+		obs.add_scene(clip_title, "video", media_file)
+	except ObsError as e:
+		progress_callback("OBS: %s" % str(e))
+	else:
+		progress_callback("Clip created.")
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

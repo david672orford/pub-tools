@@ -2,14 +2,14 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-<form action="submit" method="POST">
 <section>
 <ul>
 {% for event_id, event_name in events %}
 <li><a href="{{event_id}}">{{event_name}}</a></li>
 {% endfor %}
 </ul>
-<p><a href=".?reload=1"><button type="button">Reload</button></a></p>
+<form action="update" method="POST">
+<p><button type="submit">Update</button></p>
 </section>
 </form>
 {% endblock %}

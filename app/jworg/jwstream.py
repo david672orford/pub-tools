@@ -61,10 +61,13 @@ class StreamRequester:
 						for cookie in cache['cookies']:
 							self.session.cookies.set(**cookie)
 						self.ajax_headers = cache['ajax_headers']
+						self.language_blob = cache['language_blob']
 						self.video_info = cache['video_info']
 						print("JW Stream session found in cache")
 						return
 				except json.JSONDecodeError:		# bad cache file
+					pass
+				except KeyError:					# obsolete cache file
 					pass
 
 		# Load the invitation page in order to get the cookies.
@@ -107,7 +110,7 @@ class StreamRequester:
 			with open("debug-getinfo.json", "w") as fh:
 				json.dump(getinfo, fh, indent=2, ensure_ascii=False)
 
-		# Find the primary language of the sharing link in the least downloaded earlier.
+		# Find the primary language of the sharing link in the list downloaded earlier.
 		language = getinfo['data']['language']
 		for language_blob in getlanguages['languages']:
 			if language_blob['locale'] == language:
@@ -168,6 +171,7 @@ class StreamRequester:
 					timestamp = self.timestamp,
 					cookies = cookies,
 					ajax_headers = self.ajax_headers,
+					language_blob = self.language_blob,
 					video_info = self.video_info,
 					), fh, indent=2, ensure_ascii=False)
 

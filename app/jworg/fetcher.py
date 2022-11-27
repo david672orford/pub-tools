@@ -170,15 +170,20 @@ class Fetcher:
 			total_expected = int(response.headers.get("Content-Length"))
 			with open(cachefile + ".tmp", "wb") as fh:
 				total_recv = 0
+				last_callback = 0
 				while True:
-					chunk = response.read(65536)
+					chunk = response.read(0x10000)	# 64k
 					if not chunk:
 						break
 					fh.write(chunk)
 					total_recv += len(chunk)
-					logger.debug("%s of %s bytes received", total_recv, total_expected)
+					logger.debug("%d byte chunk, %s of %s bytes received", len(chunk), total_recv, total_expected)
 					if callback:
-						callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
+						now = time()
+						if (now - last_callback) >= 0.5:
+							logger.debug("callback!")
+							callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
+							last_callback = now
 			os.rename(cachefile + ".tmp", cachefile)
 			logger.info("Download complete %d bytes received", total_recv)
 			if callback:

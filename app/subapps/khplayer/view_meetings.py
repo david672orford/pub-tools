@@ -5,7 +5,7 @@ from datetime import date
 from threading import Thread
 import logging
 
-from ... import app, turbo, progress_callback
+from ... import app, turbo, progress_callback, progress_callback_response, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from .views import blueprint
@@ -35,13 +35,24 @@ def page_meetings_view(docid):
 	media = get_meeting_media_cached(docid)
 	return render_template("khplayer/meeting_media.html", meeting_title=title, media=media, top="../..")
 
-# Download the times on the media list and create scenes for them in OBS
+# Download the items in the media list (which will already be cached)
+# and create scenes for them in OBS.
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_load(docid):
+	collection = request.form.get("collection").strip()
+	if collection != "":
+		try:
+			obs.create_scene_collection(collection)
+		except ObsError as e:
+			return progress_callback_response("OBS: " + str(e))
+			
 	media = get_meeting_media_cached(docid)
-	add_scenes(obs, media)
-	return redirect(".")
 
+	run_thread(lambda: meeting_media_to_obs_scenes(media))
+
+	return progress_callback_response("Loading media for %s..." % request.form.get("title"))
+
+# Wrapper for get_meeting_media() which caches the responses in a DB table
 def get_meeting_media_cached(docid):
 	meeting = MeetingCache.query.filter_by(docid=docid).one_or_none()
 	if meeting is not None:
@@ -53,8 +64,9 @@ def get_meeting_media_cached(docid):
 		db.session.commit()
 	return media
 
+# Download the meeting article (from the Watchtower or Workbook) and
+# extract a list of the videos and images.
 def get_meeting_media(docid):
-	progress_callback("Loading meeting...")
 
 	# Construct the sharing URL for the meeting article. This will redirect to the article itself.
 	url = "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
@@ -65,9 +77,10 @@ def get_meeting_media(docid):
 
 	return media
 
-def add_scenes(obs, scenes):
+# Run in a background thread to download the media and add a scene in OBS for each item.
+def meeting_media_to_obs_scenes(scenes):
 	for scene in scenes:
-		print(scene)
+		logger.debug("Loading scene: %s", scene)
 		pub_code, scene_name, media_type, media_url = scene
 	
 		# Add a symbol to the front of the scene name to indicate its type.

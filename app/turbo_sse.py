@@ -30,10 +30,12 @@ class Turbo:
 		@app.route("/turbo-sse")
 		def turbo_stream():
 			client_id = self.user_id_callback()
+			logger.debug("EventStream from %s connected" % client_id)
 			if not client_id in self.clients:
-				self.clients[client_id] = queue.Queue(maxsize=5)
+				self.clients[client_id] = queue.Queue(maxsize=10)
 			client_queue = self.clients[client_id]
 			def stream():
+				yield "retry: 5000\n"
 				while True:
 					yield "data: " + client_queue.get().replace("\n", " ") + "\n\n"
 			return Response(stream(), mimetype="text/event-stream")	
@@ -64,11 +66,16 @@ class Turbo:
 	def can_push(self, to=None):
 		return to in self.clients
 
+	def stream(self, stream):
+		print("stream:", stream)
+		return Response(stream, mimetype="text/vnd.turbo-stream.html")
+
 	# Queue a Turbo Stream message for delivery to a client
 	def push(self, message, to=None):
 		logger.debug("Message: %s", message)
 		try:
 			self.clients[to].put_nowait(message)
 		except queue.Full:
+			logger.info("EventStream client %s disconnected" % to)
 			del self.clients[to]
 

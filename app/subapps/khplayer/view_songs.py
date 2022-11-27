@@ -2,7 +2,7 @@ from flask import request, session, render_template, redirect, flash
 from time import sleep
 import logging
 
-from ... import app, turbo, progress_callback, run_thread
+from ... import app, progress_callback, progress_callback_response, run_thread
 from ...models import VideoCategories
 from .views import blueprint
 from .utils import meeting_loader, obs
@@ -22,15 +22,16 @@ def page_songs_submit():
 	# By song number entered in form
 	song = request.form.get('song')
 	if song:
-		logger.info('Load song: "%s"', song)
+		message = 'Loading song %s' % song
 		run_thread(lambda: load_song(song))
 
 	# By clicking on link to video
 	lank = request.form.get("lank")
 	if lank:
+		message = 'Loading song %s' % lank
 		run_thread(lambda: load_video(lank))
 
-	return redirect(".")
+	return progress_callback_response(message)
 
 # Load a song video identified by song number
 def load_song(song):
@@ -40,7 +41,7 @@ def load_song(song):
 	try:
 		obs.add_scene("ПЕСНЯ %s" % song, "video", media_file)
 	except ObsError as e:
-		progress_callback("Communication with OBS failed: %s" % str(e))
+		progress_callback("OBS: %s" % str(e))
 	else:
 		progress_callback("Song video loaded.")
 

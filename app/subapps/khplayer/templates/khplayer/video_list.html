@@ -21,5 +21,15 @@
 {% endfor %}
 </ul>
 </section>
+<input id="title" type="hidden" name="title">
 </form>
+<script>
+function button_click(event) {
+	document.getElementById("title").value = event.target.textContent;
+	}
+let buttons = document.getElementsByTagName("button");
+for(let i=0; i < buttons.length; i++) {
+	buttons[i].addEventListener("click", button_click);
+	}
+</script>
 {% endblock %}

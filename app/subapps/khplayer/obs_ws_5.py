@@ -50,7 +50,7 @@ class ObsControl:
 			port = self.config['port']
 			password = self.config['password']
 		except KeyError:
-			raise ObsError("Incorrect connection configuration")
+			raise ObsError("Bad connection configuration")
 
 		try:
 			ws = websocket.WebSocket()
@@ -62,6 +62,9 @@ class ObsControl:
 
 			if hello["d"]["rpcVersion"] != 1:
 				raise ObsError("Incorrect protocol version")
+
+		except ConnectionRefusedError:
+			raise ObsError("Not found on {hostname} port {port}".format(**self.config))
 
 		except Exception as e:
 			raise ObsError("Cannot connect: " + str(e))
