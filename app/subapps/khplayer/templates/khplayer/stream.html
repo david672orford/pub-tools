@@ -3,11 +3,26 @@
 
 {% block main %}
 <section>
-<ul>
-{% for event_id, event_name in events %}
-<li><a href="{{event_id}}">{{event_name}}</a></li>
+<table class="borders">
+<thead>
+<tr>
+	<th>Language</th>
+	<th>Country</th>
+	<th>Date</th>
+	<th>Title</th>
+</tr>
+</thead>
+<tbody>
+{% for event in events %}
+<tr>
+	<td>{{event.language}}</td>	
+	<td>{{event.language_country}}</td>	
+	<td>{{event.date}}</td>	
+	<td><a href="{{event.id}}">{{event.title}}</a></td>
+</tr>
 {% endfor %}
-</ul>
+</tbody>
+</table>
 <form action="update" method="POST">
 <p><button type="submit">Update</button></p>
 </section>

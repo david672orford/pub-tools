@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 #import http.client as http_client
 #http_client.HTTPConnection.debuglevel = 1
 
+class StreamEvent:
+	def __init__(self, **kwargs):
+		for name, value in kwargs.items():
+			setattr(self, name, value)
+
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
 	session_timeout = 7200
@@ -175,16 +180,26 @@ class StreamRequester:
 					video_info = self.video_info,
 					), fh, indent=2, ensure_ascii=False)
 
+	# Refresh the list of videos
 	def reload(self):
 		self.connect_hook()
 		self.update_videos()
 		self.write_cache()
 
+	# Get a list of the events
 	def get_events(self):
 		self.connect_hook()
 		for event in self.video_info:
-			yield (event['data']['id'], event['title'])
+			yield StreamEvent(
+				id = event['data']['id'],
+				title = event['title'],
+				date = event['date'],
+				#language = event['language'],
+				language = event['data']['language_name'],
+				language_country = event['language_country'],
+				)
 
+	# Get what we need to play one of the events
 	def get_event(self, id, preview=True):
 		self.connect_hook()
 		for event in self.video_info:
