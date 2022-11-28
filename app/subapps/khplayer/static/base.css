@@ -48,13 +48,14 @@ NAV UL {
 	}
 NAV UL LI {
 	margin: 0 5px;
-	padding: .5em;
 	border-radius: 5px 5px 0 0;
 	background-color: #d0d0d0;
 	}
 NAV UL LI:hover {
 	}
 NAV UL LI A {
+	padding: .5em;
+	display: block;
 	text-decoration: none;
 	color: inherit;
 	}

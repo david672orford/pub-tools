@@ -27,5 +27,6 @@ from . import view_meetings
 from . import view_songs
 from . import view_videos
 from . import view_stream
+from . import view_scenes
 from . import view_obs
 

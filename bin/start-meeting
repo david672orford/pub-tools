@@ -76,7 +76,7 @@ class ZoomControl:
 				keynames.append(char)
 		self.send_keys(keynames)
 
-	def start_meeting(self, meetingid, participant_name=None):
+	def start_meeting(self):
 		self.get_window("Zoom Cloud Meetings")
 
 		# Tab to "Sign In" button, give it a second to settle, and press Return
@@ -115,19 +115,19 @@ class ZoomControl:
 		self.get_window("Zoom")
 		sleep(2)
 		self.send_keys(["Tab", "Tab"])
-		self.send_text(meetingid)
+		self.send_text(self.config["meetingid"])
 		sleep(2)
 		self.send_keys([
 			"Tab",
 			"Tab",
 			])
-		if participant_name:
+		if "participant-name" in self.config:
 			sleep(2)
 			self.send_keys([
 				"Control_L-a",		# select all
 				"BackSpace",
 				])	
-			self.send_text(participant_name)
+			self.send_text(self.config["participant-name"])
 		self.send_keys([
 			"Tab",
 			"Tab",
@@ -147,7 +147,7 @@ while os.system("killall zoom") == 0:
 subprocess.Popen(["zoom"])
 zoom = ZoomControl(config.ZOOM)
 
-zoom.start_meeting(config.ZOOM["meetingid"], config.ZOOM.get("participant-name"))
+zoom.start_meeting()
 sleep(10)
 
 # At one point Zoom was crashing if the virtual cable already existed, so we put this here.

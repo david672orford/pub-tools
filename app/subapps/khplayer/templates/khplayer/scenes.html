@@ -1,0 +1,44 @@
+{% set title = "Scene List" %}
+{% extends "khplayer/base.html" %}
+
+{% block head_add %}
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='obs.css')}}">
+{% endblock %}
+
+{% block main %}
+<form action="submit" method="POST">
+
+<section>
+<ul class="scenes">
+{% for scene in scenes %}
+<li>
+	<input type="checkbox" name="del" value="{{scene['sceneName']}}">
+	<button type="submit" name="scene" value="{{scene['sceneName']}}">{{scene['sceneName']}}</button>
+	</li>
+{% endfor %}
+</ul>
+<p>
+	<button type="button" id="select-all">Select All</button>
+	<button type="button" id="deselect-all">Deselect All</button>
+	<button type="submit" name="action" value="delete">Delete Selected</button>
+</p>
+</section>
+
+</form>
+
+<script>
+document.getElementById("select-all").addEventListener("click", event => {
+	console.log("select-all");
+	document.getElementsByName("del").forEach(checkbox => {
+		checkbox.checked = true;
+		});
+	});
+document.getElementById("deselect-all").addEventListener("click", event => {
+	console.log("deselect-all");
+	document.getElementsByName("del").forEach(checkbox => {
+		checkbox.checked = false;
+		});
+	});
+</script>
+
+{% endblock %}
