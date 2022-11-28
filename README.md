@@ -13,16 +13,12 @@ disabled individually in the config file.
 
 ## Configure
 
-Create a file instance/config.py with contents like this:
+Create an empty instance/config.py file:
 
-    OBS_WEBSOCKET = {
-        'hostname': 'localhost',
-        'port': 4455,
-        'password': 'secret',
-        }
+    $ mkdir instance
+    $ touch instance/config.py
 
-Replace *secret* with the password you set for the Websocket plugin
-in OBS.
+Later you can add configuration settings to this file.
 
 ## Run
 
@@ -49,7 +45,7 @@ this:
       'password': 'secret',
       }
 
-Change the *secret* to the actual password.
+Replace *secret* with the password you set for the Websocket plugin in OBS.
 
 Then run this command:
 
