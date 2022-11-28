@@ -69,10 +69,12 @@ function copy_time_button(index, target)
 	{
 	jog_controls[index].addEventListener('click', function()
 		{
-		let seconds = player.currentTime;
-		let minutes = Math.floor(seconds / 60);
-		seconds = Math.floor(seconds % 60 + 0.5);
-		let formatted_time = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+		let seconds = Math.floor(player.currentTime + 0.5);
+		const hours = Math.floor(seconds / 3600);
+		seconds = Math.floor(seconds % 3600);
+		const minutes = Math.floor(seconds / 60);
+		seconds = Math.floor(seconds % 60);
+		const formatted_time = hours + ":" + ("0" + minutes).slice(-2) + ":" + ("0" + seconds).slice(-2);
 		form.elements[target].value = formatted_time;
 		});
 	}

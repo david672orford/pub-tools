@@ -4,6 +4,7 @@
 from flask import session
 #from turbo_flask import Turbo
 from .turbo_sse import Turbo
+import uuid
 import logging
 from . import app
 

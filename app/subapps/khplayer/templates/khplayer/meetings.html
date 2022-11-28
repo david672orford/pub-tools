@@ -3,15 +3,22 @@
 
 {% block main %}
 <section>
-<h2>Available Weeks</h2>
+<h2>Current and Upcoming Meetings</h2>
 
 <table class="borders">
+<thead>
+<tr>
+	<th>Week Of</th>
+	<th>Midweek</th>
+	<th>Weekend</th>
+</tr>
+</thead>
 <tbody>
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td><a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Midweek')|urlencode}}">Midweek</a></td>
-	<td><a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Weekend')|urlencode}}">Weekend</a></td>
+	<td><a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Life and Ministry')|urlencode}}">Life and Ministry</a></td>
+	<td><a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Watchtower')|urlencode}}">Watchtower</a></td>
 </tr>
 {% endfor %}
 </tbody>
