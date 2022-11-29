@@ -67,7 +67,7 @@ To run it, first load the lists of publications:
     $ flask update books
     $ flask update videos
 
-Then run this command command:
+Then run this command:
 
     $ ./pub-tools toolbox
 
