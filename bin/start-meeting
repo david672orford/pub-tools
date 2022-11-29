@@ -336,8 +336,11 @@ while os.system("killall zoom") == 0:
 	sleep(1)
 
 # Put this here until we can figure out the proper way to do Pulsewire configuration
-subprocess.run([os.path.join(os.path.dirname(__file__), "virtual-audio-cable")])
-subprocess.run([os.path.join(os.path.dirname(__file__), "connect-audio-peripherals")])
+subprocess.run([
+	os.path.join(os.path.dirname(__file__), "virtual-audio-cable"),
+	"create",
+	"connect-peripherals",
+	], check=True)
 
 # Start Zoom with screen-reader integration enabled
 os.environ["QT_ACCESSIBILITY"] = "1"
