@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, flash
 from collections import defaultdict
 import logging
 
-from ... import app, progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import VideoCategories, Videos
 from ...cli_update import update_videos
 from .views import blueprint

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, flash
 from time import sleep
 import json
 
-from ... import app, progress_callback_response, run_thread
+from ...utils import progress_callback_response, run_thread
 from .views import blueprint
 from .utils import obs, ObsError
 

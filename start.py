@@ -14,7 +14,7 @@
 import sys
 import logging
 from werkzeug.serving import run_simple
-from app import app
+from app import create_app
 
 debug_mode = listen_all = False
 for arg in sys.argv[1:]:
@@ -29,4 +29,5 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 	)
 
+app = create_app()
 run_simple("0.0.0.0" if listen_all else "127.0.0.1", 5000, app, threaded=True)

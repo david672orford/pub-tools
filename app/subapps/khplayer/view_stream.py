@@ -1,10 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, flash
+from flask import current_app, Blueprint, render_template, request, redirect, flash
 import os, re
 import subprocess
 from urllib.parse import urlencode
 import logging
 
-from ... import app, turbo, progress_callback, progress_callback_response, run_thread
+from ... import turbo
+from ...utils import progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequester
 from .views import blueprint
 from .utils import obs
@@ -13,12 +14,12 @@ logger = logging.getLogger(__name__)
 
 def jwstream_requester():
 	if not hasattr(jwstream_requester, "handle"):
-		if not "JW_STREAM" in app.config:
+		if not "JW_STREAM" in current_app.config:
 			flash("JW_STREAM not found in config.py")
 			return None
-		cachefile = os.path.join(app.instance_path, "jwstream-cache.json")
+		cachefile = os.path.join(current_app.instance_path, "jwstream-cache.json")
 		try:
-			jwstream_requester.handle = StreamRequester(app.config['JW_STREAM'], cachefile=cachefile) 
+			jwstream_requester.handle = StreamRequester(current_app.config['JW_STREAM'], cachefile=cachefile) 
 		except AssertionError as e:
 			flash(str(e))
 			jwstream_requester.handle = None
@@ -90,7 +91,7 @@ def page_stream_clip(id):
 		clip_title = "%s %s-%s" % (video_name, clip_start, clip_end)
 
 	# This is the file into which we will save the downloaded clip.
-	media_file = os.path.join(app.cachedir, "jwstream-%d-%s-%s.mp4" % (id, clip_start, clip_end))
+	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%d-%s-%s.mp4" % (id, clip_start, clip_end))
 
 	print("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, video_name, media_file))
 

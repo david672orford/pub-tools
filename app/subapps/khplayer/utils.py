@@ -1,8 +1,7 @@
-from flask import flash
+from flask import current_app, flash
 from time import sleep
 import logging
 
-from ... import app
 from ...jworg.meetings import MeetingLoader
 
 logger = logging.getLogger(__name__)
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 # For fetching articles and media files from JW.ORG
 #=============================================================================
 
-meeting_loader = MeetingLoader(cachedir=app.cachedir)
+meeting_loader = MeetingLoader(cachedir=current_app.config["CACHEDIR"])
 
 #=============================================================================
 # Communication with OBS Studio
@@ -26,5 +25,5 @@ try:
 except ModuleNotFoundError:
 	from .obs_ws_5 import ObsControl, ObsError
 
-obs = ObsControl(config=app.config.get("OBS_WEBSOCKET"))
+obs = ObsControl(config=current_app.config.get("OBS_WEBSOCKET"))
 

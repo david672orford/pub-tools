@@ -8,8 +8,7 @@ from flask.cli import AppGroup
 import click
 import json
 
-from app import app
-from .models import db, app, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
+from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
@@ -20,7 +19,9 @@ from rich.table import Table
 logger = logging.getLogger(__name__)
 
 cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
-app.cli.add_command(cli_update)
+
+def init_app(app):
+	app.cli.add_command(cli_update)
 
 def default_callback(message):
 	print(message)

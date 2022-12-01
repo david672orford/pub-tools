@@ -1,10 +1,14 @@
 from flask_admin import Admin
 from flask_admin.contrib.sqla.view import ModelView as InsecureModelView
 from flask_admin.form import SecureForm
-from . import app
+
 from .models import db, Weeks, PeriodicalIssues, Articles, Books, VideoCategories, Videos
 
-admin = Admin(app, name=app.config['APP_DISPLAY_NAME'])
+admin = Admin()
+
+def init_app(app):
+	admin.name = app.config['APP_DISPLAY_NAME']
+	admin.init_app(app)
 
 # Create base model view
 class ModelView(InsecureModelView):
@@ -35,3 +39,4 @@ admin.add_view(ArticlesView(Articles, db.session))
 admin.add_view(BooksView(Books, db.session))
 admin.add_view(VideoCategoriesView(VideoCategories, db.session))
 admin.add_view(VideosView(Videos, db.session))
+

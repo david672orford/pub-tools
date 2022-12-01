@@ -1,8 +1,11 @@
-from app import app
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date
 
-db = SQLAlchemy(app)
+db = SQLAlchemy()
+
+def init_app(app):
+	db.init_app(app)
+	db.create_all()
 
 #=============================================================================
 # Meeting dates and links to the article used at each on JW.ORG
@@ -90,4 +93,3 @@ class Videos(db.Model):
 	href = db.Column(db.String)				# finder link
 	categories = db.relationship(VideoCategories, secondary=videos_rel, back_populates="videos")
 
-db.create_all()

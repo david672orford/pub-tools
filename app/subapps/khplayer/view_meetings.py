@@ -5,7 +5,8 @@ from datetime import date
 from threading import Thread
 import logging
 
-from ... import app, turbo, progress_callback, progress_callback_response, run_thread
+from ... import turbo
+from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from .views import blueprint

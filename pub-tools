@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 #
-# This script starts an HTTP server for Pub-Tools and then create a browser
-# widget which connects to it.
+# This script starts an HTTP server for Pub-Tools and then
+# create a browser widget which connects to it.
 #
 
 import sys
@@ -10,7 +10,7 @@ from threading import Thread
 from werkzeug.serving import make_server
 import logging
 
-from app import app
+from app import create_app
 
 logging.basicConfig(
 	level=logging.DEBUG,
@@ -19,7 +19,7 @@ logging.basicConfig(
 	)
 
 print("Starting embedded web server...")
-server = make_server("127.0.0.1", port=5000, app=app, threaded=True)
+server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
 server_thread = Thread(target=lambda: server.serve_forever())
 server_thread.daemon = True
 server_thread.start()

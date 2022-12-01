@@ -2,11 +2,9 @@ from flask.cli import AppGroup
 import click
 import json
 
-from ... import app
 from .utils import obs
 
 cli_obs = AppGroup("obs", help="Control OBS")
-app.cli.add_command(cli_obs)
 
 @cli_obs.command("get-version")
 def cmd_obs_get_version():

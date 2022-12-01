@@ -1,11 +1,10 @@
 # Views for loading media from JW.ORG into OBS
 
-from flask import Blueprint, render_template, request, Response, redirect, abort
+from flask import current_app, Blueprint, render_template, request, Response, redirect, abort
 import os
 from collections import defaultdict
 import logging
 
-from ... import app
 from ...models import PeriodicalIssues, Books
 from ...jworg.epub import EpubLoader
 
@@ -62,7 +61,7 @@ def open_epub(pub_code):
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
 	if pub is None or pub.epub_filename is None:
 		abort(404)
-	return EpubLoader(os.path.join(app.cachedir, pub.epub_filename))
+	return EpubLoader(os.path.join(current_app.config["CACHEDIR"], pub.epub_filename))
 
 @blueprint.route("/видеоролики/")
 def video_categories():

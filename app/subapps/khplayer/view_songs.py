@@ -2,7 +2,7 @@ from flask import request, session, render_template, redirect, flash
 from time import sleep
 import logging
 
-from ... import app, progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import VideoCategories
 from .views import blueprint
 from .utils import meeting_loader, obs
