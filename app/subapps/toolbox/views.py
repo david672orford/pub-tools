@@ -25,7 +25,8 @@ def toolbox(pub_category):
 			classes = "pubs img-crop"
 		case "video":
 			title = "Видео"
-			items = VideoCategories.query.filter_by(subcategory_key="VODMinistryTools").one_or_none().videos
+			videos = VideoCategories.query.filter_by(subcategory_key="VODMinistryTools").one_or_none()
+			items = videos.videos if videos is not None else []
 			share = lambda item: "https://www.jw.org/finder?srcid=share&wtlocale=U&lank=%s" % item.lank
 			classes = "pubs"
 		case "books":

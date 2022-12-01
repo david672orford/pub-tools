@@ -11,15 +11,6 @@ disabled individually in the config file.
     $ cd pub-tools
     $ pip3 install -r requirements.txt
 
-## Configure
-
-Create an empty instance/config.py file:
-
-    $ mkdir instance
-    $ touch instance/config.py
-
-Later you can add configuration settings to this file.
-
 ## Run
 
     $ ./pub-tools

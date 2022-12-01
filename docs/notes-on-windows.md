@@ -12,3 +12,5 @@ Install PIP:
     wget https://bootstrap.pypa.io/get-pip.py
     python get-pip.py
 
+https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081
+

@@ -23,8 +23,8 @@ websocket-client==1.4.2
 # For controlling the X window manager
 #ewmh==0.1.6
 
-# For embedded web browser
-pywebview==3.7.2
+# For embedded web browser (3.7.2 is broken on Windows)
+pywebview==3.7.0
 
 # For printing tables in the CLI
 rich==9.11.1
