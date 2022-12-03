@@ -2,7 +2,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla.view import ModelView as InsecureModelView
 from flask_admin.form import SecureForm
 
-from .models import db, Weeks, PeriodicalIssues, Articles, Books, VideoCategories, Videos
+from .models import db, Weeks, PeriodicalIssues, Articles, Books, VideoCategories, Videos, Config
 
 admin = Admin()
 
@@ -33,10 +33,14 @@ class VideoCategoriesView(ModelView):
 class VideosView(ModelView):
 	pass
 
+class ConfigView(ModelView):
+	pass
+
 admin.add_view(WeeksView(Weeks, db.session))
 admin.add_view(PeriodicalIssuesView(PeriodicalIssues, db.session))
 admin.add_view(ArticlesView(Articles, db.session))
 admin.add_view(BooksView(Books, db.session))
 admin.add_view(VideoCategoriesView(VideoCategories, db.session))
 admin.add_view(VideosView(Videos, db.session))
+admin.add_view(ConfigView(Config, db.session))
 

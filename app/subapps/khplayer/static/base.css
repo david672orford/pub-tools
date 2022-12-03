@@ -107,3 +107,22 @@ UL.nowrap LI {
 	white-space: nowrap;
 	}
 
+.form-field {
+	display: flex;
+	}
+.form-field > * {
+	margin: 0 .3em;
+	}
+.form-field > *:first-child {
+	margin-left: 0;
+	}
+.form-field > *:last-child {
+	margin-right: 0;
+	}
+.form-field > LABEL::after {
+	content: ":";
+	}
+.form-field .url {
+	flex-grow: 1;
+	}
+

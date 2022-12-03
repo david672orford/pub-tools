@@ -6,8 +6,8 @@ from ...utils import run_thread
 from .views import blueprint
 from .utils import obs, ObsError
 
-@blueprint.route("/obs/")
-def page_obs():
+@blueprint.route("/tools/")
+def page_tools():
 	try:
 		virtual_camera_status = obs.get_virtual_camera_status()
 	except ObsError as e:
@@ -15,12 +15,12 @@ def page_obs():
 		virtual_camera_status = None
 
 	return render_template(
-		"khplayer/obs.html",
+		"khplayer/tools.html",
 		virtual_camera_status = virtual_camera_status,
 		top = ".."
 		)
 
-@blueprint.route("/obs/submit", methods=["POST"])
+@blueprint.route("/tools/submit", methods=["POST"])
 def page_obs_submit():
 	action = request.form.get("action")
 	scene = request.form.get("scene")

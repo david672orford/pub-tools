@@ -8,6 +8,9 @@ Flask==2.2.2
 #Markupsafe==2.1.1
 #Werkzeug==2.2.2
 
+# HTML Forms
+wtforms==3.0.1
+
 # Database integration for the Flask framework
 Flask-SQLAlchemy==2.5.1
 

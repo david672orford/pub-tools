@@ -7,6 +7,13 @@ def init_app(app):
 	db.init_app(app)
 	db.create_all()
 
+class Config(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String, nullable=False)
+	data = db.Column(db.JSON)
+	def __str__(self):
+		return "<Config name=%s data=%s>" % (self.name, self.data)
+
 #=============================================================================
 # Meeting dates and links to the article used at each on JW.ORG
 #=============================================================================

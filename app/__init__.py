@@ -16,7 +16,7 @@ def create_app(instance_path=None):
 		with open(os.path.join(app.instance_path, "config.py"), "w") as cf:
 			cf.write('SECRET_KEY = "%s"\n' % secrets.token_hex())
 
-	# Load the configuration
+	# Set up default configuration
 	app.config.from_mapping(
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
@@ -27,11 +27,13 @@ def create_app(instance_path=None):
 		PUB_LANGUAGE = "ru",
 		CACHEDIR = os.path.join(app.instance_path, "cache")
 		)
+
+	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# Create the directory to which we download media.
-	if not os.path.exists(app.config["CACHEDIR"]):
-		os.mkdir(app.config["CACHEDIR"])
+	# Accept SSE connection from Hotwire Turbo running in the browser
+	turbo = Turbo()
+	turbo.init_app(app)
 
 	@app.before_request
 	def set_sessionid():
@@ -39,17 +41,24 @@ def create_app(instance_path=None):
 			session["session-id"] = uuid.uuid4().hex
 		print("Session ID:", session["session-id"])
 
-	turbo = Turbo()
-	turbo.init_app(app)
-
 	@turbo.user_id
 	def get_session_id():
 		return session["session-id"]
 
+	# Load, initialize, and connect components
 	with app.app_context():
 		for module_name in ("models", "views", "admin", "subapps", "cli_update"):
 			module = import_module("app.%s" % module_name)
 			module.init_app(app)
+
+		# Overlay configuration from the DB
+		from .models import Config
+		for config in Config.query:
+			app.config[config.name] = config.data
+
+	# Create the directory to which we download media.
+	if not os.path.exists(app.config["CACHEDIR"]):
+		os.mkdir(app.config["CACHEDIR"])
 
 	return app
 
