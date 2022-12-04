@@ -8,6 +8,8 @@
 {% block main %}
 <section>
 <h2>Meeting Media</h2>
+<form action="load" method="POST">
+<input type="hidden" name="title" value="{{meeting_title}}">
 
 <table class="borders">
 <thead>
@@ -19,22 +21,27 @@
 	</tr>
 </thead>
 <tbody>
-{% for pub, title, media_type, href in media %}
+{% for item in media %}
 <tr>
-	<td>{{pub}}</td>
-	<td>{{title}}</td>
-	<td>{{media_type}}</td>
-	<td><a href="{{href}}">{{href}}</a></td>
+	<td>{{item.pub_code}}</td>
+	<td>{{item.title}}</td>
+	<td>{{item.media_type}}</td>
+	<td><a href="{{item.media_href}}">{{item.media_href}}</a></td>
 	</tr>
 {% endfor %}
 </tbody>
 </table>
+</section>
 
-<form action="load" method="POST">
-<input type="hidden" name="title" value="{{meeting_title}}">
-<p>
-	<input type="text" name="collection" placeholder="New collection name">
-	<button type="submit">Download Media and Create Scenes in OBS</button>
-</p>
+<section class="bordered">
+	<div class="form-field">
+		<label for="collection">Scene Collection Name</label>
+		<input type="text" id="collection" name="collection" value="{{meeting_title}}">
+	</div>
+	<div class="form-field">
+		<button type="submit">Download Media and Create Scenes in OBS</button>
+	</div>
+</section>
+
 </form>
 {% endblock %}

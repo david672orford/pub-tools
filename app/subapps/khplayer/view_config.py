@@ -1,16 +1,23 @@
 import json, re
 from flask import current_app, request, render_template, redirect, flash
-from wtforms import Form, StringField, IntegerField, validators
+from wtforms import Form, StringField, IntegerField, SelectField, URLField, EmailField, validators
 from sqlalchemy.orm.attributes import flag_modified
+from urllib.parse import urlencode
 
 from ...models import db, Config
 from .views import blueprint
 
 class ConfigForm(Form):
 	OBS_WEBSOCKET_hostname = StringField("Hostname")
-	OBS_WEBSOCKET_port = IntegerField("Port")
-	JW_STREAM_url = StringField("URL")
-	ZOOM_username = StringField("Username")
+	OBS_WEBSOCKET_port = IntegerField("Port", [validators.NumberRange(min=1024, max=65535)])
+	OBS_WEBSOCKET_password = StringField("Password")
+
+	JW_STREAM_url = URLField("URL", [validators.URL()])
+	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
+	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
+	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
+
+	ZOOM_username = EmailField("Username", [validators.Email()])
 	ZOOM_password = StringField("Password")
 	ZOOM_meetingid = StringField("Meeting ID")
 
@@ -24,7 +31,7 @@ class ConfWrapper:
 	# Pull requested value from app.config
 	def __getattr__(self, name):
 		key1, key2 = self.splitter.match(name).groups()
-		return current_app.config[key1][key2]
+		return current_app.config.get(key1,{}).get(key2,"")
 
 	# Copy back into app.config
 	def __setattr__(self, name, value):
@@ -41,16 +48,22 @@ class ConfWrapper:
 		conf.data[key2] = value
 		flag_modified(conf, "data")
 
-@blueprint.route("/config/")
+@blueprint.route("/config/", methods=["GET"])
 def page_config():
-	form = ConfigForm(formdata=request.form, obj=ConfWrapper())
+	form = ConfigForm(formdata=request.args, obj=ConfWrapper())
+	form.validate()
 	return render_template("khplayer/config.html", form=form, top = "..")
 
 @blueprint.route("/config/submit", methods=["POST"])
 def page_config_submit():
 	config = ConfWrapper()
 	form = ConfigForm(formdata=request.form, obj=config)
-	form.populate_obj(config)
-	db.session.commit()
-	return redirect(".")
+	if form.validate():
+		print("Form validated, saving...")
+		form.populate_obj(config)
+		db.session.commit()
+		return redirect(".")
+	else:
+		print("Validation failed")
+		return redirect(".?" + urlencode(form.data))
 

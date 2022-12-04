@@ -2,11 +2,12 @@
 
 These are notes on the libraries, API's and frameworks used in this project.
 
-## Flask
+## Flask and Friends
 
 * [The Pallets Projects](https://palletsprojects.com/)
 * [Flask](https://flask.palletsprojects.com/)
 * [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
+* [Wtforms](https://wtforms.readthedocs.io/en/3.0.x/)
 
 ## Turbo Flask
 
@@ -25,6 +26,8 @@ These are notes on the libraries, API's and frameworks used in this project.
 ## Web Apps on the Desktop
 
 * [PyWebview](https://github.com/r0x0r/pywebview)
+* [UTF-8 Mode](https://peps.python.org/pep-0540/)
+* [ZipApp](https://docs.python.org/3/library/zipapp.html)
 
 ## FFmpeg
 

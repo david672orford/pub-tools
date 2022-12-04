@@ -5,16 +5,24 @@
 <form action="submit" method="POST">
 
 <section class="bordered">
-<p>
-	{% if virtual_camera_status %}
-	<button type="submit" name="action" value="stop-virtualcam">Stop Virtual Camera</button>
-	{% else %}
-	<button type="submit" name="action" value="start-virtualcam">Start Virtual Camera</button>
-	{% endif %}
-	<button type="submit" name="action" value="start-projector">Start Projector</button>
-</p>
+<h2>Zoom</h2>
+<button type="submit" name="action" value="start-meeting">Start Meeting</button>
+</section>
+
+<section class="bordered">
+<h2>OBS</h2>
+{% if virtual_camera_status %}
+<button type="submit" name="action" value="stop-virtualcam">Stop Virtual Camera</button>
+{% else %}
+<button type="submit" name="action" value="start-virtualcam">Start Virtual Camera</button>
+{% endif %}
+<button type="submit" name="action" value="start-projector">Start Projector</button>
+</section>
+
+<section class="bordered">
+<h2>Pipewire</h2>
+<button type="submit" name="action" value="reconnect-peripherals">Reconnect Audio Peripherals</button>
 </section>
 
 </form>
-
 {% endblock %}

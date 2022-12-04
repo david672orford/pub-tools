@@ -1,9 +1,17 @@
 from .fetcher import Fetcher
 from urllib.parse import urlparse, urljoin, parse_qsl, unquote
 import re
+from dataclasses import dataclass
 import logging
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class MeetingMedia:
+	pub_code: str
+	title: str
+	media_type: str
+	media_url: str
 
 # Scan a Meeting Workbook week or Watchtower study article and return
 # a list of the vidoes and pictures therein.
@@ -109,7 +117,12 @@ class MeetingLoader(Fetcher):
 					# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
 					# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 					if a.attrib.get("data-video") is not None:
-						scenes.append((None, a.text_content(), "video", self.get_video_url(a.attrib['href'])))
+						scenes.append(MeetingMedia(
+							pub_code = None,
+							title = a.text_content(),
+							media_type = "video",
+							media_url = self.get_video_url(a.attrib['href'])
+							))
 						is_a = "video"
 						break
 
@@ -129,7 +142,12 @@ class MeetingLoader(Fetcher):
 					if pub_code == "sjj":
 						song_text = a.text_content().strip()
 						song_number = re.search(r'(\d+)$', song_text).group(1)
-						scenes.append(("sjj %s" % song_number, song_text, "video", self.get_song_video_url(song_number)))
+						scenes.append(MeetingMedia(
+							pub_code = "sjj %s" % song_number,
+							title = song_text,
+							media_type = "video",
+							media_url = self.get_song_video_url(song_number)
+							))
 						is_a = "song"
 						break
 
@@ -137,8 +155,13 @@ class MeetingLoader(Fetcher):
 					if pub_code == "th":
 						text = a.text_content().strip()
 						chapter = int(re.search(r"(\d+)$", text).group(1))
-						#scenes.append(("th %d" % chapter, text, "web", urljoin(url, a.attrib['href'])))
-						scenes.append(("th %s" % chapter, text, "web", "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4)))
+						scenes.append(MeetingMedia(
+							pub_code = "th %d" % chapter,
+							title = text,
+							media_type = "web",
+							#media_url = urljoin(url, a.attrib['href']),
+							meida_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
+							))
 						is_a = "counsel point"
 						break
 
@@ -185,7 +208,12 @@ class MeetingLoader(Fetcher):
 			song = a.text_content().strip()
 			m = re.search(r'(\d+)$', song)
 			assert m
-			songs.append(("sjj", song, "video", self.get_song_video_url(m.group(1))))
+			songs.append(MeetingMedia(
+				pub_code = "sjj",
+				title = song,
+				media_type = "video",
+				media_url = self.get_song_video_url(m.group(1)),
+				))
 		assert len(songs) == 2, songs
 
 		illustrations = self.extract_illustrations("СБ", container)
@@ -228,7 +256,12 @@ class MeetingLoader(Fetcher):
 			if len(links) > 0:
 				a = links[0]
 				if a.attrib.get("data-video") is not None:
-					figures.append((None, "%s %d" % (title, n), "video", self.get_video_url(a.attrib['href'])))
+					figures.append(MeetingMedia(
+						pub_code = None,
+						title = "%s %d" % (title, n),
+						media_type = "video",
+						media_url = self.get_video_url(a.attrib['href'])
+						))
 
 			else:
 				img = figure.xpath("./span[@class='jsRespImg']")[0]
@@ -238,7 +271,12 @@ class MeetingLoader(Fetcher):
 						break
 				else:
 					raise AssertionError("No image source in jsRespImg")
-				figures.append((None, figcaption, "image", src))
+				figures.append(MeetingMedia(
+					pub_code = None,
+					title = figcaption,
+					media_type = "image",
+					media_url = src,
+					))
 
 			n += 1
 		#self.dump_json(figures)

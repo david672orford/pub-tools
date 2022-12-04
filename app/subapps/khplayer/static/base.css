@@ -1,4 +1,4 @@
-HTML, BODY, HEADER, SECTION, H1, H2, P, PRE, UL, LI {
+HTML, BODY, HEADER, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAREA, BUTTON {
 	margin: 0;
 	padding: 0;
 	}
@@ -36,6 +36,12 @@ UL {
 	}
 LI {
 	margin: .2em 0;
+	}
+INPUT, SELECT {
+	padding: .1em .2em;
+	}
+BUTTON {
+	padding: .2em .3em;
 	}
 
 /* Tabs at top of page */
@@ -109,6 +115,7 @@ UL.nowrap LI {
 
 .form-field {
 	display: flex;
+	align-items: center;
 	}
 .form-field > * {
 	margin: 0 .3em;

@@ -3,6 +3,7 @@ from datetime import date
 from sqlalchemy import or_, and_
 from datetime import date
 from threading import Thread
+from dataclasses import asdict
 import logging
 
 from ... import turbo
@@ -11,6 +12,7 @@ from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from .views import blueprint
 from .utils import meeting_loader, obs, ObsError
+from ...jworg.meetings import MeetingMedia
 
 logger = logging.getLogger(__name__)
 
@@ -57,10 +59,10 @@ def page_meetings_load(docid):
 def get_meeting_media_cached(docid):
 	meeting = MeetingCache.query.filter_by(docid=docid).one_or_none()
 	if meeting is not None:
-		media = meeting.media
+		media = list(map(lambda item: MeetingMedia(**item), meeting.media))
 	else:
 		media = get_meeting_media(docid)
-		meeting = MeetingCache(docid=docid, media=media)
+		meeting = MeetingCache(docid=docid, media=list(map(lambda item: asdict(item), media)))
 		db.session.add(meeting)
 		db.session.commit()
 	return media
@@ -79,24 +81,24 @@ def get_meeting_media(docid):
 	return media
 
 # Run in a background thread to download the media and add a scene in OBS for each item.
-def meeting_media_to_obs_scenes(scenes):
-	for scene in scenes:
-		logger.debug("Loading scene: %s", scene)
-		pub_code, scene_name, media_type, media_url = scene
+def meeting_media_to_obs_scenes(items):
+	for item in items:
+		logger.debug("Loading scene: %s", repr(item))
 	
 		# Add a symbol to the front of the scene name to indicate its type.
-		print(pub_code, scene_name, media_type, media_url)
-		if pub_code is not None and pub_code.startswith("sjj"):
-			scene_name = "♫ " + scene_name
+		if item.pub_code is not None and item.pub_code.startswith("sjj"):
+			scene_name = "♫ " + item.title
 		elif media_type == "video":
-			scene_name = "▷ " + scene_name
+			scene_name = "▷ " + item.title
 		elif media_type == "image":
-			scene_name = "□ " + scene_name	
+			scene_name = "□ " + item.title
+		else:
+			scene_name = item.title
 	
-		if media_type == "web":		# HTML page
+		if item.media_type == "web":		# HTML page
 			#obs.add_scene(scene_name, media_type, media_url)
 			pass
 		else:						# video or image file
-			media_file = meeting_loader.download_media(media_url, callback=progress_callback)
-			obs.add_scene(scene_name, media_type, media_file)
+			media_file = meeting_loader.download_media(item.media_url, callback=progress_callback)
+			obs.add_scene(scene_name, item.media_type, media_file)
 
