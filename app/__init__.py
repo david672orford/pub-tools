@@ -3,6 +3,9 @@ from importlib import import_module
 from flask import Flask, session
 #from turbo_flask import Turbo
 from .turbo_sse import Turbo
+import logging
+
+logger = logging.getLogger(__name__)
 
 def create_app(instance_path=None):
 	global turbo
@@ -48,8 +51,11 @@ def create_app(instance_path=None):
 	# Load, initialize, and connect components
 	with app.app_context():
 		for module_name in ("models", "views", "admin", "subapps", "cli_update"):
-			module = import_module("app.%s" % module_name)
-			module.init_app(app)
+			try:
+				module = import_module("app.%s" % module_name)
+				module.init_app(app)
+			except ModuleNotFoundError:
+				logger.warning("module %s disabled due to unsatisfied dependencies" % module_name)
 
 		# Overlay configuration from the DB
 		from .models import Config

@@ -38,30 +38,36 @@ def page_meetings_view(docid):
 	media = get_meeting_media_cached(docid)
 	return render_template("khplayer/meeting_media.html", meeting_title=title, media=media, top="../..")
 
-# Download the items in the media list (which will already be cached)
-# and create scenes for them in OBS.
+# Download the media items and create an OBS scene for each.
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_load(docid):
+
+	# If user provided a scene collection name, create a new one of that name.
 	collection = request.form.get("collection").strip()
 	if collection != "":
 		try:
 			obs.create_scene_collection(collection)
 		except ObsError as e:
 			return progress_callback_response("OBS: " + str(e))
-			
+
+	# The media list will already by in the cache. Get it.
 	media = get_meeting_media_cached(docid)
 
+	# Download in the background.
 	run_thread(lambda: meeting_media_to_obs_scenes(media))
 
 	return progress_callback_response("Loading media for %s..." % request.form.get("title"))
 
 # Wrapper for get_meeting_media() which caches the responses in a DB table
 def get_meeting_media_cached(docid):
+	# Look for this meeting's media in the DB cache table
 	meeting = MeetingCache.query.filter_by(docid=docid).one_or_none()
 	if meeting is not None:
+		# Deserialize list from JSON back to objects
 		media = list(map(lambda item: MeetingMedia(**item), meeting.media))
 	else:
 		media = get_meeting_media(docid)
+		# Serialize list from objects to JSON and store in DB cache table
 		meeting = MeetingCache(docid=docid, media=list(map(lambda item: asdict(item), media)))
 		db.session.add(meeting)
 		db.session.commit()
@@ -83,14 +89,14 @@ def get_meeting_media(docid):
 # Run in a background thread to download the media and add a scene in OBS for each item.
 def meeting_media_to_obs_scenes(items):
 	for item in items:
-		logger.debug("Loading scene: %s", repr(item))
+		logger.info("Loading scene: %s", repr(item))
 	
 		# Add a symbol to the front of the scene name to indicate its type.
 		if item.pub_code is not None and item.pub_code.startswith("sjj"):
 			scene_name = "♫ " + item.title
-		elif media_type == "video":
+		elif item.media_type == "video":
 			scene_name = "▷ " + item.title
-		elif media_type == "image":
+		elif item.media_type == "image":
 			scene_name = "□ " + item.title
 		else:
 			scene_name = item.title

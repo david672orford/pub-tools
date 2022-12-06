@@ -1,0 +1,47 @@
+{% set title = "Config" %}
+{% extends "khplayer/base.html" %}
+
+{% macro render_field(field) %}
+<div class="form-field">
+	{{field['label']}} {{field(**kwargs)}}
+	{% if field.errors %}
+	<ul class="errors">{% for error in field.errors %}{{error}}{% endfor %}</ul>
+	{% endif %}
+</div>
+{% endmacro %}
+
+{% block main %}
+<form action="submit" method="POST">
+
+<section class="bordered">
+<h2>OBS</h2>
+{{render_field(form.OBS_WEBSOCKET_hostname)}}
+{{render_field(form.OBS_WEBSOCKET_port)}}
+{{render_field(form.OBS_WEBSOCKET_password)}}
+</section>
+
+<section class="bordered">
+<h2>JW Stream</h2>
+{{render_field(form.JW_STREAM_url,class="url",onclick="this.select()")}}
+{{render_field(form.JW_STREAM_preview_resolution)}}
+{{render_field(form.JW_STREAM_download_resolution)}}
+</section>
+
+<section class="bordered">
+<h2>Zoom</h2>
+{{render_field(form.ZOOM_username, size=30)}}
+{{render_field(form.ZOOM_password)}}
+{{render_field(form.ZOOM_meetingid)}}
+</section>
+
+<section class="bordered">
+<h2>Pipewire</h2>
+
+</section>
+
+<section class="bordered">
+<button type="Submit">Save</button>
+</section>
+
+</form>
+{% endblock %}
