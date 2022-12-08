@@ -1,6 +1,8 @@
 UL.scenes {
 	list-style-type: none;
 	margin-left: 0;
+	border: 2px solid #c0c0c0;
+	margin-bottom: .5em;
 	}
 UL.scenes > LI {
 	display: flex;
@@ -13,6 +15,11 @@ UL.scenes > LI > BUTTON {
 	flex-grow: 1;
 	text-align: left;
 	padding: .5em;
+	}
+
+UL.scenes.highlight {
+	border-color: blue;
+	background-color: #f0f0ff;
 	}
 
 BUTTON {

@@ -25,7 +25,7 @@ Be sure to follow the part about installing Wireplumber.
 
 Run this script which we supply:
 
-    $ ./virtual-audio-cable
+    $ ./bin/virtual-audio-cable create connect-peripherals
 
 Until we figure out how to add it to the configuration you will have to run this
 ever time you log in.
@@ -59,5 +59,5 @@ ever time you log in.
 * Go to OBS, right click on the video preview (the one on the right if you are in
   Studio Mode) and select under **Fullscreen Project** pick the second one. Fullscreen
   output from OBS will cover the second Zoom window on the second monitor.
-* Start Pub-Tools and load the meeting vidoes and illustrations.
+* Start **Pub-Tools** and load the meeting vidoes and illustrations.
 

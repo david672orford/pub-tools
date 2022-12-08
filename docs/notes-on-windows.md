@@ -1,11 +1,13 @@
+# Notes on Windows
+
 ## Unix Tools for Windows
 
-* [Busybox](https://frippery.org/busybox/)
 * [Putty](https://www.putty.org/)
+* [Busybox](https://frippery.org/busybox/)
 * [Git](https://git-scm.com/download/win)
 * [Python](https://www.python.org/downloads/windows/)
 
-## Set Up Python
+## Setting Up Python
 
 Create directory:
 

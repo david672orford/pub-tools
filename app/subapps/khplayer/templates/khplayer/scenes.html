@@ -27,18 +27,52 @@
 </form>
 
 <script>
-document.getElementById("select-all").addEventListener("click", event => {
-	console.log("select-all");
-	document.getElementsByName("del").forEach(checkbox => {
-		checkbox.checked = true;
-		});
-	});
-document.getElementById("deselect-all").addEventListener("click", event => {
-	console.log("deselect-all");
-	document.getElementsByName("del").forEach(checkbox => {
-		checkbox.checked = false;
-		});
-	});
-</script>
+function $(id)
+    {
+    return document.querySelector(id);
+    }
 
+function select_all(name, state)
+	{
+	document.getElementsByName(name).forEach(checkbox => {
+		checkbox.checked = state;
+		});
+	}
+
+document.getElementById("select-all").addEventListener("click", event => { select("del",true); });
+document.getElementById("deselect-all").addEventListener("click", event => { select("del",false); });
+
+let dropArea = $('.scenes');
+
+/* Allow drop */
+dropArea.addEventListener("dragover", (e) => e.preventDefault());
+
+/* Visual feedback when over drop zone */
+let counter = 0;
+dropArea.addEventListener("dragenter", (e) => {
+	console.log("enter:", e.target);
+	counter++;
+	if(counter == 1)
+		dropArea.classList.add('highlight');
+	e.preventDefault();
+	});
+dropArea.addEventListener("dragleave", (e) => {
+	console.log("exit:", e.target);
+	counter--;
+	if(counter == 0)
+		dropArea.classList.remove('highlight');
+	e.preventDefault();
+	});
+
+/* File actually dropped onto the drop zone */
+dropArea.addEventListener('drop', (e) => {
+	if(e.dataTransfer.files.length > 1)
+		alert("You can only upload one file at a time.");
+	console.log(e.dataTransfer);
+	e.stopPropagation();
+});
+
+
+
+</script>
 {% endblock %}

@@ -160,7 +160,7 @@ class MeetingLoader(Fetcher):
 							title = text,
 							media_type = "web",
 							#media_url = urljoin(url, a.attrib['href']),
-							meida_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
+							media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
 							))
 						is_a = "counsel point"
 						break

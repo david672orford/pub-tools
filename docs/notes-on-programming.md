@@ -22,6 +22,7 @@ These are notes on the libraries, API's and frameworks used in this project.
 * [JavaScript FormData](https://www.javascripttutorial.net/web-apis/javascript-formdata/)
 * [Async Form Posts With A Couple Lines Of Vanilla JavaScript](https://pqina.nl/blog/async-form-posts-with-a-couple-lines-of-vanilla-javascript/)
 * [Server-Sent Events: the alternative to WebSockets you should be using](https://germano.dev/sse-websockets/)
+* [HTML Drag and Drop API](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
 * [Dragging OS Folders to Webpage](https://stackoverflow.com/questions/3590058/does-html5-allow-drag-drop-upload-of-folders-or-a-folder-tree)
 
 ## Web Apps on the Desktop
