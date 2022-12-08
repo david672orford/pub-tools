@@ -50,26 +50,31 @@ dropArea.addEventListener("dragover", (e) => e.preventDefault());
 /* Visual feedback when over drop zone */
 let counter = 0;
 dropArea.addEventListener("dragenter", (e) => {
-	console.log("enter:", e.target);
 	counter++;
 	if(counter == 1)
-		dropArea.classList.add('highlight');
+		dropArea.classList.add("highlight");
 	e.preventDefault();
 	});
 dropArea.addEventListener("dragleave", (e) => {
-	console.log("exit:", e.target);
 	counter--;
 	if(counter == 0)
-		dropArea.classList.remove('highlight');
+		dropArea.classList.remove("highlight");
+	e.preventDefault();
+	});
+
+dropArea.addEventListener("dragover", (e) => {
 	e.preventDefault();
 	});
 
 /* File actually dropped onto the drop zone */
 dropArea.addEventListener('drop', (e) => {
-	if(e.dataTransfer.files.length > 1)
-		alert("You can only upload one file at a time.");
 	console.log(e.dataTransfer);
-	e.stopPropagation();
+	console.log("Files:", e.dataTransfer.files);
+	console.log("Items:", e.dataTransfer.items);
+	console.log("Types:", e.dataTransfer.types);
+	e.preventDefault();
+	dropArea.classList.remove("highlight");
+	counter = 0;
 });
 
 
