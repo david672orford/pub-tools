@@ -339,8 +339,11 @@ while os.system("killall zoom") == 0:
 subprocess.run([
 	os.path.join(os.path.dirname(__file__), "virtual-audio-cable"),
 	"create",
-	"connect-peripherals",
 	], check=True)
+subprocess.run([
+	os.path.join(os.path.dirname(__file__), "virtual-audio-cable"),
+	"connect-peripherals",
+	], check=False)		# will fail if microphone not plugged in
 
 # Start Zoom with screen-reader integration enabled
 os.environ["QT_ACCESSIBILITY"] = "1"
