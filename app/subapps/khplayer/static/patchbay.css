@@ -1,0 +1,37 @@
+.patchbay {
+	border: thin solid green;
+	vertical-align: top;		/* doesn't work */
+	}
+.node {
+	position: relative;
+	display: inline-block;
+	border: thin solid black;
+	background-color: #f0fff0;
+	margin: 1em;
+	}
+.node-name, .node-media-class {
+	text-align: center;
+	font-weight: bold;
+	padding: 1px 10px;
+	}
+.node-body {
+	display: flex;
+	justify-content: space-between;
+	}
+.node-inputs > DIV {
+	background-color: white;
+	border: solid black;
+	border-width: 1px 1px 1px 0;
+	border-radius: 0 10px 10px 0;
+	margin: 2px 2px 2px 0;
+	padding: 2px 3px;
+	}
+.node-outputs > DIV {
+	background-color: white;
+	border: solid black;
+	border-width: 1px 0 1px 1px;
+	border-radius: 10px 0 0 10px;
+	margin: 2px 0 2px 2px;
+	padding: 2px 3px;
+	}
+

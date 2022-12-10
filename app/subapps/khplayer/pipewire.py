@@ -1,20 +1,22 @@
 import subprocess
 import json
 
-pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
-pwconf = json.load(pwdump.stdout)
-
-nodes = {}
-links = []
-
 class Node:
 	def __init__(self, item):
 		self.id = item["id"]
 		self.name = item["info"]["props"]["node.name"]
 		self.nick = item["info"]["props"].get("node.nick")
+		self.description = item["info"]["props"].get("node.description")
 		self.media_class = item["info"]["props"].get("media.class","")
 		self.inputs = []
 		self.outputs = []
+	@property
+	def label(self):
+		if self.nick:
+			return self.nick;
+		if self.description:
+			return self.description;
+		return self.name
 	def add_port(self, port):
 		if port.direction == "input":
 			self.inputs.append(port)
@@ -61,23 +63,34 @@ class Link:
 			self.output_port_id,
 			)
 
-#print(json.dumps(pwconf, indent=2))
-for item in pwconf:
-	#print(item["id"], item["type"])
-	info = item.get("info",{})
-	props = info.get("props")
-	if item["type"] == "PipeWire:Interface:Node":
-		nodes[item["id"]] = Node(item)
-	elif item["type"].endswith("PipeWire:Interface:Port"):
-		port = Port(item)
-		nodes[port.node_id].add_port(port)
-	elif item["type"].endswith("PipeWire:Interface:Link"):
-		links.append(Link(item))
+class Patchbay:
+	def __init__(self):
+		pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
+		pwconf = json.load(pwdump.stdout)
+		print(json.dumps(pwconf, indent=2))
 
-for node in nodes.values():
-	if node.media_class.startswith("Audio/"):
-		print(node)
+		nodes = {}
+		links = []
+		
+		for item in pwconf:
+			#print(item["id"], item["type"])
+			info = item.get("info",{})
+			props = info.get("props")
+			if item["type"] == "PipeWire:Interface:Node":
+				nodes[item["id"]] = Node(item)
+			elif item["type"].endswith("PipeWire:Interface:Port"):
+				port = Port(item)
+				nodes[port.node_id].add_port(port)
+			elif item["type"].endswith("PipeWire:Interface:Link"):
+				links.append(Link(item))
 
-for link in links:
-	print(link)
+		self.nodes = nodes.values()
+		self.links = links
+
+	def print(self):
+		for node in self.nodes.values():
+			if node.media_class.startswith("Audio/"):
+				print(node)
+		for link in self.links:
+			print(link)
 

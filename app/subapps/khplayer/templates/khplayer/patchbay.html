@@ -1,0 +1,78 @@
+{% set title = "Patchbay" %}
+{% extends "khplayer/base.html" %}
+
+{% block head_add %}
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='patchbay.css')}}">
+<script src="{{ url_for('.static', filename='leader-line/leader-line.min.js')}}"></script>
+{% endblock %}
+
+{% macro render_node(node) %}
+<div id="node-{{node.id}}" class="node" draggable="true" style="left: 0px; top: 0px;">
+	<div class="node-name">{{ node.label }}</div>
+	<div class="node-media-class">{{ node.media_class }}</div>
+	<div class="node-body">
+		<div class="node-inputs">
+			{% for input in node.inputs %}
+			<div id="port-{{input.id}}">{{ input.name }}</div>
+			{% endfor %}
+		</div>
+		<div class="node-outputs">
+			{% for output in node.outputs %}
+			<div id="port-{{output.id}}">{{ output.name }}</div>
+			{% endfor %}
+		</div>
+	</div>
+</div>
+{% endmacro %}
+
+{% block main %}
+
+<div class="patchbay">
+{% for node in patchbay.nodes %}
+{% if "Audio" in node.media_class %}
+{{ render_node(node) }}
+{% endif %}
+{% endfor %}
+</div>
+
+<script>
+let links = [];
+let link;
+{% for link in patchbay.links %}
+link = new LeaderLine(document.getElementById("port-{{link.output_port_id}}"), document.getElementById("port-{{link.input_port_id}}"));
+link.setOptions({startSocket: 'right', endSocket: 'left'});
+links.push(link);
+{% endfor %}
+
+let x;
+let y;
+
+function on_dragstart(e)
+	{
+	console.log("Dragstart:", e);
+	x = e.clientX;
+	y = e.clientY;
+	e.target.addEventListener("dragend", on_dragend);
+	}
+
+function on_dragend(e)
+	{
+	console.log("Dragend:", e);
+	let node = e.target;
+	node.style.left = parseInt(node.style.left) + e.clientX - x + "px";
+	node.style.top = parseInt(node.style.top) + e.clientY - y + "px";
+	node.removeEventListener("dragend", on_dragend);
+
+	links.forEach((link) => { link.position(); });
+	}
+
+let nodes = document.getElementsByClassName("node");
+for(let i=0; i<nodes.length; i++)
+	{
+	nodes[i].addEventListener("dragstart", on_dragstart);
+	}
+
+</script>
+
+{% endblock %}
+
