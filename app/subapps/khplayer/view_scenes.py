@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, flash
+from flask import current_app, Blueprint, render_template, request, redirect, flash
 from time import sleep
 import json
 
@@ -24,11 +24,13 @@ def page_scenes():
 def page_scenes_submit():
 	action = request.form.get("action")
 	scene = request.form.get("scene")
+	message = None
 	print("action:", action)
 
 	try:
 		if scene is not None:
 			obs.set_current_program_scene(scene)
+			message = "Scene switched to %s" % scene
 	
 		elif action == "delete":
 			for scene in request.form.getlist("del"):
@@ -39,11 +41,23 @@ def page_scenes_submit():
 					flash(str(e))
 			sleep(1)
 
+		elif action == "add-camera":
+			obs.add_camera(current_app.config["PERIPHERALS"]["camera"])
+			sleep(1)
+
+		elif action == "add-zoom":
+			obs.add_zoom()
+			sleep(1)
+
+		elif action == "add-split":
+			obs.add_split(current_app.config["PERIPHERALS"]["camera"])
+			sleep(1)
+
 	except ObsError as e:
 		flash("OBS: %s" % str(e))
 
-	if scene is not None:
-		return progress_callback_response("Scene switched to %s" % scene)
+	if message is not None:
+		return progress_callback_response(message)
 	else:
 		return redirect(".")
 

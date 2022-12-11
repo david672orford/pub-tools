@@ -137,7 +137,7 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 # Connect to OBS and tell it to make a new scene with this file as the input.
 def create_clip_scene(clip_title, media_file):
 	try:
-		obs.add_scene(clip_title, "video", media_file)
+		obs.add_media_scene(clip_title, "video", media_file)
 	except ObsError as e:
 		progress_callback("OBS: %s" % str(e))
 	else:

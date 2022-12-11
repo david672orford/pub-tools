@@ -110,6 +110,7 @@ class ObsControl:
 		# We are connected
 		self.ws = ws
 
+	# Send a request to OBS and wait for the response
 	def request(self, req_type, req_data, raise_on_error=True):
 		if self.ws is None:
 			self.connect()
@@ -149,8 +150,11 @@ class ObsControl:
 			raise ObsError(response)
 		return response["d"]	
 
-	def add_scene(self, scene_name, media_type, media_file):
-		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
+	# Create a scene for a video or image file.
+	# Center it and scale to reach the edges.
+	# For videos enable audio monitoring.
+	def add_media_scene(self, scene_name, media_type, media_file):
+		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
 		if re.match(r"^https?://", media_file, re.I):
@@ -197,7 +201,7 @@ class ObsControl:
 					raise ObsError(e)
 			i += 1
 
-		# Create a source (no called input) to play our file. Resolve naming conflicts.
+		# Create a source (now called an input) to play our file. Resolve naming conflicts.
 		i = 1
 		scene_item_id = None
 		while True:
@@ -247,6 +251,9 @@ class ObsControl:
 	def get_scene_list(self):
 		return self.request("GetSceneList", {})["responseData"]["scenes"]
 
+	def create_scene(self, scene_name):
+		self.request("CreateScene", { "sceneName": scene_name })
+
 	def remove_scene(self, scene_name):
 		self.request("RemoveScene", {"sceneName": scene_name})
 
@@ -272,4 +279,47 @@ class ObsControl:
 			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
 			"monitorIndex": monitor,
 			})
+
+	def create_input(self, scene_name=None, input_name=None, input_kind=None, input_settings={}):
+		response = self.request("CreateInput", {
+			"sceneName": scene_name,
+			"inputName": input_name,
+			"inputKind": input_kind,
+			"inputSettings": input_settings,
+			})
+		return response["responseData"]["sceneItemId"]
+
+	def scale_input(self, scene_name=None, scene_item_id=None):
+		self.request('SetSceneItemTransform', 
+			{
+			'sceneName': scene_name,
+			'sceneItemId': scene_item_id,
+			'sceneItemTransform': {
+				'boundsAlignment': 0,
+				'boundsWidth': 1280,
+				'boundsHeight': 720,
+				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+				}
+			})
+
+	def add_camera(self, camera_name):
+		scene_name = "Camera"
+		self.create_scene(scene_name)
+		scene_item_id = self.create_input(
+			scene_name=scene_name,
+			input_name="Camera Input",
+			input_kind="v4l2_input",
+			input_settings = {
+				"device_id": "/dev/video1",
+				"input": 0,
+				"pixelformat": 1196444237
+				}
+			)
+		self.scale_input(scene_name=scene_name, scene_item_id=scene_item_id)
+
+	def add_zoom(self):
+		self.create_scene("Zoom")
+
+	def add_split(self, camera_name):
+		self.create_scene("Split Screen")
 

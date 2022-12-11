@@ -44,7 +44,7 @@ def load_video(lank):
 	media_url = meeting_loader.get_video_url(video.href)
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 	try:
-		obs.add_scene(video.name, "video", media_file)
+		obs.add_media_scene(video.name, "video", media_file)
 	except ObsError as e:
 		progress_callback("OBS: %s" % str(e))	
 	else:

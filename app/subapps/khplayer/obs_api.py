@@ -17,8 +17,8 @@ class ObsControl:
 	def __init__(self, config=None):
 		pass
 
-	def add_scene(self, scene_name, media_type, media_file):
-		logger.info("Add scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
+	def add_media_scene(self, scene_name, media_type, media_file):
+		logger.info("Add media scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
 		if re.match(r"^https?://", media_file, re.I):
