@@ -93,15 +93,15 @@ def connect_peripherals():
 	
 	# Connect the microphone specified in config.py to the input of the virtual
 	# audio cable which connects the output of OBS to the micriphone input of Zoom.
-	if "microphone" in config.PIPEWIRE:
-		create_link(config.PIPEWIRE["microphone"], "From-OBS:input_MONO")
+	if "microphone" in config.PERIPHERALS:
+		create_link(config.PERIPHERALS["microphone"], "From-OBS:input_MONO")
 	
 	# Connect each set of speakers specified in config.py to the output of the
 	# same virtual audio cable. This allows those physically present to hear
 	# what OBS is sending to Zoom.
-	if "speakers" in config.PIPEWIRE:
+	if "speakers" in config.PERIPHERALS:
 		for port in ("playback_FL", "playback_FR"):
-			create_link("To-Zoom:monitor_MONO", config.PIPEWIRE["speakers"] + ":" + port)
+			create_link("To-Zoom:monitor_MONO", config.PERIPHERALS["speakers"] + ":" + port)
 
 good = 0
 for arg in sys.argv[1:]:

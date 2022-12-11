@@ -64,12 +64,13 @@ class Link:
 			)
 
 class Patchbay:
-	def __init__(self):
+	def load(self):
 		pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
 		pwconf = json.load(pwdump.stdout)
 		print(json.dumps(pwconf, indent=2))
 
 		nodes = {}
+		nodes_by_name = {}
 		links = []
 		
 		for item in pwconf:
@@ -77,7 +78,9 @@ class Patchbay:
 			info = item.get("info",{})
 			props = info.get("props")
 			if item["type"] == "PipeWire:Interface:Node":
-				nodes[item["id"]] = Node(item)
+				node = Node(item)
+				nodes[node.id] = node
+				nodes_by_name[node.name] = node
 			elif item["type"].endswith("PipeWire:Interface:Port"):
 				port = Port(item)
 				nodes[port.node_id].add_port(port)
@@ -85,6 +88,7 @@ class Patchbay:
 				links.append(Link(item))
 
 		self.nodes = nodes.values()
+		self.nodes_by_name = nodes_by_name
 		self.links = links
 
 	def print(self):
@@ -93,4 +97,11 @@ class Patchbay:
 				print(node)
 		for link in self.links:
 			print(link)
+
+	def create_link(self, output_node_id, output_port_id, input_node_id, input_port_id):
+		#cmd = ["pw-cli", "create-link", str(output_node_id), str(output_port_id), str(input_node_id), str(input_port_id)]
+		cmd = ["pw-link", str(output_port_id), str(input_port_id)]
+		print(" ".join(cmd))
+		subprocess.run(cmd, check=True)
+
 

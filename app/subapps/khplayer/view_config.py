@@ -21,9 +21,14 @@ class ConfigForm(Form):
 	ZOOM_password = StringField("Password")
 	ZOOM_meetingid = StringField("Meeting ID")
 
+	# FIXME: replace with SelectField
+	PERIPHERALS_camera = StringField("Camera")
+	PERIPHERALS_microphone = StringField("Microphone")
+	PERIPHERALS_speakers = StringField("Speakers")
+
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.
-# This specify two levels in app.config:
+# The two parts represent two dict levels in config.py, like this:
 # OBS_WEBSOCKET_hostname -> app.config["OBS_WEBSOCKET"]["hostname"]
 class ConfWrapper:
 	splitter = re.compile(r"^([A-Z_]+)_([a-z_]+)$")
@@ -35,13 +40,11 @@ class ConfWrapper:
 
 	# Copy back into app.config
 	def __setattr__(self, name, value):
-		print("Set:", name, value)
 		key1, key2 = self.splitter.match(name).groups()
 		current_app.config[key1][key2] = value
 
 		# Also copy into DB so change will persist accross app restarts
 		conf = Config.query.filter_by(name=key1).one_or_none()
-		print("conf:", conf)
 		if conf is None:
 			conf = Config(name=key1, data={})
 			db.session.add(conf)

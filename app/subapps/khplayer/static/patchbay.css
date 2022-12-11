@@ -1,4 +1,5 @@
 .patchbay {
+	position: relative;			/* make it a reference frame */
 	border: thin solid green;
 	vertical-align: top;		/* doesn't work */
 	}
