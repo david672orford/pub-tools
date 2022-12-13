@@ -3,12 +3,15 @@
 	border: thin solid green;
 	vertical-align: top;		/* doesn't work */
 	}
+.patchbay.patchbay-loading .node {
+	margin: 1em;
+	position: static;
+	}
 .node {
-	position: relative;
+	position: absolute;
 	display: inline-block;
 	border: thin solid black;
 	background-color: #f0fff0;
-	margin: 1em;
 	}
 .node-name, .node-media-class {
 	text-align: center;

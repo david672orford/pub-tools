@@ -27,13 +27,15 @@
 
 {% block main %}
 
-<div class="patchbay">
+<div id="patchbay" class="patchbay patchbay-loading">
 {% for node in patchbay.nodes %}
 {% if "Audio" in node.media_class %}
 {{ render_node(node) }}
 {% endif %}
 {% endfor %}
 </div>
+
+<div id="dummy" style="position: absolute"></div>
 
 <script>
 let links = [
@@ -43,58 +45,85 @@ let links = [
 ];
 
 function init_patchbay() {
-	let start_x;
-	let start_y;
+	let node_x;
+	let node_y;
+	let prev_cursor_x;
+	let prev_cursor_y;
+	let temp_link;
+	let dummy = document.getElementById("dummy");
 
 	function on_node_dragstart(e)
 		{
 		console.log("Node Dragstart:", e);
-		start_x = e.clientX;
-		start_y = e.clientY;
+		const node = e.target;
+
+		node_x = node.offsetLeft;
+		node_y = node.offsetTop;
+		prev_cursor_x = e.pageX;
+		prev_cursor_y = e.pageY;
+
+		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
+
+		const drag_cursor = document.createElement("div");
+		e.dataTransfer.setDragImage(drag_cursor, 0, 0);
+		}
+
+	function on_node_drag(e)
+		{
+		//console.log("Drag:", e);
+		const node = e.target;
+
+		if(e.pageX == 0)		/* last event is bad */
+			return;
+
+		node_x += (e.pageX - prev_cursor_x);
+		node_y += (e.pageY - prev_cursor_y);
+		node.style.left = node_x + "px";
+		node.style.top = node_y + "px";
+		prev_cursor_x = e.pageX;
+		prev_cursor_y = e.pageY;
+
+		links.forEach((link) => { link[2].position(); });
 		}
 
 	function on_node_dragend(e)
 		{
 		console.log("Node Dragend:", e);
-		let node = e.target;
-		let x = node.offsetLeft + e.clientX - start_x;
-		let y = node.offsetTop + e.clientY - start_y;
-		node.style.left = x + "px";
-		node.style.top = y + "px";
+		const node = e.target;
 
 		fetch("savepos", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 				},
-			body: JSON.stringify({name: node.dataset.name, x: x, y: y})
+			body: JSON.stringify({name: node.dataset.name, x: node_x, y: node_y})
 			});
 
-		leader_lines.forEach((leader_line) => { leader_line.position(); });
-
+		node.removeEventListener("drag", on_node_drag);
 		node.removeEventListener("dragend", on_node_dragend);
 		}
 
 	/* Draw an arrow to represent a Pipewire link */
-	let leader_lines = [];
-	function draw_link(output_port_id, input_port_id)
+	function draw_link(index)
 		{
-		let leader_line = new LeaderLine(
-			document.getElementById(output_port_id),
-			document.getElementById(input_port_id),
+		const output_port_id = links[index][0];
+		const input_port_id = links[index][1];
+		const leader_line = new LeaderLine(
+			document.getElementById("port-" + output_port_id),
+			document.getElementById("port-" + input_port_id),
 			);
 		leader_line.setOptions({startSocket: 'right', endSocket: 'left'});
-		let svg = document.body.querySelector("svg.leader-line:last-of-type");
+		const svg = document.body.querySelector("svg.leader-line:last-of-type");
 		svg.addEventListener("click", (e) => {
-			link_action("destroy-link", output_port_id, input_port_id, leader_line);
+			link_action("destroy-link", output_port_id, input_port_id, index);
 			});
-		leader_lines.push(leader_line);
+		links[index].push(leader_line);
 		}
 
 	/* Send a request to the server to have a link created or destroyed.
 	   If the request is successful, add or remove the arrow. */
-	async function link_action(action, output_port_id, input_port_id, leader_line)
+	async function link_action(action, output_port_id, input_port_id, index)
 		{
 		console.log("link_action:", action, output_port_id, input_port_id);
 		const response = await fetch(action, {
@@ -103,8 +132,8 @@ function init_patchbay() {
 				"Content-Type": "application/json"
 				},
 			body: JSON.stringify({
-				output_port_id: output_port_id.split("-")[1],
-				input_port_id: input_port_id.split("-")[1],
+				output_port_id: output_port_id,
+				input_port_id: input_port_id,
 				})
 			});
 
@@ -112,11 +141,14 @@ function init_patchbay() {
 			{
 			if(action == "create-link")
 				{
-				draw_link(output_port_id, input_port_id);
+				links.push([output_port_id, input_port_id]);
+				draw_link(links.length - 1);
 				}
 			else
 				{
-				leader_lines.splice(leader_lines.indexOf(leader_line), 1);
+				const link = links[index];
+				links.splice(index, 1);
+				const leader_line = link[2];
 				leader_line.remove();
 				}
 			}
@@ -128,12 +160,34 @@ function init_patchbay() {
 		console.log("Port Dragstart:", e);
 		e.dataTransfer.setData("text/plain", e.target.id);
 		e.stopPropagation();		/* so dragstart won't be called on node */
+
+		e.dataTransfer.setDragImage(dummy, 0, 0);
+
+		temp_link = new LeaderLine(e.target, dummy);
+		
+		e.target.addEventListener("drag", on_port_drag);
+		e.target.addEventListener("dragend", on_port_dragend);
+		}
+
+	function on_port_drag(e)
+		{
+		dummy.style.left = e.pageX + "px";
+		dummy.style.top = e.pageY + "px";
+		temp_link.position()
+		}
+
+	function on_port_dragend(e)
+		{
+		e.target.removeEventListener("drag", on_port_drag);
+		e.target.removeEventListener("dragend", on_port_dragend);
+		temp_link.remove()
+		temp_link = null;
 		}
 
 	/* Dragging over a Pipewire input port */
 	function on_port_dragover(e)
 		{
-		console.log("dragover");
+		//console.log("dragover");
 		e.preventDefault();
 		e.dataTransfer.dropEffect = "link";
 		}
@@ -142,8 +196,8 @@ function init_patchbay() {
 	function on_port_drop(e)
 		{
 		e.preventDefault()
-		const output_port_id = e.dataTransfer.getData("text/plain");
-		const input_port_id = e.target.id;
+		const output_port_id = e.dataTransfer.getData("text/plain").split("-")[1];
+		const input_port_id = e.target.id.split("-")[1];
 		link_action("create-link", output_port_id, input_port_id);
 		}
 
@@ -157,7 +211,7 @@ function init_patchbay() {
 		node.setAttribute("draggable", "true");
 		node.addEventListener("dragstart", on_node_dragstart);
 
-		if(node.style.left == null)
+		if(node.style.left == "")
 			{
 			node.style.left = node.offsetLeft + "px";
 			node.style.top = node.offsetTop + "px";
@@ -179,15 +233,12 @@ function init_patchbay() {
 
 		}
 
-	/* Activate the node positions set previously */
-	for(let i=0; i<nodes.length; i++)
-		nodes[i].style.position = "absolute"; 
+	document.getElementById("patchbay").classList.remove("patchbay-loading");
 
 	/* Draw (possibly curved) arrows to represent the links */
 	for(let i=0; i<links.length; i++)
 		{
-		let link = links[i];
-		draw_link("port-" + link[0], "port-" + link[1]);
+		draw_link(i);
 		}
 }
 
