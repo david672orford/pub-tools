@@ -2,14 +2,11 @@ import subprocess
 import json
 
 class Node:
-	def __init__(self, item):
-		self.id = item["id"]
-		self.name = item["info"]["props"]["node.name"]
-		self.nick = item["info"]["props"].get("node.nick")
-		self.description = item["info"]["props"].get("node.description")
-		self.media_class = item["info"]["props"].get("media.class","")
+	def __init__(self):
+		self.id = None
 		self.inputs = []
 		self.outputs = []
+
 	@property
 	def label(self):
 		if self.nick:
@@ -17,6 +14,7 @@ class Node:
 		if self.description:
 			return self.description;
 		return self.name
+
 	def add_port(self, port):
 		if port.direction == "input":
 			self.inputs.append(port)
@@ -24,6 +22,7 @@ class Node:
 			self.outputs.append(port)
 		else:
 			raise AssertionError
+
 	def __repr__(self):
 		return "<Node id=%d nick=%s name=%s inputs=%s outputs=%s>" % (
 			self.id,
@@ -34,11 +33,16 @@ class Node:
 			)
 
 class Port:
-	def __init__(self, item):
-		self.id = item["id"]
-		self.name = item["info"]["props"]["port.name"]
-		self.direction = item["info"]["direction"]
-		self.node_id = item["info"]["props"]["node.id"]
+	def __init__(self):
+		self.id = None
+		self.links = []
+
+	def add_link(self, link):
+		self.links.append(link)
+
+	def remove_link(self, link):
+		self.links.remove(link)
+
 	def __repr__(self):
 		return "<Port id=%d name=%s direction=%s>" % (
 			self.id,
@@ -47,20 +51,14 @@ class Port:
 			)
 
 class Link:
-	def __init__(self, item):
-		self.id = item["id"]
-		info = item["info"]
-		self.input_node_id = info["input-node-id"]
-		self.input_port_id = info["input-port-id"]
-		self.output_node_id = info["output-node-id"]
-		self.output_port_id = info["output-port-id"]
+	def __init__(self):
+		self.id = None
+
 	def __repr__(self):
-		return "<Link id=%d %d %d --> %d %d>" % (
+		return "<Link id=%d %s --> %s>" % (
 			self.id,
-			self.input_node_id,
-			self.input_port_id,
-			self.output_node_id,
-			self.output_port_id,
+			self.input_port,
+			self.output_port,
 			)
 
 class Patchbay:
@@ -69,39 +67,88 @@ class Patchbay:
 		pwconf = json.load(pwdump.stdout)
 		print(json.dumps(pwconf, indent=2))
 
-		nodes = {}
-		nodes_by_name = {}
-		links = []
+		self.nodes_by_id = {}
+		self.nodes_by_name = {}
+		self.ports_by_id = {}
+		self.links = []
 		
 		for item in pwconf:
 			#print(item["id"], item["type"])
 			info = item.get("info",{})
 			props = info.get("props")
 			if item["type"] == "PipeWire:Interface:Node":
-				node = Node(item)
-				nodes[node.id] = node
-				nodes_by_name[node.name] = node
+				node = Node()
+				node.id = item["id"]
+				node.name = props["node.name"]
+				node.nick = props.get("node.nick")
+				node.description = props.get("node.description")
+				node.media_class = props.get("media.class","")
+				self._add_node(node)
 			elif item["type"].endswith("PipeWire:Interface:Port"):
-				port = Port(item)
-				nodes[port.node_id].add_port(port)
+				port = Port()
+				port.id = item["id"]
+				port.name = props["port.name"]
+				port.direction = info["direction"]
+				port.node = self.nodes_by_id[props["node.id"]]
+				self._add_port(port)
 			elif item["type"].endswith("PipeWire:Interface:Link"):
-				links.append(Link(item))
+				link = Link()
+				link.id = item["id"]
+				link.input_port = self.ports_by_id[info["input-port-id"]]
+				link.output_port = self.ports_by_id[info["output-port-id"]]
+				self._add_link(link)
 
-		self.nodes = nodes.values()
-		self.nodes_by_name = nodes_by_name
-		self.links = links
+		self.nodes = self.nodes_by_id.values()
 
 	def print(self):
-		for node in self.nodes.values():
-			if node.media_class.startswith("Audio/"):
+		for node in self.nodes:
+			if "Audio" in node.media_class:
 				print(node)
 		for link in self.links:
 			print(link)
 
-	def create_link(self, output_node_id, output_port_id, input_node_id, input_port_id):
-		#cmd = ["pw-cli", "create-link", str(output_node_id), str(output_port_id), str(input_node_id), str(input_port_id)]
-		cmd = ["pw-link", str(output_port_id), str(input_port_id)]
-		print(" ".join(cmd))
-		subprocess.run(cmd, check=True)
+	def _add_node(self, node):
+		self.nodes_by_id[node.id] = node
+		self.nodes_by_name[node.name] = node
 
+	def _add_port(self, port):
+		port.node.add_port(port)
+		self.ports_by_id[port.id] = port
+
+	def _add_link(self, link):
+		link.input_port.add_link(link)
+		link.output_port.add_link(link)
+		self.links.append(link)
+
+	def _remove_link(self, link):
+		link.input_port.remove_link(link)
+		link.output_port.remove_link(link)
+		self.links.remove(link)
+
+	# Find the port specified by port ID
+	def find_port(self, port_id):
+		return self.ports_by_id[port_id]
+
+	# Find the link specified by the ID's of the ports it connects
+	def find_link(self, output_port_id, input_port_id):
+		for link in self.links:
+			if link.output_port.id == output_port_id and link.input_port.id == input_port_id:
+				return link
+		else:
+			raise KeyError
+
+	def create_link(self, output_port_id, input_port_id):
+		cmd = ["pw-link", str(output_port_id), str(input_port_id)]
+		subprocess.run(cmd, check=True)
+		link = Link()
+		link.output_port = self.find_port(output_port_id)
+		link.input_port = self.find_port(input_port_id)
+		self._add_link(link)
+
+	def destroy_link(self, output_port_id, input_port_id):
+		self.load()
+		link = self.find_link(output_port_id, input_port_id)
+		cmd = ["pw-link", "-d", str(link.id)]
+		subprocess.run(cmd, check=True)
+		self._remove_link(link)
 

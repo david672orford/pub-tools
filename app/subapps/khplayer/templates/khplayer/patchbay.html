@@ -13,12 +13,12 @@
 	<div class="node-body">
 		<div class="node-inputs">
 			{% for input in node.inputs %}
-			<div id="port-{{input.node_id}}-{{input.id}}" class="port">{{ input.name }}</div>
+			<div id="port-{{input.id}}" class="port">{{ input.name }}</div>
 			{% endfor %}
 		</div>
 		<div class="node-outputs">
 			{% for output in node.outputs %}
-			<div id="port-{{output.node_id}}-{{output.id}}" class="port">{{ output.name }}</div>
+			<div id="port-{{output.id}}" class="port">{{ output.name }}</div>
 			{% endfor %}
 		</div>
 	</div>
@@ -38,7 +38,7 @@
 <script>
 let links = [
 {% for link in patchbay.links %}
-["port-{{link.output_node_id}}-{{link.output_port_id}}", "port-{{link.input_node_id}}-{{link.input_port_id}}"],
+[{{link.output_port.id}}, {{link.input_port.id}}],
 {% endfor %}
 ];
 
@@ -76,6 +76,53 @@ function init_patchbay() {
 		node.removeEventListener("dragend", on_node_dragend);
 		}
 
+	/* Draw an arrow to represent a Pipewire link */
+	let leader_lines = [];
+	function draw_link(output_port_id, input_port_id)
+		{
+		let leader_line = new LeaderLine(
+			document.getElementById(output_port_id),
+			document.getElementById(input_port_id),
+			);
+		leader_line.setOptions({startSocket: 'right', endSocket: 'left'});
+		let svg = document.body.querySelector("svg.leader-line:last-of-type");
+		svg.addEventListener("click", (e) => {
+			link_action("destroy-link", output_port_id, input_port_id, leader_line);
+			});
+		leader_lines.push(leader_line);
+		}
+
+	/* Send a request to the server to have a link created or destroyed.
+	   If the request is successful, add or remove the arrow. */
+	async function link_action(action, output_port_id, input_port_id, leader_line)
+		{
+		console.log("link_action:", action, output_port_id, input_port_id);
+		const response = await fetch(action, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+				},
+			body: JSON.stringify({
+				output_port_id: output_port_id.split("-")[1],
+				input_port_id: input_port_id.split("-")[1],
+				})
+			});
+
+		if(response.ok)
+			{
+			if(action == "create-link")
+				{
+				draw_link(output_port_id, input_port_id);
+				}
+			else
+				{
+				leader_lines.splice(leader_lines.indexOf(leader_line), 1);
+				leader_line.remove();
+				}
+			}
+		}
+
+	/* Start of dragging of a Pipewire output port */
 	function on_port_dragstart(e)
 		{
 		console.log("Port Dragstart:", e);
@@ -83,6 +130,7 @@ function init_patchbay() {
 		e.stopPropagation();		/* so dragstart won't be called on node */
 		}
 
+	/* Dragging over a Pipewire input port */
 	function on_port_dragover(e)
 		{
 		console.log("dragover");
@@ -90,25 +138,13 @@ function init_patchbay() {
 		e.dataTransfer.dropEffect = "link";
 		}
 
+	/* Dropped on a Pipewire inport port in order to complete the link */
 	function on_port_drop(e)
 		{
 		e.preventDefault()
-		const from = e.dataTransfer.getData("text/plain");
-		const to = e.target.id;
-		console.log("Link:", from, to);
-		
-		fetch("create-link", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json"
-				},
-			body: JSON.stringify({from: from, to: to})
-			});
-
-		new LeaderLine(
-			document.getElementById(from),
-			document.getElementById(e.target.id),
-			)
+		const output_port_id = e.dataTransfer.getData("text/plain");
+		const input_port_id = e.target.id;
+		link_action("create-link", output_port_id, input_port_id);
 		}
 
 	/* Connect everything up */
@@ -143,19 +179,15 @@ function init_patchbay() {
 
 		}
 
+	/* Activate the node positions set previously */
 	for(let i=0; i<nodes.length; i++)
 		nodes[i].style.position = "absolute"; 
 
-	let leader_lines = [];
+	/* Draw (possibly curved) arrows to represent the links */
 	for(let i=0; i<links.length; i++)
 		{
 		let link = links[i];
-		let leader_line = new LeaderLine(
-			document.getElementById(link[0]),
-			document.getElementById(link[1])
-			);
-		leader_line.setOptions({startSocket: 'right', endSocket: 'left'});
-		leader_lines.push(leader_line);
+		draw_link("port-" + link[0], "port-" + link[1]);
 		}
 }
 

@@ -12,6 +12,7 @@ patchbay = Patchbay()
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
+	patchbay.print()
 
 	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
 	if node_positions is not None:
@@ -41,13 +42,12 @@ def page_patchbay_save_pos():
 @blueprint.route("/patchbay/create-link", methods=["POST"])
 def page_patchbay_create_link():
 	data = request.json
-	print(data)
-	output_node_id, output_link_id = map(int, data['from'].split("-")[1:])
-	input_node_id, input_link_id = map(int, data['to'].split("-")[1:])
-	patchbay.create_link(
-		output_node_id,
-		output_link_id,
-		input_node_id,
-		input_link_id,
-		)
+	patchbay.create_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
+
+@blueprint.route("/patchbay/destroy-link", methods=["POST"])
+def page_patchbay_destroy_link():
+	data = request.json
+	patchbay.destroy_link(int(data['output_port_id']), int(data['input_port_id']))
+	return ""
+
