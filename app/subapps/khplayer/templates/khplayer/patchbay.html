@@ -13,12 +13,12 @@
 	<div class="node-body">
 		<div class="node-inputs">
 			{% for input in node.inputs %}
-			<div id="port-{{input.id}}" class="port">{{ input.name }}</div>
+			<div id="port-{{input.id}}" class="port">{{ input.id }} {{ input.name }}</div>
 			{% endfor %}
 		</div>
 		<div class="node-outputs">
 			{% for output in node.outputs %}
-			<div id="port-{{output.id}}" class="port">{{ output.name }}</div>
+			<div id="port-{{output.id}}" class="port">{{ output.name }} {{ output.id }}</div>
 			{% endfor %}
 		</div>
 	</div>
@@ -65,8 +65,7 @@ function init_patchbay() {
 		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
 
-		const drag_cursor = document.createElement("div");
-		e.dataTransfer.setDragImage(drag_cursor, 0, 0);
+		e.dataTransfer.setDragImage(dummy, 0, 0);
 		}
 
 	function on_node_drag(e)
@@ -116,14 +115,14 @@ function init_patchbay() {
 		leader_line.setOptions({startSocket: 'right', endSocket: 'left'});
 		const svg = document.body.querySelector("svg.leader-line:last-of-type");
 		svg.addEventListener("click", (e) => {
-			link_action("destroy-link", output_port_id, input_port_id, index);
+			link_action("destroy-link", output_port_id, input_port_id);
 			});
 		links[index].push(leader_line);
 		}
 
 	/* Send a request to the server to have a link created or destroyed.
 	   If the request is successful, add or remove the arrow. */
-	async function link_action(action, output_port_id, input_port_id, index)
+	async function link_action(action, output_port_id, input_port_id)
 		{
 		console.log("link_action:", action, output_port_id, input_port_id);
 		const response = await fetch(action, {
@@ -144,12 +143,18 @@ function init_patchbay() {
 				links.push([output_port_id, input_port_id]);
 				draw_link(links.length - 1);
 				}
-			else
+			else		/* destroy-link */
 				{
-				const link = links[index];
-				links.splice(index, 1);
-				const leader_line = link[2];
-				leader_line.remove();
+				for(let i=0; i < links.length; i++)
+					{
+					const link = links[i];
+					if(link[0] == output_port_id && link[1] == input_port_id)
+						{
+						links.splice(i, 1);
+						link[2].remove();
+						break;
+						}
+					}
 				}
 			}
 		}
@@ -242,7 +247,7 @@ function init_patchbay() {
 		}
 }
 
-setTimeout(init_patchbay, 1000);
+setTimeout(init_patchbay, 100);
 
 
 </script>

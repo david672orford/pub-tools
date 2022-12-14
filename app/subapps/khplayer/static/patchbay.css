@@ -1,7 +1,5 @@
 .patchbay {
 	position: relative;			/* make it a reference frame */
-	border: thin solid green;
-	vertical-align: top;		/* doesn't work */
 	}
 .patchbay.patchbay-loading .node {
 	margin: 1em;
@@ -29,6 +27,7 @@
 	border-radius: 0 10px 10px 0;
 	margin: 2px 2px 2px 0;
 	padding: 2px 3px;
+	white-space: nowrap;
 	}
 .node-outputs > DIV {
 	background-color: white;
@@ -37,5 +36,6 @@
 	border-radius: 10px 0 0 10px;
 	margin: 2px 0 2px 2px;
 	padding: 2px 3px;
+	white-space: nowrap;
 	}
 

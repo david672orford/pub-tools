@@ -65,7 +65,7 @@ class Patchbay:
 	def load(self):
 		pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
 		pwconf = json.load(pwdump.stdout)
-		print(json.dumps(pwconf, indent=2))
+		#print(json.dumps(pwconf, indent=2))
 
 		self.nodes_by_id = {}
 		self.nodes_by_name = {}
@@ -140,6 +140,7 @@ class Patchbay:
 	def create_link(self, output_port_id, input_port_id):
 		cmd = ["pw-link", str(output_port_id), str(input_port_id)]
 		subprocess.run(cmd, check=True)
+		self.load()
 		link = Link()
 		link.output_port = self.find_port(output_port_id)
 		link.input_port = self.find_port(input_port_id)
