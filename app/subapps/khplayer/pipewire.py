@@ -23,6 +23,13 @@ class Node:
 		else:
 			raise AssertionError
 
+	def find_port_by_name(self, name):
+		for direction in (self.inputs, self.outputs):
+			for port in direction:
+				if port.name == name:
+					return port
+		return None
+
 	def __repr__(self):
 		return "<Node id=%d nick=%s name=%s inputs=%s outputs=%s>" % (
 			self.id,
@@ -57,8 +64,8 @@ class Link:
 	def __repr__(self):
 		return "<Link id=%d %s --> %s>" % (
 			self.id,
-			self.input_port,
 			self.output_port,
+			self.input_port,
 			)
 
 class Patchbay:
@@ -125,9 +132,23 @@ class Patchbay:
 		link.output_port.remove_link(link)
 		self.links.remove(link)
 
-	# Find the port specified by port ID
-	def find_port(self, port_id):
-		return self.ports_by_id[port_id]
+	# Find the node specified by node name
+	def find_node_by_name(self, name):
+		for node in self.nodes:
+			if node.name == name:
+				return node
+		return None
+
+	# Find the port specified by ID, or Nodename:Portname.
+	# If object is passed, simply return it.
+	def find_port(self, port):
+		if type(port) is Port:
+			return port
+		if type(port) is str:
+			node_name, port_name = port.split(":",1)
+			node = self.find_node_by_name(node_name)
+			return node.find_port_by_name(port_name)
+		return self.ports_by_id[port]
 
 	# Find the link specified by the ID's of the ports it connects
 	def find_link(self, output_port_id, input_port_id):
@@ -137,18 +158,17 @@ class Patchbay:
 		else:
 			raise KeyError
 
-	def create_link(self, output_port_id, input_port_id):
-		cmd = ["pw-link", str(output_port_id), str(input_port_id)]
-		subprocess.run(cmd, check=True)
-		self.load()
+	def create_link(self, output_port, input_port):
 		link = Link()
-		link.output_port = self.find_port(output_port_id)
-		link.input_port = self.find_port(input_port_id)
+		link.output_port = self.find_port(output_port)
+		link.input_port = self.find_port(input_port)
+		cmd = ["pw-link", str(link.output_port.id), str(link.input_port.id)]
+		subprocess.run(cmd, check=True)
 		self._add_link(link)
 
-	def destroy_link(self, output_port_id, input_port_id):
-		self.load()
-		link = self.find_link(output_port_id, input_port_id)
+	def destroy_link(self, output_port=None, input_port=None, link=None):
+		if link is None:
+			link = self.find_link(output_port, input_port)
 		cmd = ["pw-link", "-d", str(link.id)]
 		subprocess.run(cmd, check=True)
 		self._remove_link(link)

@@ -42,12 +42,14 @@ def page_patchbay_save_pos():
 @blueprint.route("/patchbay/create-link", methods=["POST"])
 def page_patchbay_create_link():
 	data = request.json
+	patchbay.load()
 	patchbay.create_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
 
 @blueprint.route("/patchbay/destroy-link", methods=["POST"])
 def page_patchbay_destroy_link():
 	data = request.json
+	patchbay.load()
 	patchbay.destroy_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
 
