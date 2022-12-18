@@ -1,5 +1,5 @@
-# Create a virtual audio cable to connect the output of OBS
-# to the microphone input of Zoom.
+# Create a virtual audio cable to connect the output of OBS to the microphone
+# input of Zoom. We also connect the microphone and speakers to this cable.
 
 import sys, os, types, re
 from subprocess import run, PIPE
@@ -40,14 +40,17 @@ def connect_peripherals(patchbay, config):
 	# Connect the microphone specified in config.py to the input of the virtual
 	# audio cable which connects the output of OBS to the micriphone input of Zoom.
 	if "microphone" in config:
-		patchbay.create_link(config["microphone"] + ":capture_MONO", "From-OBS:input_MONO")
+		microphone_node = patchbay.find_node_by_name(config["microphone"])
+		for port in microphone_node.outputs:
+			patchbay.create_link(port, "From-OBS:input_MONO")
 	
 	# Connect each set of speakers specified in config.py to the output of the
 	# same virtual audio cable. This allows those physically present to hear
 	# what OBS is sending to Zoom.
 	if "speakers" in config:
-		for port in ("playback_FL", "playback_FR"):
-			patchbay.create_link("To-Zoom:monitor_MONO", config["speakers"] + ":" + port)
+		speakers_node = patchbay.find_node_by_name(config["speakers"])
+		for port in speakers_node.inputs:
+			patchbay.create_link("To-Zoom:monitor_MONO", port)
 
 def reconnect_obs(patchbay):
 	virtual_cable_node = patchbay.find_node_by_name("To-Zoom")
