@@ -46,6 +46,9 @@ def page_actions_submit():
 				zoom_proc = start_meeting(current_app.config["ZOOM"], os.path.join(current_app.instance_path, "zoom.log"))
 
 			case "start-obs":
+				patchbay.load()
+				connect_all(patchbay, current_app.config["PERIPHERALS"])
+
 				with open(os.path.join(current_app.instance_path, "obs.log"), "w") as fh:
 					obs_proc = subprocess.Popen(["obs"], stderr=subprocess.STDOUT, stdout=fh)
 				for i in range(25):

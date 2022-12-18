@@ -2,6 +2,8 @@
 Description=Pub Tools
 
 [Service]
+Environment=DISPLAY=:0
+Exvironment=XAUTHORITY=/home/kh/.Xauthority
 ExecStart=/home/kh/pub-tools/start.py --listen-all
 
 [Install]
