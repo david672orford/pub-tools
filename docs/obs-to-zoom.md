@@ -34,6 +34,8 @@ ever time you log in.
 
 * Under **General** enable **Use dual monitors**.
 * Under **Video** select **Original ratio** and **HD**. Turn off **Mirror my video**.
+* Still under **Video** choose **See myself as the active speaker whiel speaking**.
+* Under **Audio** set **Suppress background noice** to **Medium** so that music will not be muted.
 
 ## Initial Setup of OBS
 

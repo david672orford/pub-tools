@@ -1,6 +1,7 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
+from werkzeug.utils import secure_filename
 from time import sleep
-import json
+import os, json
 
 from ...utils import progress_callback_response, run_thread
 from .views import blueprint
@@ -9,14 +10,14 @@ from .utils import obs, ObsError
 @blueprint.route("/scenes/")
 def page_scenes():
 	try:
-		scenes = reversed(obs.get_scene_list())
+		scene_names = list(map(lambda scene: scene["sceneName"], reversed(obs.get_scene_list())))
 	except ObsError as e:
 		flash("OBS: %s" % str(e))
-		scenes = []
+		scene_names = []
 
 	return render_template(
 		"khplayer/scenes.html",
-		scenes = scenes,
+		scene_names = scene_names,
 		top = ".."
 		)
 
@@ -60,4 +61,13 @@ def page_scenes_submit():
 		return progress_callback_response(message)
 	else:
 		return redirect(".")
+
+@blueprint.route("/scenes/upload", methods=["POST"])
+def page_scenes_upload():
+	files = request.files.getlist("files")
+	for file in files:
+		save_as = os.path.join(current_app.config["CACHEDIR"], secure_filename(file.filename))
+		file.save(save_as)
+		obs.add_media_scene(os.path.basename(save_as), "image", save_as)
+	return redirect(".")
 

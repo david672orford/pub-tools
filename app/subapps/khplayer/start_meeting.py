@@ -319,7 +319,7 @@ class AltZoomControl:
 		# If we exit too soon, it doesn't work.
 		sleep(10)
 
-def start_meeting(config):
+def start_meeting(config, logfile):
 
 	# If Zoom is already running, shut it down.
 	while os.system("killall zoom") == 0:
@@ -328,8 +328,13 @@ def start_meeting(config):
 	# Start Zoom with screen-reader integration enabled
 	os.environ["QT_ACCESSIBILITY"] = "1"
 	os.environ["QT_LINUX_ACCESSIBILITY_ALWAYS_ON"] = "1"
-	subprocess.Popen(["zoom"])
+
+	with open(logfile, "w") as fh:
+		zoom_proc = subprocess.Popen(["zoom"], stderr=subprocess.STDOUT, stdout=fh)
 
 	zoom = ZoomControl(config)
 	zoom.start_meeting()
+
+	return zoom_proc
+
 

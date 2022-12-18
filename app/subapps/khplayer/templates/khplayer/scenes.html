@@ -3,23 +3,24 @@
 
 {% block head_add %}
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='scenes.css')}}">
+<script src="{{ url_for('.static', filename='scenes.js')}}"></script>
 {% endblock %}
 
 {% block main %}
 <form action="submit" method="POST">
 
 <section>
-	<button type="submit" name="action" value="add-camera">Add Camera</button>
-	<button type="submit" name="action" value="add-zoom">Add Zoom</button>
-	<button type="submit" name="action" value="add-split">Add Split Screen</button>
+	<button type="submit" name="action" value="add-camera"{% if "Camera" in scene_names %} disabled{%endif%}>Add Camera</button>
+	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom</button>
+	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen</button>
 </section>
 
 <section>
 <ul class="scenes">
-{% for scene in scenes %}
+{% for scene_name in scene_names %}
 <li>
-	<input type="checkbox" name="del" value="{{scene['sceneName']}}">
-	<button type="submit" name="scene" value="{{scene['sceneName']}}">{{scene['sceneName']}}</button>
+	<input type="checkbox" name="del" value="{{scene_name}}">
+	<button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button>
 	</li>
 {% endfor %}
 </ul>
@@ -32,58 +33,11 @@
 
 </form>
 
+<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
+	<input type="file" id="files" name="files" multiple>
+</form>
+
 <script>
-function $(id)
-    {
-    return document.querySelector(id);
-    }
-
-function select_all(name, state)
-	{
-	document.getElementsByName(name).forEach(checkbox => {
-		checkbox.checked = state;
-		});
-	}
-
-document.getElementById("select-all").addEventListener("click", event => { select("del",true); });
-document.getElementById("deselect-all").addEventListener("click", event => { select("del",false); });
-
-let dropArea = $('.scenes');
-
-/* Allow drop */
-dropArea.addEventListener("dragover", (e) => e.preventDefault());
-
-/* Visual feedback when over drop zone */
-let counter = 0;
-dropArea.addEventListener("dragenter", (e) => {
-	counter++;
-	if(counter == 1)
-		dropArea.classList.add("highlight");
-	e.preventDefault();
-	});
-dropArea.addEventListener("dragleave", (e) => {
-	counter--;
-	if(counter == 0)
-		dropArea.classList.remove("highlight");
-	e.preventDefault();
-	});
-
-dropArea.addEventListener("dragover", (e) => {
-	e.preventDefault();
-	});
-
-/* File actually dropped onto the drop zone */
-dropArea.addEventListener('drop', (e) => {
-	console.log(e.dataTransfer);
-	console.log("Files:", e.dataTransfer.files);
-	console.log("Items:", e.dataTransfer.items);
-	console.log("Types:", e.dataTransfer.types);
-	e.preventDefault();
-	dropArea.classList.remove("highlight");
-	counter = 0;
-});
-
-
-
+init_dnd();
 </script>
 {% endblock %}
