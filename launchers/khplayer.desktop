@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name[ru]=KH Player
+Exec=/usr/bin/chromium-browser --app=http://localhost:5000/khplayer/meetings/
+Icon=/home/kh/pub-tools/launchers/khplayer.svg
+Icon[ru]=chromium-browser
+Name=KH Player

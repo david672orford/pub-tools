@@ -52,6 +52,8 @@ def page_actions_submit():
 					try:
 						obs.connect()
 						progress_callback("OBS is running.")
+						obs.set_virtual_camera_status(True)
+						obs.start_output_projector(1)
 						break
 					except ObsError:
 						progress_callback("Starting OBS: %d..." % i)

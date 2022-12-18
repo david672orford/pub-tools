@@ -1,0 +1,8 @@
+[Unit]
+Description=Pub Tools
+
+[Service]
+ExecStart=/home/kh/pub-tools/start.py --listen-all
+
+[Install]
+WantedBy=default.target
