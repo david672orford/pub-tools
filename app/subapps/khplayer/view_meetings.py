@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, flash
+from flask import current_app, render_template, request, redirect, flash
 from datetime import date
 from time import sleep
 from sqlalchemy import or_, and_
