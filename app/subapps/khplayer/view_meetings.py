@@ -50,6 +50,12 @@ def page_meetings_load(docid):
 		except ObsError as e:
 			return progress_callback_response("OBS: " + str(e))
 
+		sleep(1)		# Give GUI time to switch (may not be necessary)
+
+		obs.create_camera_scene(current_app.config["PERIPHERALS"]["camera"])
+		obs.create_zoom_scene()
+		obs.create_split_scene(current_app.config["PERIPHERALS"]["camera"])
+
 	# The media list will already by in the cache. Get it.
 	media = get_meeting_media_cached(docid)
 

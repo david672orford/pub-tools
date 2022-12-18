@@ -42,15 +42,15 @@ def page_scenes_submit():
 			sleep(1)
 
 		elif action == "add-camera":
-			obs.add_camera(current_app.config["PERIPHERALS"]["camera"])
+			obs.create_camera_scene(current_app.config["PERIPHERALS"]["camera"])
 			sleep(1)
 
 		elif action == "add-zoom":
-			obs.add_zoom()
+			obs.create_zoom_scene()
 			sleep(1)
 
 		elif action == "add-split":
-			obs.add_split(current_app.config["PERIPHERALS"]["camera"])
+			obs.create_split_scene(current_app.config["PERIPHERALS"]["camera"])
 			sleep(1)
 
 	except ObsError as e:

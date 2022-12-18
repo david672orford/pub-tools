@@ -6,13 +6,11 @@
 # * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 #
 
+import os, re, json
 import websocket
-import base64
-import hashlib
+import base64, hashlib
 from urllib.parse import urlparse, unquote
-import os
-import json
-import re
+from glob import glob
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,7 +33,7 @@ class ObsError(Exception):
 		else:
 			return "<ObsError code=%d comment=%s>" % (self.code, repr(self.comment))
 
-class ObsControl:
+class ObsControlBase:
 	def __init__(self, config):
 		self.config = config
 		self.ws = None
@@ -150,6 +148,96 @@ class ObsControl:
 			raise ObsError(response)
 		return response["d"]	
 
+	def create_scene_collection(self, name):
+		self.request("CreateSceneCollection", {"sceneCollectionName": name})
+
+	def get_scene_list(self):
+		return self.request("GetSceneList", {})["responseData"]["scenes"]
+
+	def create_scene(self, scene_name):
+		self.request("CreateScene", { "sceneName": scene_name })
+
+	def remove_scene(self, scene_name):
+		self.request("RemoveScene", {"sceneName": scene_name})
+
+	def set_current_program_scene(self, scene_name):
+		self.request("SetCurrentProgramScene", {"sceneName": scene_name})
+
+	def create_scene_item(self, scene_name, source_name):
+		response = self.request("CreateSceneItem", {
+			"sceneName": scene_name,
+			"sourceName": source_name,
+			})
+		return response["responseData"]["sceneItemId"]
+
+	def create_input(self, scene_name, input_name, input_kind, input_settings={}):
+		response = self.request("CreateInput", {
+			"sceneName": scene_name,
+			"inputName": input_name,
+			"inputKind": input_kind,
+			"inputSettings": input_settings,
+			})
+		return response["responseData"]["sceneItemId"]
+
+	def set_input_settings(self, input_name, input_settings={}):
+		self.request("SetInputSettings", {
+			"inputName": input_name,
+			"inputSettings": input_settings,
+			"overlay": True,
+			})
+
+	def scale_input(self, scene_name, scene_item_id, scene_item_transform={}):
+		xform = {
+				'boundsAlignment': 0,
+				'boundsWidth': 1280,
+				'boundsHeight': 720,
+				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+				}
+		xform.update(scene_item_transform)
+		self.request('SetSceneItemTransform', 
+			{
+			'sceneName': scene_name,
+			'sceneItemId': scene_item_id,
+			'sceneItemTransform': xform,
+ 			})
+
+	def get_virtual_camera_status(self):
+		return self.request("GetVirtualCamStatus", {})["responseData"]["outputActive"]
+
+	def set_virtual_camera_status(self, status):
+		if status is None:
+			self.request("ToggleVirtualCam", {})
+		elif status:
+			self.request("StartVirtualCam", {})
+		else:
+			self.request("StopVirtualCam", {})
+
+	def get_monitor_list(self):
+		return self.request("GetMonitorList", {})["responseData"]["monitors"]
+
+	def start_output_projector(self, monitor):
+		self.request("OpenVideoMixProjector", {
+			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
+			"monitorIndex": monitor,
+			})
+
+# Add higher-level methods to do specific things we need
+class ObsControl(ObsControlBase):
+	camera_scene_name = "Camera"
+	camera_input_name = "Camera Input"
+	camera_input_settings = {
+		"buffering": False,
+		"input": 0,
+		#"pixelformat": 1196444237,		# Motion-JPEG
+		"pixelformat": 875967048,		# H.264
+		"resolution": 83886800,			# 1280x720
+		}
+
+	zoom_scene_name = "Zoom"
+	zoom_input_name = "Zoom Capture"
+
+	split_scene_name = "Split Screen"
+
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
@@ -224,18 +312,19 @@ class ObsControl:
 					raise ObsError(e)
 			i += 1
 
-		# Scale the image to fit the screen
-		payload = {
-			'sceneName': scene_name,
-			'sceneItemId': scene_item_id,
-			'sceneItemTransform': {
-				'boundsAlignment': 0,
-				'boundsWidth': 1280,
-				'boundsHeight': 720,
-				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
-				}
-			}
-		self.request('SetSceneItemTransform', payload)
+		## Scale the image to fit the screen
+		#payload = {
+		#	'sceneName': scene_name,
+		#	'sceneItemId': scene_item_id,
+		#	'sceneItemTransform': {
+		#		'boundsAlignment': 0,
+		#		'boundsWidth': 1280,
+		#		'boundsHeight': 720,
+		#		'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+		#		}
+		#	}
+		#self.request('SetSceneItemTransform', payload)
+		self.scale_input(scene_name, scene_item_id)
 
 		# Enable audio for video files
 		if media_type == "video":
@@ -245,81 +334,92 @@ class ObsControl:
 				}
 			self.request('SetInputAudioMonitorType', payload)
 
-	def create_scene_collection(self, name):
-		self.request("CreateSceneCollection", {"sceneCollectionName": name})
+	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
+		try:
+			scene_item_id = self.create_input(
+				scene_name = scene_name,
+				input_name = input_name,
+				input_kind = input_kind,
+				input_settings = input_settings
+				)
+		except ObsError as e:
+			if e.code != 601:
+				raise(ObsError(e))
+			scene_item_id = self.create_scene_item(
+				scene_name = scene_name,
+				source_name = input_name,
+				)
+		return scene_item_id
 
-	def get_scene_list(self):
-		return self.request("GetSceneList", {})["responseData"]["scenes"]
+	def list_cameras(self):
+		for dev in glob("/sys/class/video4linux/*"):
+			with open(os.path.join(dev, "name")) as fh:
+				name = fh.read().strip()
+			with open(os.path.join(dev, "index")) as fh:
+				index = int(fh.read().strip())
+			if index == 0:
+				yield ("/dev/" + os.path.basename(dev), name)
 
-	def create_scene(self, scene_name):
-		self.request("CreateScene", { "sceneName": scene_name })
+	def camera_dev_lookup(self, camera_name):
+		for dev_node, display_name in self.list_cameras():
+			if display_name == camera_name:
+				return dev_node
+		return None
 
-	def remove_scene(self, scene_name):
-		self.request("RemoveScene", {"sceneName": scene_name})
+	def reconnect_camera(self, camera_name):
+		self.camera_input_settings["device_id"] = self.camera_dev_lookup(camera_name)
+		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
 
-	def set_current_program_scene(self, scene_name):
-		self.request("SetCurrentProgramScene", {"sceneName": scene_name})
+	def add_camera_input(self, scene_name, camera_dev_name):
+		self.camera_input_settings["device_id"] = self.camera_dev_lookup(camera_dev_name)
+		scene_item_id = self.create_input_with_reuse(
+			scene_name = scene_name,
+			input_name = self.camera_input_name,
+			input_kind = "v4l2_input",
+			input_settings = self.camera_input_settings,
+			)
+		return scene_item_id
 
-	def get_virtual_camera_status(self):
-		return self.request("GetVirtualCamStatus", {})["responseData"]["outputActive"]
-
-	def set_virtual_camera_status(self, status):
-		if status is None:
-			self.request("ToggleVirtualCam", {})
-		elif status:
-			self.request("StartVirtualCam", {})
-		else:
-			self.request("StopVirtualCam", {})
-
-	def get_monitor_list(self):
-		return self.request("GetMonitorList", {})["responseData"]["monitors"]
-
-	def start_output_projector(self, monitor):
-		self.request("OpenVideoMixProjector", {
-			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
-			"monitorIndex": monitor,
-			})
-
-	def create_input(self, scene_name=None, input_name=None, input_kind=None, input_settings={}):
-		response = self.request("CreateInput", {
-			"sceneName": scene_name,
-			"inputName": input_name,
-			"inputKind": input_kind,
-			"inputSettings": input_settings,
-			})
-		return response["responseData"]["sceneItemId"]
-
-	def scale_input(self, scene_name=None, scene_item_id=None):
-		self.request('SetSceneItemTransform', 
-			{
-			'sceneName': scene_name,
-			'sceneItemId': scene_item_id,
-			'sceneItemTransform': {
-				'boundsAlignment': 0,
-				'boundsWidth': 1280,
-				'boundsHeight': 720,
-				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
-				}
-			})
-
-	def add_camera(self, camera_name):
-		scene_name = "Camera"
-		self.create_scene(scene_name)
+	def add_zoom_input(self, scene_name):
 		scene_item_id = self.create_input(
-			scene_name=scene_name,
-			input_name="Camera Input",
-			input_kind="v4l2_input",
+			scene_name = scene_name,
+			input_name = "Zoom Capture",
+			input_kind = "xcomposite_input",
 			input_settings = {
-				"device_id": "/dev/video1",
-				"input": 0,
-				"pixelformat": 1196444237
+				"capture_window": "Zoom Conference",
+				"show_cursor": False,
 				}
 			)
-		self.scale_input(scene_name=scene_name, scene_item_id=scene_item_id)
+		return scene_item_id
 
-	def add_zoom(self):
-		self.create_scene("Zoom")
+	def create_camera_scene(self, camera_dev_name):
+		self.create_scene(self.camera_scene_name)
+		scene_item_id = self.add_camera_input(self.camera_scene_name, camera_dev_name)
+		#self.scale_input(self.camera_scene_name, scene_item_id)
 
-	def add_split(self, camera_name):
-		self.create_scene("Split Screen")
+	def create_zoom_scene(self):
+		self.create_scene(self.zoom_scene_name)
+		scene_item_id = self.add_zoom_input(self.zoom_scene_name)
+		self.scale_input(self.zoom_scene_name, scene_item_id)
+
+	def create_split_scene(self, camera_dev_name):
+		self.create_scene(self.split_scene_name)
+		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev_name)
+		self.scale_input(self.split_scene_name, scene_item_id, {
+			"positionX": 0.0,
+			"positionY": 180.0,
+			"scaleX": 0.5,
+			"scaleY": 0.5,
+			"height": 360.0,
+			"width": 640.0,
+			})
+		scene_item_id = self.add_zoom_input(self.split_scene_name)
+		self.scale_input(self.split_scene_name, scene_item_id, {
+			"positionX": 640.0,
+			"positionY": 180.0,
+			"scaleX": 0.5,
+			"scaleY": 0.5,
+			"height": 360.0,
+			"width": 640.0,
+			})
 

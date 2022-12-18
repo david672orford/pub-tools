@@ -145,6 +145,8 @@ class Patchbay:
 		if type(port) is Port:
 			return port
 		if type(port) is str:
+			if not ":" in port:
+				raise ValueError(port)
 			node_name, port_name = port.split(":",1)
 			node = self.find_node_by_name(node_name)
 			return node.find_port_by_name(port_name)
@@ -155,13 +157,20 @@ class Patchbay:
 		for link in self.links:
 			if link.output_port.id == output_port_id and link.input_port.id == input_port_id:
 				return link
-		else:
-			raise KeyError
+		return None
 
 	def create_link(self, output_port, input_port):
+		output_port = self.find_port(output_port)
+		input_port = self.find_port(input_port)
+
+		# Skip if this link already exists
+		for link in self.links:
+			if link.output_port is output_port and link.input_port is input_port:
+				return
+
 		link = Link()
-		link.output_port = self.find_port(output_port)
-		link.input_port = self.find_port(input_port)
+		link.output_port = output_port
+		link.input_port = input_port
 		cmd = ["pw-link", str(link.output_port.id), str(link.input_port.id)]
 		subprocess.run(cmd, check=True)
 		self._add_link(link)

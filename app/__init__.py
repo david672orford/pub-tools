@@ -34,6 +34,13 @@ def create_app(instance_path=None):
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
+	# Init DB and overlay configuration from the DB
+	with app.app_context():
+		from .models import init_app as models_init_app, Config
+		models_init_app(app)
+		for config in Config.query:
+			app.config[config.name] = config.data
+
 	# Accept SSE connection from Hotwire Turbo running in the browser
 	turbo = Turbo()
 	turbo.init_app(app)
@@ -48,19 +55,18 @@ def create_app(instance_path=None):
 	def get_session_id():
 		return session["session-id"]
 
-	# Load, initialize, and connect components
+	# Load, initialize, and connect app components
 	with app.app_context():
-		for module_name in ("models", "views", "admin", "subapps", "cli_update"):
+		for module_name in ("views", "admin", "subapps", "cli_update"):
+			logger.info("Loading module %s..." % module_name)
 			try:
 				module = import_module("app.%s" % module_name)
 				module.init_app(app)
-			except ModuleNotFoundError:
-				logger.warning("module %s disabled due to unsatisfied dependencies" % module_name)
-
-		# Overlay configuration from the DB
-		from .models import Config
-		for config in Config.query:
-			app.config[config.name] = config.data
+			except ModuleNotFoundError as e:
+				if module_name == "admin":
+					logger.warning("module %s disabled due to unsatisfied dependencies" % module_name)
+				else:
+					raise e
 
 	# Create the directory to which we download media.
 	if not os.path.exists(app.config["CACHEDIR"]):

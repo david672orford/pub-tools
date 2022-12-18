@@ -1,119 +1,38 @@
 #! /usr/bin/python3
-#
-# Create a virtual audio cable to connect the output of OBS
-# to the microphone input of Zoom.
-#
 
-import sys, os, types, re
-from subprocess import run, PIPE
-from time import sleep
-
+import sys, os, types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app", "subapps", "khplayer"))
 from pipewire import Patchbay
+from virtual_cable import create_cable, destory_cable, connect_peripherals, reconnect_obs
 
-def create_cable():
-	patchbay = Patchbay()
-	patchbay.load()
+# Load the Flask configuration file
+config = types.ModuleType("config")
+config.__file__ = os.path.join(os.path.dirname(__file__), "..", "instance", "config.py")
+with open(config.__file__, mode="rb") as config_file:
+	exec(compile(config_file.read(), config.__file__, "exec"), config.__dict__)
 
-	for name, media_class in (
-		("To-Zoom", "Audio/Sink"),
-		("From-OBS", "Audio/Source/Virtual"),
-		):
-		print(f"Creating {name}...")
-		node = patchbay.find_node_by_name(name)
-		if node is None:
-			create_null_sink(name, media_class)
-			run(["pactl",
-				"load-module", "module-null-sink",
-				"media.class=" + media_class,
-				"sink_name=" + name,
-				"sink_properties=device.description=" + name,
-				"channel_map=mono",
-				], stdout=PIPE, check=True)
-			print("  Created.")
-		else:
-			print(f"  {name} already exists")
-	
-	# Give them a chance to settle
-	sleep(.1)
-
-	patchbay.load()
-	
-	# Connect them
-	patchbay.create_link("To-Zoom:monitor_MONO", "From-OBS:input_MONO")
-
-def destroy_cable():
-	patchbay = Patchbay()
-	patchbay.load()
-	for name in ("From-OBS", "To-Zoom"):
-		node = patchbay.find_node_by_name(name)
-		run(["pw-cli", "destroy", str(id)], check=True)
-
-def connect_peripherals():
-	# Load the Flask configuration file
-	config = types.ModuleType("config")
-	config.__file__ = os.path.join(os.path.dirname(__file__), "..", "instance", "config.py")
-	with open(config.__file__, mode="rb") as config_file:
-		exec(compile(config_file.read(), config.__file__, "exec"), config.__dict__)
-	
-	patchbay = Patchbay()
-	patchbay.load()
-
-	# Connect the microphone specified in config.py to the input of the virtual
-	# audio cable which connects the output of OBS to the micriphone input of Zoom.
-	if "microphone" in config.PERIPHERALS:
-		patchbay.create_link(config.PERIPHERALS["microphone"], "From-OBS:input_MONO")
-	
-	# Connect each set of speakers specified in config.py to the output of the
-	# same virtual audio cable. This allows those physically present to hear
-	# what OBS is sending to Zoom.
-	if "speakers" in config.PERIPHERALS:
-		for port in ("playback_FL", "playback_FR"):
-			patchbay.create_link("To-Zoom:monitor_MONO", config.PERIPHERALS["speakers"] + ":" + port)
-
-def fix_obs():
-	patchbay = Patchbay()
-	patchbay.load()
-
-	virtual_cable_node = patchbay.find_node_by_name("To-Zoom")
-	virtual_cable_input = virtual_cable_node.inputs[0]
-
-	# Ensure OBS monitor outputs are connected to the virtual cable and nothing else.
-	for node in patchbay.nodes:
-		if node.name == "OBS-Monitor":
-			print("Node:", node.name)
-			for output in node.outputs:
-				print(" Output:", output.name)
-				linked = False
-				for link in output.links:
-					print(" Link:", link)
-					if link.input_port is virtual_cable_input:
-						linked = True
-					else:
-						print("  Incorrect link")
-						patchbay.destroy_link(link=link)
-				if not linked:
-					patchbay.create_link(output, virtual_cable_input)
+patchbay = Patchbay()
+patchbay.load()
 
 good = 0
 for arg in sys.argv[1:]:
 	match arg:
 		case "create":
-			create_cable()
+			create_cable(patchbay)
 			good += 1
 		case "destroy":
-			destroy_cable()
+			destroy_cable(patchbay)
 			good += 1
 		case "connect-peripherals":
-			connect_peripherals()
+			connect_peripherals(patchbay, config["PERIPHERALS"])
 			good += 1
-		case "fix-obs":
-			fix_obs()
+		case "reconnect-obs":
+			reconnect_obs(patchbay)
 			good += 1
 		case _:
 			good = False
 			break
 if not good:
-	sys.stderr.write("Usage: virtual-audio-cable [create, destroy, connect-peripherals, fix-obs]\n")
+	sys.stderr.write("Usage: virtual-audio-cable [create, destroy, connect-peripherals, reconnect-obs]\n")
 	sys.exit(1)
 

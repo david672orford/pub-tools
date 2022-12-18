@@ -6,25 +6,8 @@ from urllib.parse import urlencode
 
 from ...models import db, Config
 from .views import blueprint
-
-class ConfigForm(Form):
-	OBS_WEBSOCKET_hostname = StringField("Hostname")
-	OBS_WEBSOCKET_port = IntegerField("Port", [validators.NumberRange(min=1024, max=65535)])
-	OBS_WEBSOCKET_password = StringField("Password")
-
-	JW_STREAM_url = URLField("URL", [validators.URL()])
-	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
-	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
-	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
-
-	ZOOM_username = EmailField("Username", [validators.Email()])
-	ZOOM_password = StringField("Password")
-	ZOOM_meetingid = StringField("Meeting ID")
-
-	# FIXME: replace with SelectField
-	PERIPHERALS_camera = StringField("Camera")
-	PERIPHERALS_microphone = StringField("Microphone")
-	PERIPHERALS_speakers = StringField("Speakers")
+from .utils import obs, ObsError
+from .view_patchbay import patchbay
 
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.
@@ -50,6 +33,42 @@ class ConfWrapper:
 			db.session.add(conf)
 		conf.data[key2] = value
 		flag_modified(conf, "data")
+
+class ConfigForm(Form):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		patchbay.load()
+		microphones = []
+		speakers = []
+		for node in patchbay.nodes:
+			if node.media_class == "Audio/Source":
+				microphones.append((node.name, node.nick))
+			elif node.media_class == "Audio/Sink":
+				speakers.append((node.name, node.nick))
+		self.PERIPHERALS_microphone.choices = microphones	
+		self.PERIPHERALS_speakers.choices = speakers
+
+		cameras = []
+		for dev_node, display_name in obs.list_cameras():
+			cameras.append(display_name)
+		self.PERIPHERALS_camera.choices = cameras
+
+	OBS_WEBSOCKET_hostname = StringField("Hostname")
+	OBS_WEBSOCKET_port = IntegerField("Port", [validators.NumberRange(min=1024, max=65535)])
+	OBS_WEBSOCKET_password = StringField("Password")
+
+	JW_STREAM_url = URLField("URL", [validators.URL()])
+	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
+	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
+	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
+
+	ZOOM_username = EmailField("Username", [validators.Email()])
+	ZOOM_password = StringField("Password")
+	ZOOM_meetingid = StringField("Meeting ID")
+
+	PERIPHERALS_camera = SelectField("Camera")
+	PERIPHERALS_microphone = SelectField("Microphone")
+	PERIPHERALS_speakers = SelectField("Speakers")
 
 @blueprint.route("/config/", methods=["GET"])
 def page_config():

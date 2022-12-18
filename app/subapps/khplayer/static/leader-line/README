@@ -1,0 +1,6 @@
+From:
+	https://github.com/anseki/leader-line
+
+Removed from leader-line.min.js:
+	pointer-events: none !important;
+
