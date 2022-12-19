@@ -29,6 +29,9 @@
 	padding: 2px 3px;
 	white-space: nowrap;
 	}
+.node-inputs > DIV.highlight {
+	background-color: #f0f0f0;
+	}
 .node-outputs > DIV {
 	background-color: white;
 	border: solid black;

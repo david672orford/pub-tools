@@ -8,8 +8,8 @@ function init_patchbay(links) {
 
 	function on_node_dragstart(e)
 		{
-		console.log("Node Dragstart:", e);
 		const node = e.target;
+		console.log("Node Dragstart:", node.id);
 
 		node_x = node.offsetLeft;
 		node_y = node.offsetTop;
@@ -42,8 +42,8 @@ function init_patchbay(links) {
 
 	function on_node_dragend(e)
 		{
-		console.log("Node Dragend:", e);
 		const node = e.target;
+		console.log("Node Dragend:", node.id);
 
 		fetch("save-node-pos", {
 			method: "POST",
@@ -116,7 +116,7 @@ function init_patchbay(links) {
 	/* Start of dragging of a Pipewire output port */
 	function on_port_dragstart(e)
 		{
-		console.log("Port Dragstart:", e);
+		console.log("Port Dragstart:", e.target.id);
 		e.dataTransfer.setData("text/plain", e.target.id);
 		e.stopPropagation();		/* so dragstart won't be called on node */
 
@@ -137,10 +137,21 @@ function init_patchbay(links) {
 
 	function on_port_dragend(e)
 		{
+		console.log("Port Dragend:", e.target.id);
 		e.target.removeEventListener("drag", on_port_drag);
 		e.target.removeEventListener("dragend", on_port_dragend);
 		temp_link.remove()
 		temp_link = null;
+		}
+
+	function on_port_dragenter(e)
+		{
+		e.target.classList.add("highlight");
+		}
+
+	function on_port_dragleave(e)
+		{
+		e.target.classList.remove("highlight");
 		}
 
 	/* Dragging over a Pipewire input port */
@@ -158,6 +169,7 @@ function init_patchbay(links) {
 		const output_port_id = e.dataTransfer.getData("text/plain").split("-")[1];
 		const input_port_id = e.target.id.split("-")[1];
 		link_action("create-link", output_port_id, input_port_id);
+		e.target.classList.remove("highlight");
 		}
 
 	/* Connect everything up */
@@ -179,8 +191,10 @@ function init_patchbay(links) {
 		let inputs = node.getElementsByClassName("node-inputs")[0].getElementsByClassName("port");
 		for(let i=0; i<inputs.length; i++)
 			{
-			inputs[i].addEventListener("drop", on_port_drop);
+			inputs[i].addEventListener("dragenter", on_port_dragenter);
+			inputs[i].addEventListener("dragleave", on_port_dragleave);
 			inputs[i].addEventListener("dragover", on_port_dragover);
+			inputs[i].addEventListener("drop", on_port_drop);
 			}
 
 		let outputs = node.getElementsByClassName("node-outputs")[0].getElementsByClassName("port");
