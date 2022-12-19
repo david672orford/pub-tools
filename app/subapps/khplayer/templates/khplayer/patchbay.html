@@ -1,4 +1,4 @@
-{% set title = "Patchbay" %}
+{% set title = "Audio Routing Patchbay" %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% macro render_node(node) %}
-<div id="node-{{node.id}}" class="node" data-name="{{ node.name }}" style="{{node.style}}">
+<div id="node-{{node.id}}" class="node" data-key="{{ node.name }}-{{ node.name_serial }}" style="{{node.style}}">
 	<div class="node-name">{{ node.label }}</div>
 	<div class="node-media-class">{{ node.media_class }}</div>
 	<div class="node-body">

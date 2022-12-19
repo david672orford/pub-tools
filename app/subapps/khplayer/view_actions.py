@@ -69,10 +69,10 @@ def page_actions_submit():
 			case "start-projector":
 				obs.start_output_projector(1)
 
-			case "connect-camera":
+			case "reconnect-camera":
 				obs.reconnect_camera(current_app.config["PERIPHERALS"]["camera"])
 
-			case "connect-audio":
+			case "reconnect-audio":
 				patchbay.load()
 				connect_all(patchbay, current_app.config["PERIPHERALS"])
 

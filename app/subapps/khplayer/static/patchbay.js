@@ -45,12 +45,12 @@ function init_patchbay(links) {
 		console.log("Node Dragend:", e);
 		const node = e.target;
 
-		fetch("savepos", {
+		fetch("save-node-pos", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json"
 				},
-			body: JSON.stringify({name: node.dataset.name, x: node_x, y: node_y})
+			body: JSON.stringify({key: node.dataset.key, x: node_x, y: node_y})
 			});
 
 		node.removeEventListener("drag", on_node_drag);

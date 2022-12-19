@@ -18,7 +18,7 @@ def page_patchbay():
 	if node_positions is not None:
 		node_positions = node_positions.data
 		for node in patchbay.nodes:
-			position = node_positions.get(node.name)
+			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
 			print("position:", position)
 			if position:
 				node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
@@ -27,14 +27,14 @@ def page_patchbay():
 
 	return render_template("khplayer/patchbay.html", patchbay=patchbay, node_positions=node_positions, top="..")
 
-@blueprint.route("/patchbay/savepos", methods=["POST"])
-def page_patchbay_save_pos():
-	data = request.json
+@blueprint.route("/patchbay/save-node-pos", methods=["POST"])
+def page_patchbay_save_node_pos():
+	postdata = request.json
 	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
 	if node_positions is None:
 		node_positions = Config(name="Patchbay Node Positions", data={})
 		db.session.add(node_positions)
-	node_positions.data[data["name"]] = [data["x"], data["y"]]
+	node_positions.data[postdata["key"]] = [postdata["x"], postdata["y"]]
 	flag_modified(node_positions, "data")
 	db.session.commit()
 	return ""

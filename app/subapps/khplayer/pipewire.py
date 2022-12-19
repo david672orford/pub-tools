@@ -1,9 +1,14 @@
 import subprocess
 import json
+from collections import defaultdict
 
 class Node:
 	def __init__(self):
 		self.id = None
+		self.name = None
+		self.name_serial = None
+		self.nick = None
+		self.description = None
 		self.inputs = []
 		self.outputs = []
 
@@ -42,6 +47,9 @@ class Node:
 class Port:
 	def __init__(self):
 		self.id = None
+		self.node = None
+		self.name = None
+		self.direction = None
 		self.links = []
 
 	def add_link(self, link):
@@ -75,7 +83,7 @@ class Patchbay:
 		#print(json.dumps(pwconf, indent=2))
 
 		self.nodes_by_id = {}
-		self.nodes_by_name = {}
+		self.nodes_by_name = defaultdict(list)
 		self.ports_by_id = {}
 		self.links = []
 		
@@ -116,7 +124,9 @@ class Patchbay:
 
 	def _add_node(self, node):
 		self.nodes_by_id[node.id] = node
-		self.nodes_by_name[node.name] = node
+		nlist = self.nodes_by_name[node.name]
+		nlist.append(node)
+		node.name_serial = len(nlist)
 
 	def _add_port(self, port):
 		port.node.add_port(port)
@@ -133,9 +143,13 @@ class Patchbay:
 		self.links.remove(link)
 
 	# Find the node specified by node name
-	def find_node_by_name(self, name):
+	def find_node_by_name(self, name, media_class=None):
+		if media_class is None:
+			test_func = lambda node: node.name == name
+		else:
+			test_func = lambda node: node.name == name and node.media_class == media_class
 		for node in self.nodes:
-			if node.name == name:
+			if test_func(node):
 				return node
 		return None
 
