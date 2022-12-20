@@ -37,8 +37,8 @@
 	{% endblock %}
 </header>
 <script>
-document.getElementsByTagName("body")[0].style.paddingTop
-	= document.getElementsByTagName("header")[0].offsetHeight + "px";
+/*document.getElementsByTagName("body")[0].style.paddingTop
+	= document.getElementsByTagName("header")[0].offsetHeight + "px";*/
 </script>
 
 {% with messages = get_flashed_messages() %}
@@ -49,8 +49,10 @@ document.getElementsByTagName("body")[0].style.paddingTop
 	{% endif %}
 {% endwith %}
 
+<main>
 {% block main %}
 {% endblock %}
+</main>
 
 </body>
 </html>

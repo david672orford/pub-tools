@@ -1,18 +1,27 @@
-HTML, BODY, HEADER, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAREA, BUTTON {
+HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAREA, BUTTON {
 	margin: 0;
 	padding: 0;
+	}
+* {
+	box-sizing: border-box;
 	}
 INPUT, SELECT, TEXTAREA, BUTTON {
 	font-size: inherit;		/* For some reason Pywebview makes these large */
 	}
 BODY {
 	font-family: sans-serif;
+	display: flex;
+	flex-direction: column;
 	}
 HEADER {
-	position: fixed;
-	top: 0; left: 0; right: 0;
+	/*position: fixed;
+	top: 0; left: 0; right: 0;*/
 	background-color: #f0f0f0;
 	border-bottom: 1px solid #a0a0a0;
+	}
+MAIN {
+	flex-grow: 1;
+	overflow: auto;
 	}
 SECTION {
 	margin: .5em;

@@ -55,7 +55,7 @@ class ObsControlBase:
 			ws.connect("ws://%s:%d" % (hostname, port))
 	
 			hello = ws.recv()
-			print("hello:", hello)
+			logger.debug("hello: %s", hello)
 			hello = json.loads(hello)
 
 			if hello["d"]["rpcVersion"] != 1:
@@ -92,7 +92,7 @@ class ObsControlBase:
 		try:	
 			ws.send(json.dumps(req))
 			response = ws.recv()
-			print("auth response:", response)
+			logger.debug("auth response: %s", response)
 
 			if response == "":
 				raise ObsError("Incorrect password")
@@ -368,9 +368,12 @@ class ObsControl(ObsControlBase):
 
 	def reconnect_camera(self, camera_name):
 		camera_dev_node = self.camera_dev_lookup(camera_name)
-		print("Setting camera to %s (%s)..." % (camera_name, camera_dev_node))
+		if camera_dev_node is None:
+			return False
+		logger.info("Setting camera to %s (%s)...", camera_name, camera_dev_node)
 		self.camera_input_settings["device_id"] = camera_dev_node
 		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
+		return True
 
 	def add_camera_input(self, scene_name, camera_dev_name):
 		self.camera_input_settings["device_id"] = self.camera_dev_lookup(camera_dev_name)

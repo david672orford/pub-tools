@@ -6,6 +6,67 @@ function init_patchbay(links) {
 	let temp_link;
 	let dummy = document.getElementById("dummy");
 
+	class LinkDrawer
+		{
+		constructor(start_el, end_el)
+			{
+			this.start_el = start_el;
+			this.end_el = end_el;
+			this.svg = document.getElementById("link").content.cloneNode(true).querySelector(".link");
+			this.path = this.svg.querySelector(".link-curve");
+			document.body.appendChild(this.svg);
+			this.position();
+			}
+
+		position()
+			{
+			/* Find the middle of the right edge of the output. */
+			let rect = this.start_el.getBoundingClientRect();
+			let start_x = rect["right"];
+			let start_y = (rect["bottom"] + rect["top"]) / 2;
+	
+			/* Find the middle of the left edge of the input. */
+			rect = this.end_el.getBoundingClientRect();
+			let end_x = rect["left"] - 5;	/* room for arrowhead tip */
+			let end_y = (rect["bottom"] + rect["top"]) / 2;
+
+			/* Get the bounding box of the SVG curve we will draw in patchbay canvas space */
+			const x = Math.min(start_x, end_x);
+			const y = Math.min(start_y, end_y);
+			const width = Math.abs(end_x - start_x);
+			const signed_height = (end_y - start_y);
+			const height = Math.abs(signed_height);
+
+			/* Place and size the viewbox of the SVG. Leave a 5px margin so as not to clip the lines. */
+			this.svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+			this.svg.style.left = x + "px";
+			this.svg.style.top = y + "px";
+			this.svg.style.width = width + "px";
+			this.svg.style.height = height + "px";
+
+			/* Translate start and end points to SVG coordinate space. */
+			start_x -= x;
+			start_y -= y;
+			end_x -= x;
+			end_y -= y;
+
+			/* for testing */
+			//this.path.setAttribute("d", `M ${start_x} ${start_y} L ${end_x} ${end_y}`);
+
+			const cp1x = start_x + (width + height) * 0.5;
+			const cp1y = start_y - (signed_height * .05);
+			const cp2x = end_x - (width + height) * 0.5;
+			const cp2y = end_y + (signed_height * .05);
+			this.path.setAttribute("d", `M ${start_x} ${start_y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${end_x} ${end_y}`);
+			}
+
+		remove()
+			{
+			this.svg.remove();
+			}
+		}
+
+	/* User is dragging a <div> which represents a Pipewire node */
 	function on_node_dragstart(e)
 		{
 		const node = e.target;
@@ -19,12 +80,13 @@ function init_patchbay(links) {
 		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
 
-		e.dataTransfer.setDragImage(dummy, 0, 0);
+		e.dataTransfer.setDragImage(dummy, 5, 5);
 		}
 
+	/* Fired several times a second as the user moves the node */
 	function on_node_drag(e)
 		{
-		//console.log("Drag:", e);
+		console.log("Drag:", e.pageX, e.pageY, e);
 		const node = e.target;
 
 		if(e.pageX == 0)		/* last event is bad */
@@ -40,9 +102,10 @@ function init_patchbay(links) {
 		links.forEach((link) => { link[2].position(); });
 		}
 
+	/* User has dropt the node */
 	function on_node_dragend(e)
 		{
-		const node = e.target;
+		const node = e.currentTarget;
 		console.log("Node Dragend:", node.id);
 
 		fetch("save-node-pos", {
@@ -62,16 +125,14 @@ function init_patchbay(links) {
 		{
 		const output_port_id = links[index][0];
 		const input_port_id = links[index][1];
-		const leader_line = new LeaderLine(
+		const link_drawer = new LinkDrawer(
 			document.getElementById("port-" + output_port_id),
 			document.getElementById("port-" + input_port_id),
 			);
-		leader_line.setOptions({startSocket: 'right', endSocket: 'left'});
-		const svg = document.body.querySelector("svg.leader-line:last-of-type");
-		svg.addEventListener("click", (e) => {
+		link_drawer.path.addEventListener("click", (e) => {
 			link_action("destroy-link", output_port_id, input_port_id);
 			});
-		links[index].push(leader_line);
+		links[index].push(link_drawer);
 		}
 
 	/* Send a request to the server to have a link created or destroyed.
@@ -120,9 +181,9 @@ function init_patchbay(links) {
 		e.dataTransfer.setData("text/plain", e.target.id);
 		e.stopPropagation();		/* so dragstart won't be called on node */
 
-		e.dataTransfer.setDragImage(dummy, 0, 0);
-
-		temp_link = new LeaderLine(e.target, dummy);
+		e.dataTransfer.setDragImage(dummy, 5, 5);
+		temp_link = new LinkDrawer(e.target, dummy);
+		temp_link.svg.style.pointerEvents = "none";
 		
 		e.target.addEventListener("drag", on_port_drag);
 		e.target.addEventListener("dragend", on_port_dragend);
@@ -130,8 +191,10 @@ function init_patchbay(links) {
 
 	function on_port_drag(e)
 		{
-		dummy.style.left = e.pageX + "px";
-		dummy.style.top = e.pageY + "px";
+		if(e.pageX == 0)		/* last event is bad */
+			return;
+		dummy.style.left = e.pageX + 15 + "px";
+		dummy.style.top = e.pageY - 5 + "px";
 		temp_link.position()
 		}
 
@@ -142,13 +205,15 @@ function init_patchbay(links) {
 		e.target.removeEventListener("dragend", on_port_dragend);
 		temp_link.remove()
 		temp_link = null;
+		dummy.style.left = null;
+		dummy.style.top = null;
 		}
 
+	/* Dragged output port hovering over an input port */
 	function on_port_dragenter(e)
 		{
 		e.target.classList.add("highlight");
 		}
-
 	function on_port_dragleave(e)
 		{
 		e.target.classList.remove("highlight");
@@ -157,7 +222,6 @@ function init_patchbay(links) {
 	/* Dragging over a Pipewire input port */
 	function on_port_dragover(e)
 		{
-		//console.log("dragover");
 		e.preventDefault();
 		e.dataTransfer.dropEffect = "link";
 		}
@@ -182,6 +246,11 @@ function init_patchbay(links) {
 		node.setAttribute("draggable", "true");
 		node.addEventListener("dragstart", on_node_dragstart);
 
+		/* Needed by Firefox but commented out because Firefox has other problems. */
+		/*const patchbay = document.getElementById("patchbay");
+		patchbay.addEventListener("dragenter", (e) => { e.preventDefault() });
+		patchbay.addEventListener("dragleave", (e) => { e.preventDefault() });*/
+
 		if(node.style.left == "")
 			{
 			node.style.left = node.offsetLeft + "px";
@@ -203,7 +272,6 @@ function init_patchbay(links) {
 			outputs[i].setAttribute("draggable", "true");
 			outputs[i].addEventListener("dragstart", on_port_dragstart);
 			}
-
 		}
 
 	document.getElementById("patchbay").classList.remove("patchbay-loading");

@@ -13,7 +13,7 @@ def create_cable(patchbay):
 			("To-Zoom", "Audio/Sink"),
 			("From-OBS", "Audio/Source/Virtual"),
 		):
-		node = patchbay.find_node_by_name(name)
+		node = patchbay.find_node(name=name)
 		if node is None:
 			logger.info("Creating %s", name)
 			run(["pactl",
@@ -33,10 +33,12 @@ def create_cable(patchbay):
 	patchbay.load()
 	patchbay.create_link("To-Zoom:monitor_MONO", "From-OBS:input_MONO")
 
+	return []
+
 def destroy_cable(patchbay):
 	for name in ("From-OBS", "To-Zoom"):
 		logger.info("Destroying %s", name)
-		node = patchbay.find_node_by_name(name)
+		node = patchbay.find_node(name=name)
 		run(["pw-cli", "destroy", str(node.id)], check=True)
 
 # Connect Microphone and Speakers to virtual audio cable like so:
@@ -46,14 +48,20 @@ def destroy_cable(patchbay):
 #                                   |---> [playback]Speakers
 #
 def connect_peripherals(patchbay, config):
+	failures = []
+
 	# Connect the microphone specified in config to input of From-OBS and
 	# disconnect any other audio sources.
-	if "microphone" in config:
+	if "microphone" not in config:
+		failures.append("No microphone selected in configuration")
+	else:
 		# connect microphone to this
-		from_obs_input = patchbay.find_node_by_name("From-OBS").inputs[0]
+		from_obs_input = patchbay.find_node(name="From-OBS").inputs[0]
 		# what should be connected
-		microphone = patchbay.find_node_by_name(config["microphone"])
-		if microphone is not None:
+		microphone = patchbay.find_node(name=config["microphone"])
+		if microphone is None:
+			failures.append("Selected microphone is not connected")
+		else:
 			microphone_outputs = microphone.outputs[:]
 			# what is already connected
 			for link in from_obs_input.links:
@@ -68,11 +76,13 @@ def connect_peripherals(patchbay, config):
 	
 	# Connect the set of speakers specified in config to the output of To-Zoom
 	# and disconnect any other audio sinks.
-	if "speakers" in config:
-		to_zoom_output = patchbay.find_node_by_name("To-Zoom").outputs[0]
-		speakers = patchbay.find_node_by_name(config["speakers"])
+	if "speakers" not in config:
+		failures.append("No speakers selected in configuration")
+	else:
+		to_zoom_output = patchbay.find_node(name="To-Zoom").outputs[0]
+		speakers = patchbay.find_node(name=config["speakers"])
 		if speakers is None:
-			logger.warning("Speakers not found: %s", config["speakers"])
+			logger.warning("Selected speakers are not connected")
 		else:
 			speaker_inputs = speakers.inputs[:]
 			for link in to_zoom_output.links:
@@ -84,8 +94,12 @@ def connect_peripherals(patchbay, config):
 			for port in speaker_inputs:
 				patchbay.create_link(to_zoom_output, port)
 
+	return failures
+
 def reconnect_obs(patchbay):
-	virtual_cable_node = patchbay.find_node_by_name("To-Zoom")
+	failures = []
+
+	virtual_cable_node = patchbay.find_node(name="To-Zoom")
 	virtual_cable_input = virtual_cable_node.inputs[0]
 
 	# Ensure OBS monitor outputs are connected to the virtual cable and nothing else.
@@ -104,12 +118,16 @@ def reconnect_obs(patchbay):
 					logger.info("Linking OBS-Monitor to To-Zoom")
 					patchbay.create_link(output, virtual_cable_input)
 
+	return failures
+
 def reconnect_zoom(patchbay, config):
-	zoom_input_node = patchbay.find_node_by_name("ZOOM VoiceEngine", media_class="Stream/Input/Audio")
+	failures = []
+
+	zoom_input_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Input/Audio")
 	if zoom_input_node is None:
 		logger.warning("Zoom input node not found")
 	else:
-		from_obs_output = patchbay.find_node_by_name("From-OBS").outputs[0]
+		from_obs_output = patchbay.find_node(name="From-OBS").outputs[0]
 		for zoom_input in zoom_input_node.inputs:
 			linked = False
 			for link in zoom_input.links:
@@ -121,11 +139,11 @@ def reconnect_zoom(patchbay, config):
 				patchbay.create_link(from_obs_output, zoom_input)
 	
 	if "speakers" in config:
-		speakers = patchbay.find_node_by_name(config["speakers"])
+		speakers = patchbay.find_node(name=config["speakers"])
 		if speakers is None:
 			logger.warning("Speakers not found: %s", config["speakers"])
 		else:
-			zoom_output_node = patchbay.find_node_by_name("ZOOM VoiceEngine", media_class="Stream/Output/Audio")
+			zoom_output_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Output/Audio")
 			if zoom_output_node is None:
 				logger.warning("Zoom output node not found")
 			else:
@@ -143,9 +161,13 @@ def reconnect_zoom(patchbay, config):
 							patchbay.create_link(zoom_output, speaker_input)
 					i += 1
 
+	return failures
+
 def connect_all(patchbay, config):
-	create_cable(patchbay)
-	connect_peripherals(patchbay, config)
-	reconnect_obs(patchbay)
-	reconnect_zoom(patchbay, config)
+	failures = []
+	failures.extend(create_cable(patchbay))
+	failures.extend(connect_peripherals(patchbay, config))
+	failures.extend(reconnect_obs(patchbay))
+	failures.extend(reconnect_zoom(patchbay, config))
+	return failures
 

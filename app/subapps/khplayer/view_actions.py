@@ -70,11 +70,16 @@ def page_actions_submit():
 				obs.start_output_projector(1)
 
 			case "reconnect-camera":
-				obs.reconnect_camera(current_app.config["PERIPHERALS"]["camera"])
+				camera = current_app.config.get("PERIPHERALS",{}).get("camera")
+				if camera is None:
+					flash("No camera selected in configuration")
+				elif not obs.reconnect_camera(camera):
+					flash("Camera not connected: %s" % camera)
 
 			case "reconnect-audio":
 				patchbay.load()
-				connect_all(patchbay, current_app.config["PERIPHERALS"])
+				for failure in connect_all(patchbay, current_app.config["PERIPHERALS"]):
+					flash(failure)
 
 			case "disconnect-audio":
 				patchbay.load()

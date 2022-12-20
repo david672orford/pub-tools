@@ -142,14 +142,22 @@ class Patchbay:
 		link.output_port.remove_link(link)
 		self.links.remove(link)
 
-	# Find the node specified by node name
-	def find_node_by_name(self, name, media_class=None):
-		if media_class is None:
-			test_func = lambda node: node.name == name
-		else:
-			test_func = lambda node: node.name == name and node.media_class == media_class
+	# Find the node specified by attributes
+	def find_node(self, **kwargs):
+		class NodeTest:
+			def __init__(self, **kwargs):
+				self.tests = []
+				for name, value in kwargs.items():
+					self.tests.append(name)
+					setattr(self, name, value)
+			def __call__(self, node):
+				for test in tests:
+					if getattr(node, test) != getattr(self, test):
+						return False
+				return True
+		node_test = NodeTest(kwargs)
 		for node in self.nodes:
-			if test_func(node):
+			if node_test(node):
 				return node
 		return None
 
@@ -162,7 +170,7 @@ class Patchbay:
 			if not ":" in port:
 				raise ValueError(port)
 			node_name, port_name = port.split(":",1)
-			node = self.find_node_by_name(node_name)
+			node = self.find_node(name=node_name)
 			return node.find_port_by_name(port_name)
 		return self.ports_by_id[port]
 

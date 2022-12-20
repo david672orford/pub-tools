@@ -1,5 +1,10 @@
+HTML, BODY, .patchbay {
+	height: 100%;
+	}
+
 .patchbay {
 	position: relative;			/* make it a reference frame */
+	cursor: default;
 	}
 .patchbay.patchbay-loading .node {
 	margin: 1em;
@@ -30,7 +35,7 @@
 	white-space: nowrap;
 	}
 .node-inputs > DIV.highlight {
-	background-color: #f0f0f0;
+	background-color: #c0c0c0;
 	}
 .node-outputs > DIV {
 	background-color: white;
@@ -40,5 +45,33 @@
 	margin: 2px 0 2px 2px;
 	padding: 2px 3px;
 	white-space: nowrap;
+	}
+.node-outputs > DIV:hover {
+	background-color: #c0c0c0;
+	}
+
+.link {
+	position: absolute;
+	overflow: visible;
+	}
+.link-curve {
+	stroke: red;
+	stroke-width: 6px;
+	fill: none;
+	}
+.link-curve:hover {
+	stroke: #d00000;
+	}
+.link .arrowhead path {
+	fill: red;
+	}
+
+#dummy {
+	position: absolute;
+	top: 200px;
+	pointer-events: none;
+	width: 10px;
+	height: 10px;
+	//border: thin solid green;
 	}
 
