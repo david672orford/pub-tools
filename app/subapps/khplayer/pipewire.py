@@ -151,11 +151,11 @@ class Patchbay:
 					self.tests.append(name)
 					setattr(self, name, value)
 			def __call__(self, node):
-				for test in tests:
+				for test in self.tests:
 					if getattr(node, test) != getattr(self, test):
 						return False
 				return True
-		node_test = NodeTest(kwargs)
+		node_test = NodeTest(**kwargs)
 		for node in self.nodes:
 			if node_test(node):
 				return node

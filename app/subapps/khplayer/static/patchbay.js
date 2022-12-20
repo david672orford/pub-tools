@@ -15,20 +15,34 @@ function init_patchbay(links) {
 			this.svg = document.getElementById("link").content.cloneNode(true).querySelector(".link");
 			this.path = this.svg.querySelector(".link-curve");
 			document.body.appendChild(this.svg);
-			this.position();
+			if(end_el != null)
+				this.position();
 			}
 
-		position()
+		position(pos)
 			{
+			let rect;
+
 			/* Find the middle of the right edge of the output. */
-			let rect = this.start_el.getBoundingClientRect();
+			rect = this.start_el.getBoundingClientRect();
 			let start_x = rect["right"];
 			let start_y = (rect["bottom"] + rect["top"]) / 2;
-	
-			/* Find the middle of the left edge of the input. */
-			rect = this.end_el.getBoundingClientRect();
-			let end_x = rect["left"] - 5;	/* room for arrowhead tip */
-			let end_y = (rect["bottom"] + rect["top"]) / 2;
+
+			let end_x;
+			let end_y;	
+			if(this.end_el != null)
+				{
+				/* Find the middle of the left edge of the input. */
+				rect = this.end_el.getBoundingClientRect();
+				end_x = rect["left"] - 5;	/* room for arrowhead tip */
+				end_y = (rect["bottom"] + rect["top"]) / 2;
+				}
+			else
+				{
+				console.log(pos);
+				end_x = pos[0];
+				end_y = pos[1];
+				}
 
 			/* Get the bounding box of the SVG curve we will draw in patchbay canvas space */
 			const x = Math.min(start_x, end_x);
@@ -49,9 +63,6 @@ function init_patchbay(links) {
 			start_y -= y;
 			end_x -= x;
 			end_y -= y;
-
-			/* for testing */
-			//this.path.setAttribute("d", `M ${start_x} ${start_y} L ${end_x} ${end_y}`);
 
 			const cp1x = start_x + (width + height) * 0.5;
 			const cp1y = start_y - (signed_height * .05);
@@ -182,7 +193,7 @@ function init_patchbay(links) {
 		e.stopPropagation();		/* so dragstart won't be called on node */
 
 		e.dataTransfer.setDragImage(dummy, 5, 5);
-		temp_link = new LinkDrawer(e.target, dummy);
+		temp_link = new LinkDrawer(e.target, null);
 		temp_link.svg.style.pointerEvents = "none";
 		
 		e.target.addEventListener("drag", on_port_drag);
@@ -191,11 +202,10 @@ function init_patchbay(links) {
 
 	function on_port_drag(e)
 		{
+		console.log("Port drag:", e.pageX, e.pageY);
 		if(e.pageX == 0)		/* last event is bad */
 			return;
-		dummy.style.left = e.pageX + 15 + "px";
-		dummy.style.top = e.pageY - 5 + "px";
-		temp_link.position()
+		temp_link.position([e.pageX, e.pageY]);
 		}
 
 	function on_port_dragend(e)
