@@ -14,6 +14,8 @@ from ...cli_update import update_meetings
 from .views import blueprint
 from .utils import meeting_loader, obs, ObsError
 from ...jworg.meetings import MeetingMedia
+from .cameras import get_camera_dev
+from .zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +55,16 @@ def page_meetings_load(docid):
 
 		sleep(1)		# Give GUI time to switch (may not be necessary)
 
-		obs.create_camera_scene(current_app.config["PERIPHERALS"]["camera"])
-		obs.create_zoom_scene()
-		obs.create_split_scene(current_app.config["PERIPHERALS"]["camera"])
+		camera_dev = get_camera_dev()
+		capture_window = find_second_window()
+		if capture_window is None:
+			flask("Second Zoom window not found")
+		if camera_dev is not None:
+			obs.create_camera_scene(camera_dev)
+		if capture_window is not None:
+			obs.create_zoom_scene(capture_window)
+		if camera_dev is not None and capture_window is not None:
+			obs.create_split_scene(camera_dev, capture_window)
 
 	# The media list will already by in the cache. Get it.
 	media = get_meeting_media_cached(docid)

@@ -6,6 +6,8 @@ import os, json
 from ...utils import progress_callback_response, run_thread
 from .views import blueprint
 from .utils import obs, ObsError
+from .zoom import find_second_window
+from .cameras import get_camera_dev
 
 @blueprint.route("/scenes/")
 def page_scenes():
@@ -43,16 +45,28 @@ def page_scenes_submit():
 			sleep(1)
 
 		elif action == "add-camera":
-			obs.create_camera_scene(current_app.config["PERIPHERALS"]["camera"])
-			sleep(1)
+			camera_dev = get_camera_dev()
+			if camera_dev is not None:
+				obs.create_camera_scene(camera_dev)
+				sleep(1)
 
 		elif action == "add-zoom":
-			obs.create_zoom_scene()
-			sleep(1)
+			capture_window = find_second_window()
+			if capture_window is None:
+				flash("Second Zoom window not found")
+			else:
+				obs.create_zoom_scene(capture_window)
+				sleep(1)
 
 		elif action == "add-split":
-			obs.create_split_scene(current_app.config["PERIPHERALS"]["camera"])
-			sleep(1)
+			camera_dev = get_camera_dev()
+			if camera_dev is not None:
+				capture_window = find_second_window()
+				if capture_window is None:
+					flash("Second Zoom window not found")
+				else:
+					obs.create_split_scene(camera_dev, capture_window)
+					sleep(1)
 
 	except ObsError as e:
 		flash("OBS: %s" % str(e))

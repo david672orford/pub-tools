@@ -8,6 +8,7 @@ from ...models import db, Config
 from .views import blueprint
 from .utils import obs, ObsError
 from .view_patchbay import patchbay
+from .cameras import list_cameras
 
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.
@@ -49,7 +50,7 @@ class ConfigForm(Form):
 		self.PERIPHERALS_speakers.choices = speakers
 
 		cameras = []
-		for dev_node, display_name in obs.list_cameras():
+		for dev_node, display_name in list_cameras():
 			cameras.append(display_name)
 		self.PERIPHERALS_camera.choices = cameras
 

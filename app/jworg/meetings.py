@@ -188,7 +188,7 @@ class MeetingLoader(Fetcher):
 						article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
 
 						# Pull out illustrations
-						scenes.extend(self.extract_illustrations(article_title, article_main))
+						scenes.extend(self.extract_illustrations(pub_code, article_title, article_main))
 
 						is_a = "article"
 						break
@@ -216,7 +216,7 @@ class MeetingLoader(Fetcher):
 				))
 		assert len(songs) == 2, songs
 
-		illustrations = self.extract_illustrations("СБ", container)
+		illustrations = self.extract_illustrations("w", "СБ", container)
 
 		return [songs[0]] + illustrations + [songs[1]]
 
@@ -224,7 +224,7 @@ class MeetingLoader(Fetcher):
 	# The Watchtower extractor runs this on the whole article
 	# The Meeting Workbook extractor runs this on articles to which the
 	# week's page links, omiting only the source material for demonstrations.
-	def extract_illustrations(self, title, container):
+	def extract_illustrations(self, pub_code, title, container):
 		print("=========================================================")
 		print(title)
 		#self.dump_html(container)
@@ -257,7 +257,7 @@ class MeetingLoader(Fetcher):
 				a = links[0]
 				if a.attrib.get("data-video") is not None:
 					figures.append(MeetingMedia(
-						pub_code = None,
+						pub_code = pub_code,
 						title = "%s %d" % (title, n),
 						media_type = "video",
 						media_url = self.get_video_url(a.attrib['href'])
@@ -272,7 +272,7 @@ class MeetingLoader(Fetcher):
 				else:
 					raise AssertionError("No image source in jsRespImg")
 				figures.append(MeetingMedia(
-					pub_code = None,
+					pub_code = pub_code,
 					title = figcaption,
 					media_type = "image",
 					media_url = src,

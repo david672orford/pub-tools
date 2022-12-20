@@ -10,7 +10,6 @@ import os, re, json
 import websocket
 import base64, hashlib
 from urllib.parse import urlparse, unquote
-from glob import glob
 import logging
 
 logger = logging.getLogger(__name__)
@@ -235,6 +234,9 @@ class ObsControl(ObsControlBase):
 
 	zoom_scene_name = "Zoom"
 	zoom_input_name = "Zoom Capture"
+	zoom_input_settings = {
+		"show_cursor": False,
+		}
 
 	split_scene_name = "Split Screen"
 
@@ -312,18 +314,6 @@ class ObsControl(ObsControlBase):
 					raise ObsError(e)
 			i += 1
 
-		## Scale the image to fit the screen
-		#payload = {
-		#	'sceneName': scene_name,
-		#	'sceneItemId': scene_item_id,
-		#	'sceneItemTransform': {
-		#		'boundsAlignment': 0,
-		#		'boundsWidth': 1280,
-		#		'boundsHeight': 720,
-		#		'boundsType': 'OBS_BOUNDS_SCALE_INNER',
-		#		}
-		#	}
-		#self.request('SetSceneItemTransform', payload)
 		self.scale_input(scene_name, scene_item_id)
 
 		# Enable audio for video files
@@ -351,32 +341,13 @@ class ObsControl(ObsControlBase):
 				)
 		return scene_item_id
 
-	def list_cameras(self):
-		for dev in glob("/sys/class/video4linux/*"):
-			with open(os.path.join(dev, "name")) as fh:
-				name = fh.read().strip()
-			with open(os.path.join(dev, "index")) as fh:
-				index = int(fh.read().strip())
-			if index == 0:
-				yield ("/dev/" + os.path.basename(dev), name)
-
-	def camera_dev_lookup(self, camera_name):
-		for dev_node, display_name in self.list_cameras():
-			if display_name == camera_name:
-				return dev_node
-		return None
-
-	def reconnect_camera(self, camera_name):
-		camera_dev_node = self.camera_dev_lookup(camera_name)
-		if camera_dev_node is None:
-			return False
-		logger.info("Setting camera to %s (%s)...", camera_name, camera_dev_node)
-		self.camera_input_settings["device_id"] = camera_dev_node
+	def reconnect_camera(self, camera_dev):
+		logger.info("Setting camera to %s...", camera_dev)
+		self.camera_input_settings["device_id"] = camera_dev
 		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
-		return True
 
-	def add_camera_input(self, scene_name, camera_dev_name):
-		self.camera_input_settings["device_id"] = self.camera_dev_lookup(camera_dev_name)
+	def add_camera_input(self, scene_name, camera_dev):
+		self.camera_input_settings["device_id"] = camera_dev
 		scene_item_id = self.create_input_with_reuse(
 			scene_name = scene_name,
 			input_name = self.camera_input_name,
@@ -385,29 +356,31 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	def add_zoom_input(self, scene_name):
+	def reconnect_zoom_input(self, capture_window):
+		self.zoom_input_settings["capture_window"] = capture_window
+		self.set_input_settings(self.zoom_input_name, self.zoom_input_settings)
+
+	def add_zoom_input(self, scene_name, capture_window):
+		self.zoom_input_settings["capture_window"] = capture_window
 		scene_item_id = self.create_input_with_reuse(
 			scene_name = scene_name,
 			input_name = "Zoom Capture",
 			input_kind = "xcomposite_input",
-			input_settings = {
-				"capture_window": "Zoom Conference",
-				"show_cursor": False,
-				}
+			input_settings = self.zoom_input_settings,
 			)
 		return scene_item_id
 
-	def create_camera_scene(self, camera_dev_name):
+	def create_camera_scene(self, camera_dev):
 		self.create_scene(self.camera_scene_name)
-		scene_item_id = self.add_camera_input(self.camera_scene_name, camera_dev_name)
+		scene_item_id = self.add_camera_input(self.camera_scene_name, camera_dev)
 		#self.scale_input(self.camera_scene_name, scene_item_id)
 
-	def create_zoom_scene(self):
+	def create_zoom_scene(self, capture_window):
 		self.create_scene(self.zoom_scene_name)
-		scene_item_id = self.add_zoom_input(self.zoom_scene_name)
+		scene_item_id = self.add_zoom_input(self.zoom_scene_name, capture_window)
 		self.scale_input(self.zoom_scene_name, scene_item_id)
 
-	def create_split_scene(self, camera_dev_name):
+	def create_split_scene(self, camera_dev, capture_window):
 		self.create_scene(self.split_scene_name)
 
 		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev_name)
@@ -422,7 +395,7 @@ class ObsControl(ObsControlBase):
 			#"width": 1280.0,
 			})
 
-		scene_item_id = self.add_zoom_input(self.split_scene_name)
+		scene_item_id = self.add_zoom_input(self.split_scene_name, capture_window)
 		self.scale_input(self.split_scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,

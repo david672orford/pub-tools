@@ -5,7 +5,8 @@ import os, json, subprocess
 from .views import blueprint
 from .utils import obs, ObsError
 from .view_patchbay import patchbay
-from .start_meeting import start_meeting
+from .cameras import get_camera_dev
+from .zoom import start_meeting, find_second_window
 from .virtual_cable import connect_all, destroy_cable
 from ...utils import progress_callback
 
@@ -70,11 +71,16 @@ def page_actions_submit():
 				obs.start_output_projector(1)
 
 			case "reconnect-camera":
-				camera = current_app.config.get("PERIPHERALS",{}).get("camera")
-				if camera is None:
-					flash("No camera selected in configuration")
-				elif not obs.reconnect_camera(camera):
-					flash("Camera not connected: %s" % camera)
+				camera_dev = get_camera_dev()
+				if camera_dev is not None:
+					obs.reconnect_camera(camera_dev)
+
+			case "reconnect-zoom-capture":
+				capture_window = find_second_window()
+				if capture_window is None:
+					flash("Second Zoom window not found")
+				else:
+					obs.reconnect_zoom_input(capture_window)
 
 			case "reconnect-audio":
 				patchbay.load()

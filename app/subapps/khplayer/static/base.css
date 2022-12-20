@@ -8,6 +8,9 @@ HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAR
 INPUT, SELECT, TEXTAREA, BUTTON {
 	font-size: inherit;		/* For some reason Pywebview makes these large */
 	}
+HTML, BODY {
+	height: 100%;
+	}
 BODY {
 	font-family: sans-serif;
 	display: flex;
