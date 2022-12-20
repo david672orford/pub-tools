@@ -3,6 +3,7 @@ function init_patchbay(links) {
 	let node_y;
 	let prev_cursor_x;
 	let prev_cursor_y;
+	let drag_links;
 	let temp_link;
 	let dummy = document.getElementById("dummy");
 
@@ -88,6 +89,29 @@ function init_patchbay(links) {
 		prev_cursor_x = e.pageX;
 		prev_cursor_y = e.pageY;
 
+		drag_links = [];
+		const outputs = node.getElementsByClassName("node-outputs")[0].children;
+		for(let i=0; i < outputs.length; i++)
+			{
+			let output = parseInt(outputs[i].id.split("-")[1]);
+			for(let i2=0; i2 < links.length; i2++)
+				{
+				if(links[i2][0] == output)
+					drag_links.push(links[i2]);
+				}
+			}
+		const inputs = node.getElementsByClassName("node-inputs")[0].children;
+		for(let i=0; i < inputs.length; i++)
+			{
+			let input = parseInt(inputs[i].id.split("-")[1]);
+			for(let i2=0; i2 < links.length; i2++)
+				{
+				if(links[i2][1] == input)
+					drag_links.push(links[i2]);
+				}
+			}
+		console.log("drag links:", drag_links);
+
 		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
 
@@ -97,7 +121,7 @@ function init_patchbay(links) {
 	/* Fired several times a second as the user moves the node */
 	function on_node_drag(e)
 		{
-		console.log("Drag:", e.pageX, e.pageY, e);
+		//console.log("Drag:", e.pageX, e.pageY, e);
 		const node = e.target;
 
 		if(e.pageX == 0)		/* last event is bad */
@@ -110,7 +134,7 @@ function init_patchbay(links) {
 		prev_cursor_x = e.pageX;
 		prev_cursor_y = e.pageY;
 
-		links.forEach((link) => { link[2].position(); });
+		drag_links.forEach((link) => { link[2].position(); });
 		}
 
 	/* User has dropt the node */

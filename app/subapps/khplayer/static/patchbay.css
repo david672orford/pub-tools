@@ -5,6 +5,8 @@ HTML, BODY, .patchbay {
 .patchbay {
 	position: relative;			/* make it a reference frame */
 	cursor: default;
+	overflow: hidden;			/* FIXME: should we be able to scroll? */
+	//border: thin solid green;
 	}
 .patchbay.patchbay-loading .node {
 	margin: 1em;

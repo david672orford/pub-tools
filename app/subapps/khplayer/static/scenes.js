@@ -12,8 +12,8 @@ function init_dnd()
 			});
 		}
 	
-	document.getElementById("select-all").addEventListener("click", event => { select("del",true); });
-	document.getElementById("deselect-all").addEventListener("click", event => { select("del",false); });
+	document.getElementById("select-all").addEventListener("click", event => { select_all("del",true); });
+	document.getElementById("deselect-all").addEventListener("click", event => { select_all("del",false); });
 	
 	let dropArea = $('.scenes');
 	
