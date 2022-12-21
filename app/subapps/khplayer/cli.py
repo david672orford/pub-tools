@@ -51,3 +51,8 @@ def cmd_obs_get_source_screenshot(source_name):
 		})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
+@cli_obs.command("get-output-list")
+def cmd_obs_get_output_list():
+	response = obs.request("GetOutputList", {})
+	print(json.dumps(response, indent=2, ensure_ascii=False))
+

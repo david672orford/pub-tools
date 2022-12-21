@@ -57,14 +57,11 @@ def page_meetings_load(docid):
 
 		camera_dev = get_camera_dev()
 		capture_window = find_second_window()
-		if capture_window is None:
-			flask("Second Zoom window not found")
-		if camera_dev is not None:
-			obs.create_camera_scene(camera_dev)
-		if capture_window is not None:
-			obs.create_zoom_scene(capture_window)
-		if camera_dev is not None and capture_window is not None:
-			obs.create_split_scene(camera_dev, capture_window)
+
+		# Create them whether they can be connected or not.
+		obs.create_camera_scene(camera_dev)
+		obs.create_zoom_scene(capture_window)
+		obs.create_split_scene(camera_dev, capture_window)
 
 	# The media list will already by in the cache. Get it.
 	media = get_meeting_media_cached(docid)

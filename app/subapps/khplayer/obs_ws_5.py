@@ -383,7 +383,7 @@ class ObsControl(ObsControlBase):
 	def create_split_scene(self, camera_dev, capture_window):
 		self.create_scene(self.split_scene_name)
 
-		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev_name)
+		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev)
 		self.scale_input(self.split_scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,

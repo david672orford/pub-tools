@@ -77,9 +77,7 @@ def page_actions_submit():
 
 			case "reconnect-zoom-capture":
 				capture_window = find_second_window()
-				if capture_window is None:
-					flash("Second Zoom window not found")
-				else:
+				if capture_window is not None:
 					obs.reconnect_zoom_input(capture_window)
 
 			case "reconnect-audio":

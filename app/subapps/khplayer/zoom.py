@@ -1,3 +1,4 @@
+from flask import flash
 import os, types
 import subprocess
 import pyatspi
@@ -344,6 +345,7 @@ def find_second_window():
 		name = wm.getWmName(window).decode("utf-8")
 		if name == second_window_name:
 			return "%d\r\n%s\r\n%s" % (window.id, name, window.get_wm_class()[0])
+	flash("Second Zoom window not found.")
 	return None
 
 

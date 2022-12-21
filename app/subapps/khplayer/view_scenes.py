@@ -52,9 +52,7 @@ def page_scenes_submit():
 
 		elif action == "add-zoom":
 			capture_window = find_second_window()
-			if capture_window is None:
-				flash("Second Zoom window not found")
-			else:
+			if capture_window is not None:
 				obs.create_zoom_scene(capture_window)
 				sleep(1)
 
@@ -62,9 +60,7 @@ def page_scenes_submit():
 			camera_dev = get_camera_dev()
 			if camera_dev is not None:
 				capture_window = find_second_window()
-				if capture_window is None:
-					flash("Second Zoom window not found")
-				else:
+				if capture_window is not None:
 					obs.create_split_scene(camera_dev, capture_window)
 					sleep(1)
 
