@@ -130,7 +130,7 @@ def reconnect_zoom(patchbay, config):
 		from_obs_output = patchbay.find_node(name="From-OBS").outputs[0]
 		for zoom_input in zoom_input_node.inputs:
 			linked = False
-			for link in zoom_input.links:
+			for link in zoom_input.links[:]:
 				if link.output_port == from_obs_output:
 					linked= True
 				else:
@@ -151,7 +151,7 @@ def reconnect_zoom(patchbay, config):
 				for zoom_output in zoom_output_node.outputs:
 					speaker_input = speakers.inputs[i % len(speakers.inputs)]
 					linked = False
-					for link in zoom_output.links:
+					for link in zoom_output.links[:]:
 						if link.input_port.node.media_class == "Audio/Sink":
 							if link.input_port == speaker_input:
 								linked = True
