@@ -59,6 +59,8 @@ class Container:
 				return self.find_child(role_name, child_id)
 			except NoSuchWidget:
 				pass
+			except Exception as e:
+				raise NoSuchWidget("Exception: %s" % e)
 		raise NoSuchWidget("%s %s not found in %s" % (role_name, child_id, self.atspi_obj))
 
 	# Find the indicated AT-SPI child push button and press it
