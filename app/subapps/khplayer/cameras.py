@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, flash
 import os
 from glob import glob
 
