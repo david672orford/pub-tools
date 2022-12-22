@@ -44,7 +44,10 @@ def page_actions_submit():
 				patchbay.load()
 				connect_all(patchbay, current_app.config["PERIPHERALS"])
 
-				zoom_proc = start_meeting(current_app.config["ZOOM"], os.path.join(current_app.instance_path, "zoom.log"))
+				try:
+					zoom_proc = start_meeting(current_app.config["ZOOM"], os.path.join(current_app.instance_path, "zoom.log"))
+				except Exception as e:
+					flash(str(e))
 
 			case "start-obs":
 				patchbay.load()
