@@ -64,7 +64,7 @@ def connect_peripherals(patchbay, config):
 		else:
 			microphone_outputs = microphone.outputs[:]
 			# what is already connected
-			for link in from_obs_input.links:
+			for link in from_obs_input.links[:]:
 				if link.output_port.node.media_class == "Audio/Source":		# a microphone or line in
 					try:
 						microphone_outputs.remove(link.output_port)
@@ -85,7 +85,7 @@ def connect_peripherals(patchbay, config):
 			logger.warning("Selected speakers are not connected")
 		else:
 			speaker_inputs = speakers.inputs[:]
-			for link in to_zoom_output.links:
+			for link in to_zoom_output.links[:]:
 				if link.input_port.node.media_class == "Audio/Sink":		# a speaker or headphones
 					try:
 						speaker_inputs.remove(link.input_port)
@@ -127,7 +127,11 @@ def reconnect_zoom(patchbay, config):
 	if zoom_input_node is None:
 		logger.warning("Zoom input node not found")
 	else:
+		# Find the output port on the output end of the virtual audio cable between OBS and Zoom.
 		from_obs_output = patchbay.find_node(name="From-OBS").outputs[0]
+
+		# Loop through however many input ports Zoom has. Normally this will be
+		# only MONO, but there is a stereo mode.
 		for zoom_input in zoom_input_node.inputs:
 			linked = False
 			for link in zoom_input.links[:]:
@@ -148,15 +152,22 @@ def reconnect_zoom(patchbay, config):
 				logger.warning("Zoom output node not found")
 			else:
 				i = 0
+				# Zoom has LF and RF outputs
 				for zoom_output in zoom_output_node.outputs:
+					# Speaker may be stereo or mono. If mono, both zoom outputs go to the same speaker input.
 					speaker_input = speakers.inputs[i % len(speakers.inputs)]
 					linked = False
+					# Loop through all the links leading from this output (LF or RF)
 					for link in zoom_output.links[:]:
+						# If the link is to an audio output device,
 						if link.input_port.node.media_class == "Audio/Sink":
+							# If it is the one we want, good.
 							if link.input_port == speaker_input:
 								linked = True
+							# Otherwise disconnect it
 							else:
 								patchbay.destroy_link(link=link)
+						# If we didn't find the link we want, create it.
 						if not linked:
 							patchbay.create_link(zoom_output, speaker_input)
 					i += 1
