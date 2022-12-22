@@ -222,7 +222,7 @@ class ObsControlBase:
 
 # Add higher-level methods to do specific things we need
 class ObsControl(ObsControlBase):
-	camera_scene_name = "Camera"
+	camera_scene_name = "Stage"
 	camera_input_name = "Camera Input"
 	camera_input_settings = {
 		"buffering": False,
