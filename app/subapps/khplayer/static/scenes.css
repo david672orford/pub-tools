@@ -22,11 +22,8 @@ UL.scenes.highlight {
 	background-color: #f0f0ff;
 	}
 
-BUTTON {
-	padding: .5em;
-	}
-
-INPUT[type=text] {
+/* Section class is to avoid polluting other pages with our style */
+SECTION.scenes BUTTON {
 	padding: .5em;
 	}
 
