@@ -55,6 +55,10 @@ HTML, BODY, .patchbay {
 .link {
 	position: absolute;
 	overflow: visible;
+	/* We do this because (at least on Chrome) the SVG bounding box
+	   blocks mouse clicks to underlying elements which can make it
+	   hard to drag the nodes. */
+	z-index: -1;
 	}
 .link-curve {
 	stroke: red;

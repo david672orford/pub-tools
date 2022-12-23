@@ -45,7 +45,7 @@ def page_actions_submit():
 				connect_all(patchbay, current_app.config["PERIPHERALS"])
 
 				try:
-					zoom_proc = start_meeting(current_app.config["ZOOM"], os.path.join(current_app.instance_path, "zoom.log"))
+					zoom_proc = start_meeting(current_app.config["ZOOM"], os.path.join(current_app.instance_path, "zoom.log"), progress_callback)
 				except Exception as e:
 					flash(str(e))
 

@@ -8,7 +8,8 @@ from ...models import db, Config
 from .views import blueprint
 from .utils import obs, ObsError
 from .view_patchbay import patchbay
-from .cameras import list_cameras
+from .cameras import list_cameras, get_camera_dev
+from .virtual_cable import connect_peripherals
 
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.
@@ -27,7 +28,7 @@ class ConfWrapper:
 		key1, key2 = self.splitter.match(name).groups()
 		current_app.config[key1][key2] = value
 
-		# Also copy into DB so change will persist accross app restarts
+		# Also copy into DB so change will persist across app restarts
 		conf = Config.query.filter_by(name=key1).one_or_none()
 		if conf is None:
 			conf = Config(name=key1, data={})
@@ -83,8 +84,20 @@ def page_config_submit():
 	form = ConfigForm(formdata=request.form, obj=config)
 	if form.validate():
 		print("Form validated, saving...")
+
+		# Write to app.config and to the DB
 		form.populate_obj(config)
 		db.session.commit()
+
+		# Microphone or speaker changes
+		patchbay.load()
+		connect_peripherals(patchbay, current_app.config["PERIPHERALS"])
+
+		# Camera changes
+		camera_dev = get_camera_dev()
+		if camera_dev is not None:
+			obs.reconnect_camera(camera_dev)
+
 		return redirect(".")
 	else:
 		print("Validation failed")

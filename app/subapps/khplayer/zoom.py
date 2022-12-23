@@ -105,6 +105,10 @@ class Container:
 
 	def enter_text(self, text, verify=False):
 
+		# FIXME: This messes with the list of available layouts, doesn't it?
+		# Switch keyboard map to English
+		os.system("setxkbmap -layout en,ru -option grp:caps_toggle")
+
 		# Send control-A to select the existing text
 		pyatspi.Registry.generateKeyboardEvent(37, None, pyatspi.KEY_PRESS)
 		pyatspi.Registry.generateKeyboardEvent(38, None, pyatspi.KEY_PRESS)
@@ -145,8 +149,9 @@ class Automate(Container):
 #=============================================================================
 
 class ZoomControl:
-	def __init__(self, config):
+	def __init__(self, config, progress_callback):
 		self.config = config
+		self.progress_callback = progress_callback
 
 	def start_meeting(self):	
 		automate = Automate()
@@ -155,6 +160,8 @@ class ZoomControl:
 		frame = zoom.find_child("frame", 0)
 		assert frame.get_description() in ["Zoom Cloud Meetings", "Облачные конференции Zoom"]
 		frame.grab_focus()
+
+		self.progress_callback("Logging in...")
 		
 		# First page: Two options: Join a conference or log in
 		frame.find_child("push button", 1).do_action("Press")
@@ -170,7 +177,9 @@ class ZoomControl:
 		
 		signin_button = frame.find_child("push button", 4)	# TODO: maybe use name
 		signin_button.do_action("Press")
-		
+
+		self.progress_callback("Joining or starting meeting...")
+
 		# Third page: New Meeting, Join, etc.
 		frame = zoom.find_child_with_retry("frame", ["Zoom - Licensed Account", "Zoom - Лицензионная учетная запись"])
 		frame.find_child("filler", ["Home","Главная"]).find_child("push button", ["Join","Войти"]).do_action("Press")
@@ -191,6 +200,8 @@ class ZoomControl:
 		
 		start_button = frame.find_child("push button", 1)
 		start_button.do_action("Press")
+
+		self.progress_callback("In meeting.")
 
 #=============================================================================
 # Alternative control of Zoom based only in keystroke injection
@@ -322,20 +333,29 @@ class AltZoomControl:
 		# If we exit too soon, it doesn't work.
 		sleep(10)
 
-def start_meeting(config, logfile):
+#=============================================================================
+# Public functions
+#=============================================================================
+
+def start_meeting(config, logfile, progress_callback):
 
 	# If Zoom is already running, shut it down.
+	i = 0
 	while os.system("killall zoom") == 0:
+		progress_callback("Shutting down old Zoom: %d" % i)
+		os.wait3(os.WNOHANG)
 		sleep(1)
+		i += 1
 
 	# Start Zoom with screen-reader integration enabled
 	os.environ["QT_ACCESSIBILITY"] = "1"
 	os.environ["QT_LINUX_ACCESSIBILITY_ALWAYS_ON"] = "1"
 
+	progress_callback("Starting Zoom...")
 	with open(logfile, "w") as fh:
 		zoom_proc = subprocess.Popen(["zoom"], stderr=subprocess.STDOUT, stdout=fh)
 
-	zoom = ZoomControl(config)
+	zoom = ZoomControl(config, progress_callback)
 	zoom.start_meeting()
 
 	return zoom_proc

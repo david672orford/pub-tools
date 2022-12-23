@@ -1,4 +1,4 @@
-{% set title = "OBS Scene List" %}
+{% set title = "Scene List (OBS)" %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -10,9 +10,9 @@
 <form action="submit" method="POST">
 
 <section>
-	<button type="submit" name="action" value="add-camera"{% if "Camera" in scene_names %} disabled{%endif%}>Add Camera</button>
-	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom</button>
-	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen</button>
+	<button type="submit" name="action" value="add-camera"{% if "Stage" in scene_names %} disabled{%endif%}>Add Stage Scene</button>
+	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom Scene</button>
+	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen Scene</button>
 </section>
 
 <section>
