@@ -46,19 +46,25 @@ def page_meetings_view(docid):
 def page_meetings_load(docid):
 
 	# If user provided a scene collection name, create a new one of that name.
+    # FIXME: Shouldn't the user be required to provide a scene collection name?
 	collection = request.form.get("collection").strip()
 	if collection != "":
 		try:
 			obs.create_scene_collection(collection)
 		except ObsError as e:
-			return progress_callback_response("OBS: " + str(e))
+			if e.code == 601:
+				# Scene collection already exists. Empty it.
+				for scene in obs.get_scene_list():
+					obs.remove_scene(scene['sceneName'])
+			else:
+				return progress_callback_response("OBS: " + str(e))
 
-		sleep(1)		# Give GUI time to switch (may not be necessary)
+		sleep(1)		# Give GUI time to switch (may not actually be necessary)
 
+		# Create the stage and Zoom scenes no matter whether the camera
+        # and Zoom can be connected right now or not.
 		camera_dev = get_camera_dev()
 		capture_window = find_second_window()
-
-		# Create them whether they can be connected or not.
 		obs.create_camera_scene(camera_dev)
 		obs.create_zoom_scene(capture_window)
 		obs.create_split_scene(camera_dev, capture_window)
