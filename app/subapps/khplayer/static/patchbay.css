@@ -52,13 +52,14 @@
 	background-color: #c0c0c0;
 	}
 
+/* Curvy line in SVG */
 .link {
 	position: absolute;
 	overflow: visible;
 	/* We do this because (at least on Chrome) the SVG bounding box
 	   blocks mouse clicks to underlying elements which can make it
 	   hard to drag the nodes. */
-	z-index: -1;
+	//z-index: -1;
 	}
 .link-curve {
 	stroke: red;

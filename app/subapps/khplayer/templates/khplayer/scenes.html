@@ -9,26 +9,26 @@
 {% block main %}
 <form action="submit" method="POST">
 
-<section class="scenes">
+<section class="big-buttons">
 	<button type="submit" name="action" value="add-camera"{% if "Stage" in scene_names %} disabled{%endif%}>Add Stage Scene</button>
 	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom Scene</button>
 	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen Scene</button>
 </section>
 
-<section class="scenes">
-<ul class="scenes">
-{% for scene_name in scene_names %}
-<li>
-	<input type="checkbox" name="del" value="{{scene_name}}">
-	<button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button>
-	</li>
-{% endfor %}
-</ul>
-<p>
-	<button type="button" id="select-all">Select All</button>
-	<button type="button" id="deselect-all">Deselect All</button>
-	<button type="submit" name="action" value="delete">Delete Selected</button>
-</p>
+<section class="big-buttons">
+	<ul class="scenes">
+	{% for scene_name in scene_names %}
+	<li>
+		<input type="checkbox" name="del" value="{{scene_name}}">
+		<button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button>
+		</li>
+	{% endfor %}
+	</ul>
+	<p>
+		<button type="button" id="select-all">Select All</button>
+		<button type="button" id="deselect-all">Deselect All</button>
+		<button type="submit" name="action" value="delete">Delete Selected</button>
+	</p>
 </section>
 
 </form>

@@ -39,6 +39,8 @@ class ConfWrapper:
 class ConfigForm(Form):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Load the microphone and speaker selectors options
 		patchbay.load()
 		microphones = []
 		speakers = []
@@ -47,9 +49,10 @@ class ConfigForm(Form):
 				microphones.append((node.name, node.nick))
 			elif node.media_class == "Audio/Sink":
 				speakers.append((node.name, node.nick))
-		self.PERIPHERALS_microphone.choices = microphones	
+		self.PERIPHERALS_microphone.choices = microphones
 		self.PERIPHERALS_speakers.choices = speakers
 
+		# Load the camera selector options
 		cameras = []
 		for dev_node, display_name in list_cameras():
 			cameras.append(display_name)

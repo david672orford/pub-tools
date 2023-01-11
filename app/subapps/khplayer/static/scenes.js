@@ -15,7 +15,7 @@ function init_dnd()
 	document.getElementById("select-all").addEventListener("click", event => { select_all("del",true); });
 	document.getElementById("deselect-all").addEventListener("click", event => { select_all("del",false); });
 	
-	let dropArea = $('.scenes');
+	let dropArea = $('UL.scenes');
 	
 	/* Allow drop */
 	dropArea.addEventListener("dragover", (e) => e.preventDefault());

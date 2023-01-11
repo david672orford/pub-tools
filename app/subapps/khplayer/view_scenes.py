@@ -74,10 +74,12 @@ def page_scenes_submit():
 
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
-	files = request.files.getlist("files")
+	files = request.files.getlist("files")	 # Get the Werkzeug FileStorage object
 	for file in files:
-		save_as = os.path.join(current_app.config["CACHEDIR"], secure_filename(file.filename))
+		# FIXME: Cyrillic characters are deleted!
+		# FIXME: We need to ensure uniquiness
+		save_as = os.path.join(current_app.config["CACHEDIR"], "upload-" + secure_filename(file.filename))
 		file.save(save_as)
-		obs.add_media_scene(os.path.basename(save_as), "image", save_as)
+		obs.add_media_scene(os.path.basename(file.filename), file.mimetype.split("/")[0], save_as)
 	return redirect(".")
 
