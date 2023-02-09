@@ -2,6 +2,7 @@
 
 ## Useful Plugins
 
+* [OBS-Websocket](https://github.com/obsproject/obs-websocket)
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
 

@@ -150,6 +150,9 @@ class ObsControlBase:
 	def create_scene_collection(self, name):
 		self.request("CreateSceneCollection", {"sceneCollectionName": name})
 
+	def set_current_scene_collection(self, name):
+		self.request("SetCurrentSceneCollection", {"sceneCollectionName": name})
+
 	def get_scene_list(self):
 		return self.request("GetSceneList", {})["responseData"]["scenes"]
 
@@ -239,6 +242,8 @@ class ObsControl(ObsControlBase):
 		}
 
 	split_scene_name = "Split Screen"
+
+	standard_scenes = (camera_scene_name, zoom_scene_name, split_scene_name)
 
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.

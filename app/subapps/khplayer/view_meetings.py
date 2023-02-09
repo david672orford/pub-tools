@@ -56,34 +56,10 @@ def page_meetings_view_stream(docid):
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_load(docid):
 
-	collection = "KH Player"
-	scene_list = []
-	try:
-		obs.create_scene_collection(collection)
-	except ObsError as e:
-		if e.code == 601:
-			# Scene collection already exists. Empty it.
-			for scene in obs.get_scene_list():
-				# FIXME: get names from obs module
-				if scene['sceneName'] not in ("Stage", "Zoom", "Split Screen"):
-					obs.remove_scene(scene['sceneName'])
-		else:
-			return progress_callback_response("OBS: " + str(e))
-
-	# Give GUI time to switch (may not actually be necessary)
-	sleep(1)
-
-	# FIXME: Disabled because we are not deleting these above. Deleting them and 
-	#        recreating them was causing problems in OBS because OBS wouldn't
-	#        delete the active source.
-	#
-	# Create the stage and Zoom scenes no matter whether the camera
-	# and Zoom can be connected right now or not.
-	#camera_dev = get_camera_dev()
-	#capture_window = find_second_window()
-	#obs.create_camera_scene(camera_dev)
-	#obs.create_zoom_scene(capture_window)
-	#obs.create_split_scene(camera_dev, capture_window)
+	# Remove everything but the standard scenes
+	for scene in obs.get_scene_list():
+		if scene['sceneName'] not in obs.standard_scenes:
+			obs.remove_scene(scene['sceneName'])
 
 	# The media list will already by in the cache. Get it.
 	media = get_meeting_media_cached(docid)
