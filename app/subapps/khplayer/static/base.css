@@ -120,6 +120,9 @@ TABLE.borders TH, TABLE.borders TD {
 	text-align: left;
 	padding: .3em;
 	}
+TABLE.full-width {
+	width: 100%;
+	}
 
 UL.nowrap LI {
 	white-space: nowrap;

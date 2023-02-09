@@ -11,7 +11,7 @@
 <section>
 <h2>Meeting Media</h2>
 <input type="hidden" name="title" value="{{meeting_title}}">
-<table class="borders">
+<table class="borders full-width">
 <thead>
 <tr>
 	<th>Pub</th>
@@ -20,28 +20,25 @@
 	<th>URL</th>
 	</tr>
 </thead>
-<tbody>
-{% for item in media %}
-<tr>
-	<td>{{item.pub_code}}</td>
-	<td>{{item.title}}</td>
-	<td>{{item.media_type}}</td>
-	<td><a href="{{item.media_url}}">{{item.media_url}}</a></td>
-	</tr>
-{% endfor %}
+<tbody id="media-list">
 </tbody>
 </table>
 </section>
 
 <section class="bordered">
 	<div class="form-field">
-		<label for="collection">Scene Collection Name</label>
-		<input type="text" id="collection" name="collection" value="{{meeting_title}}">
-	</div>
-	<div class="form-field">
 		<button type="submit">Download Media and Create Scenes in OBS</button>
 	</div>
 </section>
 
 </form>
+
+<script>
+(function() {
+	let sse = new EventSource("stream");
+	sse.onerror = () => { sse.close() }
+	Turbo.connectStreamSource(sse);
+	})();
+</script>
+
 {% endblock %}

@@ -117,12 +117,12 @@ class MeetingLoader(Fetcher):
 					# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
 					# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 					if a.attrib.get("data-video") is not None:
-						scenes.append(MeetingMedia(
+						yield MeetingMedia(
 							pub_code = None,
 							title = a.text_content(),
 							media_type = "video",
 							media_url = self.get_video_url(a.attrib['href'])
-							))
+							)
 						is_a = "video"
 						break
 
@@ -142,12 +142,12 @@ class MeetingLoader(Fetcher):
 					if pub_code == "sjj":
 						song_text = a.text_content().strip()
 						song_number = re.search(r'(\d+)$', song_text).group(1)
-						scenes.append(MeetingMedia(
+						yield MeetingMedia(
 							pub_code = "sjj %s" % song_number,
 							title = song_text,
 							media_type = "video",
 							media_url = self.get_song_video_url(song_number)
-							))
+							)
 						is_a = "song"
 						break
 
@@ -155,13 +155,13 @@ class MeetingLoader(Fetcher):
 					if pub_code == "th":
 						text = a.text_content().strip()
 						chapter = int(re.search(r"(\d+)$", text).group(1))
-						scenes.append(MeetingMedia(
+						yield MeetingMedia(
 							pub_code = "th %d" % chapter,
 							title = text,
 							media_type = "web",
 							#media_url = urljoin(url, a.attrib['href']),
 							media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
-							))
+							)
 						is_a = "counsel point"
 						break
 
@@ -188,7 +188,8 @@ class MeetingLoader(Fetcher):
 						article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
 
 						# Pull out illustrations
-						scenes.extend(self.extract_illustrations(pub_code, article_title, article_main))
+						for illustration in self.extract_illustrations(pub_code, article_title, article_main):
+							yield illustration
 
 						is_a = "article"
 						break
@@ -197,7 +198,6 @@ class MeetingLoader(Fetcher):
 					break
 
 				logger.info(" Item: %s \"%s\" (%s)" % (str(a.attrib.get('class')).strip(), a.text_content().strip(), is_a))
-		return scenes
 
 	# Extract the media URL's from the web version of a Watchtower study article.
 	def extract_media_w(self, url, container, callback):
@@ -216,9 +216,12 @@ class MeetingLoader(Fetcher):
 				))
 		assert len(songs) == 2, songs
 
-		illustrations = self.extract_illustrations("w", "СБ", container)
+		yield songs[0]
 
-		return [songs[0]] + illustrations + [songs[1]]
+		for illustration in self.extract_illustrations("w", "СБ", container):
+			yield illustration
+
+		yield songs[1]
 
 	# Find the illustrations (<figure> tags) from an article or chapter body.
 	# The Watchtower extractor runs this on the whole article
@@ -229,7 +232,6 @@ class MeetingLoader(Fetcher):
 		print(title)
 		#self.dump_html(container)
 
-		figures = []
 		n = 1
 		for figure in container.xpath(".//figure"):
 			self.dump_html(figure)
@@ -256,12 +258,12 @@ class MeetingLoader(Fetcher):
 			if len(links) > 0:
 				a = links[0]
 				if a.attrib.get("data-video") is not None:
-					figures.append(MeetingMedia(
+					yield MeetingMedia(
 						pub_code = pub_code,
 						title = "%s %d" % (title, n),
 						media_type = "video",
 						media_url = self.get_video_url(a.attrib['href'])
-						))
+						)
 
 			else:
 				img = figure.xpath("./span[@class='jsRespImg']")[0]
@@ -271,14 +273,12 @@ class MeetingLoader(Fetcher):
 						break
 				else:
 					raise AssertionError("No image source in jsRespImg")
-				figures.append(MeetingMedia(
+				yield MeetingMedia(
 					pub_code = pub_code,
 					title = figcaption,
 					media_type = "image",
 					media_url = src,
-					))
+					)
 
 			n += 1
-		#self.dump_json(figures)
-		return figures
 

@@ -37,7 +37,8 @@ class Turbo:
 			def stream():
 				yield "retry: 5000\n"
 				while True:
-					yield "data: " + client_queue.get().replace("\n", " ") + "\n\n"
+					data = client_queue.get()
+					yield "data: " + data.replace("\n", " ") + "\n\n"
 			return Response(stream(), mimetype="text/event-stream")	
 
 		# Define a Jinja2 macro which generates Javascript code to load Hotwire Turbo

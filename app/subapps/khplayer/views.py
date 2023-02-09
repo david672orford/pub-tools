@@ -1,6 +1,5 @@
-# Views for loading media from JW.ORG into OBS
-
-from flask import Blueprint, render_template, redirect
+from flask import Blueprint, request, render_template, redirect
+import sys, traceback
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +20,8 @@ def page_index():
 # getting the necessary context menu to open.
 @blueprint.errorhandler(500)
 def handle_500(error):
-	return render_template("khplayer/500.html", top=".."), 500
+	exception = "".join(traceback.format_exception(*sys.exc_info()))
+	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
 
 from . import view_meetings
 from . import view_songs
