@@ -6,48 +6,79 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# A single media item, such as a video, for use at a meeting
 @dataclass
 class MeetingMedia:
 	pub_code: str
 	title: str
 	media_type: str
 	media_url: str
+	section_title: str = None
+	thumbnail_url: str = None
 
 # Scan a Meeting Workbook week or Watchtower study article and return
 # a list of the vidoes and pictures therein.
 class MeetingLoader(Fetcher):
 
-	# Get the articles to be studied during a particular week
+	# Get pointers to the Meeting Workbook and Watchtower articles
+	# to be studied during a particular week
 	def get_week(self, year, week):
+
+		# Fetch the week's page from the meeting schedule on wol.jw.org.
 		url = self.week_url.format(year=year, week=week)
 		html = self.get_html(url)
-		today_items = html.find_class("todayItem")
-		assert len(today_items) >= 2
 
+		today_items = html.find_class("todayItems")[0]
 		result = {}
 
-		# For the Meeting Workbook we can extract the MEPS docId
-		# directly from the todayItem tag.
-		mwb_class = today_items[0].attrib['class']
-		assert " pub-mwb " in mwb_class
+		#------------------------------------------
+		# Meeting Workbook
+		#------------------------------------------
+		mwb_div = today_items.find_class("pub-mwb")
+		if len(mwb_div) > 0:
+			mwb_div = mwb_div[0]
 
-		item_data = today_items[1].find_class('itemData')[0]
-		result['mwb_url'] = urljoin(url, item_data.xpath('.//a')[0].attrib['href'])
+			# URL of meeting workbook page on wol.jw.org
+			result["mwb_url"] = urljoin(url, mwb_div.find_class("itemData")[0].xpath('.//a')[0].attrib['href'])
 
-		result['mwb_docid'] = int(re.search(r" docId-(\d+) ", mwb_class).group(1))
+			# The MEPS docId is one of the classes of the todayItem <div> tag.
+			result["mwb_docid"] = int(re.search(r" docId-(\d+) ", mwb_div.attrib["class"]).group(1))
 
-		# For the Watchtower article we have to follow the link. It will
-		# redirect to a URL which has the MEPS docId at the end.
-		watchtower_class = today_items[1].attrib['class']
-		assert " pub-w" in watchtower_class
+		else:
+			result["mwb_url" ] = None
+			result["mwb_docid" ] = None
 
-		item_data = today_items[1].find_class('itemData')[0]
-		result['watchtower_url'] = urljoin(url, item_data.xpath('.//a')[0].attrib['href'])
+		#------------------------------------------
+		# Watchtower
+		#------------------------------------------
+		watchtower_div = today_items.find_class("pub-w")
+		if len(watchtower_div) > 0:
+			watchtower_div = watchtower_div[0]
 
-		response = self.get(result['watchtower_url'], follow_redirects=False)
-		result['watchtower_docid'] = response.geturl().split('/')[-1]
+			# URL of Watchtower article on wol.jw.org
+			result["watchtower_url"] = urljoin(url, watchtower_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
+
+			# Follow the link. The MEPS docId at the end of the URL to which we are redirected.
+			response = self.get(result["watchtower_url"], follow_redirects=False)
+			result["watchtower_docid"] = response.geturl().split('/')[-1]
+
+		else:
+			result["watchtower_url" ] = None
+			result["watchtower_docid" ] = None
 
 		return result
+
+	# Fetch the web version of an article, figure out whether it is a Workbook week
+	# or a Watchtower study article and invoke the appropriate media extractor function.
+	def extract_media(self, url, callback=None):
+		callback("Downloading article...")
+		container = self.get_article_html(url)
+		callback("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
+
+		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
+		m = re.search(r" pub-(\S+) ", container.attrib['class'])
+		assert m
+		return getattr(self, "extract_media_%s" % m.group(1))(url, container, callback)
 
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
 	# the article content. Normally this is the the content of the <article>
@@ -69,18 +100,6 @@ class MeetingLoader(Fetcher):
 			el.getparent().remove(el)
 		
 		return container
-
-	# Fetch the web version of an article, figure out whether it is a Workbook week
-	# or a Watchtower study article and invoke the appropriate media extractor function.
-	def extract_media(self, url, callback=None):
-		callback("Downloading article...")
-		container = self.get_article_html(url)
-		callback("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
-
-		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
-		m = re.search(r" pub-(\S+) ", container.attrib['class'])
-		assert m
-		return getattr(self, "extract_media_%s" % m.group(1))(url, container, callback)
 
 	# Extract the media URL's from the web version of an article in the Meeting Workbook
 	def extract_media_mwb(self, url, container, callback):
@@ -118,6 +137,7 @@ class MeetingLoader(Fetcher):
 					# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 					if a.attrib.get("data-video") is not None:
 						yield MeetingMedia(
+							section_title = section_title,
 							pub_code = None,
 							title = a.text_content(),
 							media_type = "video",
@@ -143,6 +163,7 @@ class MeetingLoader(Fetcher):
 						song_text = a.text_content().strip()
 						song_number = re.search(r'(\d+)$', song_text).group(1)
 						yield MeetingMedia(
+							section_title = section_title,
 							pub_code = "sjj %s" % song_number,
 							title = song_text,
 							media_type = "video",
@@ -155,13 +176,14 @@ class MeetingLoader(Fetcher):
 					if pub_code == "th":
 						text = a.text_content().strip()
 						chapter = int(re.search(r"(\d+)$", text).group(1))
-						yield MeetingMedia(
-							pub_code = "th %d" % chapter,
-							title = text,
-							media_type = "web",
-							#media_url = urljoin(url, a.attrib['href']),
-							media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
-							)
+						#yield MeetingMedia(
+						#	section_title = section_title,
+						#	pub_code = "th %d" % chapter,
+						#	title = text,
+						#	media_type = "web",
+						#	#media_url = urljoin(url, a.attrib['href']),
+						#	media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
+						#	)
 						is_a = "counsel point"
 						break
 

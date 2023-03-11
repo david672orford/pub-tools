@@ -33,7 +33,7 @@ def default_callback(message):
 @cli_update.command("meetings", help="Load weekly meeting schedule")
 def cmd_update_meetings():
 	logging.basicConfig(level=logging.DEBUG)
-	load_meetings()
+	update_meetings()
 
 def update_meetings(callback=default_callback):
 	meeting_loader = MeetingLoader()

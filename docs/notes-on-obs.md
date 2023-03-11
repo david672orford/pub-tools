@@ -20,4 +20,5 @@
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
 * [Plugin Docs](https://obsproject.com/docs/plugins.html)
 * [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)
+* [Virtual Camera Audio in Linux PR](https://github.com/obsproject/obs-studio/pull/8171)
 

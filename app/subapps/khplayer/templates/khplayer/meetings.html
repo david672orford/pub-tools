@@ -17,8 +17,8 @@
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td><a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Life and Ministry')|urlencode}}">Life and Ministry</a></td>
-	<td><a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Watchtower')|urlencode}}">Watchtower</a></td>
+	<td>{%if week.mwb_docid%}<a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Life and Ministry')|urlencode}}">Life and Ministry</a>{%endif%}</td>
+	<td>{%if week.watchtower_docid%}<a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Watchtower')|urlencode}}">Watchtower</a>{%endif%}</td>
 </tr>
 {% endfor %}
 </tbody>
