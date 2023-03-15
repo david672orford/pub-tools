@@ -1,10 +1,12 @@
 <turbo-stream action="append" target="media-list">
 	<template>
 		<tr>
+		<th>{{item.section_title}}</td>
+		<th>{{item.part_title}}</td>
 	    <td>{{item.pub_code}}</td>
-	    <td>{{item.title}}</td>
 	    <td>{{item.media_type}}</td>
-	    <td><a href="{{item.media_url}}" target="_blank">{{item.media_url}}</a></td>
+		<td>{% if item.thumbnail_url %}<img src="{{item.thumbnail_url}}" style="width:90px">{%endif%}</td>
+	    <td><a href="{{item.media_url}}" target="_blank">{{item.title}}</a></td>
 	    </tr>
 	</template>
 </turbo-stream>

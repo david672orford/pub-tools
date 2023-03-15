@@ -41,10 +41,10 @@ def page_videos_category_subcategory_submit(category_key, subcategory_key):
 def load_video(lank):
 	video = Videos.query.filter_by(lank=lank).one()
 	progress_callback("Getting video URL...")
-	media_url = meeting_loader.get_video_url(video.href)
-	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
+	video_metadata = meeting_loader.get_video_metadata(video.href, resolution="480p")
+	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
 	try:
-		obs.add_media_scene(video.name, "video", media_file)
+		obs.add_media_scene(video.name, "video", video_file)
 	except ObsError as e:
 		progress_callback("OBS: %s" % str(e))	
 	else:

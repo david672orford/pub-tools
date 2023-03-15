@@ -34,7 +34,7 @@ class VideoCategory:
 			logger.debug("Video title: %s", media['title'])
 			self.videos.append(Video(video_lister.language, media))
 
-		# As we understand it a category can contain videos or subcategories, but not both.
+		# As we understand it a category can contain videos or it can contain subcategories, but not both.
 		assert len(self.videos) == 0 or len(category_dict.get('subcategories',[])) == 0
 
 	@property
@@ -56,6 +56,7 @@ class Video:
 		except KeyError:
 			self.thumbnail = media['images']['lss']['lg']		# 2:1 aspect ratio
 
+		# Shareable link to the video player page
 		self.href = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
 
 		self.files = {}

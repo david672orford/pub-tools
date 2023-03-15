@@ -120,9 +120,14 @@ def meeting_media_to_obs_scenes(items):
 			scene_name = item.title
 	
 		if item.media_type == "web":		# HTML page
-			#obs.add_media_scene(scene_name, media_type, media_url)
-			pass
-		else:						# video or image file
-			media_file = meeting_loader.download_media(item.media_url, callback=progress_callback)
-			obs.add_media_scene(scene_name, item.media_type, media_file)
+			obs.add_media_scene(scene_name, item.media_type, item.media_url)
+		elif item.media_type == "video":
+			video_metadata = meeting_loader.get_video_metadata(item.media_url, resolution="480p")
+			video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
+			obs.add_media_scene(scene_name, item.media_type, video_file)
+		elif item.media_type == "image":
+			image_file = meeting_loader.download_media(media_url, callback=progress_callback)
+			obs.add_media_scene(scene_name, item.media_type, image_file)
+		else:
+			raise AssertionError
 

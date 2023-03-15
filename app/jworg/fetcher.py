@@ -56,6 +56,9 @@ class Fetcher:
 	# * track=1
 	# * langwritten=
 	# * txtCMSLang=
+	#
+	# Note that this API does not provide a thumbnail image.
+	#
 	pub_media_url = 'https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS'
 
 	# Used for listing videos from JW Broadcasting by category
@@ -64,8 +67,8 @@ class Fetcher:
 	# clientType=www -- Unknown
 	mediator_categories_url = 'https://data.jw-api.org/mediator/v1/categories/{language}/{category}?detailed=1&clientType=www'
 
-	# Used for getting the download link for a video when we know the language
-	# we want and the video's Language Agnostic Natural Key (lank)
+	# Used for getting the download link for a video from JW Broadcasting when
+	# we know the language we want and the video's Language Agnostic Natural Key (lank)
 	mediator_items_url = 'https://b.jw-cdn.org/apis/mediator/v1/media-items/{language}/{video}'
 
 	# Page in Watchtower Online Library which gives the study articles for a given week
@@ -206,19 +209,50 @@ class Fetcher:
 		video_url = media['files'][self.language]['MP4'][2]['file']['url']		# 480i
 		return video_url
 
-	# Given a link to a video from an article such as:
-    #  https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
-	# Extract the publication ID and language and use the mediator to get the
-	# download URL for the MP4 file.
-	def get_video_url(self, url):
+	# Given a link to a video from an article, extract the publication ID
+	# and language and go directly to the mediator endpoint to get the
+	# metadata bypassing the player page.
+	def get_video_metadata(self, url, resolution=None):
 		query = dict(parse_qsl(urlparse(url).query))
+
+		# Video is specified by its Language Agnostic Natural Key (LANK)
+    	# https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
+		# https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
 		if "lank" in query:
+
 			media = self.get_json(self.mediator_items_url.format(
 				language = query["wtlocale"],
 				video = query["lank"],
 				), query = { "clientType": "www" })
-			return media["media"][0]["files"][2]["progressiveDownloadURL"]
+			media = media["media"][0]
+
+			# If the caller has specified a video resolution, find a suitable file.
+			url = None
+			if resolution is not None:
+				for variant in media["files"]:
+					if variant.get("label") == resolution:
+						url = variant["progressiveDownloadURL"]
+						break
+
+			try:
+				thumbnail_url = media['images']['wss']['sm']		# 16:9 aspect ratio, occassionally missing
+			except KeyError:
+				thumbnail_url = media['images']['lss']['lg']		# 2:1 aspect ratio
+
+			return {
+				"title": media["title"],
+				"url": url,
+				"thumbnail_url": thumbnail_url,
+				}
+
+		# Video is specified by its MEPS Document ID
 		elif "docid" in query:
+
+			# The API used below does not provide a thumbnail image. Get an image from the player page.
+			player_page = self.get_html(url)
+			poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
+			thumbnail_url = poster_div.attrib["data-src"]
+
 			media = self.get_json(self.pub_media_url,
 				query = {
 					'docid': query["docid"],
@@ -230,9 +264,24 @@ class Fetcher:
 					"txtCMSLang": query["wtlocale"],
 					}
 				)
-			return media['files'][query["wtlocale"]]['MP4'][2]['file']['url']		# 480i
+			mp4 = media['files'][query["wtlocale"]]['MP4']
+
+			# If the caller has specified a video resolution, find a suitable file.
+			url = None
+			if resolution is not None:
+				for variant in mp4:
+					if variant.get("label") == resolution:
+						url = variant["file"]["url"]
+						break
+
+			return {
+				"title": mp4[0]["title"],
+				"url": url,
+				"thumbnail_url": thumbnail_url,
+				}
+
 		else:
-			raise AssertionError
+			raise AssertionError(url)
 
 	# Find the EPUB download URL of a periodical
 	# FIXME: is this really just for periodicals? Note that issue_code is optional

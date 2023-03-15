@@ -34,7 +34,7 @@ class VideoCategoriesView(ModelView):
 	pass
 
 class VideosView(ModelView):
-	pass
+	column_searchable_list = ("name", "lank")
 
 class ConfigView(ModelView):
 	pass

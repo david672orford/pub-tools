@@ -15,7 +15,7 @@ These are notes on how the links to publications and media files on JW.ORG work.
 
 Each chapter, article, title page, table of contents etc. is assigned a MEPS 
 document ID which is an integer starting with the digits of the year. Each is
-also assigned a document class. Classes include:
+also assigned a document class number. Examples include:
 
 * 40 Watchtower study article
 * 106 Meeting Workbook week

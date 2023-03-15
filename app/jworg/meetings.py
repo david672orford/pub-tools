@@ -14,6 +14,7 @@ class MeetingMedia:
 	media_type: str
 	media_url: str
 	section_title: str = None
+	part_title: str = None
 	thumbnail_url: str = None
 
 # Scan a Meeting Workbook week or Watchtower study article and return
@@ -68,8 +69,9 @@ class MeetingLoader(Fetcher):
 
 		return result
 
-	# Fetch the web version of an article, figure out whether it is a Workbook week
-	# or a Watchtower study article and invoke the appropriate media extractor function.
+	# Fetch the web version of a Meeting Workbook lesson or Watchtower study
+	# article, figure out which it is, and invoke the appropriate media
+	# extractor function.
 	def extract_media(self, url, callback=None):
 		callback("Downloading article...")
 		container = self.get_article_html(url)
@@ -98,10 +100,11 @@ class MeetingLoader(Fetcher):
 		# Remove the section which has the page images
 		for el in container.xpath(".//div[@id='docSubImg']"):
 			el.getparent().remove(el)
-		
+
 		return container
 
-	# Extract the media URL's from the web version of an article in the Meeting Workbook
+	# Handler for a lesson page from the Meeting Workbook
+	# Called by .extract_media()
 	def extract_media_mwb(self, url, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
@@ -120,108 +123,131 @@ class MeetingLoader(Fetcher):
 			section_title = h2s[0].text_content() if len(h2s) > 0 else None
 			logger.info("Section: id=%s class=%s title=\"%s\"" % (section_id, section.attrib.get("class"), section_title))
 
-			# Go through all of the hyperlinks in this section
-			for a in section.xpath(".//a"):
-				logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
+			for li in section.xpath("./div/ul/li"):
 
-				# Not an actual loop. We always break out on the first iteration.
-				while True:
+				# <strong>«</strong><a>Part Title</a><strong>»</strong>
+				# <strong>Part Title</strong>
+				part_title = li.xpath(".//strong")[0].text_content()
+				if len(part_title) == 1:
+					part_title = li.xpath(".//a")[0].text_content()
 
-					# This is for the log message which is printed after we break out of this 'loop'
-					is_a = None
+				# Go through all of the hyperlinks in this section
+				for a in li.xpath(".//a"):
+					logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
 
-					# Meeting Workbook sample presentation video
-					# (Other videos occasionally have them too.)
-					# Sample <a> tag attributes:
-					# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
-					# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
-					if a.attrib.get("data-video") is not None:
-						yield MeetingMedia(
-							section_title = section_title,
-							pub_code = None,
-							title = a.text_content(),
-							media_type = "video",
-							media_url = self.get_video_url(a.attrib['href'])
-							)
-						is_a = "video"
+					# Not an actual loop. We always break out on the first iteration.
+					while True:
+
+						# This is for the log message which is printed after we break out of this 'loop'
+						is_a = None
+
+						# Meeting Workbook sample presentation video
+						# (Other videos occasionally use this link format too.)
+						# Sample <a> tag attributes:
+						# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
+						# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
+						if a.attrib.get("data-video") is not None:
+							video_metadata = self.get_video_metadata(a.attrib["href"])
+							yield MeetingMedia(
+								section_title = section_title,
+								part_title = part_title,
+								pub_code = None,
+								#title = a.text_content(),
+								title = video_metadata["title"],
+								media_type = "video",
+								media_url = a.attrib["href"],
+								thumbnail_url = video_metadata["thumbnail_url"],
+								)
+							is_a = "video"
+							break
+
+						# Link to Bible passage
+						if "jsBibleLink" in a.attrib.get("class","").split(" "):
+							is_a = "verse"
+							break
+
+						# Extract publication code and document ID. We will use these below
+						# to figure out what we've got.
+						try:
+							pub_code = re.match(r"^pub-(\S+)$", a.attrib['class']).group(1)
+							docid = re.match(r"^mid(\d+)$", a.attrib['data-page-id']).group(1)
+						except AttributeError:
+							raise AssertionError("Not as expected: <%s %s>%s" % (a.tag, str(a.attrib), a.text))
+
+						# Song from our songbook
+						if pub_code == "sjj":
+							song_text = a.text_content().strip()
+							song_number = re.search(r'(\d+)$', song_text).group(1)
+							yield MeetingMedia(
+								section_title = section_title,
+								part_title = part_title,
+								pub_code = "sjj %s" % song_number,
+								title = song_text,
+								media_type = "video",
+								media_url = self.get_song_video_url(song_number)
+								)
+							is_a = "song"
+							break
+
+						# Counsel point
+						if pub_code == "th":
+							text = a.text_content().strip()
+							chapter = int(re.search(r"(\d+)$", text).group(1))
+							#yield MeetingMedia(
+							#	section_title = section_title,
+							#	part_title = part_title,
+							#	pub_code = "th %d" % chapter,
+							#	title = text,
+							#	media_type = "web",
+							#	#media_url = urljoin(url, a.attrib['href']),
+							#	media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
+							#	)
+							is_a = "counsel point"
+							break
+
+						# Video from JW Broadcasting?
+						# Examples
+						# ijwwb -- Whiteboard animation
+						# ijwpk -- Become Jehovah's friend
+						# ijwfg -- Teaching toolbox videos?
+						#
+						# FIXME: Do we need to handle this? Or is this just for links to videos
+						# to be used in demonstrations?
+						if pub_code.startswith("ijw"):
+							docid = a.attrib.get('data-page-id')
+							is_a = "video"
+							break
+
+						# Links to other publications. For these we download the article or
+						# chapter and extract illustrations. (But we omit those in 3rd section
+						# because the are just the source material for demonstrations.)
+						if section_id != "section3":
+
+							# Take the text inside the <a> tag as the article title
+							article_title = a.text_content().strip()
+							callback("Getting media list from %s..." % article_title)
+
+							# Download the article and extract the contents of the <main> tag
+							# (The articles for the first talk in the MWB have the first illustration
+							# between the <main> tag and the <article> tag inside it.)
+							article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
+
+							# Pull out illustrations
+							for illustration in self.extract_illustrations(pub_code, article_title, article_main):
+								illustration.section_title = section_title
+								illustration.part_title = part_title
+								yield illustration
+
+							is_a = "article"
+							break
+
+						is_a = "unknown"
 						break
 
-					if "jsBibleLink" in a.attrib.get("class","").split(" "):
-						is_a = "verse"
-						break
+					logger.info(" Item: %s \"%s\" (%s)" % (str(a.attrib.get('class')).strip(), a.text_content().strip(), is_a))
 
-					# Extract publication code and document ID. We will use these below
-					# to figure out what we've got.
-					try:
-						pub_code = re.match(r"^pub-(\S+)$", a.attrib['class']).group(1)
-						docid = re.match(r"^mid(\d+)$", a.attrib['data-page-id']).group(1)
-					except AttributeError:
-						raise AssertionError("Not as expected: <%s %s>%s" % (a.tag, str(a.attrib), a.text))
-
-					# Song from our songbook
-					if pub_code == "sjj":
-						song_text = a.text_content().strip()
-						song_number = re.search(r'(\d+)$', song_text).group(1)
-						yield MeetingMedia(
-							section_title = section_title,
-							pub_code = "sjj %s" % song_number,
-							title = song_text,
-							media_type = "video",
-							media_url = self.get_song_video_url(song_number)
-							)
-						is_a = "song"
-						break
-
-					# Counsel point
-					if pub_code == "th":
-						text = a.text_content().strip()
-						chapter = int(re.search(r"(\d+)$", text).group(1))
-						#yield MeetingMedia(
-						#	section_title = section_title,
-						#	pub_code = "th %d" % chapter,
-						#	title = text,
-						#	media_type = "web",
-						#	#media_url = urljoin(url, a.attrib['href']),
-						#	media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
-						#	)
-						is_a = "counsel point"
-						break
-
-					# Video from JW Broadcasting?
-					# ijwwb -- whiteboard animation
-					# ijwpk -- become Jehovah's friend
-					if pub_code.startswith("ijw"):
-						docid = a.attrib.get('data-page-id')
-						# FIXME
-						is_a = "video"
-						break
-
-					# Links to other publications. Download the article or chapter and extract illustrations.
-					# (Omit those in 3rd section because the are just the source material for demonstrations.)
-					if section_id != "section3":
-
-						# Take the text inside the <a> tag as the article title
-						article_title = a.text_content().strip()
-						callback("Getting media list from %s..." % article_title)
-
-						# Download the article and extract the contents of the <main> tag
-						# (The articles for the first talk in the MWB have the first illustration
-						# between the <main> tag and the <article> tag inside it.)
-						article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
-
-						# Pull out illustrations
-						for illustration in self.extract_illustrations(pub_code, article_title, article_main):
-							yield illustration
-
-						is_a = "article"
-						break
-
-					is_a = "unknown"
-					break
-
-				logger.info(" Item: %s \"%s\" (%s)" % (str(a.attrib.get('class')).strip(), a.text_content().strip(), is_a))
-
-	# Extract the media URL's from the web version of a Watchtower study article.
+	# Handler for a Watchtower study article
+	# Called from .extract_media()
 	def extract_media_w(self, url, container, callback):
 
 		# <a class='pub-sjj' is a song. There should always be two, opening and closing.
@@ -249,58 +275,137 @@ class MeetingLoader(Fetcher):
 	# The Watchtower extractor runs this on the whole article
 	# The Meeting Workbook extractor runs this on articles to which the
 	# week's page links, omiting only the source material for demonstrations.
-	def extract_illustrations(self, pub_code, title, container):
+	def extract_illustrations(self, pub_code, article_title, container):
 		print("=========================================================")
-		print(title)
+		print(article_title)
 		#self.dump_html(container)
 
-		n = 1
+		#
+		# Examples (before modification by the Javascript):
+		#
+		# Article head illustration in Watchtower:
+		#
+		# <figure class="article-top-related-image jwac textSizeIncrement">
+		#   <span class="jsRespImg" data-img-type="lsr" data-img-att-alt="..." ...>
+		#     <noscript>
+		#       <img src="..." alt="...">
+		#     </noscript>
+		#   </span>
+		# </figure>
+		#
+		# Article head illustration in Meeting Workbook
+		#
+		# <figure>
+		#   <span class="jsRespImg" data-img-type="cnt" data-img-att-class="south_center" data-img-att-alt="..." ...>
+		#     <noscript>
+		#       <img src="..." alt="...">
+		#     </noscript>
+		#   </span>
+		# </figure>
+		#
+		# Internal illustration with caption:
+		#
+		# <figure>
+		#  <span class="jsRespImg" data-img-type="cnt" data-img-att-class="south_center" data-img-att-alt="..." ...>
+		#    <noscript>
+		#      <img src="..." alt="...">
+		#    </noscript>
+		#  </span>
+		#  <figcaption>
+		#    <p id="pN" data-pid="N" class="pN">...</p>
+		#  </figcaption>
+		# </figure>
+		#
+		# There will sometimes be multiple <span>'s, one for each image in a carousel.
+		#
+		# Image link to video with poster:
+		#
+		# <figure>
+		#  <a href="..." data-video="..." ...>
+		#    <span class="jsRespImg" data-img-type="cnt" data-img-att-class="suppressZoom" ...>
+		#      <noscript>
+		#         <img src="..." alt="" class="suppressZoom">
+		#      </noscript>
+		#    </span>
+		#  </a>
+		# </figure>
+		#
+		# Image link to article with context:
+		#
+		# <div>
+		#   <div>
+		#     <figure>
+		#       <a class="pub-XX" data-page-id="..." href="...">
+		#         <span class="jsRespImg" data-img-att-alt="..." ...>
+		#           <noscript>
+		#             <img src="..." alt="...">
+		#           </noscript>
+		#         </span>
+		#       </a>
+		#     </figure>
+		#   </div>
+		#   <div>
+		#     <p>...</p>
+		#     <p>
+		#       <a class="pub-XX" ...>...</a>
+		#     </p>
+		#   </div>
+		# </div>
+		#
+		n = 0
 		for figure in container.xpath(".//figure"):
 			self.dump_html(figure)
-			figcaption = figure.xpath("./figcaption")
-			if len(figcaption) > 0:
-				figcaption = "%s %s: %s" % (title, n, figcaption[0].text_content().strip())
-			else:
-				figcaption = "%s %d" % (title, n)
+			n += 1
+			link = figure.find("./a")
 
-			#
-			# In the unmodified HTML the figure looks like this:
-			# <figure>
-			#  <span class="jsRespImg"...>
-			#    <noscript>
-			#       <img srv="..." alt="...">
-			#    </noscript>
-			#  </span>
-			# </figure>
-			#
-			# If the image is a video thumbnail, there will be an <a> element wrapping the <span>
-			#
-
-			links = figure.xpath("./a")
-			if len(links) > 0:
-				a = links[0]
-				if a.attrib.get("data-video") is not None:
+			# Is this image linked to a video?
+			if link is not None:
+				if link.attrib.get("data-video") is not None:
+					video_metadata = self.get_video_metadata(link.attrib['href'])
 					yield MeetingMedia(
 						pub_code = pub_code,
-						title = "%s %d" % (title, n),
+						#title = "%s №%d" % (article_title, n),
+						title = video_metadata["title"],
 						media_type = "video",
-						media_url = self.get_video_url(a.attrib['href'])
+						media_url = link.attrib['href'],
+						thumbnail_url = video_metadata["thumbnail_url"],
 						)
+					continue
 
+			figcaption = figure.find("./figcaption")
+			if figcaption is not None:
+				caption = figcaption.text_content().strip()
+			elif link is not None and link.attrib.get("class","").startswith("pub-"):
+				caption_div = figure.getparent().getnext()
+				caption = caption_div.xpath(".//a[@class='%s']" % link.attrib.get("class"))[0].text_content()
 			else:
-				img = figure.xpath("./span[@class='jsRespImg']")[0]
+				caption = None
+
+			# Loop over the images in this figure
+			for span in figure.findall(".//span[@class='jsRespImg']"):
+				img = span.find("./noscript/img")
+				assert span is not None and img is not None
+
+				# Take the highest resolution version we can get
 				for variant in ("data-zoom", "data-img-size-lg", "data-img-size-md", "data-img-size-sm", "data-img-size-xs"):
-					src = img.attrib.get(variant)
+					src = span.attrib.get(variant)
 					if src is not None:
 						break
 				else:
-					raise AssertionError("No image source in jsRespImg")
+					raise AssertionError("No image source in jsRespImg: %s" % str(span.attrib))
+
+				if caption:
+					media_title = caption
+				else:
+					media_title = img.attrib.get("alt","").strip()
+				if media_title == "":
+					media_title = "%s №%d" % (article_title, n)
+
 				yield MeetingMedia(
 					pub_code = pub_code,
-					title = figcaption,
+					title = media_title,
 					media_type = "image",
 					media_url = src,
+					thumbnail_url = span.attrib.get("data-img-size-xs"),
 					)
-
-			n += 1
 
