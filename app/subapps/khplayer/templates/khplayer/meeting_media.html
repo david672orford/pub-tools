@@ -14,12 +14,9 @@
 <table class="borders full-width">
 <thead>
 <tr>
-	<th>Section</th>
 	<th>Part</th>
 	<th>Pub</th>
-	<th>Type</th>
-	<th>Thumbnail</th>
-	<th>Title</th>
+	<th colspan="2">Media Item</th>
 	</tr>
 </thead>
 <tbody id="media-list">
@@ -27,15 +24,18 @@
 </table>
 </section>
 
-<section class="bordered">
+<section id="button-box" class="bordered">
 	<div class="form-field">
-		<button type="submit">Download Media and Create Scenes in OBS</button>
+		<button type="submit" disabled>Download Media and Create Scenes in OBS</button>
 	</div>
 </section>
 
 </form>
 
 <script>
+function loaded_hook() {
+	document.getElementsByTagName("button")[0].disabled = false;
+	}
 (function() {
 	let sse = new EventSource("stream");
 	sse.onerror = () => { sse.close() }

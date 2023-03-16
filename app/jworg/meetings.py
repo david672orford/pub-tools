@@ -1,5 +1,5 @@
 from .fetcher import Fetcher
-from urllib.parse import urlparse, urljoin, parse_qsl, unquote
+from urllib.parse import urlparse, urljoin, parse_qsl, unquote, urlencode
 import re
 from dataclasses import dataclass
 import logging
@@ -148,10 +148,12 @@ class MeetingLoader(Fetcher):
 						# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 						if a.attrib.get("data-video") is not None:
 							video_metadata = self.get_video_metadata(a.attrib["href"])
+							query = dict(parse_qsl(urlparse(a.attrib["href"]).query))
 							yield MeetingMedia(
 								section_title = section_title,
 								part_title = part_title,
-								pub_code = None,
+								#pub_code = None,
+								pub_code = pub_code if "docid" in query else re.sub(r"^pub-([^_]+)_.+$", lambda m: m.group(1), query["lank"]),
 								#title = a.text_content(),
 								title = video_metadata["title"],
 								media_type = "video",
@@ -176,16 +178,9 @@ class MeetingLoader(Fetcher):
 
 						# Song from our songbook
 						if pub_code == "sjj":
-							song_text = a.text_content().strip()
-							song_number = re.search(r'(\d+)$', song_text).group(1)
-							yield MeetingMedia(
-								section_title = section_title,
-								part_title = part_title,
-								pub_code = "sjj %s" % song_number,
-								title = song_text,
-								media_type = "video",
-								media_url = self.get_song_video_url(song_number)
-								)
+							song = self.make_song(a)
+							song.section_title = section_title
+							yield song
 							is_a = "song"
 							break
 
@@ -253,15 +248,7 @@ class MeetingLoader(Fetcher):
 		# <a class='pub-sjj' is a song. There should always be two, opening and closing.
 		songs = []
 		for a in container.xpath(".//a[@class='pub-sjj']"):
-			song = a.text_content().strip()
-			m = re.search(r'(\d+)$', song)
-			assert m
-			songs.append(MeetingMedia(
-				pub_code = "sjj",
-				title = song,
-				media_type = "video",
-				media_url = self.get_song_video_url(m.group(1)),
-				))
+			songs.append(self.make_song(a))
 		assert len(songs) == 2, songs
 
 		yield songs[0]
@@ -270,6 +257,21 @@ class MeetingLoader(Fetcher):
 			yield illustration
 
 		yield songs[1]
+
+	def make_song(self, a):
+		song_text = a.text_content().strip()
+		song_number = re.search(r'(\d+)$', song_text).group(1)
+		return MeetingMedia(
+			pub_code = "sjj %s" % song_number,
+			part_title = song_text,
+			title = song_text,
+			media_type = "video",
+			media_url = "https://www.jw.org/finder?" + urlencode({
+				"wtlocale": self.language,
+				"docid": a.attrib["data-page-id"][3:],
+				"srcid": "share",
+				}),
+			)
 
 	# Find the illustrations (<figure> tags) from an article or chapter body.
 	# The Watchtower extractor runs this on the whole article
@@ -358,20 +360,6 @@ class MeetingLoader(Fetcher):
 			n += 1
 			link = figure.find("./a")
 
-			# Is this image linked to a video?
-			if link is not None:
-				if link.attrib.get("data-video") is not None:
-					video_metadata = self.get_video_metadata(link.attrib['href'])
-					yield MeetingMedia(
-						pub_code = pub_code,
-						#title = "%s №%d" % (article_title, n),
-						title = video_metadata["title"],
-						media_type = "video",
-						media_url = link.attrib['href'],
-						thumbnail_url = video_metadata["thumbnail_url"],
-						)
-					continue
-
 			figcaption = figure.find("./figcaption")
 			if figcaption is not None:
 				caption = figcaption.text_content().strip()
@@ -380,6 +368,35 @@ class MeetingLoader(Fetcher):
 				caption = caption_div.xpath(".//a[@class='%s']" % link.attrib.get("class"))[0].text_content()
 			else:
 				caption = None
+
+			# Is this image linked to something?
+			if link is not None:
+
+				# Is this image linked to a video?
+				if link.attrib.get("data-video") is not None:
+					video_metadata = self.get_video_metadata(link.attrib["href"])
+					query = dict(parse_qsl(urlparse(link.attrib["href"]).query))
+					yield MeetingMedia(
+						# If specified by docid, assume video is part of publication, otherwise extract a pub ID from LANK
+						pub_code = pub_code if "docid" in query else re.sub(r"^pub-([^_]+)_.+$", lambda m: m.group(1), query["lank"]),
+						title = caption if caption is not None else video_metadata["title"],
+						media_type = "video",
+						media_url = link.attrib["href"],
+						thumbnail_url = video_metadata["thumbnail_url"],
+						)
+					continue
+
+				# Article
+				else:
+					span = figure.find(".//span[@class='jsRespImg']")
+					yield MeetingMedia(
+						pub_code = None,
+						title = caption,
+						media_type = "web",
+						media_url = urljoin("https://www.jw.org", link.attrib['href']),
+						thumbnail_url = span.attrib.get("data-img-size-xs"),
+						)
+					continue
 
 			# Loop over the images in this figure
 			for span in figure.findall(".//span[@class='jsRespImg']"):

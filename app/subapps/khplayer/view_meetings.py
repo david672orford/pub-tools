@@ -42,13 +42,17 @@ def page_meetings_view(docid):
 	title = request.args.get("title")
 	return render_template("khplayer/meeting_media.html", meeting_title=title, top="../..")
 
+# Asyncronous source of meeting media items
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
+		previous_section = None
 		for item in get_meeting_media_cached(docid):
-			data = render_template("khplayer/meeting_media_item.html", item=item)
+			data = render_template("khplayer/meeting_media_item.html", item=item, new_section=(item.section_title != previous_section))
+			previous_section = item.section_title
 			yield "data: " + data.replace("\n", " ") + "\n\n"
 			sleep(.1)
+		yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 	response = current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 	return response
 
@@ -112,6 +116,8 @@ def meeting_media_to_obs_scenes(items):
 		# Add a symbol to the front of the scene name to indicate its type.
 		if item.pub_code is not None and item.pub_code.startswith("sjj"):
 			scene_name = "♫ " + item.title
+		elif item.media_type == "web":
+			scene_name = "◯" + item.title
 		elif item.media_type == "video":
 			scene_name = "▷ " + item.title
 		elif item.media_type == "image":
@@ -126,7 +132,7 @@ def meeting_media_to_obs_scenes(items):
 			video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
 			obs.add_media_scene(scene_name, item.media_type, video_file)
 		elif item.media_type == "image":
-			image_file = meeting_loader.download_media(media_url, callback=progress_callback)
+			image_file = meeting_loader.download_media(item.media_url, callback=progress_callback)
 			obs.add_media_scene(scene_name, item.media_type, image_file)
 		else:
 			raise AssertionError

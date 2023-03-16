@@ -1,6 +1,6 @@
 import os
 from urllib.request import urlopen, Request, HTTPHandler, HTTPSHandler, HTTPErrorProcessor, build_opener
-from urllib.parse import urlparse, parse_qsl, urlencode, unquote, urljoin
+from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 from gzip import GzipFile
 import lxml.html
 import json
@@ -123,40 +123,40 @@ class Fetcher:
 	# Pretty print a parsed HTML element and its children. We need this because
 	# in a browser JavaScript code transforms the page a bit after it is loaded,
 	# so we can't completely trust what we seen in the browser's debugger.
-	@staticmethod 
-	def dump_html(el, filename=None): 
-		print("=======================================================") 
-		Fetcher._indent(el) 
-		text = lxml.html.tostring(el, encoding="UNICODE") 
+	@staticmethod
+	def dump_html(el, filename=None):
+		print("=======================================================")
+		Fetcher._indent(el)
+		text = lxml.html.tostring(el, encoding="UNICODE")
 		if filename:
 			with open(filename, "w") as fh:
 				fh.write(text)
 		else:
-			print(text) 
- 
-	@staticmethod 
+			print(text)
+
+	@staticmethod
 	def dump_json(data):
-		print("=======================================================") 
+		print("=======================================================")
 		text = json.dumps(data, indent=4, ensure_ascii=False)
 		print(text)
 
-	# Alter the whitespace in the element tree to indent the tabs 
-	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint 
-	@staticmethod 
-	def _indent(elem, level=0): 
-		i = "\n" + level*"  " 
-		if len(elem): 
-			if not elem.text or not elem.text.strip(): 
-				elem.text = i + "  " 
-			if not elem.tail or not elem.tail.strip(): 
-				elem.tail = i 
-			for elem in elem: 
-				Fetcher._indent(elem, level+1) 
-			if not elem.tail or not elem.tail.strip(): 
-				elem.tail = i 
-		else: 
-			if level and (not elem.tail or not elem.tail.strip()): 
-				elem.tail = i 
+	# Alter the whitespace in the element tree to indent the tabs
+	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
+	@staticmethod
+	def _indent(elem, level=0):
+		i = "\n" + level*"  "
+		if len(elem):
+			if not elem.text or not elem.text.strip():
+				elem.text = i + "  "
+			if not elem.tail or not elem.tail.strip():
+				elem.tail = i
+			for elem in elem:
+				Fetcher._indent(elem, level+1)
+			if not elem.tail or not elem.tail.strip():
+				elem.tail = i
+		else:
+			if level and (not elem.tail or not elem.tail.strip()):
+				elem.tail = i
 
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
@@ -194,20 +194,20 @@ class Fetcher:
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
-	def get_song_video_url(self, song_number):
-		media = self.get_json(self.pub_media_url,
-			query = {
-				'output': 'json',
-				'pub': 'sjjm', 
-				'fileformat': 'm4v,mp4,3gp,mp3',
-				'alllangs': '0',
-				'track': song_number,
-				'langwritten': self.language,
-				'txtCMSLang': self.language,
-				}
-			)
-		video_url = media['files'][self.language]['MP4'][2]['file']['url']		# 480i
-		return video_url
+	def get_song_video_url(self, song_number, resolution=None):
+		media = self.get_json(self.pub_media_url, query = {
+			'output': 'json',
+			'pub': 'sjjm',
+			'fileformat': 'm4v,mp4,3gp,mp3',
+			'alllangs': '0',
+			'track': song_number,
+			'langwritten': self.language,
+			'txtCMSLang': self.language,
+			})
+		for variant in media['files'][self.language]['MP4']:
+			if variant["label"] == resolution:
+				return variant['file']['url']
+		raise AssertionError("No match for resolution %s" % resolution)
 
 	# Given a link to a video from an article, extract the publication ID
 	# and language and go directly to the mediator endpoint to get the
@@ -248,22 +248,32 @@ class Fetcher:
 		# Video is specified by its MEPS Document ID
 		elif "docid" in query:
 
+			docid = int(query["docid"])
+			if 1102016801 <= docid <= 1102016951:
+				params = {
+					"pub": "sjjm",
+					"track": str(docid - 1102016800),
+					}
+			else:
+				params = {
+					"docid": query["docid"],
+					"track": "1",
+					}
+
+			params.update({
+				"output": "json",
+				"fileformat": "mp4,mp3",
+				"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
+				"langwritten": query["wtlocale"],
+				"txtCMSLang": query["wtlocale"],
+				})
+
 			# The API used below does not provide a thumbnail image. Get an image from the player page.
 			player_page = self.get_html(url)
 			poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
-			thumbnail_url = poster_div.attrib["data-src"]
+			thumbnail_url = poster_div.attrib["data-src"] if poster_div is not None else None
 
-			media = self.get_json(self.pub_media_url,
-				query = {
-					'docid': query["docid"],
-					"output": "json",
-					"fileformat": "mp4,mp3",
-					"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
-					"track": "1",
-					"langwritten": query["wtlocale"],
-					"txtCMSLang": query["wtlocale"],
-					}
-				)
+			media = self.get_json(self.pub_media_url, query = params)
 			mp4 = media['files'][query["wtlocale"]]['MP4']
 
 			# If the caller has specified a video resolution, find a suitable file.

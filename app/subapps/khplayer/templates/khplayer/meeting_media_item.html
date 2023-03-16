@@ -1,11 +1,15 @@
 <turbo-stream action="append" target="media-list">
 	<template>
+		{% if new_section %}<tr><th colspan="4">{{item.section_title}}</th></tr>{% endif %}
 		<tr>
-		<th>{{item.section_title}}</td>
-		<th>{{item.part_title}}</td>
+		<td>{{item.part_title}}</td>
 	    <td>{{item.pub_code}}</td>
-	    <td>{{item.media_type}}</td>
-		<td>{% if item.thumbnail_url %}<img src="{{item.thumbnail_url}}" style="width:90px">{%endif%}</td>
+		<td>
+			<div class="thumbnail">
+				{% if item.thumbnail_url %}<img src="{{item.thumbnail_url}}">{% endif %}
+	    		<div class="caption">{{item.media_type}}</div>
+			</div>
+		</td>
 	    <td><a href="{{item.media_url}}" target="_blank">{{item.title}}</a></td>
 	    </tr>
 	</template>

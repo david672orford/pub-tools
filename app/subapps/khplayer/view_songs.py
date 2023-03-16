@@ -36,7 +36,7 @@ def page_songs_submit():
 # Load a song video identified by song number
 def load_song(song):
 	progress_callback("Getting song video URL...")
-	media_url = meeting_loader.get_song_video_url(song)
+	media_url = meeting_loader.get_song_video_url(song, resolution="480p")
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 	try:
 		obs.add_media_scene("ПЕСНЯ %s" % song, "video", media_file)

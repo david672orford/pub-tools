@@ -12,6 +12,12 @@ logger = logging.getLogger(__name__)
 #import http.client as http_client
 #http_client.HTTPConnection.debuglevel = 1
 
+class StreamError(Exception):
+	pass
+
+class StreamConfigError(StreamError):
+	pass
+
 class StreamEvent:
 	def __init__(self, **kwargs):
 		for name, value in kwargs.items():
@@ -28,10 +34,12 @@ class StreamRequester:
 			download_resolution = 720,
 			)
 		self.config.update(config)
-		assert "url" in self.config, "JW Stream url not set"
+		if not "url" in self.config:
+			raise StreamConfigError("JW Stream url not set")
 		for usage in ("preview", "download"):
 			res = self.config.get(usage + "_resolution")
-			assert res in (234, 360, 540, 720), "Invalid %s_resolution: %s" % (usage, res)
+			if not res in (234, 360, 540, 720):
+				raise StreamConfigError("Invalid %s_resolution: %s" % (usage, res))
 
 		self.cachefile = cachefile
 		self.debug = debug
@@ -79,7 +87,8 @@ class StreamRequester:
 		# One of these cookies contains a token which we must use when
 		# making AJAX requests.
 		page_response = self.session.get(self.config['url'])
-		assert page_response.status_code == 200
+		if page_response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
 
 		# Headers to simulate an AJAX request from a browser
 		self.ajax_headers = {
@@ -93,7 +102,8 @@ class StreamRequester:
 		# This returns a list of the available languages. On reloads it
 		# returns only the language indicated in the response to getinfo.
 		response = self.session.post("https://fle.stream.jw.org/language/getlanguages", headers=self.ajax_headers)
-		assert response.status_code == 200, response.text
+		if response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
 		getlanguages = response.json()
 		if self.debug:
 			with open("debug-getlanguages.json", "w") as fh:
@@ -104,12 +114,14 @@ class StreamRequester:
 			headers = self.ajax_headers,
 			json = { 'token': self.token }
 			)
-		assert response.status_code == 200, response.text
+		if response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
 		assert response.json()[0]			# response should be [True]
 
 		# Get a JSON blob of information about this sharing link.
 		response = self.session.post("https://fle.stream.jw.org/member/getinfo", headers=self.ajax_headers)
-		assert response.status_code == 200, response.text
+		if response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
 		getinfo = response.json()
 		if self.debug:
 			with open("debug-getinfo.json", "w") as fh:
@@ -122,7 +134,7 @@ class StreamRequester:
 				self.language_blob = language_blob
 				break
 		else:
-			raise AssertionError("Failed to find language: %s" % language)
+			raise StreamError("Failed to find language: %s" % language)
 
 		self.language_blob.update({
 			# No idea whether these are actually important.
@@ -152,7 +164,8 @@ class StreamRequester:
 				separators = (',', ':')
 				).encode("utf-8")
 			)
-		assert response.status_code == 200, response.text
+		if response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
 		self.video_info = response.json()
 
 		if self.debug:
@@ -220,9 +233,10 @@ class StreamRequester:
 		# Try to fetch the video file. The result will be a redirect to a CDN.
 		# That is the URL we want. Note though that if the session has expired,
 		# we will get a redirect to the login screen.
-		result = self.session.get(url, allow_redirects=False)
-		assert result.status_code == 302
-		return (event['title'], result.headers['Location'], event['chapters'])
+		response = self.session.get(url, allow_redirects=False)
+		if response.status_code != 302:
+			raise StreamError("%d %s" % (response.status_code, response.text))
+		return (event['title'], response.headers['Location'], event['chapters'])
 
 if __name__ == "__main__":
 	import sys
