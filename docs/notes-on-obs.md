@@ -6,6 +6,10 @@
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
 
+## Useful Script Examples
+
+* [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/)
+
 ## Integration
 
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)

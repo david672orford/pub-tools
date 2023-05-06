@@ -6,7 +6,7 @@ disabled individually in the config file.
 
 ## Install on Ubuntu and other Debian-Family Linuxes
 
-    $ sudo apt-get install git python3-pip ffmpeg
+    $ sudo apt-get install git python3-pip ffmpeg python3-ewmh python3-pyatspi
     $ git clone https://github.com/david672orford/pub-tools.git
     $ cd pub-tools
     $ pip3 install -r requirements.txt

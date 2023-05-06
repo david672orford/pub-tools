@@ -1,5 +1,5 @@
 # Flask framework
-Flask==2.2.2
+Flask==2.3.2
 
 # Flask dependencies
 #click==8.1.3

@@ -2,7 +2,7 @@
 
 import sys, os, types
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app", "subapps", "khplayer"))
-from start_meeting import start_meeting
+from zoom import start_meeting
 
 # Load the Flask configuration file
 config = types.ModuleType("config")
@@ -10,4 +10,7 @@ config.__file__ = os.path.join(os.path.dirname(__file__), "..", "instance", "con
 with open(config.__file__, mode="rb") as config_file:
 	exec(compile(config_file.read(), config.__file__, "exec"), config.__dict__)
 
-start_meeting(config["ZOOM"])
+def progress_callback(message):
+	print(message)
+
+start_meeting(config.ZOOM, "/dev/stdout", progress_callback)

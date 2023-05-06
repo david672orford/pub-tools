@@ -53,8 +53,7 @@ def page_meetings_view_stream(docid):
 			yield "data: " + data.replace("\n", " ") + "\n\n"
 			sleep(.1)
 		yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
-	response = current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
-	return response
+	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
 # Use has pressed the "Download Media and Create Scenes in OBS" button
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])

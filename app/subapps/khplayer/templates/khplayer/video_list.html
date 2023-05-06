@@ -13,14 +13,18 @@
 {% endblock %}
 
 {% block main %}
-<form action="submit" method="POST">
 <section>
+
+<form action="update" method="POST">
+<p><button type="submit" name="update" value="1">Update Category</button></p>
+</form>
+
+<form action="load-video" method="POST">
 <ul>
 {% for video in category.videos | sort(attribute="date", reverse=True) %}
 <li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
 {% endfor %}
 </ul>
-</section>
 <input id="title" type="hidden" name="title">
 </form>
 <script>
@@ -32,4 +36,6 @@ for(let i=0; i < buttons.length; i++) {
 	buttons[i].addEventListener("click", button_click);
 	}
 </script>
+
+</section>
 {% endblock %}

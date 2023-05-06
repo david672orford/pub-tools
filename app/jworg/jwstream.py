@@ -1,6 +1,6 @@
 # encoding=utf-8
 
-import sys, os
+import sys, os, re
 import requests
 import json
 from urllib.parse import urlparse, unquote
@@ -12,12 +12,42 @@ logger = logging.getLogger(__name__)
 #import http.client as http_client
 #http_client.HTTPConnection.debuglevel = 1
 
+# New JW Stream introduced 1 May 2023
+#
+# * A different link for each event channel in the form https://stream.jw.org/ts/*token*
+# * Links are good for 30 days
+# * GET https://stream.jw.org/api/v1/auth/whoami
+#   Returns 401 Unauthorized if user is not logged in
+# * POST to https://stream.jw.org/api/v1/auth/login/share as JSON: {token: "*token*"}
+#   returns session_stream and xsrf-token-stream cookies
+# * GET https://stream.jw.org/api/v1/auth/whoami
+#   returns JSON which repeats back all three tokens
+# * GET https://stream.jw.org/api/v1/program/live
+#   Returns []
+# * POST https://stream.jw.org/api/v1/libraryBranch/home/whatsNew
+#   Returns {whatsNewPrograms: [...], whatsNewSpecialties: [...]}
+# * GET https://stream.jw.org/api/v1/libraryBranch/home/category
+#   Returns [{categoryType: "theocraticProgram"}]
+# * GET https://stream.jw.org/api/v1/libraryBranch/home/subCategory/theocraticProgram
+#   returns {categoryType: "congregationMeeting", specialties: [key: "*UUID*", ...]
+# * GET https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/*UUID*
+#   returns [{},...]
+#   * downloadUrls (MP4)
+#   * playUrl (M3U8)
+# * PUT https://stream.jw.org/api/v1/libraryBranch/program/presignURL
+#   Body is an entry from downloadUrls
+#   Response is the same except download URL is repeated back with token in presignedUrl
+# * GET https://stream.jw.org/api/v1/program/getByGuidForHome/vod/*GUID*
+#   Returns the same info as the "specialty" call above but for a single video
+#   and with the addition of a "chapters" item
+
 class StreamError(Exception):
 	pass
 
 class StreamConfigError(StreamError):
 	pass
 
+# A recording of an event
 class StreamEvent:
 	def __init__(self, **kwargs):
 		for name, value in kwargs.items():
@@ -25,7 +55,6 @@ class StreamEvent:
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
-	session_timeout = 7200
 
 	def __init__(self, config, cachefile=None, debug=False):
 		self.config = dict(
@@ -45,22 +74,21 @@ class StreamRequester:
 		self.debug = debug
 
 		self.session = None
-		self.timestamp = 0
-		self.ajax_headers = None
-		self.language_blob = None
-		self.video_info = None
+		self.tokens = None
+		self.video_info = []
 
 		# Extract the token from an invitation URL. It is the last segment of the path.
 		self.token = unquote(urlparse(self.config['url']).path.split("/")[-1])
 
 	def connect_hook(self):
-		if self.session is None or (int(time()) - self.timestamp) >= self.session_timeout:
+		if self.session is None or ((int(self.tokens["expiresOn"]) / 1000) - time()) < 300:
 			self.connect()
 
 	def connect(self):
 		self.session = requests.Session()
 		self.session.headers.update({
-			'User-Agent': self.user_agent
+			'User-Agent': self.user_agent,
+			"Accept": "application/json",
 			})
 
 		# If we have a cache, we can load the cookies and the list of videos
@@ -69,86 +97,43 @@ class StreamRequester:
 			with open(self.cachefile,"r") as fh:
 				try:
 					cache = json.load(fh)
-					self.timestamp = cache['timestamp']
-					if (int(time()) - self.timestamp) < self.session_timeout:
+					print("cache time left:", ((int(cache["tokens"]["expiresOn"]) / 1000) - time()))
+					if ((int(cache["tokens"]["expiresOn"]) / 1000) - time()) >= 300:
+						print("Loading cache...")
 						for cookie in cache['cookies']:
 							self.session.cookies.set(**cookie)
-						self.ajax_headers = cache['ajax_headers']
-						self.language_blob = cache['language_blob']
+						self.tokens = cache['tokens']
+						self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 						self.video_info = cache['video_info']
 						print("JW Stream session found in cache")
 						return
 				except json.JSONDecodeError:		# bad cache file
+					print("Bad cache file: JSON decode error")
 					pass
-				except KeyError:					# obsolete cache file
+				except KeyError as e:				# obsolete cache file
+					print("Bad cache file: %s" % e)
 					pass
 
-		# Load the invitation page in order to get the cookies.
-		# One of these cookies contains a token which we must use when
-		# making AJAX requests.
-		page_response = self.session.get(self.config['url'])
-		if page_response.status_code != 200:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-
-		# Headers to simulate an AJAX request from a browser
-		self.ajax_headers = {
-			"Content-Type": "application/json;charset=UTF-8",
-			"Referer": "https://fle.stream.jw.org/video/ru-ukr",
-			"Accept": "application/json, text/plain, */*",
-			"X-Requested-With": "XMLHttpRequest",
-			"X-XSRF-Token": page_response.cookies['XSRF-TOKEN'],
-			}
-
-		# This returns a list of the available languages. On reloads it
-		# returns only the language indicated in the response to getinfo.
-		response = self.session.post("https://fle.stream.jw.org/language/getlanguages", headers=self.ajax_headers)
-		if response.status_code != 200:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-		getlanguages = response.json()
-		if self.debug:
-			with open("debug-getlanguages.json", "w") as fh:
-				json.dump(getlanguages, fh, indent=2, ensure_ascii=False)
-
-		# Use the token from the invitation URL to log in
-		response = self.session.post("https://fle.stream.jw.org/token/check",
-			headers = self.ajax_headers,
-			json = { 'token': self.token }
+		# Use the sharing URL to log in 
+		response = self.session.post("https://stream.jw.org/api/v1/auth/login/share",
+			json = {
+				"token": self.token,
+				}
 			)
-		if response.status_code != 200:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-		assert response.json()[0]			# response should be [True]
+		if response.status_code != 201:
+			raise StreamError("share failed: %s %s" % (response.status_code, response.text))
 
-		# Get a JSON blob of information about this sharing link.
-		response = self.session.post("https://fle.stream.jw.org/member/getinfo", headers=self.ajax_headers)
-		if response.status_code != 200:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-		getinfo = response.json()
-		if self.debug:
-			with open("debug-getinfo.json", "w") as fh:
-				json.dump(getinfo, fh, indent=2, ensure_ascii=False)
+		# Get the tokens
+		response = self.session.get("https://stream.jw.org/api/v1/auth/whoami",
+			headers = {
+				"xsrf-token-stream": self.session.cookies.get_dict()["xsrf-token-stream"],
+				}
+			)
+		if response.status_code != 201:
+			raise StreamError("whoami failed: %s %s" % (response.status_code, response.text))
+		self.tokens = response.json()
+		self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 
-		# Find the primary language of the sharing link in the list downloaded earlier.
-		language = getinfo['data']['language']
-		for language_blob in getlanguages['languages']:
-			if language_blob['locale'] == language:
-				self.language_blob = language_blob
-				break
-		else:
-			raise StreamError("Failed to find language: %s" % language)
-
-		self.language_blob.update({
-			# No idea whether these are actually important.
-			# "русский"
-			"translatedName": self.language_blob['vernacular'],
-			# "русский (Україна)",
-			"translatedNameWithCountry": "{vernacular} ({country_description})".format(**self.language_blob),
-			# "русский (Україна) (ru)"
-			"translatedNameWithSymbol":  "{vernacular} ({country_description}) ({symbol})".format(**self.language_blob),
-			# "русский (Україна) (ru-ukr)"
-			"translatedNameWithLocale":  "{vernacular} ({country_description}) ({locale})".format(**self.language_blob),
-			})
-
-		self.timestamp = int(time())
 		self.update_videos()
 		self.write_cache()
 
@@ -156,20 +141,18 @@ class StreamRequester:
 	# Though we supply the language and country information, this actually gets
 	# all of the programs shared through this sharing link irrespective of language.
 	def update_videos(self):
-		response = self.session.post("https://fle.stream.jw.org/event/languageVideos",
-			headers = self.ajax_headers,
-			data = json.dumps(
-				dict(language = self.language_blob),
-				ensure_ascii = False,
-				separators = (',', ':')
-				).encode("utf-8")
-			)
+		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/subCategory/theocraticProgram")
+		if response.status_code != 200:
+			raise StreamError("subCategory failed: %s %s" % (response.status_code, response.text))
+		channel_key = response.json()[0]["specialties"][0]["key"]
+
+		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % channel_key)
 		if response.status_code != 200:
 			raise StreamError("%d %s" % (response.status_code, response.text))
 		self.video_info = response.json()
 
 		if self.debug:
-			with open("debug-languageVideos.json", "w") as fh:
+			with open("debug-videos.json", "w") as fh:
 				json.dump(self.video_info, fh, indent=2, ensure_ascii=False)
 
 	# Write the cookies and the list of videos to a cache file
@@ -186,10 +169,8 @@ class StreamRequester:
 					))
 			with open(self.cachefile, "w") as fh:
 				json.dump(dict(
-					timestamp = self.timestamp,
 					cookies = cookies,
-					ajax_headers = self.ajax_headers,
-					language_blob = self.language_blob,
+					tokens = self.tokens,
 					video_info = self.video_info,
 					), fh, indent=2, ensure_ascii=False)
 
@@ -201,51 +182,57 @@ class StreamRequester:
 
 	# Get a list of the events
 	def get_events(self):
-		self.connect_hook()
 		for event in self.video_info:
 			yield StreamEvent(
-				id = event['data']['id'],
-				title = event['title'],
-				date = event['date'],
-				#language = event['language'],
-				language = event['data']['language_name'],
-				language_country = event['language_country'],
+				id = event["key"],
+				title = event["categoryProgramType"],
+				date = event["publishedDate"],
+				language = event["languageCode"],
+				language_country = event["countryCode"],
 				)
 
 	# Get what we need to play one of the events
 	def get_event(self, id, preview=True):
-		self.connect_hook()
 		for event in self.video_info:
-			if event['data']['id'] == id:
+			if event["key"] == id:
 				break
 		else:
 			return None
 
-		#print(json.dumps(event['vod_files'], indent=2))
 		resolution = self.config["preview_resolution" if preview else "download_resolution"]
-		for vod_file in event['vod_files']:
-			if vod_file['height'] == resolution:
-				url = vod_file['url']
+		print("resolution:", resolution)
+		for download_url in event['downloadUrls']:
+			m = re.match(r"^(\d+)", download_url['quality'])
+			if int(m.group(1)) == resolution:
 				break
 		else:
 			return None
 
-		# Try to fetch the video file. The result will be a redirect to a CDN.
-		# That is the URL we want. Note though that if the session has expired,
-		# we will get a redirect to the login screen.
-		response = self.session.get(url, allow_redirects=False)
-		if response.status_code != 302:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-		return (event['title'], response.headers['Location'], event['chapters'])
+		self.connect_hook()
+
+		response = self.session.put("https://stream.jw.org/api/v1/libraryBranch/program/presignURL",
+			json = download_url,
+			)
+		if response.status_code != 201:
+			raise StreamError("presignURL failed: %d %s" % (response.status_code, response.text))
+		download_url = response.json()
+
+		response = self.session.get("https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"])
+		if response.status_code != 200:
+			raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
+		info2 = response.json()
+
+		return (event['categoryProgramType'], download_url["presignedUrl"], info2['chapters'])
 
 if __name__ == "__main__":
 	import sys
-	requester = StreamRequester(sys.argv[1], cachefile="jwstream-cache.json", debug=False)
+	requester = StreamRequester({"url": sys.argv[1]}, cachefile="jwstream-cache.json", debug=False)
 	requester.connect()
-	for id, name in requester.get_events():
-		print("Event: %d: %s" % (id, name))
+	for event in requester.get_events():
+		print("Event: %s: %s" % (event.id, event.title))
 
-	video_url, chapters = requester.get_event(int(sys.argv[2]))
+	name, video_url, chapters = requester.get_event(sys.argv[2])
+	print("Program name:", name)
 	print("Video URL:", video_url)
 	print("Chapters:", chapters)
 

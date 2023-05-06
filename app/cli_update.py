@@ -178,26 +178,36 @@ def update_videos(callback=default_callback):
 			callback("%s — %s" % (category.name, subcategory.name))
 			if subcategory.key.endswith("Featured"):
 				continue
-			category_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
-			if category_obj is None:
-				category_obj = VideoCategories(
+			category_db_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
+			if category_db_obj is None:
+				category_db_obj = VideoCategories(
 					category_key = category.key,
 					category_name = category.name,
 					subcategory_key = subcategory.key,
 					subcategory_name = subcategory.name,
 					)
-				db.session.add(category_obj)
-			for video in subcategory.videos:
-				print(" Video:", video.name)
-				video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
-				if video_obj is None:
-					video_obj = Videos()
-				video_obj.lank = video.lank
-				video_obj.name = video.name
-				video_obj.date = video.date
-				video_obj.href = video.href
-				video_obj.thumbnail = video.thumbnail
-				category_obj.videos.append(video_obj)
+				db.session.add(category_db_obj)
+			copy_video_list(subcategory, category_db_obj)
 	db.session.commit()
 	callback("Videos list updated.")
+
+def update_video_subcategory(category_key, subcategory_key, callback=default_callback):
+	category_db_obj = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
+	callback("%s — %s" % (category_db_obj.category_name, category_db_obj.subcategory_name))
+	subcategory = VideoLister().get_category(subcategory_key)
+	copy_video_list(subcategory, category_db_obj)
+	db.session.commit()
+
+def copy_video_list(subcategory, category_db_obj):
+	for video in subcategory.videos:
+		print(" Video:", video.name)
+		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
+		if video_obj is None:
+			video_obj = Videos()
+		video_obj.lank = video.lank
+		video_obj.name = video.name
+		video_obj.date = video.date
+		video_obj.href = video.href
+		video_obj.thumbnail = video.thumbnail
+		category_db_obj.videos.append(video_obj)
 
