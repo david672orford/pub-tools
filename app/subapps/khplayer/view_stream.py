@@ -30,7 +30,7 @@ def page_stream():
 	requester = jwstream_requester()
 	events = requester.get_events() if requester else []
 	events = sorted(list(events), key=lambda item: (item.week_of[0], item.title))
-	return render_template("khplayer/jwstream.html", events=events, top="..")
+	return render_template("khplayer/stream.html", events=events, top="..")
 
 # User has pressed Update button
 @blueprint.route("/stream/update", methods=["POST"])
@@ -47,7 +47,7 @@ def page_stream_update():
 def page_stream_player(id):
 	event = jwstream_requester().get_event(id, preview=True)
 	print("chapters:", event.chapters)
-	return render_template("khplayer/jwstream_player.html",
+	return render_template("khplayer/stream_player.html",
 		id=id,
 		event=event,
 		clip_start = request.args.get("clip_start",""),

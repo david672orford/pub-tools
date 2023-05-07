@@ -235,6 +235,8 @@ class ObsControl(ObsControlBase):
 		"resolution": 83886800,			# 1280x720
 		}
 
+	camera2_scene_name = "Demo"
+
 	zoom_scene_name = "Zoom"
 	zoom_input_name = "Zoom Capture"
 	zoom_input_settings = {
@@ -243,7 +245,7 @@ class ObsControl(ObsControlBase):
 
 	split_scene_name = "Split Screen"
 
-	standard_scenes = (camera_scene_name, zoom_scene_name, split_scene_name)
+	standard_scenes = (camera_scene_name, camera2_scene_name, zoom_scene_name, split_scene_name)
 
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
@@ -388,27 +390,21 @@ class ObsControl(ObsControlBase):
 	def create_split_scene(self, camera_dev, capture_window):
 		self.create_scene(self.split_scene_name)
 
+		# Camera on left side
 		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev)
 		self.scale_input(self.split_scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 0.0,
 			"positionY": 160.0,
-			#"scaleX": 0.5,
-			#"scaleY": 0.5,
-			#"height": 720.0,
-			#"width": 1280.0,
 			})
 
+		# Zoom on right side
 		scene_item_id = self.add_zoom_input(self.split_scene_name, capture_window)
 		self.scale_input(self.split_scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 640.0,
 			"positionY": 160.0,
-			#"scaleX": 0.5,
-			#"scaleY": 0.5,
-			#"height": 720.0,
-			#"width": 1280.0,
 			})
 
