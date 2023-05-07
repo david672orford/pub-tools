@@ -5,8 +5,11 @@ import obspython as obs
 from threading import Thread
 from werkzeug.serving import make_server
 import logging
-from app.clean_logs import CleanlogWSGIRequestHandler
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from app.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
 app = create_app()
 
@@ -95,3 +98,4 @@ class MyObsScript:
 			self.logger.debug("Server is running.")
 
 MyObsScript()
+

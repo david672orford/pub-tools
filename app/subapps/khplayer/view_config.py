@@ -1,4 +1,4 @@
-import json, re
+import json, re, logger
 from flask import current_app, request, render_template, redirect, flash
 from wtforms import Form, StringField, IntegerField, SelectField, URLField, EmailField, validators
 from sqlalchemy.orm.attributes import flag_modified
@@ -10,6 +10,8 @@ from .utils import obs, ObsError
 from .view_patchbay import patchbay
 from .cameras import list_cameras, get_camera_dev
 from .virtual_cable import connect_peripherals
+
+logger = logging.getLogger(__name__)
 
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.

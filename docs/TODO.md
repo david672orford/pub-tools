@@ -16,4 +16,6 @@
   in OBS browser dock
 * Video and picture thumbnails in Scenes tab
 * Scenes tab should response to changes. Can we listen for events and send Turbo messages?
+  (According to the OBS-Websocket documentation SceneListChanged does not fire when
+  scenes are reordered.)
 
