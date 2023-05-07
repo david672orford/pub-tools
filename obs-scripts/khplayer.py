@@ -5,8 +5,10 @@ import obspython as obs
 from threading import Thread
 from werkzeug.serving import make_server
 import logging
+from app.clean_logs import CleanlogWSGIRequestHandler
 
-from app import app
+from app import create_app
+app = create_app()
 
 logging.basicConfig(
 	level=logging.DEBUG,
@@ -86,7 +88,7 @@ class MyObsScript:
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			self.server = make_server("127.0.0.1", port=5000, app=app, threaded=True)
+			self.server = make_server("127.0.0.1", port=5000, app=app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
 			self.thread = Thread(target=lambda: self.server.serve_forever())
 			self.thread.daemon = True
 			self.thread.start()

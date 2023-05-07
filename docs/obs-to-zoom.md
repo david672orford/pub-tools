@@ -34,15 +34,15 @@ ever time you log in.
 
 * Under **General** enable **Use dual monitors**.
 * Under **Video** select **Original ratio** and **HD**. Turn off **Mirror my video**.
-* Still under **Video** choose **See myself as the active speaker whiel speaking**.
-* Under **Audio** set **Suppress background noice** to **Medium** so that music will not be muted.
+* Still under **Video** choose **See myself as the active speaker while speaking**.
+* Under **Audio** set **Suppress background noise** to **Medium** so that music will not be muted.
 
 ## Initial Setup of OBS
 
 * In the settings under **General** find **Projectors** and check the boxes next to
   **Make projectors always on top** and **Limit one fullscreen projector per screen**.
 * In the settings under **Audio** set the **Monitoring Device** to **Monitor of To-Zoom**.
-* In the settings under **Video** set the **Base (Canvas) Resulution** and **Output (Scaled) Resolution** to 1024x720.
+* In the settings under **Video** set the **Base (Canvas) Resolution** and **Output (Scaled) Resolution** to 1024x720.
 * Enable the OBS-Websocket plugin and copy the password into the config.py file of **Pub-Tools**.
 * Under **Docks** uncheck **Audio Mixer** since we will not be using it.
 

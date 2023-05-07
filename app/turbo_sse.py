@@ -68,7 +68,6 @@ class Turbo:
 		return to in self.clients
 
 	def stream(self, stream):
-		print("stream:", stream)
 		return Response(stream, mimetype="text/vnd.turbo-stream.html")
 
 	# Queue a Turbo Stream message for delivery to a client

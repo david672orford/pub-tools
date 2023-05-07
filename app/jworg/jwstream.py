@@ -1,11 +1,10 @@
 # encoding=utf-8
 
-import sys, os, re
+import sys, os, re, json, logging
 import requests
-import json
 from urllib.parse import urlparse, unquote
 from time import time
-import logging
+from datetime import datetime, date, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +48,25 @@ class StreamConfigError(StreamError):
 
 # A recording of an event
 class StreamEvent:
-	def __init__(self, **kwargs):
-		for name, value in kwargs.items():
-			setattr(self, name, value)
+	def __init__(self, event, download_url=None, chapters=None):
+		self.id = event["key"]
+		extra = json.loads(event["additionalFields"])
+		self.week_of = (
+			self.convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
+			self.convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
+			)
+		self.title = "%s from %s to %s" % (
+			event["categoryProgramType"], self.week_of[0], self.week_of[1]
+			)
+		self.datetime = self.convert_datetime(event["publishedDate"])
+		self.language = event["languageCode"]
+		self.language_country = event["countryCode"]
+		self.download_url = download_url
+		self.chapters = chapters
+
+	def convert_datetime(self, milliseconds_since_epoch, fudge=0):
+		timestamp = datetime.fromtimestamp(int(milliseconds_since_epoch) / 1000 + fudge, timezone.utc)
+		return timestamp	
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
@@ -77,9 +92,6 @@ class StreamRequester:
 		self.tokens = None
 		self.video_info = []
 
-		# Extract the token from an invitation URL. It is the last segment of the path.
-		self.token = unquote(urlparse(self.config['url']).path.split("/")[-1])
-
 	def connect_hook(self):
 		if self.session is None or ((int(self.tokens["expiresOn"]) / 1000) - time()) < 300:
 			self.connect()
@@ -97,27 +109,25 @@ class StreamRequester:
 			with open(self.cachefile,"r") as fh:
 				try:
 					cache = json.load(fh)
-					print("cache time left:", ((int(cache["tokens"]["expiresOn"]) / 1000) - time()))
+					logger.debug("JW Stream cache time left: %s", ((int(cache["tokens"]["expiresOn"]) / 1000) - time()))
 					if ((int(cache["tokens"]["expiresOn"]) / 1000) - time()) >= 300:
-						print("Loading cache...")
+						logger.debug("Loading JW Stream cache...")
 						for cookie in cache['cookies']:
 							self.session.cookies.set(**cookie)
 						self.tokens = cache['tokens']
 						self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 						self.video_info = cache['video_info']
-						print("JW Stream session found in cache")
+						logger.debug("JW Stream session loaded from cache")
 						return
 				except json.JSONDecodeError:		# bad cache file
-					print("Bad cache file: JSON decode error")
-					pass
+					logger.warning("Bad JW Stream cache file: JSON decode error")
 				except KeyError as e:				# obsolete cache file
-					print("Bad cache file: %s" % e)
-					pass
+					logger.warning("Bad JW Stream cache file: %s not found" % e)
 
 		# Use the sharing URL to log in 
 		response = self.session.post("https://stream.jw.org/api/v1/auth/login/share",
 			json = {
-				"token": self.token,
+				"token": unquote(urlparse(self.config['url']).path.split("/")[-1])
 				}
 			)
 		if response.status_code != 201:
@@ -182,14 +192,9 @@ class StreamRequester:
 
 	# Get a list of the events
 	def get_events(self):
+		self.connect_hook()
 		for event in self.video_info:
-			yield StreamEvent(
-				id = event["key"],
-				title = event["categoryProgramType"],
-				date = event["publishedDate"],
-				language = event["languageCode"],
-				language_country = event["countryCode"],
-				)
+			yield StreamEvent(event)
 
 	# Get what we need to play one of the events
 	def get_event(self, id, preview=True):
@@ -197,15 +202,16 @@ class StreamRequester:
 			if event["key"] == id:
 				break
 		else:
+			logger.error("JW Stream event %s not found", id)
 			return None
 
 		resolution = self.config["preview_resolution" if preview else "download_resolution"]
-		print("resolution:", resolution)
 		for download_url in event['downloadUrls']:
 			m = re.match(r"^(\d+)", download_url['quality'])
 			if int(m.group(1)) == resolution:
 				break
 		else:
+			logger.error("JW Stream event %s not found in resolution", id, resolution)
 			return None
 
 		self.connect_hook()
@@ -222,7 +228,7 @@ class StreamRequester:
 			raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
 		info2 = response.json()
 
-		return (event['categoryProgramType'], download_url["presignedUrl"], info2['chapters'])
+		return StreamEvent(event, download_url["presignedUrl"], info2['chapters'])
 
 if __name__ == "__main__":
 	import sys

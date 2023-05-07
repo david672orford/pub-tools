@@ -10,7 +10,6 @@ Flask==2.3.2
 
 # HTML Forms
 wtforms==3.0.1
-email_validator
 
 # Database integration for the Flask framework
 Flask-SQLAlchemy==2.5.1

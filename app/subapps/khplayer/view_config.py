@@ -67,10 +67,6 @@ class ConfigForm(Form):
 	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
 	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
 
-	ZOOM_username = EmailField("Username", [validators.Email()])
-	ZOOM_password = StringField("Password")
-	ZOOM_meetingid = StringField("Meeting ID")
-
 	PERIPHERALS_camera = SelectField("Camera")
 	PERIPHERALS_microphone = SelectField("Microphone")
 	PERIPHERALS_speakers = SelectField("Speakers")
@@ -86,7 +82,7 @@ def page_config_submit():
 	config = ConfWrapper()
 	form = ConfigForm(formdata=request.form, obj=config)
 	if form.validate():
-		print("Form validated, saving...")
+		logger.info("Saving configuration")
 
 		# Write to app.config and to the DB
 		form.populate_obj(config)
@@ -99,10 +95,13 @@ def page_config_submit():
 		# Camera changes
 		camera_dev = get_camera_dev()
 		if camera_dev is not None:
-			obs.reconnect_camera(camera_dev)
+			try:
+				obs.reconnect_camera(camera_dev)
+			except ObsError as e:
+				flash("OBS: %s" % str(e))
 
 		return redirect(".")
 	else:
-		print("Validation failed")
+		logger.info("Configuration form validation failed")
 		return redirect(".?" + urlencode(form.data))
 

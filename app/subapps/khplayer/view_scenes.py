@@ -1,13 +1,15 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
 from werkzeug.utils import secure_filename
 from time import sleep
-import os, json
+import os, json, logging
 
 from ...utils import progress_callback_response, run_thread
 from .views import blueprint
 from .utils import obs, ObsError
 from .zoom import find_second_window
 from .cameras import get_camera_dev
+
+logger = logging.getLogger(__name__)
 
 @blueprint.route("/scenes/")
 def page_scenes():
@@ -28,7 +30,7 @@ def page_scenes_submit():
 	action = request.form.get("action")
 	scene = request.form.get("scene")
 	message = None
-	print("action:", action)
+	logger.info("scenes action: %s %s", action, scene)
 
 	try:
 		if scene is not None:
@@ -37,7 +39,6 @@ def page_scenes_submit():
 	
 		elif action == "delete":
 			for scene in request.form.getlist("del"):
-				print(scene)
 				try:
 					obs.remove_scene(scene)
 				except ObsError as e:

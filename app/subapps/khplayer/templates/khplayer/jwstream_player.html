@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt; {{video_name}}</a></h1>
+<h1><a href="..">&lt; {{event.title}}</a></h1>
 {% endblock %}
 
 {% block main %}
@@ -14,7 +14,7 @@
 <section>
 
 <div class="video-sizer">
-	<video id="player" controls src="{{video_url}}" style="width: 100%">
+	<video id="player" controls src="{{event.download_url}}" style="width: 100%">
 	</video>
 </div>
 
@@ -39,8 +39,8 @@
 
 <div id="chapter-controls" class="controls">
 <label>Chapters:</label>
-{% for chapter in chapters %}
-<button type="button" class="chapter-button" data-time="{{chapter['time']}}">{{chapter['name']}}</button>
+{% for chapter in event.chapters %}
+<button type="button" class="chapter-button" data-time="{{chapter['editedStartTime']}}">{{chapter['name']}}</button>
 {% endfor %}
 </div>
 

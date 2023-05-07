@@ -15,6 +15,7 @@ import sys
 import logging
 from werkzeug.serving import run_simple
 from app import create_app
+from app.clean_logs import CleanlogWSGIRequestHandler
 
 debug_mode = listen_all = False
 for arg in sys.argv[1:]:
@@ -30,4 +31,4 @@ logging.basicConfig(
 	)
 
 app = create_app()
-run_simple("0.0.0.0" if listen_all else "127.0.0.1", 5000, app, threaded=True)
+run_simple("0.0.0.0" if listen_all else "127.0.0.1", 5000, app, request_handler=CleanlogWSGIRequestHandler, threaded=True)

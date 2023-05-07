@@ -17,7 +17,7 @@
 <tr>
 	<td>{{event.language}}</td>	
 	<td>{{event.language_country}}</td>	
-	<td>{{event.date}}</td>	
+	<td>{{event.datetime.strftime("%Y-%m-%d %H:%M")}}</td>	
 	<td><a href="{{event.id}}">{{event.title}}</a></td>
 </tr>
 {% endfor %}

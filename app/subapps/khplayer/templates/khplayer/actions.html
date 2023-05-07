@@ -6,23 +6,13 @@
 
 <section class="bordered">
 <h2>Zoom</h2>
-<button type="submit" name="action" value="start-meeting"{% if zoom_running %} disabled{%endif%}>Start Meeting</button>
-<button type="submit" name="action" value="start-meeting"{% if not zoom_running %} disabled{%endif%}>Restart Zoom</button>
 <button type="submit" name="action" value="reconnect-zoom-capture">Reconnect Zoom Capture</button>
-</section>
-
-<section class="bordered">
-<h2>OBS</h2>
-<button type="submit" name="action" value="start-obs"{% if obs_running %} disabled{%endif%}>Start OBS</button>
-<button type="submit" name="action" value="start-virtualcam"{% if virtual_camera_status == True %} disabled{%endif%}>Start Virtual Camera</button>
-<button type="submit" name="action" value="start-projector">Start Projector</button>
 </section>
 
 <section class="bordered">
 <h2>Peripherals</h2>
 <button type="submit" name="action" value="reconnect-camera">Reconnect Camera</button>
 <button type="submit" name="action" value="reconnect-audio">Reconnect Audio</button>
-<button type="submit" name="action" value="disconnect-audio">Disconnect Audio</button>
 </section>
 
 </form>

@@ -49,7 +49,7 @@ def create_app(instance_path=None):
 	def set_sessionid():
 		if not "session-id" in session:
 			session["session-id"] = uuid.uuid4().hex
-		print("Session ID:", session["session-id"])
+		#print("Session ID:", session["session-id"])
 
 	@turbo.user_id
 	def get_session_id():
@@ -58,7 +58,7 @@ def create_app(instance_path=None):
 	# Load, initialize, and connect app components
 	with app.app_context():
 		for module_name in ("views", "admin", "subapps", "cli_update"):
-			logger.info("Loading module %s..." % module_name)
+			logger.debug("Loading module %s..." % module_name)
 			try:
 				module = import_module("app.%s" % module_name)
 				module.init_app(app)

@@ -18,11 +18,15 @@
 
 ## Development
 
-* [OBS Bug: Audio Output Devices Erroneously Described as Monitors](https://github.com/obsproject/obs-studio/pull/4226)
 * [OBS-V4L2Sink](https://github.com/CatxFish/obs-v4l2sink) -- Useful as example of an output plugin
+* [Python/Lua Scripting](https://docs.obsproject.com/scripting)
+* [Plugin Docs](https://obsproject.com/docs/plugins.html)
+
+## Bugs and Feature Requests we are Following
+
+* [OBS Bug: Audio Output Devices Erroneously Described as Monitors](https://github.com/obsproject/obs-studio/pull/4226)
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
-* [Plugin Docs](https://obsproject.com/docs/plugins.html)
 * [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)
 * [Virtual Camera Audio in Linux PR](https://github.com/obsproject/obs-studio/pull/8171)
 

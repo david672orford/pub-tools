@@ -12,14 +12,13 @@ patchbay = Patchbay()
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
-	patchbay.print()
+	#patchbay.print()
 
 	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
 	if node_positions is not None:
 		node_positions = node_positions.data
 		for node in patchbay.nodes:
 			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
-			print("position:", position)
 			if position:
 				node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
 			else:

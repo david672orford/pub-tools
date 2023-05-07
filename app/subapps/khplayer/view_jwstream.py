@@ -29,7 +29,8 @@ def jwstream_requester():
 def page_stream():
 	requester = jwstream_requester()
 	events = requester.get_events() if requester else []
-	return render_template("khplayer/stream.html", events=events, top="..")
+	events = sorted(list(events), key=lambda item: (item.week_of[0], item.title))
+	return render_template("khplayer/jwstream.html", events=events, top="..")
 
 # User has pressed Update button
 @blueprint.route("/stream/update", methods=["POST"])
@@ -42,21 +43,20 @@ def page_stream_update():
 	else:
 		return redirect(".")	# so flash() message will be displayed
 
-@blueprint.route("/stream/<int:id>/")
+@blueprint.route("/stream/<id>/")
 def page_stream_player(id):
-	video_name, video_url, chapters = jwstream_requester().get_event(id, preview=True)
-	return render_template("khplayer/stream_player.html",
+	event = jwstream_requester().get_event(id, preview=True)
+	print("chapters:", event.chapters)
+	return render_template("khplayer/jwstream_player.html",
 		id=id,
-		video_name=video_name,
-		video_url=video_url,
-		chapters=chapters,
+		event=event,
 		clip_start = request.args.get("clip_start",""),
 		clip_end = request.args.get("clip_end",""),
 		clip_title = request.args.get("clip_title",""),
 		top="../..",
 		)
 
-@blueprint.route("/stream/<int:id>/clip", methods=["POST"])
+@blueprint.route("/stream/<id>/clip", methods=["POST"])
 def page_stream_clip(id):
 	clip_start = request.form.get("clip_start").strip()
 	clip_end = request.form.get("clip_end").strip()
@@ -84,16 +84,16 @@ def page_stream_clip(id):
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
 	progress_callback("Requesting download URL...")
-	video_name, video_url, chapters = jwstream_requester().get_event(id, preview=False)
+	event = jwstream_requester().get_event(id, preview=False)
 
 	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:
-		clip_title = "%s %s-%s" % (video_name, clip_start, clip_end)
+		clip_title = "%s %s-%s" % (event.title, clip_start, clip_end)
 
 	# This is the file into which we will save the downloaded clip.
 	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%d-%s-%s.mp4" % (id, clip_start, clip_end))
 
-	print("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, video_name, media_file))
+	print("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
 
 	# If the this clip was made earlier, make the scene right away, otherwise
 	# spawn a background thread to download it and create the scene when the
@@ -101,7 +101,7 @@ def page_stream_clip(id):
 	if os.path.exists(media_file):
 		create_clip_scene(clip_title, media_file)
 	else:
-		run_thread(lambda: download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration))
+		run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
 	return redirect(return_url)
