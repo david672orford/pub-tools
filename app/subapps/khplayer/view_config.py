@@ -1,4 +1,4 @@
-import json, re, logger
+import json, re, logging
 from flask import current_app, request, render_template, redirect, flash
 from wtforms import Form, StringField, IntegerField, SelectField, URLField, EmailField, validators
 from sqlalchemy.orm.attributes import flag_modified
