@@ -96,7 +96,7 @@ def connect_peripherals(patchbay, config):
 
 	return failures
 
-def reconnect_obs(patchbay):
+def connect_obs(patchbay):
 	failures = []
 
 	virtual_cable_node = patchbay.find_node(name="To-Zoom")
@@ -120,7 +120,7 @@ def reconnect_obs(patchbay):
 
 	return failures
 
-def reconnect_zoom(patchbay, config):
+def connect_zoom(patchbay, config):
 	failures = []
 
 	zoom_input_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Input/Audio")
@@ -178,7 +178,7 @@ def connect_all(patchbay, config):
 	failures = []
 	failures.extend(create_cable(patchbay))
 	failures.extend(connect_peripherals(patchbay, config))
-	failures.extend(reconnect_obs(patchbay))
-	failures.extend(reconnect_zoom(patchbay, config))
+	failures.extend(connect_obs(patchbay))
+	failures.extend(connect_zoom(patchbay, config))
 	return failures
 
