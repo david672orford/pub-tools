@@ -19,3 +19,8 @@
   (According to the OBS-Websocket documentation SceneListChanged does not fire when
   scenes are reordered.)
 
+## Patchbay
+
+* Connectors become misalligned if the page is scrolled down
+* Objects can be lost outside the canvas
+

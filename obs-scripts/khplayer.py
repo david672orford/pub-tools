@@ -6,19 +6,21 @@ from threading import Thread
 from werkzeug.serving import make_server
 import logging
 
+# Not clear why this is needed on some systems, but not on others.
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
-app = create_app()
+from app.subapps.khplayer.pipewire import Patchbay
+from app.subapps.khplayer.virtual_cable import connect_all
 
 logging.basicConfig(
-	level=logging.DEBUG,
+	level=logging.WARN,
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
-logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
+#logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
 
 class MyObsScript:
 	description = "Load videos and illustrations from JW.ORG"
@@ -26,6 +28,8 @@ class MyObsScript:
 	def __init__(self):
 		self.enable = False		# should the HTTP server be running?
 		self.debug = None
+
+		self.app = create_app()
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
 
@@ -90,8 +94,13 @@ class MyObsScript:
 			self.logger.info("HTTP server stopped.")
 
 		if self.enable:
+			self.logger.debug("Creating virtual audio cable...")
+			patchbay = Patchbay()
+			patchbay.load()
+			connect_all(patchbay, self.app.config["PERIPHERALS"])
+
 			self.logger.debug("Starting server...")
-			self.server = make_server("127.0.0.1", port=5000, app=app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
+			self.server = make_server("127.0.0.1", port=5000, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
 			self.thread = Thread(target=lambda: self.server.serve_forever())
 			self.thread.daemon = True
 			self.thread.start()
