@@ -59,9 +59,10 @@ def page_meetings_view_stream(docid):
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_load(docid):
 
-	# Remove everything but the standard scenes
+	# Remove all scenes except those with names beginning with an asterisk.
+	# Such scenes are for stage cameras, Zoom, etc.
 	for scene in obs.get_scene_list():
-		if scene['sceneName'] not in obs.standard_scenes:
+		if not scene['sceneName'].startswith("*"):
 			obs.remove_scene(scene['sceneName'])
 
 	# The media list will already by in the cache. Get it.
@@ -134,5 +135,5 @@ def meeting_media_to_obs_scenes(items):
 			image_file = meeting_loader.download_media(item.media_url, callback=progress_callback)
 			obs.add_media_scene(scene_name, item.media_type, image_file)
 		else:
-			raise AssertionError
+			raise AssertionError("Unhandled case")
 

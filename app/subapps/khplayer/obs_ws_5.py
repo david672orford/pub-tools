@@ -223,29 +223,30 @@ class ObsControlBase:
 			"monitorIndex": monitor,
 			})
 
-# Add higher-level methods to do specific things we need
+# Add higher-level methods to do specific things for KH Player
+# FIXME: break this out into a separate file so that it can be used with obs_api.py.
 class ObsControl(ObsControlBase):
-	camera_scene_name = "Stage"
-	camera_input_name = "Camera Input"
+
+	camera_scene_name = "* Stage"
+	camera_input_name = "Stage Camera"
 	camera_input_settings = {
+		"auto_reset": True,
 		"buffering": False,
+		#"device_id" : "/dev/video1"
 		"input": 0,
-		#"pixelformat": 1196444237,		# Motion-JPEG
-		"pixelformat": 875967048,		# H.264
+		"pixelformat": 1196444237,		# Motion-JPEG
+		#"pixelformat": 875967048,		# H.264
+		#"pixelformat" : 1448695129,	# YUYV 4:2:2
 		"resolution": 83886800,			# 1280x720
 		}
 
-	camera2_scene_name = "Demo"
-
-	zoom_scene_name = "Zoom"
-	zoom_input_name = "Zoom Capture"
+	zoom_scene_name = "* Zoom"
+	zoom_input_name = "Zoom Window Capture"
 	zoom_input_settings = {
 		"show_cursor": False,
 		}
 
-	split_scene_name = "Split Screen"
-
-	standard_scenes = (camera_scene_name, camera2_scene_name, zoom_scene_name, split_scene_name)
+	split_scene_name = "* Split Screen"
 
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
@@ -264,7 +265,7 @@ class ObsControl(ObsControlBase):
 		else:
 			source_name = os.path.basename(media_file)
 
-		# Select the appropriate OBS suurce type and build its settings
+		# Select the appropriate OBS source type and build its settings
 		if media_type == "video":
 			source_type = "ffmpeg_source"
 			source_settings = {'local_file': media_file}
@@ -331,6 +332,7 @@ class ObsControl(ObsControlBase):
 				}
 			self.request('SetInputAudioMonitorType', payload)
 
+	# Create the specified OBS input, if it does not exist already
 	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
 		try:
 			scene_item_id = self.create_input(
@@ -348,11 +350,7 @@ class ObsControl(ObsControlBase):
 				)
 		return scene_item_id
 
-	def reconnect_camera(self, camera_dev):
-		logger.info("Setting camera to %s...", camera_dev)
-		self.camera_input_settings["device_id"] = camera_dev
-		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
-
+	# Create an OBS input for the configured camera, if it does not exist already
 	def add_camera_input(self, scene_name, camera_dev):
 		self.camera_input_settings["device_id"] = camera_dev
 		scene_item_id = self.create_input_with_reuse(
@@ -363,10 +361,12 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	def reconnect_zoom_input(self, capture_window):
-		self.zoom_input_settings["capture_window"] = capture_window
-		self.set_input_settings(self.zoom_input_name, self.zoom_input_settings)
+	def reconnect_camera(self, camera_dev):
+		logger.info("Setting camera to %s...", camera_dev)
+		self.camera_input_settings["device_id"] = camera_dev
+		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
 
+	# Create an OBS input which captures the Zoom window on the second monitor, if it does not exist already.
 	def add_zoom_input(self, scene_name, capture_window):
 		self.zoom_input_settings["capture_window"] = capture_window
 		scene_item_id = self.create_input_with_reuse(
@@ -376,6 +376,10 @@ class ObsControl(ObsControlBase):
 			input_settings = self.zoom_input_settings,
 			)
 		return scene_item_id
+
+	def reconnect_zoom_input(self, capture_window):
+		self.zoom_input_settings["capture_window"] = capture_window
+		self.set_input_settings(self.zoom_input_name, self.zoom_input_settings)
 
 	def create_camera_scene(self, camera_dev):
 		self.create_scene(self.camera_scene_name)

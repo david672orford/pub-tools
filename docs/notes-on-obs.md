@@ -1,5 +1,10 @@
 # Notes on OBS
 
+## OBS Studio
+
+* [Main Site](https://obsproject.com/)
+* [Github Site](https://github.com/obsproject/obs-studio)
+
 ## Useful Plugins
 
 * [OBS-Websocket](https://github.com/obsproject/obs-websocket)

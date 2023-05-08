@@ -5,7 +5,8 @@ function init_patchbay(links) {
 	let prev_cursor_y;
 	let drag_links;
 	let temp_link;
-	let dummy = document.getElementById("dummy");
+	const patchbay = document.getElementById("patchbay");
+	const dummy = document.getElementById("dummy");
 
 	class LinkDrawer
 		{
@@ -15,34 +16,37 @@ function init_patchbay(links) {
 			this.end_el = end_el;
 			this.svg = document.getElementById("link").content.cloneNode(true).querySelector(".link");
 			this.path = this.svg.querySelector(".link-curve");
-			document.body.appendChild(this.svg);
+			patchbay.appendChild(this.svg);
 			if(end_el != null)
 				this.position();
 			}
 
 		position(pos)
 			{
+			let pb_rect = patchbay.getBoundingClientRect();
 			let rect;
 
-			/* Find the middle of the right edge of the output. */
+			console.log("pb_rect:", pb_rect);
+
+			/* Find the middle of the right edge of the audio output. */
 			rect = this.start_el.getBoundingClientRect();
-			let start_x = rect["right"];
-			let start_y = (rect["bottom"] + rect["top"]) / 2;
+			let start_x = rect.right - pb_rect.left;
+			let start_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
 
 			let end_x;
 			let end_y;	
 			if(this.end_el != null)
 				{
-				/* Find the middle of the left edge of the input. */
+				/* Find the middle of the left edge of the audio input. */
 				rect = this.end_el.getBoundingClientRect();
-				end_x = rect["left"] - 5;	/* room for arrowhead tip */
-				end_y = (rect["bottom"] + rect["top"]) / 2;
+				end_x = rect.left - 5 - pb_rect.left;	/* room for arrowhead tip */
+				end_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
 				}
 			else
 				{
 				console.log(pos);
-				end_x = pos[0];
-				end_y = pos[1];
+				end_x = pos[0] - pb_rect.left;
+				end_y = pos[1] - pb_rect.top;
 				}
 
 			/* Get the bounding box of the SVG curve we will draw in patchbay canvas space */
@@ -281,8 +285,7 @@ function init_patchbay(links) {
 		node.addEventListener("dragstart", on_node_dragstart);
 
 		/* Needed by Firefox but commented out because Firefox has other problems. */
-		/*const patchbay = document.getElementById("patchbay");
-		patchbay.addEventListener("dragenter", (e) => { e.preventDefault() });
+		/*patchbay.addEventListener("dragenter", (e) => { e.preventDefault() });
 		patchbay.addEventListener("dragleave", (e) => { e.preventDefault() });*/
 
 		if(node.style.left == "")

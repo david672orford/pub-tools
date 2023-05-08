@@ -70,6 +70,7 @@ class StreamEvent:
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
+	request_timeout = 30
 
 	def __init__(self, config, cachefile=None, debug=False):
 		self.config = dict(
@@ -92,78 +93,88 @@ class StreamRequester:
 		self.tokens = None
 		self.video_info = []
 
-	def connect_hook(self):
-		if self.session is None or ((int(self.tokens["expiresOn"]) / 1000) - time()) < 300:
-			self.connect()
-
 	def connect(self):
-		self.session = requests.Session()
-		self.session.headers.update({
-			'User-Agent': self.user_agent,
-			"Accept": "application/json",
-			})
+		if self.session is None:
+			self.session = requests.Session()
+			self.session.headers.update({
+				'User-Agent': self.user_agent,
+				"Accept": "application/json",
+				})
 
-		# If we have a cache, we can load the cookies and the list of videos
-		# and don't have to go through the whole process of retrieving it all again.
-		if self.cachefile is not None and os.path.exists(self.cachefile):
-			with open(self.cachefile,"r") as fh:
-				try:
-					cache = json.load(fh)
-					logger.debug("JW Stream cache time left: %s", ((int(cache["tokens"]["expiresOn"]) / 1000) - time()))
-					if ((int(cache["tokens"]["expiresOn"]) / 1000) - time()) >= 300:
-						logger.debug("Loading JW Stream cache...")
-						for cookie in cache['cookies']:
-							self.session.cookies.set(**cookie)
-						self.tokens = cache['tokens']
-						self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
-						self.video_info = cache['video_info']
-						logger.debug("JW Stream session loaded from cache")
-						return
-				except json.JSONDecodeError:		# bad cache file
-					logger.warning("Bad JW Stream cache file: JSON decode error")
-				except KeyError as e:				# obsolete cache file
-					logger.warning("Bad JW Stream cache file: %s not found" % e)
+		if self.tokens is None:
+			self.load_cache()
 
-		# Use the sharing URL to log in 
-		response = self.session.post("https://stream.jw.org/api/v1/auth/login/share",
+		if self.tokens is None or not self.cookies_fresh():
+			self.login()
+
+		self.update_videos()
+
+		self.write_cache()
+
+	# Check that the session cookies have not expired
+	def cookies_fresh(self):
+		time_now = int(time())
+		cutoff = 300	# seconds
+
+		time_left = ((int(self.tokens["expiresOn"]) / 1000) - time_now)
+		logger.debug("JW Stream cache time left: %s", time_left)
+		if time_left < cutoff:
+			logger.debug("JW Stream token is expired.")
+			return False
+
+		for cookie in self.session.cookies:
+			time_left = cookie.expires - time_now
+			if time_left < cutoff:
+				logger.debug("JW Stream cookie %s is expired.", cookie["name"])
+				return False
+
+		return True
+
+	# Use the sharing URL to log in and get the session cookies
+	def login(self):
+
+		response = self.session.post(
+			"https://stream.jw.org/api/v1/auth/login/share",
 			json = {
 				"token": unquote(urlparse(self.config['url']).path.split("/")[-1])
-				}
+				},
+			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
 			raise StreamError("share failed: %s %s" % (response.status_code, response.text))
 
 		# Get the tokens
-		response = self.session.get("https://stream.jw.org/api/v1/auth/whoami",
+		response = self.session.get(
+			"https://stream.jw.org/api/v1/auth/whoami",
 			headers = {
 				"xsrf-token-stream": self.session.cookies.get_dict()["xsrf-token-stream"],
-				}
+				},
+			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
 			raise StreamError("whoami failed: %s %s" % (response.status_code, response.text))
 		self.tokens = response.json()
 		self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 
-		self.update_videos()
-		self.write_cache()
-
-	# Ask for the list of current videos
-	# Though we supply the language and country information, this actually gets
-	# all of the programs shared through this sharing link irrespective of language.
-	def update_videos(self):
-		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/subCategory/theocraticProgram")
-		if response.status_code != 200:
-			raise StreamError("subCategory failed: %s %s" % (response.status_code, response.text))
-		channel_key = response.json()[0]["specialties"][0]["key"]
-
-		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % channel_key)
-		if response.status_code != 200:
-			raise StreamError("%d %s" % (response.status_code, response.text))
-		self.video_info = response.json()
-
-		if self.debug:
-			with open("debug-videos.json", "w") as fh:
-				json.dump(self.video_info, fh, indent=2, ensure_ascii=False)
+	# Load session cookies and list of videos from cache file
+	def load_cache(self):
+		if self.cachefile is not None and os.path.exists(self.cachefile):
+			with open(self.cachefile,"r") as fh:
+				try:
+					logger.debug("Loading JW Stream session from cache...")
+					cache = json.load(fh)
+					if cache["url"] != self.config["url"]:
+						logger.debug("JW Stream URL does not match.")
+					for cookie in cache['cookies']:
+						self.session.cookies.set(**cookie)
+					self.tokens = cache['tokens']
+					self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
+					self.video_info = cache['video_info']
+					logger.debug("JW Stream session successfully loaded from cache.")
+				except json.JSONDecodeError:		# bad cache file
+					logger.warning("Bad JW Stream cache file: JSON decode error")
+				except KeyError as e:				# obsolete cache file
+					logger.warning("Bad JW Stream cache file: %s not found" % e)
 
 	# Write the cookies and the list of videos to a cache file
 	def write_cache(self):
@@ -179,20 +190,44 @@ class StreamRequester:
 					))
 			with open(self.cachefile, "w") as fh:
 				json.dump(dict(
+					url = self.config["url"],
 					cookies = cookies,
 					tokens = self.tokens,
 					video_info = self.video_info,
 					), fh, indent=2, ensure_ascii=False)
 
+	# Ask for the list of current videos
+	# Though we supply the language and country information, this actually gets
+	# all of the programs shared through this sharing link irrespective of language.
+	def update_videos(self):
+		response = self.session.get(
+			"https://stream.jw.org/api/v1/libraryBranch/home/subCategory/theocraticProgram",
+			timeout = self.request_timeout,
+			)
+		if response.status_code != 200:
+			raise StreamError("subCategory failed: %s %s" % (response.status_code, response.text))
+		channel_key = response.json()[0]["specialties"][0]["key"]
+
+		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % channel_key,
+			timeout = self.request_timeout,
+			)
+		if response.status_code != 200:
+			raise StreamError("%d %s" % (response.status_code, response.text))
+		self.video_info = response.json()
+
+		if self.debug:
+			with open("debug-videos.json", "w") as fh:
+				json.dump(self.video_info, fh, indent=2, ensure_ascii=False)
+
 	# Refresh the list of videos
 	def reload(self):
-		self.connect_hook()
+		self.connect()
 		self.update_videos()
 		self.write_cache()
 
 	# Get a list of the events
 	def get_events(self):
-		self.connect_hook()
+		self.connect()
 		for event in self.video_info:
 			yield StreamEvent(event)
 
@@ -214,16 +249,21 @@ class StreamRequester:
 			logger.error("JW Stream event %s not found in resolution", id, resolution)
 			return None
 
-		self.connect_hook()
+		self.connect()
 
-		response = self.session.put("https://stream.jw.org/api/v1/libraryBranch/program/presignURL",
+		response = self.session.put(
+			"https://stream.jw.org/api/v1/libraryBranch/program/presignURL",
 			json = download_url,
+			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
 			raise StreamError("presignURL failed: %d %s" % (response.status_code, response.text))
 		download_url = response.json()
 
-		response = self.session.get("https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"])
+		response = self.session.get(
+			"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"],
+			timeout = self.request_timeout,
+			)
 		if response.status_code != 200:
 			raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
 		info2 = response.json()

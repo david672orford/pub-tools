@@ -9,11 +9,19 @@ from . import turbo
 
 logger = logging.getLogger(__name__)
 
+background_thread = None
 def run_thread(func):
+	global background_thread
+
+	if background_thread is not None and background_thread.is_alive():
+		flask("Please wait for previous download to finish.")
+
 	@copy_current_request_context
 	def wrapper():
 		func()
-	Thread(target=wrapper, daemon=True).start()
+
+	background_thread = Thread(target=wrapper, daemon=True)
+	background_thread.start()
 
 def progress_callback(message, **kwargs):
 	if message == "{total_recv} of {total_expected}":

@@ -10,12 +10,6 @@
 <form action="submit" method="POST">
 
 <section class="big-buttons">
-	<button type="submit" name="action" value="add-camera"{% if "Stage" in scene_names %} disabled{%endif%}>Add Stage Scene</button>
-	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom Scene</button>
-	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen Scene</button>
-</section>
-
-<section class="big-buttons">
 	<ul class="scenes">
 	{% for scene_name in scene_names %}
 	<li>

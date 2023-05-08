@@ -4,15 +4,22 @@
 {% block main %}
 <form action="submit" method="POST">
 
-<section class="bordered">
+<section class="bordered big-buttons">
 <h2>Zoom</h2>
 <button type="submit" name="action" value="reconnect-zoom-capture">Reconnect Zoom Capture</button>
 </section>
 
-<section class="bordered">
+<section class="bordered big-buttons">
 <h2>Peripherals</h2>
 <button type="submit" name="action" value="reconnect-camera">Reconnect Camera</button>
 <button type="submit" name="action" value="reconnect-audio">Reconnect Audio</button>
+</section>
+
+<section class="bordered big-buttons">
+<h2>Add Standard Scenes</h2>
+	<button type="submit" name="action" value="add-camera"{% if "Stage" in scene_names %} disabled{%endif%}>Add Stage Scene</button>
+	<button type="submit" name="action" value="add-zoom"{% if "Zoom" in scene_names %} disabled{%endif%}>Add Zoom Scene</button>
+	<button type="submit" name="action" value="add-split"{% if "Split Screen" in scene_names %} disabled{%endif%}>Add Split Screen Scene</button>
 </section>
 
 </form>

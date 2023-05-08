@@ -32,6 +32,8 @@ class GzipResponseWrapper:
 class Fetcher:
 	user_agent = "Mozilla/5.0"
 
+	request_timeout = 30
+
 	# Minimum time between requests (in seconds)
 	min_request_interval = 2.5
 
@@ -102,9 +104,9 @@ class Fetcher:
 				}
 			)
 		if follow_redirects:
-			response = self.opener.open(request)
+			response = self.opener.open(request, timeout=self.request_timeout)
 		else:
-			response = self.no_redirects_opener.open(request)
+			response = self.no_redirects_opener.open(request, timeout=self.request_timeout)
 		if response.headers.get("Content-Encoding") == "gzip":
 			response = GzipResponseWrapper(response)
 		self.last_request_time = time()

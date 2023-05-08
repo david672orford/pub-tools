@@ -1,13 +1,11 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
 from werkzeug.utils import secure_filename
 from time import sleep
-import os, json, logging
+import os, logging
 
-from ...utils import progress_callback_response, run_thread
+from ...utils import progress_callback_response
 from .views import blueprint
 from .utils import obs, ObsError
-from .zoom import find_second_window
-from .cameras import get_camera_dev
 
 logger = logging.getLogger(__name__)
 
@@ -44,26 +42,6 @@ def page_scenes_submit():
 				except ObsError as e:
 					flash(str(e))
 			sleep(1)
-
-		elif action == "add-camera":
-			camera_dev = get_camera_dev()
-			if camera_dev is not None:
-				obs.create_camera_scene(camera_dev)
-				sleep(1)
-
-		elif action == "add-zoom":
-			capture_window = find_second_window()
-			if capture_window is not None:
-				obs.create_zoom_scene(capture_window)
-				sleep(1)
-
-		elif action == "add-split":
-			camera_dev = get_camera_dev()
-			if camera_dev is not None:
-				capture_window = find_second_window()
-				if capture_window is not None:
-					obs.create_split_scene(camera_dev, capture_window)
-					sleep(1)
 
 	except ObsError as e:
 		flash("OBS: %s" % str(e))

@@ -12,15 +12,15 @@
 
 ## Scenes Tab
 
-* Drag and drop into Scenes tab works only after page reload, does not work at all
-  in OBS browser dock
+* Drag and drop into Scenes tab works only after page reload, does not work at
+  all in OBS browser dock
 * Video and picture thumbnails in Scenes tab
-* Scenes tab should response to changes. Can we listen for events and send Turbo messages?
-  (According to the OBS-Websocket documentation SceneListChanged does not fire when
-  scenes are reordered.)
+* Scenes tab should response to changes. Can we listen for events and send
+  Turbo messages? (According to the OBS-Websocket documentation
+  SceneListChanged does not fire when scenes are reordered.)
 
 ## Patchbay
 
-* Connectors become misalligned if the page is scrolled down
-* Objects can be lost outside the canvas
+* Try using a single SVG for all of the links. This may solve the problem with
+  overlapping links blocking events.
 

@@ -28,15 +28,6 @@
 {% block main %}
 
 <div id="patchbay" class="patchbay patchbay-loading">
-{% for node in patchbay.nodes %}
-{% if "Audio" in node.media_class %}
-{{ render_node(node) }}
-{% endif %}
-{% endfor %}
-</div>
-
-<div id="dummy"></div>
-
 <template id="link">
 	<svg class="link">
 		<defs>
@@ -52,6 +43,13 @@
 		<path class="link-curve" marker-end="url(#arrowhead)">
 	</svg>
 </template>
+<div id="dummy"></div>
+{% for node in patchbay.nodes %}
+{% if "Audio" in node.media_class %}
+{{ render_node(node) }}
+{% endif %}
+{% endfor %}
+</div>
 
 <script>
 var links = [
