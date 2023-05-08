@@ -164,6 +164,7 @@ function init_patchbay(links) {
 	async function link_action(action, output_port_id, input_port_id)
 		{
 		//console.log("link_action:", action, output_port_id, input_port_id);
+
 		const response = await fetch(action, {
 			method: "POST",
 			headers: {
@@ -253,10 +254,24 @@ function init_patchbay(links) {
 	function on_port_drop(e)
 		{
 		e.preventDefault()
+		e.target.classList.remove("highlight");
+
+		/* Get the Pipewire port ID numbers of the output and input which we should connect. */
 		const output_port_id = e.dataTransfer.getData("text/plain").split("-")[1];
 		const input_port_id = e.target.id.split("-")[1];
+
+		/* FIXME: There must be a better way to do this! */
+		for(let i=0; i < links.length; i++)
+			{
+			let link = links[i];
+			if(link[0] == output_port_id && link[1] == input_port_id)
+				{
+				console.log("Duplicate link!");
+				return;
+				}
+			}
+
 		link_action("create-link", output_port_id, input_port_id);
-		e.target.classList.remove("highlight");
 		}
 
 	/* Connect everything up */
