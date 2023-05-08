@@ -28,22 +28,23 @@
 {% block main %}
 
 <div id="patchbay" class="patchbay patchbay-loading">
-<template id="link">
-	<svg class="link">
-		<defs>
-			<marker
-				style="overflow:visible"
-				id="arrowhead" class="arrowhead"
-				refX="2"
-				refY="0"
-				>
-				<path transform="scale(0.4)" d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z">
-			</marker>
-		</defs>
+<svg>
+	<defs>
+		<marker
+			id="arrowhead" class="arrowhead"
+			refX="2"
+			refY="0"
+			>
+			<path transform="scale(0.4)" d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z">
+		</marker>
+	</defs>
+</svg>
+<template>
+	<svg>
 		<path class="link-curve" marker-end="url(#arrowhead)">
 	</svg>
 </template>
-<div id="dummy"></div>
+<div class="dummy-input"></div>
 {% for node in patchbay.nodes %}
 {% if "Audio" in node.media_class %}
 {{ render_node(node) }}

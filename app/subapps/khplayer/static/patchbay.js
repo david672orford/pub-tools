@@ -6,7 +6,9 @@ function init_patchbay(links) {
 	let drag_links;
 	let temp_link;
 	const patchbay = document.getElementById("patchbay");
-	const dummy = document.getElementById("dummy");
+	const patchbay_svg = patchbay.getElementsByTagName("svg")[0];
+	const link_template = patchbay.getElementsByTagName("template")[0];
+	const dummy_input = patchbay.getElementsByClassName("dummy-input")[0];
 
 	class LinkDrawer
 		{
@@ -14,9 +16,8 @@ function init_patchbay(links) {
 			{
 			this.start_el = start_el;
 			this.end_el = end_el;
-			this.svg = document.getElementById("link").content.cloneNode(true).querySelector(".link");
-			this.path = this.svg.querySelector(".link-curve");
-			patchbay.appendChild(this.svg);
+			this.path = link_template.content.cloneNode(true).querySelector("path");
+			patchbay_svg.appendChild(this.path);
 			if(end_el != null)
 				this.position();
 			}
@@ -25,8 +26,6 @@ function init_patchbay(links) {
 			{
 			let pb_rect = patchbay.getBoundingClientRect();
 			let rect;
-
-			console.log("pb_rect:", pb_rect);
 
 			/* Find the middle of the right edge of the audio output. */
 			rect = this.start_el.getBoundingClientRect();
@@ -44,7 +43,6 @@ function init_patchbay(links) {
 				}
 			else
 				{
-				console.log(pos);
 				end_x = pos[0] - pb_rect.left;
 				end_y = pos[1] - pb_rect.top;
 				}
@@ -56,19 +54,6 @@ function init_patchbay(links) {
 			const signed_height = (end_y - start_y);
 			const height = Math.abs(signed_height);
 
-			/* Place and size the viewbox of the SVG. Leave a 5px margin so as not to clip the lines. */
-			this.svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-			this.svg.style.left = x + "px";
-			this.svg.style.top = y + "px";
-			this.svg.style.width = width + "px";
-			this.svg.style.height = height + "px";
-
-			/* Translate start and end points to SVG coordinate space. */
-			start_x -= x;
-			start_y -= y;
-			end_x -= x;
-			end_y -= y;
-
 			const cp1x = start_x + (width + height) * 0.5;
 			const cp1y = start_y - (signed_height * .05);
 			const cp2x = end_x - (width + height) * 0.5;
@@ -78,7 +63,7 @@ function init_patchbay(links) {
 
 		remove()
 			{
-			this.svg.remove();
+			this.path.remove();
 			}
 		}
 
@@ -86,7 +71,7 @@ function init_patchbay(links) {
 	function on_node_dragstart(e)
 		{
 		const node = e.target;
-		console.log("Node Dragstart:", node.id);
+		//console.log("Node Dragstart:", node.id);
 
 		node_x = node.offsetLeft;
 		node_y = node.offsetTop;
@@ -114,12 +99,12 @@ function init_patchbay(links) {
 					drag_links.push(links[i2]);
 				}
 			}
-		console.log("drag links:", drag_links);
+		//console.log("drag links:", drag_links);
 
 		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
 
-		e.dataTransfer.setDragImage(dummy, 5, 5);
+		e.dataTransfer.setDragImage(dummy_input, 5, 5);
 		}
 
 	/* Fired several times a second as the user moves the node */
@@ -145,7 +130,7 @@ function init_patchbay(links) {
 	function on_node_dragend(e)
 		{
 		const node = e.currentTarget;
-		console.log("Node Dragend:", node.id);
+		//console.log("Node Dragend:", node.id);
 
 		fetch("save-node-pos", {
 			method: "POST",
@@ -178,7 +163,7 @@ function init_patchbay(links) {
 	   If the request is successful, add or remove the arrow. */
 	async function link_action(action, output_port_id, input_port_id)
 		{
-		console.log("link_action:", action, output_port_id, input_port_id);
+		//console.log("link_action:", action, output_port_id, input_port_id);
 		const response = await fetch(action, {
 			method: "POST",
 			headers: {
@@ -216,13 +201,13 @@ function init_patchbay(links) {
 	/* Start of dragging of a Pipewire output port */
 	function on_port_dragstart(e)
 		{
-		console.log("Port Dragstart:", e.target.id);
+		//console.log("Port Dragstart:", e.target.id);
 		e.dataTransfer.setData("text/plain", e.target.id);
 		e.stopPropagation();		/* so dragstart won't be called on node */
 
-		e.dataTransfer.setDragImage(dummy, 5, 5);
+		e.dataTransfer.setDragImage(dummy_input, 5, 5);
 		temp_link = new LinkDrawer(e.target, null);
-		temp_link.svg.style.pointerEvents = "none";
+		temp_link.path.style.pointerEvents = "none";
 		
 		e.target.addEventListener("drag", on_port_drag);
 		e.target.addEventListener("dragend", on_port_dragend);
@@ -230,7 +215,7 @@ function init_patchbay(links) {
 
 	function on_port_drag(e)
 		{
-		console.log("Port drag:", e.pageX, e.pageY);
+		//console.log("Port drag:", e.pageX, e.pageY);
 		if(e.pageX == 0)		/* last event is bad */
 			return;
 		temp_link.position([e.pageX, e.pageY]);
@@ -238,13 +223,13 @@ function init_patchbay(links) {
 
 	function on_port_dragend(e)
 		{
-		console.log("Port Dragend:", e.target.id);
+		//console.log("Port Dragend:", e.target.id);
 		e.target.removeEventListener("drag", on_port_drag);
 		e.target.removeEventListener("dragend", on_port_dragend);
 		temp_link.remove()
 		temp_link = null;
-		dummy.style.left = null;
-		dummy.style.top = null;
+		dummy_input.style.left = null;
+		dummy_input.style.top = null;
 		}
 
 	/* Dragged output port hovering over an input port */
@@ -279,7 +264,7 @@ function init_patchbay(links) {
 	for(let i=0; i<nodes.length; i++)
 		{
 		let node = nodes[i];
-		console.log(i, node.offsetLeft, node.offsetTop);
+		//console.log(i, node.offsetLeft, node.offsetTop);
 
 		node.setAttribute("draggable", "true");
 		node.addEventListener("dragstart", on_node_dragstart);

@@ -1,35 +1,38 @@
 .patchbay {
 	width: 1500px;
 	height: 1500px;
-	z-index: 1;
-	}
-
-.patchbay {
 	position: relative;			/* make it a reference frame */
 	cursor: default;
 	overflow: hidden;			/* FIXME: should we be able to scroll? */
+	z-index: 1;
 	}
-.patchbay.patchbay-loading .node {
-	margin: 1em;
-	position: static;
+.patchbay > SVG {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	z-index: 2;
 	}
-.node {
+.patchbay .node {
 	position: absolute;
 	display: inline-block;
 	border: thin solid black;
 	background-color: #f0fff0;
 	z-index: 3;
 	}
-.node-name, .node-media-class {
+.patchbay .patchbay.patchbay-loading .node {
+	margin: 1em;
+	position: static;
+	}
+.patchbay .node-name, .node-media-class {
 	text-align: center;
 	font-weight: bold;
 	padding: 1px 10px;
 	}
-.node-body {
+.patchbay .node-body {
 	display: flex;
 	justify-content: space-between;
 	}
-.node-inputs > DIV {
+.patchbay .node-inputs > DIV {
 	background-color: white;
 	border: solid black;
 	border-width: 1px 1px 1px 0;
@@ -38,10 +41,10 @@
 	padding: 2px 3px;
 	white-space: nowrap;
 	}
-.node-inputs > DIV.highlight {
+.patchbay .node-inputs > DIV.highlight {
 	background-color: #c0c0c0;
 	}
-.node-outputs > DIV {
+.patchbay .node-outputs > DIV {
 	background-color: white;
 	border: solid black;
 	border-width: 1px 0 1px 1px;
@@ -50,37 +53,33 @@
 	padding: 2px 3px;
 	white-space: nowrap;
 	}
-.node-outputs > DIV:hover {
+.patchbay .node-outputs > DIV:hover {
 	background-color: #c0c0c0;
 	}
 
 /* Curvy line in SVG */
-.link {
+.patchbay .link-curve {
 	position: absolute;
-	overflow: visible;		/* So not cut off where line overhangs bounding box */
-	/* Below the nodes because (at least on Chrome) the SVG bounding box
-	   blocks mouse clicks to underlying elements which can make it
-	   hard to drag the nodes. */
-	z-index: 2;
-	}
-.link-curve {
 	stroke: red;
 	stroke-width: 6px;
 	fill: none;
 	}
-.link-curve:hover {
+.patchbay .link-curve:hover {
 	stroke: #d00000;
 	}
-.link .arrowhead path {
+.patchbay .link .arrowhead path {
+	fill: red;
+	}
+.patchbay .arrowhead {
+	overflow: visible;
 	fill: red;
 	}
 
-#dummy {
+.patchbay .dummy-input {
 	position: absolute;
 	top: 200px;
 	pointer-events: none;
 	width: 10px;
 	height: 10px;
-	//border: thin solid green;
 	}
 

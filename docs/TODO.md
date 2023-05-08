@@ -19,8 +19,3 @@
   Turbo messages? (According to the OBS-Websocket documentation
   SceneListChanged does not fire when scenes are reordered.)
 
-## Patchbay
-
-* Try using a single SVG for all of the links. This may solve the problem with
-  overlapping links blocking events.
-
