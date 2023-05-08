@@ -14,7 +14,7 @@ def run_thread(func):
 	global background_thread
 
 	if background_thread is not None and background_thread.is_alive():
-		flask("Please wait for previous download to finish.")
+		turbo_flash("Please wait for previous download to finish.")
 
 	@copy_current_request_context
 	def wrapper():
@@ -26,7 +26,7 @@ def run_thread(func):
 def progress_callback(message, **kwargs):
 	if message == "{total_recv} of {total_expected}":
 		percent = int(kwargs["total_recv"]  * 100 / kwargs["total_expected"] + 0.5)
-		message = '<div style="width: 200px; border: thin solid black"><div style="width: {percent}%; height: 20px; background-color: green"></div></div>'.format(percent=percent)
+		message = '<div style="width: {percent}%; height: 100%; background-color: green"></div>'.format(percent=percent)
 	else:
 		message = message.format(**kwargs)
 		message = '<div>%s</div>' % escape(message)
@@ -41,4 +41,8 @@ def progress_callback_response(message, **kwargs):
 	return turbo.stream([
 		turbo.update('<div>%s</div>' % escape(message), target="progress")
 		])
+
+def turbo_flash(message):
+	to = session['session-id']
+	turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
 

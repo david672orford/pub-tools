@@ -2,24 +2,26 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-<form action="submit" method="POST">
 
 <section>
+<form action="submit" method="POST">
 <input type="text" name="song" placeholder="Enter song number">
 <button type="submit">Add</button>
+</form>
 </section>
 
 <section>
 {% if videos %}
+<form action="submit" method="POST">
 <ul class="nowrap">
 {% for video in videos %}
 <li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
 {% endfor %}
 </ul>
+</form>
 {% else %}
 <p>Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here.</p>
 {% endif %}
 </section>
 
-</form>
 {% endblock %}

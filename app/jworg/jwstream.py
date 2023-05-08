@@ -233,6 +233,8 @@ class StreamRequester:
 
 	# Get what we need to play one of the events
 	def get_event(self, id, preview=True):
+		self.connect()
+
 		for event in self.video_info:
 			if event["key"] == id:
 				break
@@ -267,8 +269,9 @@ class StreamRequester:
 		if response.status_code != 200:
 			raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
 		info2 = response.json()
+		chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
 
-		return StreamEvent(event, download_url["presignedUrl"], info2['chapters'])
+		return StreamEvent(event, download_url["presignedUrl"], chapters)
 
 if __name__ == "__main__":
 	import sys

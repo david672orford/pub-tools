@@ -41,7 +41,8 @@ def page_stream_update():
 		requester.reload()
 		return progress_callback_response("Program list updated.")
 	else:
-		return redirect(".")	# so flash() message will be displayed
+		# Return to page so flash() message will be displayed
+		return redirect(".")
 
 @blueprint.route("/stream/<id>/")
 def page_stream_player(id):
@@ -91,9 +92,9 @@ def page_stream_clip(id):
 		clip_title = "%s %s-%s" % (event.title, clip_start, clip_end)
 
 	# This is the file into which we will save the downloaded clip.
-	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%d-%s-%s.mp4" % (id, clip_start, clip_end))
+	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
 
-	print("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
+	logger.debug("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
 
 	# If the this clip was made earlier, make the scene right away, otherwise
 	# spawn a background thread to download it and create the scene when the
@@ -104,7 +105,8 @@ def page_stream_clip(id):
 		run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
-	return redirect(return_url)
+	#return redirect(return_url)
+	return redirect(".")
 
 def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration):
 	# Use FFMpeg to download the part of the video file we need. This is possible
@@ -137,11 +139,11 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 # Connect to OBS and tell it to make a new scene with this file as the input.
 def create_clip_scene(clip_title, media_file):
 	try:
-		obs.add_media_scene(clip_title, "video", media_file)
+		obs.add_media_scene("▷" + clip_title, "video", media_file)
 	except ObsError as e:
-		progress_callback("OBS: %s" % str(e))
+		turbo_flash("OBS: %s" % str(e))
 	else:
-		progress_callback("Clip created.")
+		progress_callback("Clip created")
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

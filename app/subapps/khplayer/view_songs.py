@@ -1,11 +1,11 @@
-from flask import request, session, render_template, redirect, flash
+from flask import request, session, render_template, redirect
 from time import sleep
 import logging
 
-from ...utils import progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_callback_response, run_thread, turbo_flash
 from ...models import VideoCategories
 from .views import blueprint
-from .utils import meeting_loader, obs
+from .utils import meeting_loader, obs, ObsError
 from .view_videos import load_video
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def page_songs_submit():
 	lank = request.form.get("lank")
 	if lank:
 		message = 'Loading song %s' % lank
-		run_thread(lambda: load_video(lank))
+		run_thread(lambda: load_video(lank, prefix="♫ ПЕСНЯ "))
 
 	return progress_callback_response(message)
 
@@ -39,9 +39,9 @@ def load_song(song):
 	media_url = meeting_loader.get_song_video_url(song, resolution="480p")
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 	try:
-		obs.add_media_scene("♫ Песня %s" % song, "video", media_file)
+		obs.add_media_scene("♫ ПЕСНЯ %s" % song, "video", media_file)
 	except ObsError as e:
-		progress_callback("OBS: %s" % str(e))
+		turbo_flash("OBS: %s" % str(e))
 	else:
-		progress_callback("Song video loaded.")
+		progress_callback("Song video loaded")
 

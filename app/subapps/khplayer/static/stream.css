@@ -1,3 +1,12 @@
+.stream-player {
+	}
+.stream-player BUTTON {
+	padding: .3em;
+	}
+.stream-player INPUT[type='text'] {
+	padding: .3em;
+	}
+
 .video-sizer {
 	border thin solid black;
 	}
@@ -29,7 +38,7 @@
 	flex-grow: 1;
 	display: flex;
 	align-items: center;
-	padding: .1em;
+	padding: .2em .1em;
 	white-space: nowrap;
 	}
 #jog-controls BUTTON IMG {
@@ -51,7 +60,7 @@
 	padding-right: .5em;
 	}
 #trim-controls INPUT.time {
-	width: 4em;
+	width: 5em;
 	}
 #trim-controls LABEL.grow {
 	flex-grow: 1;

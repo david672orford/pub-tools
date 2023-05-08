@@ -10,6 +10,12 @@
 <form action="submit" method="POST">
 
 <section class="big-buttons">
+	<p>
+		<button type="button" id="select-unstarred">Select Unstarred</button>
+		<button type="button" id="select-all">Select All</button>
+		<button type="button" id="deselect-all">Deselect All</button>
+		<button type="submit" name="action" value="delete">Delete Selected</button>
+	</p>
 	<ul class="scenes">
 	{% for scene_name in scene_names %}
 	<li>
@@ -18,18 +24,16 @@
 		</li>
 	{% endfor %}
 	</ul>
-	<p>
-		<button type="button" id="select-all">Select All</button>
-		<button type="button" id="deselect-all">Deselect All</button>
-		<button type="submit" name="action" value="delete">Delete Selected</button>
-	</p>
 </section>
 
 </form>
 
-<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
-	<input type="file" id="files" name="files" multiple>
-</form>
+<section>
+	<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
+		<label for="files">Upload media files:</label>
+		<input type="file" id="files" name="files" multiple>
+	</form>
+</section>
 
 <script>
 init_dnd();

@@ -30,13 +30,16 @@
 	</nav>
 
 	<!-- download progress messages inserted here -->
-	<div id="progress"></div>
+	<div id="progress">
+		&nbsp;
+	</div>
 
 	{% block header %}
 	<h1>{{title}}</h1>
 	{% endblock %}
 </header>
 
+<div id="flashes">
 {% with messages = get_flashed_messages() %}
 	{% if messages %}
 		{% for message in messages %}
@@ -44,6 +47,7 @@
 		{% endfor %}
 	{% endif %}
 {% endwith %}
+</div>
 
 <main>
 {% block main %}

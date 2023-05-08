@@ -137,3 +137,5 @@ def meeting_media_to_obs_scenes(items):
 		else:
 			raise AssertionError("Unhandled case")
 
+	progress_callback("Meeting loaded")
+

@@ -160,14 +160,14 @@ class Fetcher:
 
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
-		logger.info("Download media file %s...", url)
+		logger.debug("Download media file %s...", url)
 		if callback:
 			callback("Downloading media file...")
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if os.path.exists(cachefile):
-			logger.info(" Satisfied from cache")
+			logger.debug(" Media file already in cache")
 			if callback:
-				callback("Satisfied from cache")
+				callback("Media file already in cache")
 		else:
 			response = self.get(url)
 			total_expected = int(response.headers.get("Content-Length"))
@@ -188,9 +188,9 @@ class Fetcher:
 							callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
 							last_callback = now
 			os.rename(cachefile + ".tmp", cachefile)
-			logger.info("Download complete %d bytes received", total_recv)
+			logger.debug("Media file downloaded, %d bytes received", total_recv)
 			if callback:
-				callback("Download finished.")
+				callback("Media file downloaded")
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
@@ -296,7 +296,7 @@ class Fetcher:
 	# Find the EPUB download URL of a periodical
 	# FIXME: is this really just for periodicals? Note that issue_code is optional
 	def get_epub_url(self, pub_code, issue_code=None):
-		logger.info("get_epub_url(%s, %s)", pub_code, issue_code)
+		logger.debug("get_epub_url(%s, %s)", pub_code, issue_code)
 		query = {
 			'output': 'json',
 			'pub': pub_code,

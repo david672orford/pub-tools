@@ -17,8 +17,6 @@ BODY {
 	flex-direction: column;
 	}
 HEADER {
-	/*position: fixed;
-	top: 0; left: 0; right: 0;*/
 	background-color: #f0f0f0;
 	border-bottom: 1px solid #a0a0a0;
 	}
@@ -90,7 +88,14 @@ HEADER H1 A {
 
 HEADER DIV#progress {
 	float: right;
-	margin: .5em;
+	margin: .4em;
+	min-width: 33%;
+	height: 1.3em;
+	background-color: white;
+	border: 1px solid grey;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	}
 
 DIV.flash {
