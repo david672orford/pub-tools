@@ -89,7 +89,7 @@ class MeetingLoader(Fetcher):
 	def get_article_html(self, url, main=False):
 		html = self.get_html(url)
 
-		#print("URL:", url)
+		logger.debug("URL: %s", url)
 		#self.dump_html(html, "watchtower.html")
 
 		#container = html.xpath(".//main" if main else ".//main//article")
@@ -278,8 +278,8 @@ class MeetingLoader(Fetcher):
 	# The Meeting Workbook extractor runs this on articles to which the
 	# week's page links, omiting only the source material for demonstrations.
 	def extract_illustrations(self, pub_code, article_title, container):
-		print("=========================================================")
-		print(article_title)
+		logger.debug("=========================================================")
+		logger.debug(article_title)
 		#self.dump_html(container)
 
 		#

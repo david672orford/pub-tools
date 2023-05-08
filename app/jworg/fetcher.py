@@ -127,20 +127,18 @@ class Fetcher:
 	# so we can't completely trust what we seen in the browser's debugger.
 	@staticmethod
 	def dump_html(el, filename=None):
-		print("=======================================================")
 		Fetcher._indent(el)
 		text = lxml.html.tostring(el, encoding="UNICODE")
 		if filename:
 			with open(filename, "w") as fh:
 				fh.write(text)
 		else:
-			print(text)
+			logger.debug("=======================================================\n%s", text)
 
 	@staticmethod
 	def dump_json(data):
-		print("=======================================================")
 		text = json.dumps(data, indent=4, ensure_ascii=False)
-		print(text)
+		logger.debug("=======================================================\n%s", text)
 
 	# Alter the whitespace in the element tree to indent the tabs
 	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
