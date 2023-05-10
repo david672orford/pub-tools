@@ -125,7 +125,7 @@ class StreamRequester:
 		for cookie in self.session.cookies:
 			time_left = cookie.expires - time_now
 			if time_left < cutoff:
-				logger.debug("JW Stream cookie %s is expired.", cookie["name"])
+				logger.debug("JW Stream cookie %s is expired.", cookie.name)
 				return False
 
 		return True

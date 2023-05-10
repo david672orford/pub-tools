@@ -38,7 +38,7 @@ def cmd_update_meetings():
 def update_meetings(callback=default_callback):
 	meeting_loader = MeetingLoader()
 	current_day = date.today()
-	for i in range(6):
+	for i in range(8):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
 		if week_obj is None:

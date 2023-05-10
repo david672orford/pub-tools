@@ -32,7 +32,7 @@ class MyObsScript:
 		screen = int(obs.obs_data_get_string(settings, "screen"))
 		print("screen:", screen)
 		obs.obs_frontend_start_virtualcam()
-		obs.obs_frontend_open_projector("Program", screen, "", "Video Output")
+		obs.obs_frontend_open_projector("Program", screen, "", "")
 
 	# Shutdown
 	def script_unload(self):
