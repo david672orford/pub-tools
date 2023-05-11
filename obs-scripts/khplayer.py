@@ -1,14 +1,13 @@
 # OBS Studio Plugin which embeds the Flask web server to run
 # the same apps as ../start.py does.
 
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import obspython as obs
 from threading import Thread
 from werkzeug.serving import make_server
 import logging
 
-# Not clear why this is needed on some systems, but not on others.
-import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
