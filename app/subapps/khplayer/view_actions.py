@@ -2,15 +2,16 @@ from flask import current_app, Blueprint, render_template, request, redirect, fl
 from time import sleep
 import logging
 
-from .views import blueprint
+from .views import blueprint, menu
 from .utils import obs, ObsError
-from .view_patchbay import patchbay
 from .cameras import get_camera_dev
 from .zoom import find_second_window
-from .virtual_cable import connect_all
+from .virtual_cable import patchbay, connect_all
 from ...utils import progress_callback
 
 logger = logging.getLogger(__name__)
+
+menu.append(("Actions", "/actions/"))
 
 @blueprint.route("/actions/")
 def page_actions():

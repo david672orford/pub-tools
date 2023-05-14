@@ -5,13 +5,14 @@ from sqlalchemy.orm.attributes import flag_modified
 from urllib.parse import urlencode
 
 from ...models import db, Config
-from .views import blueprint
+from .views import blueprint, menu
 from .utils import obs, ObsError
-from .view_patchbay import patchbay
 from .cameras import list_cameras, get_camera_dev
-from .virtual_cable import connect_peripherals
+from .virtual_cable import patchbay, connect_peripherals
 
 logger = logging.getLogger(__name__)
+
+menu.append(("Config", "/config/"))
 
 # Wrap app.config so the Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.

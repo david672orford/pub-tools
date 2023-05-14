@@ -30,7 +30,7 @@ class MyObsScript:
 	# Accept settings (possibly changed)
 	def script_update(self, settings):
 		screen = int(obs.obs_data_get_string(settings, "screen"))
-		print("screen:", screen)
+		#print("screen:", screen)
 		obs.obs_frontend_start_virtualcam()
 		obs.obs_frontend_open_projector("Program", screen, "", "")
 

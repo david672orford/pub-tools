@@ -3,16 +3,14 @@
 
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import obspython as obs
 from threading import Thread
 from werkzeug.serving import make_server
 import logging
 
-
 from app.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
-from app.subapps.khplayer.pipewire import Patchbay
-from app.subapps.khplayer.virtual_cable import connect_all
 
 logging.basicConfig(
 	level=logging.WARN,
@@ -93,11 +91,6 @@ class MyObsScript:
 			self.logger.info("HTTP server stopped.")
 
 		if self.enable:
-			self.logger.debug("Creating virtual audio cable...")
-			patchbay = Patchbay()
-			patchbay.load()
-			connect_all(patchbay, self.app.config["PERIPHERALS"])
-
 			self.logger.debug("Starting server...")
 			self.server = make_server("127.0.0.1", port=5000, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
 			self.thread = Thread(target=lambda: self.server.serve_forever())

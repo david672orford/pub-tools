@@ -5,8 +5,11 @@ import sys, os, types, re
 from subprocess import run, PIPE
 from time import sleep
 import logging
+from .pipewire import Patchbay
 
 logger = logging.getLogger(__name__)
+
+patchbay = Patchbay()
 
 def create_cable(patchbay):
 	for name, media_class in (
@@ -125,7 +128,10 @@ def connect_zoom(patchbay, config):
 
 	zoom_input_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Input/Audio")
 	if zoom_input_node is None:
-		logger.warning("Zoom input node not found")
+		# Switched from warning to info because it just means we started OBS before Zoom.
+		# If we leave it as a warning, OBS pops of the script log.
+		#logger.warning("Zoom input node not found")
+		logger.info("Zoom input node not found")
 	else:
 		# Find the output port on the output end of the virtual audio cable between OBS and Zoom.
 		from_obs_output = patchbay.find_node(name="From-OBS").outputs[0]
@@ -149,7 +155,8 @@ def connect_zoom(patchbay, config):
 		else:
 			zoom_output_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Output/Audio")
 			if zoom_output_node is None:
-				logger.warning("Zoom output node not found")
+				#logger.warning("Zoom output node not found")
+				logger.info("Zoom output node not found")
 			else:
 				i = 0
 				# Zoom has LF and RF outputs

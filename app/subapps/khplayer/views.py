@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect
+from flask import current_app, Blueprint, request, render_template, redirect
 import sys, traceback
 import logging
 
@@ -23,12 +23,16 @@ def handle_500(error):
 	exception = "".join(traceback.format_exception(*sys.exc_info()))
 	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
 
+menu = []
+current_app.jinja_env.globals["menu"] = menu
+
 from . import view_meetings
 from . import view_songs
 from . import view_videos
 from . import view_stream
 from . import view_scenes
 from . import view_actions
-from . import view_patchbay
+if sys.platform == "linux":
+	from . import view_patchbay
 from . import view_config
 

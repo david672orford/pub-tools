@@ -70,27 +70,27 @@ class ObsScript:
 	# 2) 
 
 	def script_load(self, settings):
-		print("*** script_load()")
-		pass
+		#print("*** script_load()")
+		self.on_load()
 
 	def script_unload(self):
-		print("*** script_unload()")
-		pass
+		#print("*** script_unload()")
+		self.on_unload()
 
 	def script_save(self, settings):
-		print("*** script_save()")
+		#print("*** script_save()")
 		pass
 
 	# Settings screen defaults
 	def script_defaults(self, settings):
-		print("*** script_defaults()")
+		#print("*** script_defaults()")
 		for setting in self.settings:
 			if setting.type in ("text", "select"):
 				obs.obs_data_set_default_string(settings, setting.name, setting.default_value)
 
 	# Create settings GUI
 	def script_properties(self):
-		print("*** script_properties()")
+		#print("*** script_properties()")
 		for setting in self.settings:
 			if setting.type == "text":
 				pass
@@ -99,7 +99,7 @@ class ObsScript:
 
 	# Accept settings (possibly changed)
 	def script_update(self, settings):
-		print("*** script_update()")
+		#print("*** script_update()")
 		for setting in self.settings:
 			pass
 
@@ -125,6 +125,12 @@ class ObsScript:
 			obs.remove_current_callback()
 		obs.timer_add(funct_wrapper, 100)
 
+	def on_load(self):
+		pass
+
+	def on_unload(self):
+		pass
+
 class ObsScriptSourceEventsMixin:
 	def script_load(self, settings):
 		super().script_load(settings)
@@ -143,9 +149,8 @@ class ObsScriptSourceEventsMixin:
 		self.on_source_destroy(ObsSource(source))
 
 	def _install_source_listeners(self, source):
-		print("new source:", obs.obs_source_get_id(source), obs.obs_source_get_name(source))
+		#print("new source:", obs.obs_source_get_id(source), obs.obs_source_get_name(source))
 		if obs.obs_source_get_id(source) == "ffmpeg_source":
-			print(" Installing handlers")
 			handler = obs.obs_source_get_signal_handler(source)
 			obs.signal_handler_connect(handler, "media_started", lambda source: self._on_media_started(source))
 			obs.signal_handler_connect(handler, "media_ended", lambda source: self._on_media_ended(source))
@@ -160,27 +165,27 @@ class ObsScriptSourceEventsMixin:
 	# Stop button: media_stopped, media_ended
 
 	def _on_media_started(self, source):
-		print("************* media started ***************")
+		#print("************* media started ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_started(ObsSource(source))
 
 	def _on_media_ended(self, source):
-		print("************* media ended ***************")
+		#print("************* media ended ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_ended(ObsSource(source))
 
 	def _on_media_pause(self, source):
-		print("************* media pause ***************")
+		i#print("************* media pause ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_pause(ObsSource(source))
 
 	def _on_media_play(self, source):
-		print("************* media play ***************")
+		#print("************* media play ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_play(ObsSource(source))
 
 	def _on_media_stopped(self, source):
-		print("************* media stopped ***************")
+		#print("************* media stopped ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_stopped(ObsSource(source))
 

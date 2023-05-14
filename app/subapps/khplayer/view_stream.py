@@ -7,10 +7,12 @@ import logging
 from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequester
-from .views import blueprint
+from .views import blueprint, menu
 from .utils import obs
 
 logger = logging.getLogger(__name__)
+
+menu.append(("Stream", "/stream/"))
 
 def jwstream_requester():
 	if not hasattr(jwstream_requester, "handle"):
@@ -29,7 +31,7 @@ def jwstream_requester():
 def page_stream():
 	requester = jwstream_requester()
 	events = requester.get_events() if requester else []
-	events = sorted(list(events), key=lambda item: (item.week_of[0], item.title))
+	events = sorted(list(events), key=lambda item: (item.datetime, item.title))
 	return render_template("khplayer/stream.html", events=events, top="..")
 
 # User has pressed Update button

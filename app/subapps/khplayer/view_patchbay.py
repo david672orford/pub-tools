@@ -4,10 +4,10 @@ from time import sleep
 import json
 
 from ...models import db, Config
-from .views import blueprint
-from .pipewire import Patchbay
+from .views import blueprint, menu
+from .virtual_cable import patchbay
 
-patchbay = Patchbay()
+menu.append(("Patchbay", "/patchbay/"))
 
 @blueprint.route("/patchbay/")
 def page_patchbay():

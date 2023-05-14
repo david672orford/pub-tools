@@ -24,7 +24,7 @@ for arg in sys.argv[1:]:
 			destroy_cable(patchbay)
 			good += 1
 		case "connect-peripherals":
-			connect_peripherals(patchbay, config["PERIPHERALS"])
+			connect_peripherals(patchbay, config.PERIPHERALS)
 			good += 1
 		case "connect-obs":
 			connect_obs(patchbay)
@@ -32,6 +32,8 @@ for arg in sys.argv[1:]:
 		case "connect-zoom":
 			connect_zoom(patchbay)
 			good += 1
+		case "connect-all":
+			connect_all(patchbay, config.PERIPHERALS)
 		case _:
 			good = False
 			break

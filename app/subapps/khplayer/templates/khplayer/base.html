@@ -11,25 +11,17 @@
 </head>
 <body>
 <header>
-	{% macro menu_item(name, href) %}
+	<nav>
+		<ul>
+		{% for name, href in menu %}
 		<li{% if href in request.path %} class="current"{% endif %}>
 			<a href="{{top}}{{href}}">{{ name }}</a>
 		</li>
-	{% endmacro %}
-	<nav>
-		<ul>
-		{{ menu_item("Meetings", "/meetings/") }}
-		{{ menu_item("Songs", "/songs/") }}
-		{{ menu_item("Videos", "/videos/") }}
-		{{ menu_item("Stream", "/stream/") }}
-		{{ menu_item("Scenes", "/scenes/") }}
-		{{ menu_item("Actions", "/actions/") }}
-		{{ menu_item("Patchbay", "/patchbay/") }}
-		{{ menu_item("Config", "/config/") }}
+		{% endfor %}
 		</ul>
 	</nav>
 
-	<!-- download progress messages inserted here -->
+	<!-- download progress messages go in this div -->
 	<div id="progress">
 		&nbsp;
 	</div>

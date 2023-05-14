@@ -4,10 +4,12 @@ from time import sleep
 import os, logging
 
 from ...utils import progress_callback_response
-from .views import blueprint
+from .views import blueprint, menu
 from .utils import obs, ObsError
 
 logger = logging.getLogger(__name__)
+
+menu.append(("Scenes", "/scenes/"))
 
 @blueprint.route("/scenes/")
 def page_scenes():

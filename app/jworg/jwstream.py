@@ -51,14 +51,19 @@ class StreamEvent:
 	def __init__(self, event, download_url=None, chapters=None):
 		self.id = event["key"]
 		extra = json.loads(event["additionalFields"])
-		self.week_of = (
-			self.convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
-			self.convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
-			)
-		self.title = "%s from %s to %s" % (
-			event["categoryProgramType"], self.week_of[0], self.week_of[1]
-			)
-		self.datetime = self.convert_datetime(event["publishedDate"])
+		if "talkNumber" in extra:
+			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
+			#self.datetime = self.convert_datetime(event["publishedDate"])
+			self.datetime = self.convert_datetime(extra["date"])
+		else:
+			week_of = (
+				self.convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
+				self.convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
+				)
+			self.title = "%s from %s to %s" % (
+				event["categoryProgramType"], week_of[0], week_of[1]
+				)
+			self.datetime = week_of[0]
 		self.language = event["languageCode"]
 		self.language_country = event["countryCode"]
 		self.download_url = download_url

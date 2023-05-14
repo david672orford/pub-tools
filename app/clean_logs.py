@@ -1,6 +1,7 @@
 import logging
 from werkzeug.serving import WSGIRequestHandler
 
+# Simplify log messages coming from the Werkzeig HTTP server
 class CleanlogWSGIRequestHandler(WSGIRequestHandler):
 	logger = logging.getLogger("app.werkzeug")
 	def log_request(self, code="-", size="-"):

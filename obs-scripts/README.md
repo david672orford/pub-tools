@@ -10,3 +10,12 @@ It is possible to run **khplayer** inside of OBS.
 4. Select **khplayer.py** and enable it.
 5. Add a browser dock with a a URL of http://localhost:5000/khplayer/meetings/
 
+## Autostart Virtual Camera and Fullscreen Projector
+
+
+## Create Virtual Cable
+
+
+## Auto Mute
+
+
