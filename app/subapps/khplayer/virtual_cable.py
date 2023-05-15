@@ -5,9 +5,17 @@ import sys, os, types, re
 from subprocess import run, PIPE
 from time import sleep
 import logging
-from .pipewire import Patchbay
 
 logger = logging.getLogger(__name__)
+
+if sys.platform == "linux":
+	from .pipewire import Patchbay
+else:
+	class Patchbay:
+		dummy = True
+		nodes = []
+		def load(self):
+			pass
 
 patchbay = Patchbay()
 
@@ -28,7 +36,7 @@ def create_cable(patchbay):
 				], stdout=PIPE, check=True)
 		else:
 			logger.info("%s already exists", name)
-	
+
 	# Give them a chance to settle
 	sleep(.1)
 
@@ -76,7 +84,7 @@ def connect_peripherals(patchbay, config):
 			# what we didn't find already connected
 			for port in microphone_outputs:
 				patchbay.create_link(port, from_obs_input)
-	
+
 	# Connect the set of speakers specified in config to the output of To-Zoom
 	# and disconnect any other audio sinks.
 	if "speakers" not in config:
@@ -147,7 +155,7 @@ def connect_zoom(patchbay, config):
 					patchbay.destroy_link(link=link)
 			if not linked:
 				patchbay.create_link(from_obs_output, zoom_input)
-	
+
 	if "speakers" in config:
 		speakers = patchbay.find_node(name=config["speakers"])
 		if speakers is None:
@@ -182,6 +190,8 @@ def connect_zoom(patchbay, config):
 	return failures
 
 def connect_all(patchbay, config):
+	if getattr(patchbay, "dummy", False):
+		return ["Not implemented"]
 	failures = []
 	failures.extend(create_cable(patchbay))
 	failures.extend(connect_peripherals(patchbay, config))

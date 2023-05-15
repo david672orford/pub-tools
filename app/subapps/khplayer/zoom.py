@@ -16,6 +16,6 @@ def find_second_window():
 				return "%d\r\n%s\r\n%s" % (window.id, name, window.get_wm_class()[0])
 		flash("Second Zoom window not found.")
 		return None
-	flask("Not implemented")
+	flash("Not implemented")
 	return None
 
