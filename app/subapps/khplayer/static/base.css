@@ -91,8 +91,8 @@ HEADER DIV#progress {
 	margin: .4em;
 	min-width: 33%;
 	height: 1.3em;
-	background-color: white;
-	border: 1px solid grey;
+	background-color: #f8f8f8;
+	border: 1px solid #c0c0c0;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -105,6 +105,9 @@ DIV.flash {
 	margin: .5em;
 	padding: .5em;
 	font-family: sans-serif;
+	}
+DIV.progress.flash {
+	margin: .1em .1em 0 .1em;
 	}
 
 SECTION.bordered {

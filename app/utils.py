@@ -44,5 +44,5 @@ def progress_callback_response(message, **kwargs):
 
 def turbo_flash(message):
 	to = session['session-id']
-	turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
+	turbo.push(turbo.append('<div class="progress flash">%s</div>' % escape(message), target="flashes"), to=to)
 

@@ -26,6 +26,7 @@
 
 * [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/)
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/)
+* [JW Timer](https://github.com/lucidokr/obs-jw-timer/)
 
 ## Plugin Development
 
@@ -34,7 +35,6 @@
 
 ## Bugs and Feature Requests we are Following
 
-* [OBS Bug: Audio Output Devices Erroneously Described as Monitors](https://github.com/obsproject/obs-studio/pull/4226)
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
 * [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)

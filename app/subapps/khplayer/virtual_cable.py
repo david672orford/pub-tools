@@ -61,13 +61,19 @@ def destroy_cable(patchbay):
 def connect_peripherals(patchbay, config):
 	failures = []
 
+	from_obs = patchbay.find_node(name="From-OBS")
+	to_zoom = patchbay.find_node(name="To-Zoom")
+	if from_obs is None or to_zoom is None:
+		failures.append("Virtual audio cable not found")
+		return failures
+
 	# Connect the microphone specified in config to input of From-OBS and
 	# disconnect any other audio sources.
 	if "microphone" not in config:
 		failures.append("No microphone selected in configuration")
 	else:
 		# connect microphone to this
-		from_obs_input = patchbay.find_node(name="From-OBS").inputs[0]
+		from_obs_input = from_obs.inputs[0]
 		# what should be connected
 		microphone = patchbay.find_node(name=config["microphone"])
 		if microphone is None:
@@ -90,7 +96,7 @@ def connect_peripherals(patchbay, config):
 	if "speakers" not in config:
 		failures.append("No speakers selected in configuration")
 	else:
-		to_zoom_output = patchbay.find_node(name="To-Zoom").outputs[0]
+		to_zoom_output = to_zoom.outputs[0]
 		speakers = patchbay.find_node(name=config["speakers"])
 		if speakers is None:
 			logger.warning("Selected speakers are not connected")

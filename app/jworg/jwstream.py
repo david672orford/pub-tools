@@ -128,10 +128,11 @@ class StreamRequester:
 			return False
 
 		for cookie in self.session.cookies:
-			time_left = cookie.expires - time_now
-			if time_left < cutoff:
-				logger.debug("JW Stream cookie %s is expired.", cookie.name)
-				return False
+			if cookie.expires is not None:		# FIXME: what does None mean?
+				time_left = cookie.expires - time_now
+				if time_left < cutoff:
+					logger.debug("JW Stream cookie %s is expired.", cookie.name)
+					return False
 
 		return True
 
