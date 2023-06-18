@@ -64,7 +64,7 @@ def create_app(instance_path=None):
 				module.init_app(app)
 			except ModuleNotFoundError as e:
 				if module_name == "admin":
-					logger.warning("module %s disabled due to unsatisfied dependencies" % module_name)
+					logger.info("module %s disabled due to unsatisfied dependencies" % module_name)
 				else:
 					raise e
 

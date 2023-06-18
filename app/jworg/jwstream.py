@@ -53,7 +53,6 @@ class StreamEvent:
 		extra = json.loads(event["additionalFields"])
 		if "talkNumber" in extra:
 			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
-			#self.datetime = self.convert_datetime(event["publishedDate"])
 			self.datetime = self.convert_datetime(extra["date"])
 		else:
 			week_of = (
@@ -106,26 +105,18 @@ class StreamRequester:
 				"Accept": "application/json",
 				})
 
-		if self.tokens is None:
-			self.load_cache()
+		self.load_cache()
 
-		if self.tokens is None or not self.cookies_fresh():
+		if self.tokens is None or not self.tokens_fresh():
 			self.login()
+			self.write_cache()
 
-		self.update_videos()
-
-		self.write_cache()
+		self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 
 	# Check that the session cookies have not expired
-	def cookies_fresh(self):
+	def tokens_fresh(self):
 		time_now = int(time())
 		cutoff = 300	# seconds
-
-		time_left = ((int(self.tokens["expiresOn"]) / 1000) - time_now)
-		logger.debug("JW Stream cache time left: %s", time_left)
-		if time_left < cutoff:
-			logger.debug("JW Stream token is expired.")
-			return False
 
 		for cookie in self.session.cookies:
 			if cookie.expires is not None:		# FIXME: what does None mean?
@@ -134,10 +125,18 @@ class StreamRequester:
 					logger.debug("JW Stream cookie %s is expired.", cookie.name)
 					return False
 
+		time_left = ((int(self.tokens["expiresOn"]) / 1000) - time_now)
+		logger.debug("JW Stream cache time left: %s", time_left)
+		if time_left < cutoff:
+			logger.debug("JW Stream token is expired.")
+			return False
+
 		return True
 
 	# Use the sharing URL to log in and get the session cookies
 	def login(self):
+
+		self.session.get(self.config['url'])
 
 		response = self.session.post(
 			"https://stream.jw.org/api/v1/auth/login/share",
@@ -147,7 +146,7 @@ class StreamRequester:
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
-			raise StreamError("share failed: %s %s" % (response.status_code, response.text))
+			raise StreamError("auth/share failed: %s %s" % (response.status_code, response.text))
 
 		# Get the tokens
 		response = self.session.get(
@@ -158,7 +157,7 @@ class StreamRequester:
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
-			raise StreamError("whoami failed: %s %s" % (response.status_code, response.text))
+			raise StreamError("auth/whoami failed: %s %s" % (response.status_code, response.text))
 		self.tokens = response.json()
 		self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 
@@ -171,10 +170,10 @@ class StreamRequester:
 					cache = json.load(fh)
 					if cache["url"] != self.config["url"]:
 						logger.debug("JW Stream URL does not match.")
+						return
 					for cookie in cache['cookies']:
 						self.session.cookies.set(**cookie)
 					self.tokens = cache['tokens']
-					self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 					self.video_info = cache['video_info']
 					logger.debug("JW Stream session successfully loaded from cache.")
 				except json.JSONDecodeError:		# bad cache file
@@ -211,14 +210,16 @@ class StreamRequester:
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 200:
-			raise StreamError("subCategory failed: %s %s" % (response.status_code, response.text))
+			raise StreamError("subCategory/theocraticProgram failed: %s %s" % (response.status_code, response.text))
 		channel_key = response.json()[0]["specialties"][0]["key"]
+		print("channel_key:", channel_key)
 
 		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % channel_key,
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 200:
 			raise StreamError("%d %s" % (response.status_code, response.text))
+		print("response text:", response.text)
 		self.video_info = response.json()
 
 		if self.debug:

@@ -245,22 +245,27 @@ class MeetingLoader(Fetcher):
 	# Called from .extract_media()
 	def extract_media_w(self, url, container, callback):
 
-		# <a class='pub-sjj' is a song. There should always be two, opening and closing.
-		songs = []
-		for a in container.xpath(".//a[@class='pub-sjj']"):
-			songs.append(self.make_song(a))
-		assert len(songs) == 2, songs
+		# <a class='pub-sjj' is a song.
+		# FIXME: There should always be two, opening and closing, however, the study
+		# article for the week of June 12, 2023 has additional songs in a footnote
+		# which confuses things.
+		songs = container.xpath(".//a[@class='pub-sjj']")
+		if len(songs) != 2:
+			logger.warning("Found %d songs when two expected" % len(songs))
 
-		yield songs[0]
+		yield self.make_song(songs[0])
 
 		for illustration in self.extract_illustrations("w", "СБ", container):
 			yield illustration
 
-		yield songs[1]
+		yield self.make_song(songs[1])
 
 	def make_song(self, a):
+		print("song:", a)
 		song_text = a.text_content().strip()
-		song_number = re.search(r'(\d+)$', song_text).group(1)
+		song_number = re.search(r'(\d+)$', song_text)
+		assert song_number is not None, "Song number: %s" % repr(song_number)
+		song_number = song_number.group(1)
 		return MeetingMedia(
 			pub_code = "sjj %s" % song_number,
 			part_title = song_text,

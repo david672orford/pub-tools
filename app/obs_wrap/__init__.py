@@ -175,7 +175,7 @@ class ObsScriptSourceEventsMixin:
 		self.on_media_ended(ObsSource(source))
 
 	def _on_media_pause(self, source):
-		i#print("************* media pause ***************")
+		#print("************* media pause ***************")
 		source = obs.calldata_source(source, "source")
 		self.on_media_pause(ObsSource(source))
 
