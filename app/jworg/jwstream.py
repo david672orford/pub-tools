@@ -136,8 +136,6 @@ class StreamRequester:
 	# Use the sharing URL to log in and get the session cookies
 	def login(self):
 
-		self.session.get(self.config['url'])
-
 		response = self.session.post(
 			"https://stream.jw.org/api/v1/auth/login/share",
 			json = {
@@ -146,7 +144,7 @@ class StreamRequester:
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 201:
-			raise StreamError("auth/share failed: %s %s" % (response.status_code, response.text))
+			raise StreamError("auth/login/share failed: %s %s" % (response.status_code, response.text))
 
 		# Get the tokens
 		response = self.session.get(
@@ -171,8 +169,8 @@ class StreamRequester:
 					if cache["url"] != self.config["url"]:
 						logger.debug("JW Stream URL does not match.")
 						return
-					for cookie in cache['cookies']:
-						self.session.cookies.set(**cookie)
+					#for cookie in cache['cookies']:
+					#	self.session.cookies.set(**cookie)
 					self.tokens = cache['tokens']
 					self.video_info = cache['video_info']
 					logger.debug("JW Stream session successfully loaded from cache.")
