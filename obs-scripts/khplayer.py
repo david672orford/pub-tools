@@ -19,7 +19,7 @@ logging.basicConfig(
 	)
 #logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
 
-class MyObsScript:
+class KHPlayerScript:
 	description = "Load videos and illustrations from JW.ORG"
 
 	def __init__(self):
@@ -92,11 +92,14 @@ class MyObsScript:
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			self.server = make_server("127.0.0.1", port=5000, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
+			#listen_address = "127.0.0.1"
+			listen_address = "0.0.0.0"
+			listen_port = 5000
+			self.server = make_server(listen_address, port=listen_port, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
 			self.thread = Thread(target=lambda: self.server.serve_forever())
 			self.thread.daemon = True
 			self.thread.start()
 			self.logger.debug("Server is running.")
 
-MyObsScript()
+KHPlayerScript()
 

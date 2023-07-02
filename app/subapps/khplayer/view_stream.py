@@ -15,16 +15,17 @@ logger = logging.getLogger(__name__)
 menu.append(("Stream", "/stream/"))
 
 def jwstream_requester():
-	if not hasattr(jwstream_requester, "handle"):
-		if not "JW_STREAM" in current_app.config:
-			flash("JW_STREAM not found in config.py")
-			return None
+	config = current_app.config.get("JW_STREAM")
+	if config is None:
+		flash("JW_STREAM not found in config.py")
+		return None
+	if not hasattr(jwstream_requester, "handle") or getattr(jwstream_requester, "url", None) != config["url"]:
 		cachefile = os.path.join(current_app.instance_path, "jwstream-cache.json")
 		try:
-			jwstream_requester.handle = StreamRequester(current_app.config['JW_STREAM'], cachefile=cachefile) 
+			jwstream_requester.handle = StreamRequester(config, cachefile=cachefile) 
+			jwstream_requester.url = config["url"]
 		except AssertionError as e:
 			flash(str(e))
-			jwstream_requester.handle = None
 	return jwstream_requester.handle
 
 @blueprint.route("/stream/")

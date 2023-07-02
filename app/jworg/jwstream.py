@@ -75,6 +75,8 @@ class StreamEvent:
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
 	request_timeout = 30
+	token_min_remaining = 7200
+	video_list_max_age = 3600
 
 	def __init__(self, config, cachefile=None, debug=False):
 		self.config = dict(
@@ -93,6 +95,7 @@ class StreamRequester:
 		self.cachefile = cachefile
 		self.debug = debug
 
+		self.timestamp = 0
 		self.session = None
 		self.tokens = None
 		self.video_info = []
@@ -105,29 +108,36 @@ class StreamRequester:
 				"Accept": "application/json",
 				})
 
-		self.load_cache()
+		#self.load_cache()
 
-		if self.tokens is None or not self.tokens_fresh():
+		if not self.fresh():
 			self.login()
+			self.update_videos()
 			self.write_cache()
 
 		self.session.headers["xsrf-token-stream"] = self.tokens["xsrfToken"]
 
-	# Check that the session cookies have not expired
-	def tokens_fresh(self):
+	# Check that the token is still valid and the video list reasonable up-to-date
+	def fresh(self):
 		time_now = int(time())
-		cutoff = 300	# seconds
 
-		for cookie in self.session.cookies:
-			if cookie.expires is not None:		# FIXME: what does None mean?
-				time_left = cookie.expires - time_now
-				if time_left < cutoff:
-					logger.debug("JW Stream cookie %s is expired.", cookie.name)
-					return False
+		if (time_now - self.timestamp) > self.video_list_max_age: 
+			return False
+
+		# Disabled because new JW Stream switched to session cookies shortly after launch
+		#for cookie in self.session.cookies:
+		#	if cookie.expires is not None:		# FIXME: what does None mean?
+		#		time_left = cookie.expires - time_now
+		#		if time_left < cutoff:
+		#			logger.debug("JW Stream cookie %s is expired.", cookie.name)
+		#			return False
+
+		if self.tokens is None:
+			return False
 
 		time_left = ((int(self.tokens["expiresOn"]) / 1000) - time_now)
 		logger.debug("JW Stream cache time left: %s", time_left)
-		if time_left < cutoff:
+		if time_left < self.token_min_remaining:
 			logger.debug("JW Stream token is expired.")
 			return False
 
@@ -169,6 +179,7 @@ class StreamRequester:
 					if cache["url"] != self.config["url"]:
 						logger.debug("JW Stream URL does not match.")
 						return
+					self.timestamp = cache['timestamp']
 					#for cookie in cache['cookies']:
 					#	self.session.cookies.set(**cookie)
 					self.tokens = cache['tokens']
@@ -182,19 +193,20 @@ class StreamRequester:
 	# Write the cookies and the list of videos to a cache file
 	def write_cache(self):
 		if self.cachefile is not None:
-			cookies = []
-			for cookie in self.session.cookies:
-				cookies.append(dict(
-					name = cookie.name,
-					value = cookie.value,
-					domain = cookie.domain,
-					path = cookie.path,
-					expires = cookie.expires,
-					))
+			#cookies = []
+			#for cookie in self.session.cookies:
+			#	cookies.append(dict(
+			#		name = cookie.name,
+			#		value = cookie.value,
+			#		domain = cookie.domain,
+			#		path = cookie.path,
+			#		expires = cookie.expires,
+			#		))
 			with open(self.cachefile, "w") as fh:
 				json.dump(dict(
 					url = self.config["url"],
-					cookies = cookies,
+					timestamp = int(time()),
+					#cookies = cookies,
 					tokens = self.tokens,
 					video_info = self.video_info,
 					), fh, indent=2, ensure_ascii=False)
