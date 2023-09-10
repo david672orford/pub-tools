@@ -1,0 +1,30 @@
+{% set title = "Load Slides" %}
+{% extends "khplayer/base.html" %}
+
+{% block main %}
+<section>
+<h2>Slides on Google Drive</h2>
+<form action="load" method="POST">
+<p><a href="."><button>Reload</button></a></p>
+<table class="borders">
+<thead>
+<tr>
+	<th></th>
+	<th>Scene Name</th>
+	<th>Preview</th>
+</tr>
+</thead>
+<tbody>
+{% for file in files %}
+<tr>
+	<td><input type="checkbox" name="selected" value="{{ file.id }}" checked></td>
+	<td><input name="scenename-{{ file.id }}" value="{{ file.filename }}"></td>
+	<td><img style="width: 10em" src="{{file.thumbnail_url}}"></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p><button type="submit">Load Selected Slides into OBS</button></p>
+</form>
+</section>
+{% endblock %}

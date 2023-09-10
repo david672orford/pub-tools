@@ -1,5 +1,5 @@
 import os
-from urllib.request import urlopen, Request, HTTPHandler, HTTPSHandler, HTTPErrorProcessor, build_opener
+from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPErrorProcessor, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 from gzip import GzipFile
 import lxml.html

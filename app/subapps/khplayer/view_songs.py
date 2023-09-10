@@ -5,8 +5,7 @@ import logging
 from ...utils import progress_callback, progress_callback_response, run_thread, turbo_flash
 from ...models import VideoCategories
 from .views import blueprint, menu
-from .utils import meeting_loader, obs, ObsError
-from .view_videos import load_video
+from .utils import meeting_loader, obs, ObsError, load_video
 
 logger = logging.getLogger(__name__)
 

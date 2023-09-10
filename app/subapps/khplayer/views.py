@@ -27,9 +27,10 @@ menu = []
 current_app.jinja_env.globals["menu"] = menu
 
 from . import view_meetings
-from . import view_songs
-from . import view_videos
 from . import view_stream
+from . import view_songs
+from . import view_slides
+from . import view_videos
 from . import view_scenes
 from . import view_actions
 if sys.platform == "linux":

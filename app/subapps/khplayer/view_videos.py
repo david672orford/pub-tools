@@ -6,8 +6,7 @@ from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import VideoCategories, Videos
 from ...cli_update import update_videos, update_video_subcategory
 from .views import blueprint, menu
-from .utils import meeting_loader, obs, ObsError
-from ...utils import turbo_flash
+from .utils import load_video
 
 logger = logging.getLogger(__name__)
 
@@ -45,17 +44,4 @@ def page_videos_category_subcategory_load_video(category_key, subcategory_key):
 	lank = request.form.get("lank")
 	run_thread(lambda: load_video(lank))
 	return progress_callback_response("Loading %s..." % request.form.get("title"))
-
-# Download a video (if it is not already cached) and add it to OBS as a scene
-def load_video(lank, prefix="▷"):
-	video = Videos.query.filter_by(lank=lank).one()
-	progress_callback("Getting video URL...")
-	video_metadata = meeting_loader.get_video_metadata(video.href, resolution="480p")
-	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
-	try:
-		obs.add_media_scene(prefix + video.name, "video", video_file)
-	except ObsError as e:
-		turbo_flash("OBS: %s" % str(e))	
-	else:
-		progress_callback("Video loaded")
 

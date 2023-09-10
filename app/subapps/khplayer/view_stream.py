@@ -12,7 +12,7 @@ from .utils import obs
 
 logger = logging.getLogger(__name__)
 
-menu.append(("Stream", "/stream/"))
+menu.append(("JW Stream", "/stream/"))
 
 def jwstream_requester():
 	config = current_app.config.get("JW_STREAM")

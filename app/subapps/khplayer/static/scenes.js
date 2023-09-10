@@ -1,4 +1,4 @@
-function init_dnd()
+function init_scenes()
 	{
 	function $(id)
 		{

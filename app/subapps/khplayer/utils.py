@@ -3,6 +3,8 @@ from time import sleep
 import logging
 
 from ...jworg.meetings import MeetingLoader
+from ...utils import progress_callback, turbo_flash
+from ...models import Videos
 
 logger = logging.getLogger(__name__)
 
@@ -29,4 +31,19 @@ meeting_loader = MeetingLoader(cachedir=current_app.config["CACHEDIR"])
 from .obs_ws_5 import ObsControl, ObsError
 
 obs = ObsControl(config=current_app.config.get("OBS_WEBSOCKET"))
+
+#=============================================================================
+# Download a video (if it is not already cached) and add it to OBS as a scene
+#=============================================================================
+def load_video(lank, prefix="▷"):
+	video = Videos.query.filter_by(lank=lank).one()
+	progress_callback("Getting video URL...")
+	video_metadata = meeting_loader.get_video_metadata(video.href, resolution="480p")
+	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
+	try:
+		obs.add_media_scene(prefix + video.name, "video", video_file)
+	except ObsError as e:
+		turbo_flash("OBS: %s" % str(e))	
+	else:
+		progress_callback("Video loaded")
 
