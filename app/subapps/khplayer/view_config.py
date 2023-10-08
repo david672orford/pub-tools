@@ -1,6 +1,6 @@
 import json, re, logging
 from flask import current_app, request, render_template, redirect, flash
-from wtforms import Form, StringField, IntegerField, SelectField, URLField, EmailField, validators
+from wtforms import Form, StringField, TextAreaField, IntegerField, SelectField, URLField, EmailField, validators
 from sqlalchemy.orm.attributes import flag_modified
 from urllib.parse import urlencode
 
@@ -65,7 +65,8 @@ class ConfigForm(Form):
 	OBS_WEBSOCKET_port = IntegerField("Port", [validators.NumberRange(min=1024, max=65535)])
 	OBS_WEBSOCKET_password = StringField("Password")
 
-	JW_STREAM_url = URLField("URL", [validators.URL()])
+	#JW_STREAM_url = URLField("URL", [validators.URL()])
+	JW_STREAM_url = TextAreaField("URL", render_kw={"rows": 5})
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
 	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
 	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)

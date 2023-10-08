@@ -47,7 +47,7 @@ UL {
 LI {
 	margin: .2em 0;
 	}
-INPUT, SELECT {
+INPUT, SELECT, TEXTAREA {
 	padding: .1em .2em;
 	}
 BUTTON {

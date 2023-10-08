@@ -6,61 +6,64 @@ import logging
 
 from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
-from ...jworg.jwstream import StreamRequester
+from ...jworg.jwstream import StreamRequesterContainer
 from .views import blueprint, menu
 from .utils import obs
 
 logger = logging.getLogger(__name__)
 
-menu.append(("JW Stream", "/stream/"))
+menu.append(("JW Stream", "/jwstream/"))
 
-def jwstream_requester():
+def jwstream_channels():
 	config = current_app.config.get("JW_STREAM")
 	if config is None:
 		flash("JW_STREAM not found in config.py")
 		return None
-	if not hasattr(jwstream_requester, "handle") or getattr(jwstream_requester, "url", None) != config["url"]:
+	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "url", None) != config["url"]:
 		try:
-			jwstream_requester.handle = StreamRequester(config)
-			jwstream_requester.url = config["url"]
+			jwstream_channels.handle = StreamRequesterContainer(config)
+			jwstream_channels.url = config["url"]
 		except AssertionError as e:
 			flash(str(e))
-	return jwstream_requester.handle
+	return jwstream_channels.handle
 
-@blueprint.route("/stream/")
-def page_stream():
-	requester = jwstream_requester()
-	events = requester.list_events() if requester else []
+@blueprint.route("/jwstream/")
+def page_jwstream():
+	channels = jwstream_channels()
+	print("channels:", channels)
+	return render_template("khplayer/jwstream_channels.html", channels=channels.values(), top="..")
+
+@blueprint.route("/jwstream/<token>/")
+def page_jwstream_channel(token):
+	channel = jwstream_channels()[token]
+	events = channel.list_events()
 	events = sorted(list(events), key=lambda item: (item.datetime, item.title))
-	return render_template("khplayer/stream.html", events=events, top="..")
+	return render_template("khplayer/jwstream_events.html", channel=channel, events=events, top="../..")
 
 # User has pressed Update button
-@blueprint.route("/stream/update", methods=["POST"])
-def page_stream_update():
-	progress_callback("Updating program list...")
-	requester = jwstream_requester()
-	if requester is not None:
-		requester.reload()
-		return progress_callback_response("Program list updated.")
-	else:
-		# Return to page so flash() message will be displayed
-		return redirect(".")
+@blueprint.route("/jwstream/<token>/update", methods=["POST"])
+def page_jwstream_update(token):
+	progress_callback("Updating event list...")
+	channel = jwstream_channels()[token]
+	channel.reload()
+	return progress_callback_response("Channel event list updated.")
 
-@blueprint.route("/stream/<id>/")
-def page_stream_player(id):
-	event = jwstream_requester().get_event(id, preview=True)
+@blueprint.route("/jwstream/<token>/<id>/")
+def page_jwstream_player(token, id):
+	channel = jwstream_channels()[token]
+	event = channel.get_event(id, preview=True)
 	print("chapters:", event.chapters)
-	return render_template("khplayer/stream_player.html",
+	return render_template("khplayer/jwstream_player.html",
 		id=id,
 		event=event,
 		clip_start = request.args.get("clip_start",""),
 		clip_end = request.args.get("clip_end",""),
 		clip_title = request.args.get("clip_title",""),
-		top="../..",
+		top="../../..",
 		)
 
-@blueprint.route("/stream/<id>/clip", methods=["POST"])
-def page_stream_clip(id):
+@blueprint.route("/stream/<token>/<id>/clip", methods=["POST"])
+def page_jwstream_clip(token, id):
 	clip_start = request.form.get("clip_start").strip()
 	clip_end = request.form.get("clip_end").strip()
 	clip_title = request.form.get("clip_title").strip()
@@ -87,7 +90,8 @@ def page_stream_clip(id):
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
 	progress_callback("Requesting download URL...")
-	event = jwstream_requester().get_event(id, preview=False)
+	channel = jwstream_channels()[token]
+	event = channel.get_event(id, preview=False)
 
 	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:

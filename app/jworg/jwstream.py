@@ -46,6 +46,12 @@ class StreamError(Exception):
 class StreamConfigError(StreamError):
 	pass
 
+# The JW Stream API gives certain timestamps as decimal strings of the
+# number of milliseconds since the start of the Unix epoch.
+def convert_datetime(milliseconds_since_epoch, fudge=0):
+	timestamp = datetime.fromtimestamp(int(milliseconds_since_epoch) / 1000 + fudge, timezone.utc)
+	return timestamp
+
 # A recording of an event
 class StreamEvent:
 	def __init__(self, event, download_url=None, chapters=None):
@@ -53,24 +59,20 @@ class StreamEvent:
 		extra = json.loads(event["additionalFields"])
 		if "talkNumber" in extra:
 			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
-			self.datetime = self.convert_datetime(extra["date"])
+			self.datetime = convert_datetime(extra["date"])
 		else:
 			week_of = (
-				self.convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
-				self.convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
+				convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
+				convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
 				)
 			self.title = "%s from %s to %s" % (
 				event["categoryProgramType"], week_of[0], week_of[1]
 				)
 			self.datetime = week_of[0]
 		self.language = event["languageCode"]
-		self.language_country = event["countryCode"]
+		self.country = event["countryCode"]
 		self.download_url = download_url
 		self.chapters = chapters
-
-	def convert_datetime(self, milliseconds_since_epoch, fudge=0):
-		timestamp = datetime.fromtimestamp(int(milliseconds_since_epoch) / 1000 + fudge, timezone.utc)
-		return timestamp	
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
@@ -119,7 +121,7 @@ class StreamRequester:
 			raise StreamError("auth/whoami failed: %s %s" % (response.status_code, response.text))
 		whoami = response.json()
 		self.session.headers["xsrf-token-stream"] = whoami["xsrfToken"]
-		self.expires = int(whoami["expiresOn"])
+		self.expires = convert_datetime(whoami["expiresOn"])
 		self.status = whoami["status"]
 
 		# Get info about this link
@@ -198,10 +200,10 @@ class StreamRequester:
 
 		return StreamEvent(event, download_url["presignedUrl"], chapters)
 
-class StreamRequestors(dict):
+class StreamRequesterContainer(dict):
 	def __init__(self, config):
-		for url in self.config["urls"].split():
-			requestor = StreamRequestor(url, config)
+		for url in config["url"].split():
+			requestor = StreamRequester(url, config)
 			self[requestor.token] = requestor
 
 if __name__ == "__main__":

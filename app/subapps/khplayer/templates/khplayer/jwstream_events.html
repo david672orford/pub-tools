@@ -1,5 +1,9 @@
-{% set title = "Load from JW Stream" %}
+{% set title = "Events on JW Stream" %}
 {% extends "khplayer/base.html" %}
+
+{% block header %}
+<h1><a href="..">&lt; {{channel.name}}</a></h1>
+{% endblock %}
 
 {% block main %}
 <section>
@@ -16,7 +20,7 @@
 {% for event in events %}
 <tr>
 	<td>{{event.language}}</td>	
-	<td>{{event.language_country}}</td>	
+	<td>{{event.country}}</td>	
 	<td>{{event.datetime.strftime("%Y-%m-%d %H:%M")}}</td>	
 	<td><a href="{{event.id}}">{{event.title}}</a></td>
 </tr>
