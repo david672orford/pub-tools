@@ -20,9 +20,8 @@ def jwstream_requester():
 		flash("JW_STREAM not found in config.py")
 		return None
 	if not hasattr(jwstream_requester, "handle") or getattr(jwstream_requester, "url", None) != config["url"]:
-		cachefile = os.path.join(current_app.instance_path, "jwstream-cache.json")
 		try:
-			jwstream_requester.handle = StreamRequester(config, cachefile=cachefile) 
+			jwstream_requester.handle = StreamRequester(config)
 			jwstream_requester.url = config["url"]
 		except AssertionError as e:
 			flash(str(e))
@@ -31,7 +30,7 @@ def jwstream_requester():
 @blueprint.route("/stream/")
 def page_stream():
 	requester = jwstream_requester()
-	events = requester.get_events() if requester else []
+	events = requester.list_events() if requester else []
 	events = sorted(list(events), key=lambda item: (item.datetime, item.title))
 	return render_template("khplayer/stream.html", events=events, top="..")
 
