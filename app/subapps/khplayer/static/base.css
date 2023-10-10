@@ -47,6 +47,9 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+LABEL {
+	font-weight: bold;
+	}
 INPUT, SELECT, TEXTAREA {
 	padding: .1em .2em;
 	}
@@ -159,6 +162,13 @@ UL.nowrap LI {
 	white-space: nowrap;
 	}
 
+.wrapped {
+	display: flex;
+	}
+.wrapped .form-field {
+	margin: .2em 1em .2em 0;
+	}
+
 .form-field {
 	display: flex;
 	align-items: center;
@@ -175,7 +185,32 @@ UL.nowrap LI {
 .form-field > LABEL::after {
 	content: ":";
 	}
-.form-field .url {
-	flex-grow: 1;
+
+UL.scenes {
+	list-style-type: none;
+	margin-left: 0;
+	border: 2px solid #c0c0c0;
+	margin-bottom: .5em;
 	}
+UL.scenes > LI {
+	display: flex;
+	margin: 0 .5em;
+	}
+UL.scenes > LI > * {
+	margin: .5em;
+	}
+UL.scenes > LI > BUTTON {
+	flex-grow: 1;
+	text-align: left;
+	padding: .5em;
+	}
+UL.scenes.highlight {
+	border-color: blue;
+	background-color: #f0f0ff;
+	}
+
+.big-buttons BUTTON, .big-buttons INPUT[type='file']::file-selector-button, .big-buttons SELECT {
+	padding: .5em;
+	}
+
 

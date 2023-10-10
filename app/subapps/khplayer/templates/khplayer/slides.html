@@ -1,9 +1,9 @@
-{% set title = "Load Slides" %}
+{% set title = ("Speaker's Slide Loader") %}
 {% extends "khplayer/base.html" %}
 
 {% block main %}
 <section>
-<h2>Slides on Google Drive</h2>
+<h2>{{gettext("Slides on Google Drive")}}</h2>
 <form action="load" method="POST">
 <p><a href="."><button>Reload</button></a></p>
 <table class="borders">

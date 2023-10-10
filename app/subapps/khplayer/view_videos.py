@@ -5,12 +5,13 @@ import logging
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import VideoCategories, Videos
 from ...cli_update import update_videos, update_video_subcategory
+from ...babel import gettext
 from .views import blueprint, menu
 from .utils import load_video
 
 logger = logging.getLogger(__name__)
 
-menu.append(("Videos", "/videos/"))
+menu.append((gettext("Videos"), "/videos/"))
 
 # List all the categories of videos on JW.org.
 @blueprint.route("/videos/")

@@ -4,12 +4,15 @@ from time import sleep
 import os, logging
 
 from ...utils import progress_callback_response
+from ...babel import gettext
 from .views import blueprint, menu
 from .utils import obs, ObsError
+from .cameras import list_cameras, get_camera_dev
+from .zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
-menu.append(("Scenes", "/scenes/"))
+menu.append((gettext("Scenes"), "/scenes/"))
 
 @blueprint.route("/scenes/")
 def page_scenes():
@@ -21,29 +24,54 @@ def page_scenes():
 
 	return render_template(
 		"khplayer/scenes.html",
+		cameras = list_cameras() if request.args.get("action") == "add-standard" else None,
 		scene_names = scene_names,
 		top = ".."
 		)
 
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
-	action = request.form.get("action")
-	scene = request.form.get("scene")
+	logger.debug("scenes form: %s", request.form)
 	message = None
-	logger.info("scenes action: %s %s", action, scene)
-
 	try:
-		if scene is not None:
-			obs.set_current_program_scene(scene)
-			message = "Scene switched to %s" % scene
+		# Button press
+		match request.form.get("action", "scene"):
+
+			case "scene":
+				scene = request.form.get("scene")
+				obs.set_current_program_scene(scene)
+				message = "Scene switched to %s" % scene
 	
-		elif action == "delete":
-			for scene in request.form.getlist("del"):
-				try:
-					obs.remove_scene(scene)
-				except ObsError as e:
-					flash(str(e))
-			sleep(1)
+			case "delete":
+				for scene in request.form.getlist("del"):
+					try:
+						obs.remove_scene(scene)
+					except ObsError as e:
+						flash(str(e))
+				sleep(1)
+
+			case "add-standard":
+				return redirect(".?action=add-standard")
+
+			case "add-camera":
+				camera_dev = request.form.get("camera")
+				if camera_dev is not None:
+					obs.create_camera_scene(gettext("* Camera"), camera_dev)
+					sleep(1)
+
+			case "add-zoom":
+				capture_window = find_second_window()
+				if capture_window is not None:
+					obs.create_zoom_scene(gettext("* Zoom"), capture_window)
+					sleep(1)
+
+			case "add-split":
+				camera_dev = request.form.get("camera")
+				if camera_dev is not None:
+					capture_window = find_second_window()
+					if capture_window is not None:
+						obs.create_split_scene(gettext("* Split Screen"), camera_dev, capture_window)
+						sleep(1)
 
 	except ObsError as e:
 		flash("OBS: %s" % str(e))
@@ -53,9 +81,13 @@ def page_scenes_submit():
 	else:
 		return redirect(".")
 
+# We tried combining this with the above, but it made things messier:
+# * If no file is selected, you get a dummy file object with a mimetype of application/octet-stream
+# * We need to provide an action value for file upload. We could do that with the button, but
+#   with drag-and-drop it is more awkward. We would probably have to simulate a button click.
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
-	files = request.files.getlist("files")	 # Get the Werkzeug FileStorage object
+	files = request.files.getlist("files")	# Get the Werkzeug FileStorage object
 	for file in files:
 		# FIXME: Cyrillic characters are deleted!
 		# FIXME: We need to ensure uniquiness

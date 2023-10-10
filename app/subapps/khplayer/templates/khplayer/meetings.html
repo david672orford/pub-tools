@@ -1,24 +1,36 @@
-{% set title = "Load Meetings" %}
+{% set title = gettext("Meeting Media Loader") %}
 {% extends "khplayer/base.html" %}
 
 {% block main %}
 <section>
-<h2>Current and Upcoming Meetings</h2>
+<h2>{{gettext("Current and Upcoming Meetings")}}</h2>
 
 <table class="borders">
 <thead>
 <tr>
-	<th>Week Of</th>
-	<th>Midweek</th>
-	<th>Weekend</th>
+	<th>{{gettext("Week Of")}}</th>
+	<th>{{gettext("Midweek")}}</th>
+	<th>{{gettext("Weekend")}}</th>
 </tr>
 </thead>
 <tbody>
 {% for week in weeks %}
 <tr>
 	<th>{{week.week_of()}}</th>
-	<td>{%if week.mwb_docid%}<a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' Life and Ministry')|urlencode}}">Life and Ministry</a>{%endif%}</td>
-	<td>{%if week.watchtower_docid%}<a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' Watchtower')|urlencode}}">Watchtower</a>{%endif%}</td>
+	<td>
+		{%if week.mwb_docid%}
+		<a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' ' + gettext('Life and Ministry'))|urlencode}}">
+			{{gettext("Life and Ministry")}}
+		</a>
+		{%endif%}
+	</td>
+	<td>
+		{%if week.watchtower_docid%}
+		<a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' ' + gettext('Watchtower'))|urlencode}}">
+			{{gettext("Watchtower")}}
+		</a>
+		{%endif%}
+	</td>
 </tr>
 {% endfor %}
 </tbody>
@@ -27,7 +39,7 @@
 {% if weeks|length < 8 %}
 <p>
 	<form action="update" method="POST">
-	<button type="submit">Load More Weeks</button>
+	<button type="submit">{{gettext("Load More Weeks")}}</button>
 	</form>
 </p>
 {% endif %}

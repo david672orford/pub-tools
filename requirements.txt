@@ -32,3 +32,6 @@ pywebview==3.7.0
 # For printing tables in the CLI
 rich==9.11.1
 
+# Gettext
+flask-babel==4.0.0
+

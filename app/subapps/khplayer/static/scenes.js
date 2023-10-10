@@ -15,8 +15,7 @@ function init_scenes()
 	function select_unstarred(name, state)
 		{
 		document.getElementsByName(name).forEach(checkbox => {
-			if(checkbox.value[0] != "*")
-				checkbox.checked = state;
+				checkbox.checked = (checkbox.value[0] != "*");
 			});
 		}
 

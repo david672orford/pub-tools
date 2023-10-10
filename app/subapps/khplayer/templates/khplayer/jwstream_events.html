@@ -1,8 +1,8 @@
-{% set title = "Events on JW Stream" %}
+{% set title = gettext("JW Stream Event Recordings") %}
 {% extends "khplayer/base.html" %}
 
 {% block header %}
-<h1><a href="..">&lt; {{channel.name}}</a></h1>
+<h1><a href="..">&lt; {{channel.name}} ({{channel.language}}, {{channel.country}})</a></h1>
 {% endblock %}
 
 {% block main %}

@@ -12,15 +12,14 @@ from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
+from ...babel import gettext
 from .views import blueprint, menu
 from .utils import meeting_loader, obs
 from ...jworg.meetings import MeetingMedia
-from .cameras import get_camera_dev
-from .zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
-menu.append(("Meetings", "/meetings/"))
+menu.append((gettext("Meetings"), "/meetings/"))
 
 # List upcoming meetings so user can click on the one he wants to load.
 @blueprint.route("/meetings/")

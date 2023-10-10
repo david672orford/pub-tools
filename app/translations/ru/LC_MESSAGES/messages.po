@@ -1,0 +1,137 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2023 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-10-09 23:00-0400\n"
+"PO-Revision-Date: 2023-10-08 23:32-0400\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.13.0\n"
+
+#: subapps/khplayer/view_jwstream.py:19
+msgid "JW Stream"
+msgstr "JW Stream"
+
+#: subapps/khplayer/view_meetings.py:22
+msgid "Meetings"
+msgstr "Встречи"
+
+#: subapps/khplayer/view_patchbay.py:15
+msgid "Audio"
+msgstr "Звук"
+
+#: subapps/khplayer/view_scenes.py:15
+msgid "Scenes"
+msgstr "Сцены"
+
+#: subapps/khplayer/view_scenes.py:59
+msgid "* Camera"
+msgstr ""
+
+#: subapps/khplayer/view_scenes.py:65
+msgid "* Zoom"
+msgstr ""
+
+#: subapps/khplayer/view_scenes.py:73
+msgid "* Split Screen"
+msgstr ""
+
+#: subapps/khplayer/view_slides.py:12
+msgid "Slides"
+msgstr "Слайды"
+
+#: subapps/khplayer/view_songs.py:13
+msgid "Songbook"
+msgstr "Песеник"
+
+#: subapps/khplayer/view_videos.py:14
+msgid "Videos"
+msgstr "Видео"
+
+#: subapps/khplayer/templates/khplayer/jwstream.html:1
+#, fuzzy
+msgid "JW Stream Channels"
+msgstr "JW Stream"
+
+#: subapps/khplayer/templates/khplayer/jwstream.html:37
+msgid "Save"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/jwstream_events.html:1
+msgid "JW Stream Event Recordings"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:1
+#, fuzzy
+msgid "JW Stream Clip Maker"
+msgstr "JW Stream"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:1
+msgid "Meeting Media Loader"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/meetings.html:6
+msgid "Current and Upcoming Meetings"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/meetings.html:11
+msgid "Week Of"
+msgstr "Неделя от"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:12
+msgid "Midweek"
+msgstr "В будни"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:13
+msgid "Weekend"
+msgstr "В выходны"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:22
+#: subapps/khplayer/templates/khplayer/meetings.html:23
+msgid "Life and Ministry"
+msgstr "Жизнь и служение"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:29
+#: subapps/khplayer/templates/khplayer/meetings.html:30
+msgid "Watchtower"
+msgstr "Сторожовая башня"
+
+#: subapps/khplayer/templates/khplayer/meetings.html:42
+msgid "Load More Weeks"
+msgstr "Большее недел"
+
+#: subapps/khplayer/templates/khplayer/patchbay.html:35
+msgid "Reconnect Audio"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/scenes.html:47
+msgid "Upload Media Files"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/scenes.html:49
+msgid "Upload"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/slides.html:6
+msgid "Slides on Google Drive"
+msgstr "Слайди с Диска Гугла"
+
+#: subapps/khplayer/templates/khplayer/video_categories.html:1
+msgid "Video Categories from JW.ORG"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/video_list.html:1
+msgid "Videos: {category} — {subcategory}"
+msgstr ""
+

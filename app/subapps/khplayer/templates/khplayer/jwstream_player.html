@@ -1,4 +1,4 @@
-{% set title = "Clip from JW Stream" %}
+{% set title = gettext("JW Stream Clip Maker") %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt; {{event.title}}</a></h1>
+<h1><a href="..">&lt; {{channel.name}} ({{channel.language}}, {{channel.country}}) {{event.title}}</a></h1>
 {% endblock %}
 
 {% block main %}
@@ -19,22 +19,22 @@
 </div>
 
 <div id="jog-controls" class="controls">
-	<button type="button"><img src="../../../static/button-backward.svg"><span>30:00</span></button>
-	<button type="button"><img src="../../../static/button-backward.svg"><span>5:00</span></button>
-	<button type="button"><img src="../../../static/button-backward.svg"><span>1:00</span></button>
-	<button type="button"><img src="../../../static/button-backward.svg"><span>0:30</span></button>
-	<button type="button"><img src="../../../static/button-backward.svg"><span>0:05</span></button>
-	<button type="button"><img src="../../../static/button-backward.svg"><span>0:01</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>30:00</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>5:00</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>1:00</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:30</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:05</span></button>
+	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:01</span></button>
 
 	<button type="button">Set Start</button>
 	<button type="button">Set End</button>
 
-	<button type="button"><span>0:01</span><img src="../../../static/button-forward.svg"></button>
-	<button type="button"><span>0:05</span><img src="../../../static/button-forward.svg"></button>
-	<button type="button"><span>0:30</span><img src="../../../static/button-forward.svg"></button>
-	<button type="button"><span>1:00</span><img src="../../../static/button-forward.svg"></button>
-	<button type="button"><span>5:00</span><img src="../../../static/button-forward.svg"></button>
-	<button type="button"><span>30:00</span><img src="../../../static/button-forward.svg"></button>
+	<button type="button"><span>0:01</span><img src="{{top}}/static/button-forward.svg"></button>
+	<button type="button"><span>0:05</span><img src="{{top}}/static/button-forward.svg"></button>
+	<button type="button"><span>0:30</span><img src="{{top}}/static/button-forward.svg"></button>
+	<button type="button"><span>1:00</span><img src="{{top}}/static/button-forward.svg"></button>
+	<button type="button"><span>5:00</span><img src="{{top}}/static/button-forward.svg"></button>
+	<button type="button"><span>30:00</span><img src="{{top}}/static/button-forward.svg"></button>
 </div>
 
 <div id="chapter-controls" class="controls">

@@ -1,0 +1,42 @@
+{% set title = gettext("JW Stream Channels") %}
+{% extends "khplayer/base.html" %}
+{% import "khplayer/lib.html" as lib -%}
+
+{% block main %}
+<section>
+<table class="borders">
+<thead>
+<tr>
+	<th>Language</th>
+	<th>Country</th>
+	<th>Name</th>
+	<th>Expires</th>
+</tr>
+</thead>
+<tbody>
+{% for channel in channels %}
+<tr>
+	<td>{{channel.language}}</td>	
+	<td>{{channel.country}}</td>	
+	<td><a href="{{channel.token}}">{{channel.name}}</a></td>
+	<td>{{channel.expires.strftime("%Y-%m-%d %H:%M")}}</td>	
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</section>
+
+<section class="bordered">
+<h2>Configuration</h2>
+<form action="save-config" method="POST">
+{{lib.render_field(form.JW_STREAM_url,cols="40",rows="8")}}
+<div class="wrapped">
+{{lib.render_field(form.JW_STREAM_preview_resolution)}}
+{{lib.render_field(form.JW_STREAM_download_resolution)}}
+</div>
+<button type="submit">{{gettext("Save")}}</button>
+</form>
+</section>
+
+{% endblock %}
+

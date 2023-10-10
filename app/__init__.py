@@ -3,6 +3,7 @@ from importlib import import_module
 from flask import Flask, session
 #from turbo_flask import Turbo
 from .turbo_sse import Turbo
+from .babel import init_babel
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,9 @@ def create_app(instance_path=None):
 		models_init_app(app)
 		for config in Config.query:
 			app.config[config.name] = config.data
+
+	# Initialize Babel
+	init_babel(app)
 
 	# Accept SSE connection from Hotwire Turbo running in the browser
 	turbo = Turbo()

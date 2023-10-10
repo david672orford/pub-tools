@@ -109,6 +109,8 @@ class ObsControlBase:
 
 	# Send a request to OBS and wait for the response
 	def request(self, req_type, req_data, raise_on_error=True):
+		logger.debug("OBS request: %s %s", req_type, req_data)
+
 		if self.ws is None:
 			self.connect()
 
@@ -156,8 +158,22 @@ class ObsControlBase:
 	def get_scene_list(self):
 		return self.request("GetSceneList", {})["responseData"]["scenes"]
 
-	def create_scene(self, scene_name):
-		self.request("CreateScene", { "sceneName": scene_name })
+	def create_scene(self, scene_name, make_unique=False):
+		i = 1
+		while True:
+			try_scene_name = scene_name
+			if i > 1:
+				try_scene_name += " (%d)" % i
+			payload = {
+				"sceneName": try_scene_name,
+				}
+			try:
+				self.request("CreateScene", payload)
+				return try_scene_name
+			except ObsError as e:
+				if not make_unique or e.code != 601:		# resource already exists
+					raise ObsError(e)
+			i += 1
 
 	def remove_scene(self, scene_name):
 		self.request("RemoveScene", {"sceneName": scene_name})
@@ -227,8 +243,6 @@ class ObsControlBase:
 # FIXME: break this out into a separate file so that it can be used with obs_api.py.
 class ObsControl(ObsControlBase):
 
-	camera_scene_name = "* Stage"
-	camera_input_name = "Stage Camera"
 	camera_input_settings = {
 		"auto_reset": True,
 		"buffering": False,
@@ -240,13 +254,9 @@ class ObsControl(ObsControlBase):
 		"resolution": 83886800,			# 1280x720
 		}
 
-	zoom_scene_name = "* Zoom"
-	zoom_input_name = "Zoom Window Capture"
 	zoom_input_settings = {
 		"show_cursor": False,
 		}
-
-	split_scene_name = "* Split Screen"
 
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
@@ -282,22 +292,7 @@ class ObsControl(ObsControlBase):
 		logger.info(" Source settings: %s", source_settings)
 
 		# Add a new scene. Resolve naming conflicts.
-		i = 1
-		while True:
-			try_scene_name = scene_name
-			if i > 1:
-				try_scene_name += " (%d)" % i
-			payload = {
-				"sceneName": try_scene_name,
-				}
-			try:
-				result = self.request("CreateScene", payload)
-				scene_name = try_scene_name
-				break
-			except ObsError as e:
-				if e.code != 601:		# resource already exists
-					raise ObsError(e)
-			i += 1
+		scene_name = self.create_scene(scene_name, make_unique=True)
 
 		# Create a source (now called an input) to play our file. Resolve naming conflicts.
 		i = 1
@@ -332,7 +327,8 @@ class ObsControl(ObsControlBase):
 				}
 			self.request('SetInputAudioMonitorType', payload)
 
-	# Create the specified OBS input, if it does not exist already
+	# Create the specified OBS input, if it does not exist already,
+	# and add it to the specified scene.
 	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
 		try:
 			scene_item_id = self.create_input(
@@ -350,53 +346,50 @@ class ObsControl(ObsControlBase):
 				)
 		return scene_item_id
 
-	# Create an OBS input for the configured camera, if it does not exist already
+	# Create an OBS input for the configured camera, if it does not exist already,
+	# and add it to the specified scene.
 	def add_camera_input(self, scene_name, camera_dev):
+		camera_dev, camera_name = camera_dev.split(" ",1)
 		self.camera_input_settings["device_id"] = camera_dev
 		scene_item_id = self.create_input_with_reuse(
 			scene_name = scene_name,
-			input_name = self.camera_input_name,
+			input_name = camera_name,
 			input_kind = "v4l2_input",
 			input_settings = self.camera_input_settings,
 			)
 		return scene_item_id
 
-	def reconnect_camera(self, camera_dev):
-		logger.info("Setting camera to %s...", camera_dev)
-		self.camera_input_settings["device_id"] = camera_dev
-		self.set_input_settings(self.camera_input_name, self.camera_input_settings)
-
-	# Create an OBS input which captures the Zoom window on the second monitor, if it does not exist already.
+	# Create an OBS input which captures the specified window, if it does
+	# not exist already, and add it to the specified scene.
 	def add_zoom_input(self, scene_name, capture_window):
 		self.zoom_input_settings["capture_window"] = capture_window
 		scene_item_id = self.create_input_with_reuse(
 			scene_name = scene_name,
-			input_name = "Zoom Capture",
+			input_name = "%s Capture" % capture_window,
 			input_kind = "xcomposite_input",
 			input_settings = self.zoom_input_settings,
 			)
 		return scene_item_id
 
-	def reconnect_zoom_input(self, capture_window):
-		self.zoom_input_settings["capture_window"] = capture_window
-		self.set_input_settings(self.zoom_input_name, self.zoom_input_settings)
+	# Create a scene containing just the specified camera
+	def create_camera_scene(self, scene_name, camera_dev):
+		scene_name = self.create_scene(scene_name, make_unique=True)
+		scene_item_id = self.add_camera_input(scene_name, camera_dev)
+		#self.scale_input(scene_name, scene_item_id)
 
-	def create_camera_scene(self, camera_dev):
-		self.create_scene(self.camera_scene_name)
-		scene_item_id = self.add_camera_input(self.camera_scene_name, camera_dev)
-		#self.scale_input(self.camera_scene_name, scene_item_id)
+	# Create a scene containing just a capture of the specified window
+	def create_zoom_scene(self, scene_name, capture_window):
+		scene_name = self.create_scene(scene_name, make_unique=True)
+		scene_item_id = self.add_zoom_input(scene_name, capture_window)
+		self.scale_input(scene_name, scene_item_id)
 
-	def create_zoom_scene(self, capture_window):
-		self.create_scene(self.zoom_scene_name)
-		scene_item_id = self.add_zoom_input(self.zoom_scene_name, capture_window)
-		self.scale_input(self.zoom_scene_name, scene_item_id)
-
-	def create_split_scene(self, camera_dev, capture_window):
-		self.create_scene(self.split_scene_name)
+	# Create a scene with the specified camera on the left and a capture of the specified window on the right
+	def create_split_scene(self, scene_name, camera_dev, capture_window):
+		scene_name = self.create_scene(scene_name, make_unique=True)
 
 		# Camera on left side
-		scene_item_id = self.add_camera_input(self.split_scene_name, camera_dev)
-		self.scale_input(self.split_scene_name, scene_item_id, {
+		scene_item_id = self.add_camera_input(scene_name, camera_dev)
+		self.scale_input(scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 0.0,
@@ -404,8 +397,8 @@ class ObsControl(ObsControlBase):
 			})
 
 		# Zoom on right side
-		scene_item_id = self.add_zoom_input(self.split_scene_name, capture_window)
-		self.scale_input(self.split_scene_name, scene_item_id, {
+		scene_item_id = self.add_zoom_input(scene_name, capture_window)
+		self.scale_input(scene_name, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 640.0,

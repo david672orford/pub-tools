@@ -2,20 +2,35 @@
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='scenes.css')}}">
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
 {% endblock %}
 
 {% block main %}
 <form action="submit" method="POST">
-
 <section class="big-buttons">
 	<p>
 		<button type="button" id="select-unstarred">Select Unstarred</button>
 		<button type="button" id="select-all">Select All</button>
 		<button type="button" id="deselect-all">Deselect All</button>
 		<button type="submit" name="action" value="delete">Delete Selected</button>
+		{% if not cameras %}
+		<button type="submit" name="action" value="add-standard">Add Standard Scene</button>
+		{% endif %}
 	</p>
+
+	{% if cameras %}
+	<p>
+		<select name="camera">
+		{% for camera_dev, camera_name in cameras %}
+			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
+		{% endfor %}
+		</select>
+		<button type="submit" name="action" value="add-camera">Add Camera Scene</button>
+		<button type="submit" name="action" value="add-zoom">Add Zoom Scene</button>
+		<button type="submit" name="action" value="add-split">Add Split Screen Scene</button>
+	</p>
+	{% endif %}
+
 	<ul class="scenes">
 	{% for scene_name in scene_names %}
 	<li>
@@ -25,15 +40,15 @@
 	{% endfor %}
 	</ul>
 </section>
-
 </form>
 
-<section>
-	<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
-		<label for="files">Upload media files:</label>
-		<input type="file" id="files" name="files" multiple>
-	</form>
+<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
+<section class="bordered big-buttons">
+<h2><label for="files">{{gettext("Upload Media Files")}}</label></h2>
+	<input type="file" id="files" name="files" multiple>
+	<button type="submit">{{gettext("Upload")}}</button>
 </section>
+</form>
 
 <script>
 setTimeout(function() { init_scenes() }, 100);

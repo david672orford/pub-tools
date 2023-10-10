@@ -21,7 +21,7 @@ Or:
 
 and then open http://localhost:5000 in a web browser.
 
-## The KH-Meeting Module
+## The KH Player Module
 
 This app helps you to load the videos and illustrations for a meeting into OBS
 Studio ready to play.
@@ -42,9 +42,8 @@ Then run this command:
 
     $ ./pub-tools khplayer
 
-A window will appear with three tabs labeled **Meetings**, **Songs**,
-**Videos**, **Stream**, and **OBS**.. Clicking on a meeting, song, or video to
-download it and add it to the scene list in OBS.
+A window will appear with tabs such as **Meetings**, **Songs**,
+**Videos**, **JW Stream** which can be used to load videos and illustrations.
 
 ## The Teaching Toolbox Module
 

@@ -1,4 +1,4 @@
-{% set title = "Videos: " + category.category_name + " — " + category.subcategory_name %}
+{% set title = gettext("Videos: {category} — {subcategory}").format(category=category.category_name, subcategory=category.subcategory_name) %}
 {% extends "khplayer/base.html" %}
 
 {% block header %}

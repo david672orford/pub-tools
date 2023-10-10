@@ -4,12 +4,13 @@ import logging
 
 from ...utils import progress_callback, progress_callback_response, run_thread, turbo_flash
 from ...models import VideoCategories
+from ...babel import gettext
 from .views import blueprint, menu
 from .utils import meeting_loader, obs, ObsError, load_video
 
 logger = logging.getLogger(__name__)
 
-menu.append(("Songs", "/songs/"))
+menu.append((gettext("Songbook"), "/songs/"))
 
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
 @blueprint.route("/songs/")

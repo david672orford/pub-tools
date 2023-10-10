@@ -1,5 +1,6 @@
 {% set title = "Audio Routing Patchbay" %}
 {% extends "khplayer/base.html" %}
+{% import "khplayer/lib.html" as lib -%}
 
 {% block head_add %}
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='patchbay.css')}}">
@@ -26,6 +27,14 @@
 {% endmacro %}
 
 {% block main %}
+
+<section class="bordered">
+<form action="save-config" method="POST" class="wrapped">
+{{lib.render_field(form.PERIPHERALS_microphone)}}
+{{lib.render_field(form.PERIPHERALS_speakers)}}
+<button type="Submit">{{gettext("Reconnect Audio")}}</button>
+</form>
+</section>
 
 <div id="patchbay" class="patchbay patchbay-loading">
 <svg>

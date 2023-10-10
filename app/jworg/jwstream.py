@@ -5,6 +5,7 @@ import requests
 from urllib.parse import urlparse, unquote
 from time import time
 from datetime import datetime, date, timezone
+from .codes import language_code_to_name, country_code_to_name
 
 logger = logging.getLogger(__name__)
 
@@ -52,25 +53,29 @@ def convert_datetime(milliseconds_since_epoch, fudge=0):
 	timestamp = datetime.fromtimestamp(int(milliseconds_since_epoch) / 1000 + fudge, timezone.utc)
 	return timestamp
 
+program_types = {
+	"midweekMeeting": "Midweek",
+	"weekendMeeting": "Weekend",
+	}
+
 # A recording of an event
 class StreamEvent:
 	def __init__(self, event, download_url=None, chapters=None):
 		self.id = event["key"]
 		extra = json.loads(event["additionalFields"])
-		if "talkNumber" in extra:
-			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
+		program_type = event["categoryProgramType"]
+		if program_type == "publicTalk":
 			self.datetime = convert_datetime(extra["date"])
+			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
 		else:
 			week_of = (
 				convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
 				convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
 				)
-			self.title = "%s from %s to %s" % (
-				event["categoryProgramType"], week_of[0], week_of[1]
-				)
 			self.datetime = week_of[0]
-		self.language = event["languageCode"]
-		self.country = event["countryCode"]
+			self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
+		self.language = language_code_to_name(event["languageCode"])
+		self.country = country_code_to_name(event["countryCode"])
 		self.download_url = download_url
 		self.chapters = chapters
 
@@ -134,8 +139,8 @@ class StreamRequester:
 		info = response.json()[0]["specialties"][0]
 		self.channel_key = info["key"]
 		self.name = info["name"]
-		self.language = info["languageCode"]
-		self.country = info["countryCode"]
+		self.language = language_code_to_name(info["languageCode"])
+		self.country = country_code_to_name(info["countryCode"])
 
 		self.reload()
 

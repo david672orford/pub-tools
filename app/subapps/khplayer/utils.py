@@ -1,5 +1,6 @@
 from flask import current_app, flash
 from time import sleep
+import re
 import logging
 
 from ...jworg.meetings import MeetingLoader

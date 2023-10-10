@@ -181,6 +181,8 @@ class Patchbay:
 				return link
 		return None
 
+	# Create a link between an output and an input. Both are specified
+	# in any format understood by .find_port().
 	def create_link(self, output_port, input_port):
 		output_port = self.find_port(output_port)
 		input_port = self.find_port(input_port)

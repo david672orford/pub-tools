@@ -1,18 +1,43 @@
-from flask import Blueprint, render_template, request, redirect, flash
+from flask import current_app, Blueprint, render_template, request, redirect, flash
+from wtforms import Form, SelectField
 from sqlalchemy.orm.attributes import flag_modified
-from time import sleep
-import json
+from urllib.parse import urlencode
+import logging
 
 from ...models import db, Config
+from ...babel import gettext
 from .views import blueprint, menu
-from .virtual_cable import patchbay
+from .virtual_cable import patchbay, connect_all
+from .config_wrapper import ConfWrapper
 
-menu.append(("Patchbay", "/patchbay/"))
+logger = logging.getLogger(__name__)
+
+menu.append((gettext("Audio"), "/patchbay/"))
+
+class AudioConfigForm(Form):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		# Load the microphone and speaker selectors options
+		microphones = []
+		speakers = []
+		for node in patchbay.nodes:
+			if node.media_class == "Audio/Source":
+				microphones.append((node.name, node.nick))
+			elif node.media_class == "Audio/Sink":
+				speakers.append((node.name, node.nick))
+		self.PERIPHERALS_microphone.choices = microphones
+		self.PERIPHERALS_speakers.choices = speakers
+
+	PERIPHERALS_microphone = SelectField("Microphone")
+	PERIPHERALS_speakers = SelectField("Speakers")
 
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
 	#patchbay.print()
+
+	form = AudioConfigForm(formdata=request.args, obj=ConfWrapper())
 
 	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
 	if node_positions is not None:
@@ -24,7 +49,25 @@ def page_patchbay():
 			else:
 				node.style = ""
 
-	return render_template("khplayer/patchbay.html", patchbay=patchbay, node_positions=node_positions, top="..")
+	return render_template("khplayer/patchbay.html", form=form, patchbay=patchbay, node_positions=node_positions, top="..")
+
+@blueprint.route("/patchbay/save-config", methods=["POST"])
+def page_patchbay_save_config():
+	config = ConfWrapper()
+	form = AudioConfigForm(formdata=request.form, obj=config)
+	if form.validate():
+		logger.info("Saving audio config")
+		form.populate_obj(config)
+		db.session.commit()
+
+		patchbay.load()
+		for failure in connect_all(patchbay, current_app.config["PERIPHERALS"]):
+			flash(failure)
+
+		return redirect(".")
+	else:
+		logger.info("Audio config form validation failed")
+		return redirect(".?" + urlencode(form.data))
 
 @blueprint.route("/patchbay/save-node-pos", methods=["POST"])
 def page_patchbay_save_node_pos():

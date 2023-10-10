@@ -1,18 +1,28 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
+from wtforms import Form, TextAreaField, SelectField
 import os, re
 import subprocess
 from urllib.parse import urlencode
 import logging
 
+from ...models import db
 from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequesterContainer
+from ...babel import gettext
 from .views import blueprint, menu
 from .utils import obs
+from .config_wrapper import ConfWrapper
 
 logger = logging.getLogger(__name__)
 
-menu.append(("JW Stream", "/jwstream/"))
+menu.append((gettext("JW Stream"), "/jwstream/"))
+
+class ConfigForm(Form):
+	JW_STREAM_url = TextAreaField("URL", render_kw={"rows": 5})
+	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
+	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
+	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
 
 def jwstream_channels():
 	config = current_app.config.get("JW_STREAM")
@@ -30,8 +40,23 @@ def jwstream_channels():
 @blueprint.route("/jwstream/")
 def page_jwstream():
 	channels = jwstream_channels()
+	form = ConfigForm(formdata=request.args, obj=ConfWrapper())
+	form.validate()
 	print("channels:", channels)
-	return render_template("khplayer/jwstream_channels.html", channels=channels.values(), top="..")
+	return render_template("khplayer/jwstream.html", channels=channels.values(), form=form, top="..")
+
+@blueprint.route("/jwstream/save-config", methods=["POST"])
+def page_jwstream_save_config():
+	config = ConfWrapper()
+	form = ConfigForm(formdata=request.form, obj=config)
+	if form.validate():
+		logger.info("Saving JW Stream configuration")
+		form.populate_obj(config)
+		db.session.commit()
+		return redirect(".")
+	else:
+		logger.info("Configuration form validation failed")
+		return redirect(".?" + urlencode(form.data))
 
 @blueprint.route("/jwstream/<token>/")
 def page_jwstream_channel(token):
@@ -54,15 +79,16 @@ def page_jwstream_player(token, id):
 	event = channel.get_event(id, preview=True)
 	print("chapters:", event.chapters)
 	return render_template("khplayer/jwstream_player.html",
-		id=id,
-		event=event,
+		id = id,
+		channel = channel,
+		event = event,
 		clip_start = request.args.get("clip_start",""),
 		clip_end = request.args.get("clip_end",""),
 		clip_title = request.args.get("clip_title",""),
-		top="../../..",
+		top = "../../..",
 		)
 
-@blueprint.route("/stream/<token>/<id>/clip", methods=["POST"])
+@blueprint.route("/jwstream/<token>/<id>/clip", methods=["POST"])
 def page_jwstream_clip(token, id):
 	clip_start = request.form.get("clip_start").strip()
 	clip_end = request.form.get("clip_end").strip()
