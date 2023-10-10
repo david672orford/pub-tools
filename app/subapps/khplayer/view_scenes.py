@@ -4,7 +4,7 @@ from time import sleep
 import os, logging
 
 from ...utils import progress_callback_response
-from ...babel import gettext
+from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
 from .cameras import list_cameras, get_camera_dev
@@ -12,7 +12,7 @@ from .zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
-menu.append((gettext("Scenes"), "/scenes/"))
+menu.append((_("Scenes"), "/scenes/"))
 
 @blueprint.route("/scenes/")
 def page_scenes():
@@ -24,7 +24,7 @@ def page_scenes():
 
 	return render_template(
 		"khplayer/scenes.html",
-		cameras = list_cameras() if request.args.get("action") == "add-standard" else None,
+		cameras = list_cameras() if request.args.get("action") == "add-live" else None,
 		scene_names = scene_names,
 		top = ".."
 		)
@@ -40,7 +40,7 @@ def page_scenes_submit():
 			case "scene":
 				scene = request.form.get("scene")
 				obs.set_current_program_scene(scene)
-				message = "Scene switched to %s" % scene
+				message = _("Scene switched to %s") % scene
 	
 			case "delete":
 				for scene in request.form.getlist("del"):
@@ -50,19 +50,19 @@ def page_scenes_submit():
 						flash(str(e))
 				sleep(1)
 
-			case "add-standard":
-				return redirect(".?action=add-standard")
+			case "add-live":
+				return redirect(".?action=add-live")
 
 			case "add-camera":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
-					obs.create_camera_scene(gettext("* Camera"), camera_dev)
+					obs.create_camera_scene(_("* Camera"), camera_dev)
 					sleep(1)
 
 			case "add-zoom":
 				capture_window = find_second_window()
 				if capture_window is not None:
-					obs.create_zoom_scene(gettext("* Zoom"), capture_window)
+					obs.create_zoom_scene(_("* Zoom"), capture_window)
 					sleep(1)
 
 			case "add-split":
@@ -70,11 +70,11 @@ def page_scenes_submit():
 				if camera_dev is not None:
 					capture_window = find_second_window()
 					if capture_window is not None:
-						obs.create_split_scene(gettext("* Split Screen"), camera_dev, capture_window)
+						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
 						sleep(1)
 
 	except ObsError as e:
-		flash("OBS: %s" % str(e))
+		flash(_("OBS: %s") % str(e))
 
 	if message is not None:
 		return progress_callback_response(message)

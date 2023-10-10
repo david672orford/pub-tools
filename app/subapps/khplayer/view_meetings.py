@@ -12,14 +12,14 @@ from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
-from ...babel import gettext
+from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import meeting_loader, obs
 from ...jworg.meetings import MeetingMedia
 
 logger = logging.getLogger(__name__)
 
-menu.append((gettext("Meetings"), "/meetings/"))
+menu.append((_("Meetings"), "/meetings/"))
 
 # List upcoming meetings so user can click on the one he wants to load.
 @blueprint.route("/meetings/")
@@ -72,7 +72,7 @@ def page_meetings_load(docid):
 	# Download in the background.
 	run_thread(lambda: meeting_media_to_obs_scenes(media))
 
-	return progress_callback_response("Loading media for %s..." % request.form.get("title"))
+	return progress_callback_response(_("Loading media for %s...") % request.form.get("title"))
 
 # Wrapper for get_meeting_media() which caches the responses in a DB table
 def get_meeting_media_cached(docid):

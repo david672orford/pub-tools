@@ -15,11 +15,11 @@
 {% endfor %}
 </ul>
 {% else %}
-<p>Run <b>Update</b> to see video categories here.</p>
+<p>{{gettext("Run <b>Update</b> to see video categories here.")|safe}}</p>
 {% endif %}
 
 <form action="update-all" method="POST">
-<p><button type="submit" name="update" value="1">Update All Categories</button></p>
+<p><button type="submit" name="update" value="1">{{gettext("Update All Categories")}}</button></p>
 </form>
 </section>
 

@@ -9,20 +9,20 @@ from ...models import db
 from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequesterContainer
-from ...babel import gettext
+from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
 from .config_wrapper import ConfWrapper
 
 logger = logging.getLogger(__name__)
 
-menu.append((gettext("JW Stream"), "/jwstream/"))
+menu.append((_("JW Stream"), "/jwstream/"))
 
 class ConfigForm(Form):
-	JW_STREAM_url = TextAreaField("URL", render_kw={"rows": 5})
+	JW_STREAM_url = TextAreaField(_("URL"), render_kw={"rows": 5})
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
-	JW_STREAM_preview_resolution = SelectField("Preview Resolution", choices=resolutions, coerce=int)
-	JW_STREAM_download_resolution = SelectField("Download Resolution", choices=resolutions, coerce=int)
+	JW_STREAM_preview_resolution = SelectField(_("Preview Resolution"), choices=resolutions, coerce=int)
+	JW_STREAM_download_resolution = SelectField(_("Download Resolution"), choices=resolutions, coerce=int)
 
 def jwstream_channels():
 	config = current_app.config.get("JW_STREAM")
@@ -41,8 +41,6 @@ def jwstream_channels():
 def page_jwstream():
 	channels = jwstream_channels()
 	form = ConfigForm(formdata=request.args, obj=ConfWrapper())
-	form.validate()
-	print("channels:", channels)
 	return render_template("khplayer/jwstream.html", channels=channels.values(), form=form, top="..")
 
 @blueprint.route("/jwstream/save-config", methods=["POST"])
@@ -71,13 +69,14 @@ def page_jwstream_update(token):
 	progress_callback("Updating event list...")
 	channel = jwstream_channels()[token]
 	channel.reload()
-	return progress_callback_response("Channel event list updated.")
+	return progress_callback_response(_("Channel event list updated."))
 
+# Player
 @blueprint.route("/jwstream/<token>/<id>/")
 def page_jwstream_player(token, id):
 	channel = jwstream_channels()[token]
 	event = channel.get_event(id, preview=True)
-	print("chapters:", event.chapters)
+	#print("chapters:", event.chapters)
 	return render_template("khplayer/jwstream_player.html",
 		id = id,
 		channel = channel,
@@ -88,6 +87,7 @@ def page_jwstream_player(token, id):
 		top = "../../..",
 		)
 
+# When Make Clip button pressed
 @blueprint.route("/jwstream/<token>/<id>/clip", methods=["POST"])
 def page_jwstream_clip(token, id):
 	clip_start = request.form.get("clip_start").strip()
@@ -101,21 +101,21 @@ def page_jwstream_clip(token, id):
 		try:
 			t1 = parse_time(clip_start)
 		except ValueError:
-			raise ValueError("Invalid start time: %s" % clip_start)
+			raise ValueError(_("Invalid start time: %s") % clip_start)
 		try:
 			t2 = parse_time(clip_end)
 		except ValueError:
-			raise ValueError("Invalid end time: %s" % clip_end)
+			raise ValueError(_("Invalid end time: %s") % clip_end)
 		clip_duration = t2 - t1
 		if clip_duration <= 0:
-			raise ValueError("Duration is zero or negative!")
+			raise ValueError(_("Duration is zero or negative!"))
 	except ValueError as e:
 		flash(str(e))
 		# Send the user back to try again while preserving what he entered.
 		return redirect(return_url)
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
-	progress_callback("Requesting download URL...")
+	progress_callback(("Requesting download URL..."))
 	channel = jwstream_channels()[token]
 	event = channel.get_event(id, preview=False)
 
@@ -163,7 +163,7 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 
 	# Sanity check: is the file there now?
 	if not os.path.exists(media_file):
-		progress_callback("Extraction of clip failed!")
+		progress_callback(_("Extraction of clip failed!"))
 
 	else:
 		create_clip_scene(clip_title, media_file)
@@ -175,7 +175,7 @@ def create_clip_scene(clip_title, media_file):
 	except ObsError as e:
 		turbo_flash("OBS: %s" % str(e))
 	else:
-		progress_callback("Clip created")
+		progress_callback(_("Clip created"))
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

@@ -5,11 +5,11 @@ import lxml.html
 import os, json, re
 
 from ...models import db, Config
-from ...babel import gettext
+from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
 
-menu.append((gettext("Slides"), "/slides/"))
+menu.append((_("Slides"), "/slides/"))
 
 class GDriveClient:
 	user_agent = "Mozilla/5.0"

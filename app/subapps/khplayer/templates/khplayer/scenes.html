@@ -1,4 +1,4 @@
-{% set title = "Scene List (OBS)" %}
+{% set title = gettext("Scene List (OBS)") %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -9,12 +9,12 @@
 <form action="submit" method="POST">
 <section class="big-buttons">
 	<p>
-		<button type="button" id="select-unstarred">Select Unstarred</button>
-		<button type="button" id="select-all">Select All</button>
-		<button type="button" id="deselect-all">Deselect All</button>
-		<button type="submit" name="action" value="delete">Delete Selected</button>
+		<button type="button" id="select-unstarred">{{gettext("Select Unstarred")}}</button>
+		<button type="button" id="select-all">{{gettext("Select All")}}</button>
+		<button type="button" id="deselect-all">{{gettext("Deselect All")}}</button>
+		<button type="submit" name="action" value="delete">{{gettext("Delete Selected")}}</button>
 		{% if not cameras %}
-		<button type="submit" name="action" value="add-standard">Add Standard Scene</button>
+		<button type="submit" name="action" value="add-live">{{gettext("Add a Live Scene")}}</button>
 		{% endif %}
 	</p>
 
@@ -25,9 +25,9 @@
 			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
 		{% endfor %}
 		</select>
-		<button type="submit" name="action" value="add-camera">Add Camera Scene</button>
-		<button type="submit" name="action" value="add-zoom">Add Zoom Scene</button>
-		<button type="submit" name="action" value="add-split">Add Split Screen Scene</button>
+		<button type="submit" name="action" value="add-camera">{{gettext("Add Camera Scene")}}</button>
+		<button type="submit" name="action" value="add-zoom">{{gettext("Add Zoom Scene")}}</button>
+		<button type="submit" name="action" value="add-split">{{gettext("Add Split Screen Scene")}}</button>
 	</p>
 	{% endif %}
 

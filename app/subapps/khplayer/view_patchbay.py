@@ -5,14 +5,14 @@ from urllib.parse import urlencode
 import logging
 
 from ...models import db, Config
-from ...babel import gettext
+from ...babel import gettext as _
 from .views import blueprint, menu
 from .virtual_cable import patchbay, connect_all
 from .config_wrapper import ConfWrapper
 
 logger = logging.getLogger(__name__)
 
-menu.append((gettext("Audio"), "/patchbay/"))
+menu.append((_("Audio"), "/patchbay/"))
 
 class AudioConfigForm(Form):
 	def __init__(self, *args, **kwargs):

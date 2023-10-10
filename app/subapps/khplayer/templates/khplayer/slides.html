@@ -1,17 +1,17 @@
-{% set title = ("Speaker's Slide Loader") %}
+{% set title = gettext("Speaker's Slide Loader") %}
 {% extends "khplayer/base.html" %}
 
 {% block main %}
 <section>
 <h2>{{gettext("Slides on Google Drive")}}</h2>
 <form action="load" method="POST">
-<p><a href="."><button>Reload</button></a></p>
+<p><a href="."><button>{{gettext("Reload")}}</button></a></p>
 <table class="borders">
 <thead>
 <tr>
 	<th></th>
-	<th>Scene Name</th>
-	<th>Preview</th>
+	<th>{{gettext("Scene Name")}}</th>
+	<th>{{gettext("Preview")}}</th>
 </tr>
 </thead>
 <tbody>
@@ -24,7 +24,7 @@
 {% endfor %}
 </tbody>
 </table>
-<p><button type="submit">Load Selected Slides into OBS</button></p>
+<p><button type="submit">{{gettext("Load Selected Slides into OBS")}}</button></p>
 </form>
 </section>
 {% endblock %}

@@ -5,9 +5,6 @@ HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAR
 * {
 	box-sizing: border-box;
 	}
-INPUT, SELECT, TEXTAREA, BUTTON {
-	font-size: inherit;		/* For some reason Pywebview makes these large */
-	}
 HTML, BODY {
 	height: 100%;
 	}
@@ -47,13 +44,16 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+INPUT, SELECT, TEXTAREA, BUTTON {
+	font-size: inherit;		/* For some reason Pywebview makes these large */
+	}
 LABEL {
 	font-weight: bold;
 	}
-INPUT, SELECT, TEXTAREA {
+INPUT, TEXTAREA {
 	padding: .1em .2em;
 	}
-BUTTON {
+BUTTON, SELECT {
 	padding: .2em .3em;
 	}
 
@@ -84,11 +84,11 @@ NAV UL LI.current {
 	background-color: #f0f0f0;
 	}
 
+/* Header at top of each tabbed page */
 HEADER H1 A {
 	color: inherit;
 	text-decoration: inherit;
 	}
-
 HEADER DIV#progress {
 	float: right;
 	margin: .4em;
@@ -101,6 +101,7 @@ HEADER DIV#progress {
 	justify-content: center;
 	}
 
+/* Error messages */
 DIV.flash {
 	background-color: #C00000;
 	color: white;
@@ -113,6 +114,7 @@ DIV.progress.flash {
 	margin: .1em .1em 0 .1em;
 	}
 
+/* Container for a group of controls */
 SECTION.bordered {
 	border: thin solid #808080;
 	border-radius: .2em;
@@ -135,6 +137,7 @@ TABLE.full-width {
 	width: 100%;
 	}
 
+/* Thumbnail image representing video or illustration */
 DIV.thumbnail {
 	position: relative;
 	display: flex;
@@ -164,11 +167,13 @@ UL.nowrap LI {
 
 .wrapped {
 	display: flex;
+	align-items: stretch;
 	}
 .wrapped .form-field {
 	margin: .2em 1em .2em 0;
 	}
 
+/* Labeled form field */
 .form-field {
 	display: flex;
 	align-items: center;
@@ -186,6 +191,7 @@ UL.nowrap LI {
 	content: ":";
 	}
 
+/* for scenes.html */
 UL.scenes {
 	list-style-type: none;
 	margin-left: 0;
