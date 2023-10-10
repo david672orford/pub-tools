@@ -15,7 +15,7 @@ wtforms==3.0.1
 Flask-SQLAlchemy==2.5.1
 
 # For making HTTP requests
-requests==2.25.1
+requests==2.31.0
 
 # For parsing the XHTML in ePub files
 lxml>=3.5.0
