@@ -16,9 +16,9 @@
 <tbody>
 {% for channel in channels %}
 <tr>
+	<td><a href="{{channel.token}}">{{gettext(channel.name)}}</a></td>
 	<td>{{gettext(channel.language)}}</td>	
 	<td>{{gettext(channel.country)}}</td>	
-	<td><a href="{{channel.token}}">{{gettext(channel.name)}}</a></td>
 	<td>{{channel.expires.strftime("%Y-%m-%d %H:%M")}}</td>	
 </tr>
 {% endfor %}

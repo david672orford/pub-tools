@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-10-10 08:39-0400\n"
+"POT-Creation-Date: 2023-10-10 23:19-0400\n"
 "PO-Revision-Date: 2023-10-08 23:32-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -19,57 +19,79 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.13.0\n"
 
-#: subapps/khplayer/view_jwstream.py:19
+#: subapps/khplayer/view_jwstream.py:18
 msgid "JW Stream"
 msgstr "JW Stream"
 
 #: subapps/khplayer/view_jwstream.py:22
+msgid "Russian"
+msgstr "Русский"
+
+#: subapps/khplayer/view_jwstream.py:25
+msgid "Ukraine"
+msgstr "Украина"
+
+#: subapps/khplayer/view_jwstream.py:26
+msgid "Finland"
+msgstr "Финландия"
+
+#: subapps/khplayer/view_jwstream.py:29
+msgid "Congregation Meetings"
+msgstr "Встречи собрания"
+
+#: subapps/khplayer/view_jwstream.py:30
+msgid "Public Talks"
+msgstr "Публичные речи"
+
+#: subapps/khplayer/view_jwstream.py:34
 msgid "URL"
 msgstr ""
 
-#: subapps/khplayer/view_jwstream.py:24
+#: subapps/khplayer/view_jwstream.py:36
 msgid "Preview Resolution"
 msgstr "Расширение предварителного просмотра"
 
-#: subapps/khplayer/view_jwstream.py:25
+#: subapps/khplayer/view_jwstream.py:37
 msgid "Download Resolution"
 msgstr "Расширение загрузки"
 
-#: subapps/khplayer/view_jwstream.py:72
+#: subapps/khplayer/view_jwstream.py:79
 msgid "Channel event list updated."
 msgstr "Список мероприятей в канале обновлен."
 
-#: subapps/khplayer/view_jwstream.py:104
+#: subapps/khplayer/view_jwstream.py:111
 #, python-format
 msgid "Invalid start time: %s"
 msgstr ""
 
-#: subapps/khplayer/view_jwstream.py:108
+#: subapps/khplayer/view_jwstream.py:115
 #, python-format
 msgid "Invalid end time: %s"
 msgstr ""
 
-#: subapps/khplayer/view_jwstream.py:111
+#: subapps/khplayer/view_jwstream.py:118
 msgid "Duration is zero or negative!"
 msgstr ""
 
-#: subapps/khplayer/view_jwstream.py:166
+#: subapps/khplayer/view_jwstream.py:173
 msgid "Extraction of clip failed!"
 msgstr "Сбой загрузки фрагмента"
 
-#: subapps/khplayer/view_jwstream.py:178
+#: subapps/khplayer/view_jwstream.py:185
 msgid "Clip created"
 msgstr "Фрагмент загружен"
 
+#: subapps/khplayer/templates/khplayer/meeting_media.html:1
 #: subapps/khplayer/view_meetings.py:22
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:75
+#: subapps/khplayer/view_meetings.py:84
+#, python-format
 msgid "Loading media for %s..."
 msgstr "Идёт загрузка материала для %s..."
 
-#: subapps/khplayer/view_patchbay.py:15
+#: subapps/khplayer/view_patchbay.py:14
 msgid "Audio"
 msgstr "Звук"
 
@@ -99,9 +121,18 @@ msgstr "* Разделеный экран"
 msgid "OBS: %s"
 msgstr "OBS говорит: %s"
 
-#: subapps/khplayer/view_slides.py:12
+#: subapps/khplayer/view_scenes.py:94
+#, python-format
+msgid "Unsupported media type: %s"
+msgstr ""
+
+#: subapps/khplayer/view_slides.py:16
 msgid "Slides"
 msgstr "Слайды"
+
+#: subapps/khplayer/view_slides.py:19
+msgid "Google Drive Sharing URL"
+msgstr ""
 
 #: subapps/khplayer/view_songs.py:13
 msgid "Songbook"
@@ -129,6 +160,11 @@ msgstr "Песня загружена"
 msgid "Videos"
 msgstr "Видео"
 
+#: subapps/khplayer/view_videos.py:47
+#, python-format
+msgid "Loading %s..."
+msgstr "Идёт загрузка %s..."
+
 #: subapps/khplayer/templates/khplayer/jwstream.html:1
 msgid "JW Stream Channels"
 msgstr "Каналы на сайте JW Stream"
@@ -149,53 +185,110 @@ msgstr "Страна"
 msgid "Expires"
 msgstr "Доступен до"
 
-#: subapps/khplayer/templates/khplayer/jwstream.html:30
+#: subapps/khplayer/templates/khplayer/jwstream.html:31
+#: subapps/khplayer/templates/khplayer/jwstream.html:44
+#: subapps/khplayer/templates/khplayer/slides.html:35
+#: subapps/khplayer/templates/khplayer/slides.html:44
 msgid "Configuration"
 msgstr "Настройки"
 
-#: subapps/khplayer/templates/khplayer/jwstream.html:37
+#: subapps/khplayer/templates/khplayer/jwstream.html:38
+#: subapps/khplayer/templates/khplayer/slides.html:38
 msgid "Save"
 msgstr "Сохранять"
+
+#: subapps/khplayer/templates/khplayer/jwstream.html:39
+#: subapps/khplayer/templates/khplayer/slides.html:39
+msgid "Cancel"
+msgstr "Отменить"
 
 #: subapps/khplayer/templates/khplayer/jwstream_events.html:1
 msgid "JW Stream Event Recordings"
 msgstr "Записи мероприятей с сайта JW Stream"
 
+#: subapps/khplayer/templates/khplayer/jwstream_events.html:13
+msgid "Date"
+msgstr "Дата"
+
+#: subapps/khplayer/templates/khplayer/jwstream_events.html:14
+msgid "Title"
+msgstr "Название"
+
+#: subapps/khplayer/templates/khplayer/jwstream_events.html:27
+msgid "Update"
+msgstr "Обновить"
+
 #: subapps/khplayer/templates/khplayer/jwstream_player.html:1
 msgid "JW Stream Clip Maker"
 msgstr "Загрузка прагментов с сайта JW Stream"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:29
+msgid "Set Start"
+msgstr "Задать начало"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:30
+msgid "Set End"
+msgstr "Задать конец"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:48
+msgid "Clip Start:"
+msgstr "Начало фрагмента:"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:49
+msgid "Clip End:"
+msgstr "Конец фрагмента:"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:50
+msgid "Clip Title:"
+msgstr "Название фрагмента:"
+
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:51
+msgid "Make Clip"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/meeting_media.html:17
+msgid "Part"
+msgstr "Пункт"
+
+#: subapps/khplayer/templates/khplayer/meeting_media.html:18
+msgid "Pub"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/meeting_media.html:19
+msgid "Media Item"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/meeting_media.html:29
+msgid "Download Media and Create Scenes in OBS"
+msgstr ""
 
 #: subapps/khplayer/templates/khplayer/meetings.html:1
 msgid "Meeting Media Loader"
 msgstr "Загрущик материала для встречи"
 
-#: subapps/khplayer/templates/khplayer/meetings.html:6
-msgid "Current and Upcoming Meetings"
-msgstr "Следующие встречи"
-
-#: subapps/khplayer/templates/khplayer/meetings.html:11
+#: subapps/khplayer/templates/khplayer/meetings.html:10
 msgid "Week Of"
 msgstr "Неделя от"
 
-#: subapps/khplayer/templates/khplayer/meetings.html:12
+#: subapps/khplayer/templates/khplayer/meetings.html:11
 msgid "Midweek"
 msgstr "В будни"
 
-#: subapps/khplayer/templates/khplayer/meetings.html:13
+#: subapps/khplayer/templates/khplayer/meetings.html:12
 msgid "Weekend"
 msgstr "В выходны"
 
+#: subapps/khplayer/templates/khplayer/meetings.html:21
 #: subapps/khplayer/templates/khplayer/meetings.html:22
-#: subapps/khplayer/templates/khplayer/meetings.html:23
 msgid "Life and Ministry"
 msgstr "Жизнь и служение"
 
+#: subapps/khplayer/templates/khplayer/meetings.html:28
 #: subapps/khplayer/templates/khplayer/meetings.html:29
-#: subapps/khplayer/templates/khplayer/meetings.html:30
 msgid "Watchtower"
 msgstr "Сторожовая башня"
 
-#: subapps/khplayer/templates/khplayer/meetings.html:42
+#: subapps/khplayer/templates/khplayer/meetings.html:41
 msgid "Load More Weeks"
 msgstr "Большее недел"
 
@@ -255,23 +348,19 @@ msgstr "Загрузить"
 msgid "Speaker's Slide Loader"
 msgstr "Загрущик слайдов доклядчика"
 
-#: subapps/khplayer/templates/khplayer/slides.html:6
-msgid "Slides on Google Drive"
-msgstr "Слайди с Диска Гугла"
-
-#: subapps/khplayer/templates/khplayer/slides.html:8
-msgid "Reload"
-msgstr "Обновить"
-
-#: subapps/khplayer/templates/khplayer/slides.html:13
+#: subapps/khplayer/templates/khplayer/slides.html:12
 msgid "Scene Name"
 msgstr "Навание сцены"
 
-#: subapps/khplayer/templates/khplayer/slides.html:14
+#: subapps/khplayer/templates/khplayer/slides.html:13
 msgid "Preview"
 msgstr "Экскиз"
 
 #: subapps/khplayer/templates/khplayer/slides.html:27
+msgid "Reload"
+msgstr "Обновить"
+
+#: subapps/khplayer/templates/khplayer/slides.html:28
 msgid "Load Selected Slides into OBS"
 msgstr ""
 
@@ -289,7 +378,29 @@ msgstr ""
 "Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился"
 " здесь."
 
-#: subapps/khplayer/templates/khplayer/video_list.html:1
+#: subapps/khplayer/templates/khplayer/video_category.html:1
 msgid "Videos: {category} — {subcategory}"
 msgstr "Видеоролики: {category} — {subcategory}"
+
+#: subapps/khplayer/templates/khplayer/video_category.html:38
+msgid "Update Category"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/videos.html:1
+msgid "Video Categories from JW.ORG"
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/videos.html:18
+msgid "Run <b>Update</b> to see video categories here."
+msgstr ""
+
+#: subapps/khplayer/templates/khplayer/videos.html:22
+msgid "Update All Categories"
+msgstr ""
+
+#~ msgid "Current and Upcoming Meetings"
+#~ msgstr "Следующие встречи"
+
+#~ msgid "Slides on Google Drive"
+#~ msgstr "Слайди с Диска Гугла"
 

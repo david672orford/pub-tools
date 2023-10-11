@@ -89,12 +89,14 @@ def page_scenes_submit():
 def page_scenes_upload():
 	files = request.files.getlist("files")	# Get the Werkzeug FileStorage object
 	for file in files:
-		if file.filename == "":				# We get one of these if no file is selected
+		major_mimetype = file.mimetype.split("/")[0]
+		if major_mimetype not in ("video", "image"):
+			flash(_("Unsupported media type: %s") % major_mimetype)
 			continue
 		# FIXME: Cyrillic characters are deleted!
 		# FIXME: We need to ensure uniquiness
 		save_as = os.path.join(current_app.config["CACHEDIR"], "upload-" + secure_filename(file.filename))
 		file.save(save_as)
-		obs.add_media_scene(os.path.basename(file.filename), file.mimetype.split("/")[0], save_as)
+		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
 	return redirect(".")
 

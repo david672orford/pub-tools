@@ -3,7 +3,13 @@
 
 {% block main %}
 <section>
+<form action="search" method="POST">
+<input type="text" name="search" placeholder="{{gettext('Enter search terms')}}">
+<button type="submit">{{gettext("Search")}}</button>
+</form>
+</section>
 
+<section>
 {% if categories %}
 <ul>
 {% for category, subcategories in categories %}
@@ -17,7 +23,9 @@
 {% else %}
 <p>{{gettext("Run <b>Update</b> to see video categories here.")|safe}}</p>
 {% endif %}
+</section>
 
+<section>
 <form action="update-all" method="POST">
 <p><button type="submit" name="update" value="1">{{gettext("Update All Categories")}}</button></p>
 </form>

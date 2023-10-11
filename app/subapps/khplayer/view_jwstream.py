@@ -17,6 +17,19 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("JW Stream"), "/jwstream/"))
 
+(
+	# Languages
+	_("Russian"),
+
+	# Countries
+	_("Ukraine"),
+	_("Finland"),
+
+	# Channels
+	_("Congregation Meetings"),
+	_("Public Talks"),
+)
+
 class StreamConfigForm(Form):
 	JW_STREAM_url = TextAreaField(_("URL"), render_kw={"rows": 5})
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))

@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, flash
 from collections import defaultdict
 import logging
 
@@ -20,6 +20,12 @@ def page_videos():
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
 	return render_template("khplayer/videos.html", categories=categories.items(), top="..")
+
+# When Search button pressed
+@blueprint.route("/videos/search", methods=["POST"])
+def page_videos_search():
+	flash("Search not implemented")
+	return redirect(".")
 
 # When Update button is pressed
 @blueprint.route("/videos/update-all", methods=["POST"])

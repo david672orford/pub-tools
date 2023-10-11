@@ -2,11 +2,11 @@
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='stream.css')}}">
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='jwstream_player.css')}}">
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt;{{channel.language}}, {{channel.country}}) {{event.title}}</a></h1>
+<h1><a href="..">&lt; {{event.title}} ({{gettext(channel.language)}}, {{gettext(channel.country)}})</a></h1>
 {% endblock %}
 
 {% block main %}

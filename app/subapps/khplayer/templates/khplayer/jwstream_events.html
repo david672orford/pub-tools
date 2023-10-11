@@ -2,7 +2,7 @@
 {% extends "khplayer/base.html" %}
 
 {% block header %}
-<h1><a href="..">&lt; {{channel.name}} ({{channel.language}}, {{channel.country}})</a></h1>
+<h1><a href="..">&lt; {{gettext(channel.name)}} ({{gettext(channel.language)}}, {{gettext(channel.country)}})</a></h1>
 {% endblock %}
 
 {% block main %}
@@ -10,17 +10,13 @@
 <table class="borders">
 <thead>
 <tr>
-	<th>Language</th>
-	<th>Country</th>
-	<th>Date</th>
-	<th>Title</th>
+	<th>{{gettext("Date")}}</th>
+	<th>{{gettext("Title")}}</th>
 </tr>
 </thead>
 <tbody>
 {% for event in events %}
 <tr>
-	<td>{{event.language}}</td>	
-	<td>{{event.country}}</td>	
 	<td>{{event.datetime.strftime("%Y-%m-%d %H:%M")}}</td>	
 	<td><a href="{{event.id}}">{{event.title}}</a></td>
 </tr>
