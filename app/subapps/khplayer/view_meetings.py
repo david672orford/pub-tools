@@ -47,12 +47,14 @@ def page_meetings_view(docid):
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
+		index = 0
 		previous_section = None
 		for item in get_meeting_media_cached(docid):
-			data = render_template("khplayer/meeting_media_item.html", item=item, new_section=(item.section_title != previous_section))
+			data = render_template("khplayer/meeting_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
 			previous_section = item.section_title
 			yield "data: " + data.replace("\n", " ") + "\n\n"
 			sleep(.1)
+			index += 1
 		yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
@@ -66,8 +68,15 @@ def page_meetings_load(docid):
 		if not scene['sceneName'].startswith("*"):
 			obs.remove_scene(scene['sceneName'])
 
-	# The media list will already by in the cache. Get it.
-	media = get_meeting_media_cached(docid)
+	# The media list will already by in the cache. Loop over it saving only
+	# those items which have a checkbox next to them in the table.
+	selected = set(map(int, request.form.getlist("selected")))
+	media = []
+	index = 0
+	for item in get_meeting_media_cached(docid):
+		if index in selected:
+			media.append(item)
+		index += 1
 
 	# Download in the background.
 	run_thread(lambda: meeting_media_to_obs_scenes(media))

@@ -133,6 +133,9 @@ TABLE.borders TH, TABLE.borders TD {
 	text-align: left;
 	padding: .3em;
 	}
+TABLE.borders TH {
+	background-color: #f0f0f0;
+	}
 TABLE.full-width {
 	width: 100%;
 	}

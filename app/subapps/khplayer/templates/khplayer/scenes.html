@@ -19,7 +19,7 @@
 	</p>
 
 	{% if cameras %}
-	<p>
+	<section class="bordered">
 		<select name="camera">
 		{% for camera_dev, camera_name in cameras %}
 			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
@@ -28,7 +28,7 @@
 		<button type="submit" name="action" value="add-camera">{{gettext("Add Camera Scene")}}</button>
 		<button type="submit" name="action" value="add-zoom">{{gettext("Add Zoom Scene")}}</button>
 		<button type="submit" name="action" value="add-split">{{gettext("Add Split Screen Scene")}}</button>
-	</p>
+	</section>
 	{% endif %}
 
 	<ul class="scenes">

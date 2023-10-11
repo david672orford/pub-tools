@@ -1,8 +1,8 @@
 <turbo-stream action="append" target="media-list">
 	<template>
-		{% if new_section %}<tr><th colspan="4">{{item.section_title}}</th></tr>{% endif %}
+		{% if new_section %}<tr><th colspan="5">{{item.section_title}}</th></tr>{% endif %}
 		<tr>
-		<td><input type="checkbox" checked></td>
+		<td><input type="checkbox" name="selected", value="{{index}}" checked></td>
 		<td>{{item.part_title}}</td>
 	    <td>{{item.pub_code}}</td>
 		<td>

@@ -7,7 +7,7 @@ from ...utils import progress_callback_response
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
-from .cameras import list_cameras, get_camera_dev
+from .cameras import list_cameras
 from .zoom import find_second_window
 
 logger = logging.getLogger(__name__)
@@ -89,6 +89,8 @@ def page_scenes_submit():
 def page_scenes_upload():
 	files = request.files.getlist("files")	# Get the Werkzeug FileStorage object
 	for file in files:
+		if file.filename == "":				# We get one of these if no file is selected
+			continue
 		# FIXME: Cyrillic characters are deleted!
 		# FIXME: We need to ensure uniquiness
 		save_as = os.path.join(current_app.config["CACHEDIR"], "upload-" + secure_filename(file.filename))

@@ -1,15 +1,22 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
+from wtforms import Form, StringField
 from urllib.request import Request, HTTPHandler, HTTPSHandler, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 import lxml.html
 import os, json, re
+import logging
 
-from ...models import db, Config
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
+from .config_editor import ConfWrapper, config_saver
+
+logger = logging.getLogger(__name__)
 
 menu.append((_("Slides"), "/slides/"))
+
+class SlidesConfigForm(Form):
+	GDRIVE_url = StringField(_("Google Drive Sharing URL"))
 
 class GDriveClient:
 	user_agent = "Mozilla/5.0"
@@ -98,8 +105,17 @@ class GDriveClient:
 
 @blueprint.route("/slides/")
 def page_slides():
-	gdrive = GDriveClient(current_app.config["GDRIVE"], cachedir=current_app.config["CACHEDIR"])
-	return render_template("khplayer/slides.html", files=gdrive.list_files(), top="..")
+	return render_template(
+		"khplayer/slides.html",
+		form = SlidesConfigForm(formdata=request.args, obj=ConfWrapper()) if request.args.get("action") == "configuration" else None,
+		files = GDriveClient(current_app.config["GDRIVE"], cachedir=current_app.config["CACHEDIR"]).list_files(),
+		top = ".."
+		)
+
+@blueprint.route("/slides/save-config", methods=["POST"])
+def page_slides_save_config():
+	ok, response = config_saver(SlidesConfigForm)
+	return response
 
 @blueprint.route("/slides/load", methods=["POST"])
 def page_slides_load():
@@ -108,7 +124,6 @@ def page_slides_load():
 	for file in gdrive.list_files():
 		files[file.id] = file
 	for id in request.form.getlist("selected"):
-		print("id:", id)
 		if id in files:
 			filename = gdrive.download(files[id])
 			obs.add_media_scene("□ " + request.form.get("scenename-%s" % id), "image", filename)

@@ -1,4 +1,4 @@
-{% set title = "Meetings" %}
+{% set title = gettext("Meetings") %}
 {% extends "khplayer/base.html" %}
 
 {% block header %}
@@ -9,15 +9,14 @@
 <form action="load" method="POST">
 
 <section>
-<h2>Meeting Media</h2>
 <input type="hidden" name="title" value="{{meeting_title}}">
 <table class="borders full-width">
 <thead>
 <tr>
 	<th></th>
-	<th>Part</th>
-	<th>Pub</th>
-	<th colspan="2">Media Item</th>
+	<th>{{gettext("Part")}}</th>
+	<th>{{gettext("Pub")}}</th>
+	<th colspan="2">{{gettext("Media Item")}}</th>
 	</tr>
 </thead>
 <tbody id="media-list">
@@ -27,7 +26,7 @@
 
 <section id="button-box" class="bordered">
 	<div class="form-field">
-		<button type="submit" disabled>Download Media and Create Scenes in OBS</button>
+		<button type="submit" disabled>{{gettext("Download Media and Create Scenes in OBS")}}</button>
 	</div>
 </section>
 

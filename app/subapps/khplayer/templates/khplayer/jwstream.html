@@ -26,6 +26,7 @@
 </table>
 </section>
 
+{% if form %}
 <section class="bordered">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
@@ -35,8 +36,14 @@
 {{lib.render_field(form.JW_STREAM_download_resolution)}}
 </div>
 <button type="submit">{{gettext("Save")}}</button>
+<a href="."><button>{{gettext("Cancel")}}</button></a>
 </form>
 </section>
+{% else %}
+<section>
+	<a href=".?action=configuration"><button>{{gettext("Configuration")}}</button></a>
+</section>
+{% endif %}
 
 {% endblock %}
 

@@ -15,10 +15,6 @@
 {% block main %}
 <section>
 
-<form action="update" method="POST">
-<p><button type="submit" name="update" value="1">Update Category</button></p>
-</form>
-
 <form action="load-video" method="POST">
 <ul>
 {% for video in category.videos | sort(attribute="date", reverse=True) %}
@@ -27,6 +23,7 @@
 </ul>
 <input id="title" type="hidden" name="title">
 </form>
+
 <script>
 function button_click(event) {
 	document.getElementById("title").value = event.target.textContent;
@@ -36,6 +33,10 @@ for(let i=0; i < buttons.length; i++) {
 	buttons[i].addEventListener("click", button_click);
 	}
 </script>
+
+<form action="update" method="POST">
+<p><button type="submit" name="update" value="1">{{gettext("Update Category")}}</button></p>
+</form>
 
 </section>
 {% endblock %}

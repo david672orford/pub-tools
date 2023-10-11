@@ -19,7 +19,7 @@ def page_videos():
 	categories = defaultdict(list)
 	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
-	return render_template("khplayer/video_categories.html", categories=categories.items(), top="..")
+	return render_template("khplayer/videos.html", categories=categories.items(), top="..")
 
 # When Update button is pressed
 @blueprint.route("/videos/update-all", methods=["POST"])
@@ -31,7 +31,7 @@ def page_videos_update_all():
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def page_videos_list(category_key, subcategory_key):
 	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("khplayer/video_list.html", category=category, top="../../..")
+	return render_template("khplayer/video_category.html", category=category, top="../../..")
 
 # Update the videos in a category
 @blueprint.route("/videos/<category_key>/<subcategory_key>/update", methods=["POST"])
@@ -44,5 +44,5 @@ def page_videos_category_subcategory_update(category_key, subcategory_key):
 def page_videos_category_subcategory_load_video(category_key, subcategory_key):
 	lank = request.form.get("lank")
 	run_thread(lambda: load_video(lank))
-	return progress_callback_response("Loading %s..." % request.form.get("title"))
+	return progress_callback_response(gettext("Loading %s...") % request.form.get("title"))
 

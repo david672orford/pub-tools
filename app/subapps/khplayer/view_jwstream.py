@@ -1,24 +1,23 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
 from wtforms import Form, TextAreaField, SelectField
+from urllib.parse import urlencode
 import os, re
 import subprocess
-from urllib.parse import urlencode
 import logging
 
-from ...models import db
 from ... import turbo
 from ...utils import progress_callback, progress_callback_response, run_thread
 from ...jworg.jwstream import StreamRequesterContainer
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
-from .config_wrapper import ConfWrapper
+from .config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 
 menu.append((_("JW Stream"), "/jwstream/"))
 
-class ConfigForm(Form):
+class StreamConfigForm(Form):
 	JW_STREAM_url = TextAreaField(_("URL"), render_kw={"rows": 5})
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
 	JW_STREAM_preview_resolution = SelectField(_("Preview Resolution"), choices=resolutions, coerce=int)
@@ -39,22 +38,17 @@ def jwstream_channels():
 
 @blueprint.route("/jwstream/")
 def page_jwstream():
-	channels = jwstream_channels()
-	form = ConfigForm(formdata=request.args, obj=ConfWrapper())
-	return render_template("khplayer/jwstream.html", channels=channels.values(), form=form, top="..")
+	return render_template(
+		"khplayer/jwstream.html",
+		channels = jwstream_channels().values(),
+		form = StreamConfigForm(formdata=request.args, obj=ConfWrapper()) if request.args.get("action") == "configuration" else None,
+		top = ".."
+		)
 
 @blueprint.route("/jwstream/save-config", methods=["POST"])
 def page_jwstream_save_config():
-	config = ConfWrapper()
-	form = ConfigForm(formdata=request.form, obj=config)
-	if form.validate():
-		logger.info("Saving JW Stream configuration")
-		form.populate_obj(config)
-		db.session.commit()
-		return redirect(".")
-	else:
-		logger.info("Configuration form validation failed")
-		return redirect(".?" + urlencode(form.data))
+	ok, response = config_saver(StreamConfigForm)
+	return response
 
 @blueprint.route("/jwstream/<token>/")
 def page_jwstream_channel(token):

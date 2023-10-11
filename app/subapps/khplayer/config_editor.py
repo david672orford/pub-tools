@@ -1,7 +1,12 @@
-from flask import current_app
+from flask import current_app, request, redirect
 from sqlalchemy.orm.attributes import flag_modified
+from urllib.parse import urlencode
 import re
+import logging
+
 from ...models import db, Config
+
+logger = logging.getLogger(__name__)
 
 # Wrap app.config so that Wtforms can load and save from it as if it were a DB object.
 # The form field names have an upper-case first part and a lower-case second part.
@@ -27,4 +32,16 @@ class ConfWrapper:
 			db.session.add(conf)
 		conf.data[key2] = value
 		flag_modified(conf, "data")
+
+def config_saver(form_class):
+	config = ConfWrapper()
+	form = form_class(formdata=request.form, obj=config)
+	if form.validate():
+		logger.info("Saving configuration")
+		form.populate_obj(config)
+		db.session.commit()
+		return True, redirect(".")
+	else:
+		logger.info("Configuration form validation failed")
+		return False, redirect(".?" + urlencode(form.data))
 

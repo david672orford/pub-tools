@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt; {{channel.name}} ({{channel.language}}, {{channel.country}}) {{event.title}}</a></h1>
+<h1><a href="..">&lt;{{channel.language}}, {{channel.country}}) {{event.title}}</a></h1>
 {% endblock %}
 
 {% block main %}
@@ -26,8 +26,8 @@
 	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:05</span></button>
 	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:01</span></button>
 
-	<button type="button">Set Start</button>
-	<button type="button">Set End</button>
+	<button type="button">{{gettext("Set Start")}}</button>
+	<button type="button">{{gettext("Set End")}}</button>
 
 	<button type="button"><span>0:01</span><img src="{{top}}/static/button-forward.svg"></button>
 	<button type="button"><span>0:05</span><img src="{{top}}/static/button-forward.svg"></button>
@@ -45,10 +45,10 @@
 </div>
 
 <div id="trim-controls" class="controls">
-	<label>Clip Start: <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
-	<label>Clip End: <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
-	<label class="grow"><span>Clip Title:</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
-	<button type="submit">Make Clip</button>
+	<label>{{gettext("Clip Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
+	<label>{{gettext("Clip End:")}} <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
+	<label class="grow"><span>{{gettext("Clip Title:")}}</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
+	<button type="submit">{{gettext("Make Clip")}}</button>
 </div>
 
 <script>
