@@ -7,17 +7,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-10-10 23:19-0400\n"
-"PO-Revision-Date: 2023-10-08 23:32-0400\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: ru\n"
+"POT-Creation-Date: 2023-10-12 16:51-0400\n"
+"PO-Revision-Date: 2023-10-12 17:08-0400\n"
+"Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Generated-By: Babel 2.13.0\n"
+"X-Generator: Poedit 3.0.1\n"
 
 #: subapps/khplayer/view_jwstream.py:18
 msgid "JW Stream"
@@ -45,11 +46,11 @@ msgstr "Публичные речи"
 
 #: subapps/khplayer/view_jwstream.py:34
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: subapps/khplayer/view_jwstream.py:36
 msgid "Preview Resolution"
-msgstr "Расширение предварителного просмотра"
+msgstr "Расширение предварительного просмотра"
 
 #: subapps/khplayer/view_jwstream.py:37
 msgid "Download Resolution"
@@ -57,7 +58,7 @@ msgstr "Расширение загрузки"
 
 #: subapps/khplayer/view_jwstream.py:79
 msgid "Channel event list updated."
-msgstr "Список мероприятей в канале обновлен."
+msgstr "Список мероприятий в канале обновлен."
 
 #: subapps/khplayer/view_jwstream.py:111
 #, python-format
@@ -75,7 +76,7 @@ msgstr ""
 
 #: subapps/khplayer/view_jwstream.py:173
 msgid "Extraction of clip failed!"
-msgstr "Сбой загрузки фрагмента"
+msgstr "Сбой загрузки фрагмента!"
 
 #: subapps/khplayer/view_jwstream.py:185
 msgid "Clip created"
@@ -102,7 +103,7 @@ msgstr "Сцены"
 #: subapps/khplayer/view_scenes.py:43
 #, python-format
 msgid "Scene switched to %s"
-msgstr ""
+msgstr "Переход на сцену %s"
 
 #: subapps/khplayer/view_scenes.py:59
 msgid "* Camera"
@@ -114,7 +115,7 @@ msgstr "* Зум"
 
 #: subapps/khplayer/view_scenes.py:73
 msgid "* Split Screen"
-msgstr "* Разделеный экран"
+msgstr "* Разделенный экран"
 
 #: subapps/khplayer/view_scenes.py:77 subapps/khplayer/view_songs.py:46
 #, python-format
@@ -132,7 +133,7 @@ msgstr "Слайды"
 
 #: subapps/khplayer/view_slides.py:19
 msgid "Google Drive Sharing URL"
-msgstr ""
+msgstr "URL от функции Диска Гугла «Поделиться»"
 
 #: subapps/khplayer/view_songs.py:13
 msgid "Songbook"
@@ -145,7 +146,7 @@ msgstr "Идёт загрузка песни %s"
 
 #: subapps/khplayer/view_songs.py:40
 msgid "Getting song video URL..."
-msgstr ""
+msgstr "Запрос URL песни..."
 
 #: subapps/khplayer/view_songs.py:44
 #, python-format
@@ -160,7 +161,7 @@ msgstr "Песня загружена"
 msgid "Videos"
 msgstr "Видео"
 
-#: subapps/khplayer/view_videos.py:47
+#: subapps/khplayer/view_videos.py:53
 #, python-format
 msgid "Loading %s..."
 msgstr "Идёт загрузка %s..."
@@ -204,7 +205,7 @@ msgstr "Отменить"
 
 #: subapps/khplayer/templates/khplayer/jwstream_events.html:1
 msgid "JW Stream Event Recordings"
-msgstr "Записи мероприятей с сайта JW Stream"
+msgstr "Записи мероприятий доступных на сайте JW Stream"
 
 #: subapps/khplayer/templates/khplayer/jwstream_events.html:13
 msgid "Date"
@@ -220,7 +221,7 @@ msgstr "Обновить"
 
 #: subapps/khplayer/templates/khplayer/jwstream_player.html:1
 msgid "JW Stream Clip Maker"
-msgstr "Загрузка прагментов с сайта JW Stream"
+msgstr "Загрузка фрагментов с сайта JW Stream"
 
 #: subapps/khplayer/templates/khplayer/jwstream_player.html:29
 msgid "Set Start"
@@ -244,7 +245,7 @@ msgstr "Название фрагмента:"
 
 #: subapps/khplayer/templates/khplayer/jwstream_player.html:51
 msgid "Make Clip"
-msgstr ""
+msgstr "Извлечь фрагмент"
 
 #: subapps/khplayer/templates/khplayer/meeting_media.html:17
 msgid "Part"
@@ -260,11 +261,11 @@ msgstr ""
 
 #: subapps/khplayer/templates/khplayer/meeting_media.html:29
 msgid "Download Media and Create Scenes in OBS"
-msgstr ""
+msgstr "Загрузить материалы и создать сцены в OBS"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:1
 msgid "Meeting Media Loader"
-msgstr "Загрущик материала для встречи"
+msgstr "Загрузчик материала для встречи"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:10
 msgid "Week Of"
@@ -286,7 +287,7 @@ msgstr "Жизнь и служение"
 #: subapps/khplayer/templates/khplayer/meetings.html:28
 #: subapps/khplayer/templates/khplayer/meetings.html:29
 msgid "Watchtower"
-msgstr "Сторожовая башня"
+msgstr "Сторожевая башня"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:41
 msgid "Load More Weeks"
@@ -334,7 +335,7 @@ msgstr "Добавить сцену с Зумом"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:30
 msgid "Add Split Screen Scene"
-msgstr "Добавить сцену с разделеным экраном"
+msgstr "Добавить сцену с разделённым экраном"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:47
 msgid "Upload Media Files"
@@ -362,7 +363,7 @@ msgstr "Обновить"
 
 #: subapps/khplayer/templates/khplayer/slides.html:28
 msgid "Load Selected Slides into OBS"
-msgstr ""
+msgstr "Загрузить выбранные слайды в OBS"
 
 #: subapps/khplayer/templates/khplayer/songs.html:1
 msgid "Load Songs from Songbook"
@@ -375,8 +376,8 @@ msgstr "Введите номер песни"
 #: subapps/khplayer/templates/khplayer/songs.html:23
 msgid "Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here."
 msgstr ""
-"Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился"
-" здесь."
+"Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился "
+"здесь."
 
 #: subapps/khplayer/templates/khplayer/video_category.html:1
 msgid "Videos: {category} — {subcategory}"
@@ -384,23 +385,30 @@ msgstr "Видеоролики: {category} — {subcategory}"
 
 #: subapps/khplayer/templates/khplayer/video_category.html:38
 msgid "Update Category"
-msgstr ""
+msgstr "Обновить эту катигорию"
 
 #: subapps/khplayer/templates/khplayer/videos.html:1
 msgid "Video Categories from JW.ORG"
-msgstr ""
+msgstr "Категории видеороликов на сайте JW.ORG"
 
-#: subapps/khplayer/templates/khplayer/videos.html:18
+#: subapps/khplayer/templates/khplayer/videos.html:7
+msgid "Enter search terms"
+msgstr "Введите поисковые термены"
+
+#: subapps/khplayer/templates/khplayer/videos.html:8
+msgid "Search"
+msgstr "Поиск"
+
+#: subapps/khplayer/templates/khplayer/videos.html:24
 msgid "Run <b>Update</b> to see video categories here."
-msgstr ""
+msgstr "Нажмите <b>Обновить</l> чтобы категории роликов появились здесь."
 
-#: subapps/khplayer/templates/khplayer/videos.html:22
+#: subapps/khplayer/templates/khplayer/videos.html:30
 msgid "Update All Categories"
-msgstr ""
+msgstr "Обновить все категории"
 
 #~ msgid "Current and Upcoming Meetings"
 #~ msgstr "Следующие встречи"
 
 #~ msgid "Slides on Google Drive"
 #~ msgstr "Слайди с Диска Гугла"
-
