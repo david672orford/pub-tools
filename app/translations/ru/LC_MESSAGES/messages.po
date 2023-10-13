@@ -26,7 +26,7 @@ msgstr "JW Stream"
 
 #: subapps/khplayer/view_jwstream.py:22
 msgid "Russian"
-msgstr "Русский"
+msgstr "русский"
 
 #: subapps/khplayer/view_jwstream.py:25
 msgid "Ukraine"
@@ -272,12 +272,12 @@ msgid "Week Of"
 msgstr "Неделя от"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:11
-msgid "Midweek"
-msgstr "В будни"
+msgid "Midweek Meeting"
+msgstr "Встреча в будни"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:12
-msgid "Weekend"
-msgstr "В выходны"
+msgid "Weekend Meeting"
+msgstr "Встреча в выходные"
 
 #: subapps/khplayer/templates/khplayer/meetings.html:21
 #: subapps/khplayer/templates/khplayer/meetings.html:22

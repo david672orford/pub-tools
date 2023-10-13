@@ -28,8 +28,8 @@
 
 {% block main %}
 
-<section class="bordered">
-<form action="save-config" method="POST" class="wrapped">
+<section class="bordered-box">
+<form action="save-config" method="POST">
 {{lib.render_field(form.PERIPHERALS_microphone)}}
 {{lib.render_field(form.PERIPHERALS_speakers)}}
 <button type="Submit">{{gettext("Reconnect Audio")}}</button>

@@ -54,8 +54,8 @@ def convert_datetime(milliseconds_since_epoch, fudge=0):
 	return timestamp
 
 program_types = {
-	"midweekMeeting": "Midweek",
-	"weekendMeeting": "Weekend",
+	"midweekMeeting": "Midweek Meeting",
+	"weekendMeeting": "Weekend Meeting",
 	}
 
 # A recording of an event
@@ -73,7 +73,8 @@ class StreamEvent:
 				convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
 				)
 			self.datetime = week_of[0]
-			self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
+			#self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
+			self.title = program_types.get(program_type, program_type)
 		self.language = language_code_to_name(event["languageCode"])
 		self.country = country_code_to_name(event["countryCode"])
 		self.download_url = download_url

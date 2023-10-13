@@ -17,8 +17,10 @@
 {% for file in files %}
 <tr>
 	<td><input type="checkbox" name="selected" value="{{ file.id }}" checked></td>
-	<td><input name="scenename-{{ file.id }}" value="{{ file.filename }}"></td>
-	<td><img style="width: 10em" src="{{file.thumbnail_url}}"></td>
+	<td><input type="text" name="scenename-{{ file.id }}" value="{{ file.filename }}"></td>
+	<td><div class="thumbnail large">
+		<img src="{{file.thumbnail_url}}">
+	</div></td>
 </tr>
 {% endfor %}
 </tbody>

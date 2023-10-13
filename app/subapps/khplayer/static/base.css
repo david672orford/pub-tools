@@ -20,20 +20,19 @@ HEADER {
 MAIN {
 	flex-grow: 1;
 	overflow: auto;
+	margin-top: .5em;
 	}
 SECTION {
-	margin: .5em;
+	margin: 0 .5em .5em .5em;
 	}
 H1, H2 {
 	font-family: sans-serif;
 	}
 H1 {
 	font-size: 120%;
-	padding: .3em;
 	}
 H2 {
 	font-size: 100%;
-	margin: .2em 0;
 	}
 P {
 	margin-bottom: .5em;
@@ -53,38 +52,39 @@ LABEL {
 INPUT, TEXTAREA {
 	padding: .1em .2em;
 	}
-BUTTON, SELECT {
-	padding: .2em .3em;
+BUTTON, SELECT, OPTION, INPUT[type='text'], INPUT[type='file']::file-selector-button {
+	padding: .5em;
 	}
 
-/* Tabs at top of page */
-NAV UL {
+/* Header at top of each tabbed page */
+HEADER > NAV > UL {
 	display: flex;
 	list-style-type: none;
 	margin: 0;
 	background-color: #b0b0b0;
 	padding-top: 1px;
 	}
-NAV UL LI {
+HEADER > NAV > UL > LI {
 	margin: 0 5px;
 	border-radius: 5px 5px 0 0;
 	background-color: #d0d0d0;
 	}
-NAV UL LI:hover {
+HEADER > NAV > UL > LI:hover {
 	}
-NAV UL LI A {
+HEADER > NAV > UL > LI > A {
 	padding: .5em;
 	display: block;
 	text-decoration: none;
 	color: inherit;
 	}
-NAV UL LI.current {
+HEADER > NAV > UL > LI.current {
 	position: relative;
 	top: 1px;
 	background-color: #f0f0f0;
 	}
-
-/* Header at top of each tabbed page */
+HEADER > H1 {
+	padding: .3em;
+	}
 HEADER H1 A {
 	color: inherit;
 	text-decoration: inherit;
@@ -106,7 +106,7 @@ DIV.flash {
 	background-color: #C00000;
 	color: white;
 	border-radius: 5px;
-	margin: .5em;
+	margin: .5em .5em 0 .5em;
 	padding: .5em;
 	font-family: sans-serif;
 	}
@@ -114,16 +114,12 @@ DIV.progress.flash {
 	margin: .1em .1em 0 .1em;
 	}
 
-/* Container for a group of controls */
-SECTION.bordered {
-	border: thin solid #808080;
-	border-radius: .2em;
-	margin: .4em;
-	}
-SECTION.bordered > * {
-	margin: .5em;
+/* List of videos */
+UL.nowrap LI {
+	white-space: nowrap;
 	}
 
+/* An actual table with borders and shaded header elements */
 TABLE.borders {
 	border-collapse: collapse;
 	margin-bottom: .5em;	
@@ -150,6 +146,10 @@ DIV.thumbnail {
 	width: 92px;			/* 16:9 plus border */
 	height: 52.625px; 
 	}
+DIV.thumbnail.large {
+	width: 184px;
+	height: 105.250px;
+	}
 DIV.thumbnail > IMG {
 	width: 100%;
 	height: 100%;
@@ -164,8 +164,26 @@ DIV.thumbnail > DIV.caption {
 	background-color: rgba(255, 255, 255, 0.5);
 	}
 
-UL.nowrap LI {
-	white-space: nowrap;
+/* Box to contain a group of controls, with border */
+.bordered-box {
+	border: thin solid #808080;
+	border-radius: .2em;
+	padding: .25em .25em 0 .25em;
+	}
+.bordered-box > * {
+	margin: .25em;
+	}
+
+/* A container to lay out a group of controls */
+.borderless-box {
+	margin: -.25em -.25em 0 -.25em;
+	/*border: 1px dotted green;*/
+	}
+.borderless-box:last-child {
+	margin-bottom: 0;
+	}
+.borderless-box > * {
+	margin: .25em;
 	}
 
 .wrapped {
@@ -178,7 +196,7 @@ UL.nowrap LI {
 
 /* Labeled form field */
 .form-field {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
 	}
 .form-field > * {
@@ -200,6 +218,7 @@ UL.scenes {
 	margin-left: 0;
 	border: 2px solid #c0c0c0;
 	margin-bottom: .5em;
+	min-height: 10em;		/* so there will always be a clear drop zone */
 	}
 UL.scenes > LI {
 	display: flex;
@@ -217,9 +236,4 @@ UL.scenes.highlight {
 	border-color: blue;
 	background-color: #f0f0ff;
 	}
-
-.big-buttons BUTTON, .big-buttons INPUT[type='file']::file-selector-button, .big-buttons SELECT {
-	padding: .5em;
-	}
-
 

@@ -10,7 +10,7 @@
 	<th>{{gettext("Channel Name")}}</th>
 	<th>{{gettext("Language")}}</th>
 	<th>{{gettext("Country")}}</th>
-	<th>{{gettext("Expires")}}</th>
+	<th>{{gettext("Status")}}</th>
 </tr>
 </thead>
 <tbody>
@@ -19,7 +19,7 @@
 	<td><a href="{{channel.token}}">{{gettext(channel.name)}}</a></td>
 	<td>{{gettext(channel.language)}}</td>	
 	<td>{{gettext(channel.country)}}</td>	
-	<td>{{channel.expires.strftime("%Y-%m-%d %H:%M")}}</td>	
+	<td>{{channel.status}}</td>	
 </tr>
 {% endfor %}
 </tbody>
@@ -27,11 +27,11 @@
 </section>
 
 {% if form %}
-<section class="bordered">
+<section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
 {{lib.render_field(form.JW_STREAM_url,cols="40",rows="8")}}
-<div class="wrapped">
+<div class="borderless-box">
 {{lib.render_field(form.JW_STREAM_preview_resolution)}}
 {{lib.render_field(form.JW_STREAM_download_resolution)}}
 </div>

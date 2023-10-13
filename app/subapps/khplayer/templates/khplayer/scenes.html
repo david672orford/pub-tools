@@ -7,8 +7,8 @@
 
 {% block main %}
 <form action="submit" method="POST">
-<section class="big-buttons">
-	<p>
+<section>
+	<div class="borderless-box">
 		<button type="button" id="select-unstarred">{{gettext("Select Unstarred")}}</button>
 		<button type="button" id="select-all">{{gettext("Select All")}}</button>
 		<button type="button" id="deselect-all">{{gettext("Deselect All")}}</button>
@@ -16,14 +16,14 @@
 		{% if not cameras %}
 		<button type="submit" name="action" value="add-live">{{gettext("Add a Live Scene")}}</button>
 		{% endif %}
-	</p>
+	</div>
 
 	{% if cameras %}
-	<section class="bordered">
+	<section class="bordered-box">
 		<select name="camera">
-		{% for camera_dev, camera_name in cameras %}
+			{% for camera_dev, camera_name in cameras %}
 			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
-		{% endfor %}
+			{% endfor %}
 		</select>
 		<button type="submit" name="action" value="add-camera">{{gettext("Add Camera Scene")}}</button>
 		<button type="submit" name="action" value="add-zoom">{{gettext("Add Zoom Scene")}}</button>
@@ -43,10 +43,12 @@
 </form>
 
 <form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
-<section class="bordered big-buttons">
+<section class="bordered-box">
 <h2><label for="files">{{gettext("Upload Media Files")}}</label></h2>
-	<input type="file" id="files" name="files" multiple>
-	<button type="submit">{{gettext("Upload")}}</button>
+	<div class="borderless-box">
+		<input type="file" id="files" name="files" multiple>
+		<button type="submit">{{gettext("Upload")}}</button>
+	</div>
 </section>
 </form>
 

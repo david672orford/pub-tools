@@ -28,6 +28,10 @@ menu.append((_("JW Stream"), "/jwstream/"))
 	# Channels
 	_("Congregation Meetings"),
 	_("Public Talks"),
+
+	# Meetings,
+	_("Weekday"),
+	_("Weekend"),
 )
 
 class StreamConfigForm(Form):
