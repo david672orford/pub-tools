@@ -11,7 +11,7 @@ from ...jworg.jwstream import StreamRequesterContainer
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
-from .config_editor import ConfWrapper, config_saver
+from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 

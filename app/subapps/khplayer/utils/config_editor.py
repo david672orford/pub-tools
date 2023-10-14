@@ -4,7 +4,7 @@ from urllib.parse import urlencode
 import re
 import logging
 
-from ...models import db, Config
+from ....models import db, Config
 
 logger = logging.getLogger(__name__)
 

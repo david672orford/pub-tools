@@ -13,13 +13,15 @@ disabled individually in the config file.
 
 ## Run
 
-    $ ./pub-tools
-
-Or:
+Start the application web server:
 
     $ ./start.py
 
 and then open http://localhost:5000 in a web browser.
+
+Or run this script to start the web server and a web browser widget:
+
+    $ ./pub-tools
 
 ## The KH Player Module
 
@@ -44,6 +46,32 @@ Then run this command:
 
 A window will appear with tabs such as **Meetings**, **Songs**,
 **Videos**, **JW Stream** which can be used to load videos and illustrations.
+
+## OBS Scripts
+
+The obs-scripts directory contains scripts which you can load into OBS Studio.
+
+### khplayer.py
+
+Run the Pub Tools web app inside of OBS Studio.
+
+### virtual-audio-cable.py
+
+Call into KH Player to create two virtual audio cables in the Pipewire
+audio server and connect them properly to feed the output of OBS Studio 
+and the microphone selected in KH Player into Zoom and into the
+speakers also selected in KH Player.
+
+### autostart-outputs.py
+
+Start the virtual camera and a fullscreen output on the monitor selected in
+the script configuration screen.
+
+### auto-mute.py
+
+Mute the system default input device (which should be the microphone) whenever
+a video is playing in OBS Studio. Return the the first scene (which should
+show the camera) whenever a video stops playing.
 
 ## The Teaching Toolbox Module
 
@@ -85,4 +113,8 @@ command:
 If the ePub Viewer module ever moves beyond the experimental state, we will
 add a button or other control for downloading the ePub files directly from
 the web interface.
+
+## TODO
+
+* Fix bin/virtual-audio-cable
 

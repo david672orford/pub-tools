@@ -7,8 +7,8 @@ from ...utils import progress_callback_response
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
-from .cameras import list_cameras
-from .zoom import find_second_window
+from .utils.cameras import list_cameras
+from .utils.zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 

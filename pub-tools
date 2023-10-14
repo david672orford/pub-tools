@@ -3,6 +3,12 @@
 # This script starts an HTTP server for Pub-Tools and then
 # create a browser widget which connects to it.
 #
+# This mostly works, but no really well. Problems in KH Player include:
+# * Some elements have odd sizes. We corrected at least one of these
+#   problems by adding additional CSS rules, but some remain.
+# * Drag-and-drop of files into the Scene tab does not work.
+# * Drag and drop does not work in the patchbay.
+#
 
 import sys
 import webview
@@ -28,8 +34,8 @@ print("Starting webview...")
 webview.create_window(
 	title = "Pub-Tools",
 	url = "http://localhost:5000/" + "/".join(sys.argv[1:]),
-	width = 1000,
-	height = 850,
+	width = 1200,
+	height = 900,
 	)
 webview.start(debug=False)
 print("Webview has exited.")

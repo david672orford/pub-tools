@@ -6,12 +6,12 @@ import logging
 from ...models import db, Config
 from ...babel import gettext as _
 from .views import blueprint, menu
-from .virtual_cable import patchbay, connect_all
-from .config_editor import ConfWrapper, config_saver
+from .utils.virtual_cable import patchbay, connect_all
+from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 
-menu.append((_("Audio"), "/patchbay/"))
+menu.append((_("Audio"), "/audio/"))
 
 class AudioConfigForm(Form):
 	def __init__(self, *args, **kwargs):

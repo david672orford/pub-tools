@@ -28,13 +28,13 @@
 
 {% block main %}
 
-<section class="bordered-box">
 <form action="save-config" method="POST">
+<section class="bordered-box">
 {{lib.render_field(form.PERIPHERALS_microphone)}}
 {{lib.render_field(form.PERIPHERALS_speakers)}}
 <button type="Submit">{{gettext("Reconnect Audio")}}</button>
-</form>
 </section>
+</form>
 
 <div id="patchbay" class="patchbay patchbay-loading">
 <svg>

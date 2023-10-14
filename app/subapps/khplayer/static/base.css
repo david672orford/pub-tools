@@ -68,19 +68,20 @@ HEADER > NAV > UL > LI {
 	margin: 0 5px;
 	border-radius: 5px 5px 0 0;
 	background-color: #d0d0d0;
+	white-space: nowrap;
 	}
 HEADER > NAV > UL > LI:hover {
+	}
+HEADER > NAV > UL > LI.current {
+	position: relative;
+	top: 1px;
+	background-color: #f0f0f0;
 	}
 HEADER > NAV > UL > LI > A {
 	padding: .5em;
 	display: block;
 	text-decoration: none;
 	color: inherit;
-	}
-HEADER > NAV > UL > LI.current {
-	position: relative;
-	top: 1px;
-	background-color: #f0f0f0;
 	}
 HEADER > H1 {
 	padding: .3em;
