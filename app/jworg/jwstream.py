@@ -75,6 +75,7 @@ class StreamEvent:
 			self.datetime = week_of[0]
 			#self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
 			self.title = program_types.get(program_type, program_type)
+		self.duration = int(event["duration"] / 1000)
 		self.language = language_code_to_name(event["languageCode"])
 		self.country = country_code_to_name(event["countryCode"])
 		self.download_url = download_url

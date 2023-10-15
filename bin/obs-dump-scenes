@@ -1,4 +1,0 @@
-#! /bin/bash
-# Pretty print the JSON file which contains the scene list.
-# This is useful for getting the parameters to construct scenes programatically.
-json_pp <~/.config/obs-studio/basic/scenes/KH_Player.json

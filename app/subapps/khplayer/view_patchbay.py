@@ -55,7 +55,7 @@ def page_patchbay_save_config():
 	ok, response = config_saver(AudioConfigForm)
 	if ok:
 		patchbay.load()
-		for failure in connect_all(patchbay, current_app.config["PERIPHERALS"]):
+		for failure in connect_all(patchbay, current_app.config.get("PERIPHERALS")):
 			flash(failure)
 	return response
 

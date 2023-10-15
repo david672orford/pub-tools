@@ -1,22 +1,31 @@
 from flask.cli import AppGroup
 import click
 import json
+import sys, os
 
 from .utils import obs
 
 cli_obs = AppGroup("obs", help="Control OBS")
 
-@cli_obs.command("get-version")
+# Pretty print the JSON file which contains the scene list.
+# This is useful for getting the parameters to construct scenes programatically.
+@cli_obs.command("dump-scenes", help="Pretty-print KH Player scene collection")
+def cmd_obs_dump_scenes():
+	with open("%s/.config/obs-studio/basic/scenes/KH_Player.json" % os.environ["HOME"]) as f:
+		data = json.load(f)
+		json.dump(data, sys.stdout, indent=4)
+
+@cli_obs.command("get-version", help="OBS version and features")
 def cmd_obs_get_version():
 	response = obs.request("GetVersion", {})
-	print(json.dumps(response, indent=2, ensure_ascii=False))
+	print(json.dumps(response["responseData"], indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-scene-list")
+@cli_obs.command("get-scene-list", help="List scene items by name")
 def cmd_obs_get_scene_list():
 	for scene in obs.get_scene_list():
 		print(json.dumps(scene, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-scene-item-list")
+@cli_obs.command("get-scene-item-list", help="Show details of a named scene")
 @click.argument("scene_name")
 def cmd_obs_get_scene_item_list(scene_name):
 	response = obs.request("GetSceneItemList", {
@@ -24,12 +33,12 @@ def cmd_obs_get_scene_item_list(scene_name):
 		})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-input-list")
+@cli_obs.command("get-input-list", help="List inputs by name")
 def cmd_obs_get_input_list():
 	response = obs.request("GetInputList", {})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-input-settings")
+@cli_obs.command("get-input-settings", help="Show settings of specified input")
 @click.argument("input_name")
 def cmd_obs_get_input_settings(input_name):
 	response = obs.request("GetInputSettings", {"inputName": input_name})

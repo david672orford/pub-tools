@@ -4,7 +4,7 @@
 import obspython as obs
 
 class MyObsScript:
-	description = "Autostart virtual camera and fullscreen projector"
+	description = "Autostart virtual camera and fullscreen projector."
 
 	def __init__(self):
 		g = globals()

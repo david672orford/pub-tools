@@ -198,6 +198,8 @@ def connect_zoom(patchbay, config):
 def connect_all(patchbay, config):
 	if getattr(patchbay, "dummy", False):
 		return ["Not implemented"]
+	if config is None:
+		return ["No PERIPHERALS config"]
 	failures = []
 	failures.extend(create_cable(patchbay))
 	failures.extend(connect_peripherals(patchbay, config))

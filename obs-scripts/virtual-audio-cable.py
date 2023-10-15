@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app import create_app
 from app.obs_wrap import ObsScript
-from app.subapps.khplayer.virtual_cable import patchbay, connect_all, destroy_cable
+from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
 
 class ObsVirtualAudioCable(ObsScript):
 	description = "Create virtual audio cable in the Pipewire audio server"

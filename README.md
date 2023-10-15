@@ -17,18 +17,17 @@ Start the application web server:
 
     $ ./start.py
 
-and then open http://localhost:5000 in a web browser.
+Then open this URL in a web browser:
 
-Or run this script to start the web server and a web browser widget:
-
-    $ ./pub-tools
+     http://localhost:5000
 
 ## The KH Player Module
 
-This app helps you to load the videos and illustrations for a meeting into OBS
-Studio ready to play.
+This is the most well-developed of the modules. It helps you to load the videos
+and illustrations for a congregation meeting into OBS Studio ready to play.
 
-First open OBS 2.8 or later and enable the websocket plugin. Note the port
+The KH Player module communicates with OBS over websocket. You will need to use
+OBS version OBS 2.8. To pair them, open OBS and enable the websocket plugin. Note the port
 and password. Then open **instance/config.py** in a text editor and add
 this:
 
@@ -40,38 +39,41 @@ this:
 
 Replace *secret* with the password you set for the Websocket plugin in OBS.
 
-Then run this command:
-
-    $ ./pub-tools khplayer
-
+Now start the application web server and go to http://localhost:5000/khplayer/ in a browser.
 A window will appear with tabs such as **Meetings**, **Songs**,
-**Videos**, **JW Stream** which can be used to load videos and illustrations.
+and **Videos** which can be used to load videos material into OBS.
 
 ## OBS Scripts
 
-The obs-scripts directory contains scripts which you can load into OBS Studio.
+The obs-scripts directory contains scripts which can be installed in OBS studio
+to automate tasks required when using it at a congregation meeting.
 
 ### khplayer.py
 
-Run the Pub Tools web app inside of OBS Studio.
+This script runs the Pub Tools appliation web server into OBS Studio. This means
+that there is no need to start it separately.
 
 ### virtual-audio-cable.py
 
-Call into KH Player to create two virtual audio cables in the Pipewire
-audio server and connect them properly to feed the output of OBS Studio 
-and the microphone selected in KH Player into Zoom and into the
-speakers also selected in KH Player.
+This script creates two virtual audio cables in the Pipewire audio server and
+connect them properly to feed the output of OBS Studio and the microphone into the
+speakers also selected in KH Player. The microphone and speakers are selected in
+KH Player in the **Audio** tab.
 
 ### autostart-outputs.py
 
-Start the virtual camera and a fullscreen output on the monitor selected in
-the script configuration screen.
+This script starts the virtual camera and a fullscreen output on the monitor selected in
+the script configuration screen. This saves time when getting things set up before
+a congregation meeting.
 
 ### auto-mute.py
 
-Mute the system default input device (which should be the microphone) whenever
-a video is playing in OBS Studio. Return the the first scene (which should
-show the camera) whenever a video stops playing.
+This script mutes the microphone when music or videos are playing. This improves sound
+quality for participant in Zoom considerably.
+
+This script also initiates a scene switch to the first scene whenever it detects that
+the music or video has finished. To get the desired effect, you should make sure that
+the first scene shows the stage.
 
 ## The Teaching Toolbox Module
 
@@ -79,15 +81,11 @@ This subapp displays a list of the publications from the Teaching Toolbox
 along with the link to it on JW.ORG. It is intended to help publishers
 to send links to interested persons.
 
-To run it, first load the lists of publications:
+Before using this module, load the lists of publications:
 
     $ flask update magazines
     $ flask update books
     $ flask update videos
-
-Then run this command:
-
-    $ ./pub-tools toolbox
 
 ## The Epub Viewer Module
 
@@ -113,8 +111,4 @@ command:
 If the ePub Viewer module ever moves beyond the experimental state, we will
 add a button or other control for downloading the ePub files directly from
 the web interface.
-
-## TODO
-
-* Fix bin/virtual-audio-cable
 

@@ -92,9 +92,9 @@ def page_jwstream_player(token, id):
 		id = id,
 		channel = channel,
 		event = event,
-		clip_start = request.args.get("clip_start",""),
-		clip_end = request.args.get("clip_end",""),
-		clip_title = request.args.get("clip_title",""),
+		clip_start = request.args.get("clip_start","0:00"),
+		clip_end = request.args.get("clip_end","%d:%02d" % (int(event.duration / 60), event.duration % 60)),
+		clip_title = request.args.get("clip_title",event.title),
 		top = "../../..",
 		)
 
