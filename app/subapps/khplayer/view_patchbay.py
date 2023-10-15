@@ -11,7 +11,7 @@ from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 
-menu.append((_("Audio"), "/audio/"))
+menu.append((_("Audio"), "/patchbay/"))
 
 class AudioConfigForm(Form):
 	def __init__(self, *args, **kwargs):

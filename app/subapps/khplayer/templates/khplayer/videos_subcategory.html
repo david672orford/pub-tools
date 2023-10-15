@@ -1,13 +1,13 @@
-{% set title = gettext("Videos: {category} — {subcategory}").format(category=category.category_name, subcategory=category.subcategory_name) %}
+{% set title = gettext("Videos: {category} — {subcategory}").format(category=subcategory.category_name, subcategory=subcategory.subcategory_name) %}
 {% extends "khplayer/base.html" %}
 
 {% block header %}
 	<h1>
 		<a href="../..">
 		<div style="float: left; font-size: 200%; margin-right: 10px;">&lt;</div>
-		{{ category.category_name }}
+		{{ subcategory.category_name }}
 		<br>
-		{{ category.subcategory_name }}
+		{{ subcategory.subcategory_name }}
 		</a>
 	</h1>
 {% endblock %}
@@ -17,7 +17,7 @@
 
 <form action="load-video" method="POST">
 <ul>
-{% for video in category.videos | sort(attribute="date", reverse=True) %}
+{% for video in subcategory.videos | sort(attribute="date", reverse=True) %}
 <li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
 {% endfor %}
 </ul>

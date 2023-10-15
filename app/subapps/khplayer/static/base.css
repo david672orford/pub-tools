@@ -187,6 +187,7 @@ DIV.thumbnail > DIV.caption {
 	margin: .25em;
 	}
 
+/*
 .wrapped {
 	display: flex;
 	align-items: stretch;
@@ -194,6 +195,7 @@ DIV.thumbnail > DIV.caption {
 .wrapped .form-field {
 	margin: .2em 1em .2em 0;
 	}
+*/
 
 /* Labeled form field */
 .form-field {
@@ -209,7 +211,7 @@ DIV.thumbnail > DIV.caption {
 .form-field > *:last-child {
 	margin-right: 0;
 	}
-.form-field > LABEL::after {
+.form-field > LABEL:first-child::after {
 	content: ":";
 	}
 

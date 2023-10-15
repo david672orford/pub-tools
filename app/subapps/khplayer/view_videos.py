@@ -24,7 +24,7 @@ def page_videos():
 # When Search button pressed
 @blueprint.route("/videos/search", methods=["POST"])
 def page_videos_search():
-	flash("Search not implemented")
+	flash("Search not yet implemented")
 	return redirect(".")
 
 # When Update button is pressed
@@ -36,8 +36,8 @@ def page_videos_update_all():
 # List all the videos in a category. Clicking on a video loads it into OBS.
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def page_videos_list(category_key, subcategory_key):
-	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("khplayer/video_category.html", category=category, top="../../..")
+	subcategory = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
+	return render_template("khplayer/videos_subcategory.html", subcategory=subcategory, top="../../..")
 
 # Update the videos in a category
 @blueprint.route("/videos/<category_key>/<subcategory_key>/update", methods=["POST"])

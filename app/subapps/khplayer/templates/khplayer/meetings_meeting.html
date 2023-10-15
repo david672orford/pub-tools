@@ -13,7 +13,7 @@
 <table class="borders full-width">
 <thead>
 <tr>
-	<th></th>
+	<th><input id="check-all" type="checkbox" checked></th>
 	<th>{{gettext("Part")}}</th>
 	<th>{{gettext("Pub")}}</th>
 	<th colspan="2">{{gettext("Media Item")}}</th>
@@ -24,15 +24,31 @@
 </table>
 </section>
 
-<section id="button-box" class="bordered">
-	<div class="form-field">
+<section id="button-box" class="bordered-box">
+	<span class="form-field">
 		<button type="submit" disabled>{{gettext("Download Media and Create Scenes in OBS")}}</button>
-	</div>
+	</span>
+	<span class="form-field">
+		<input type="checkbox" id="delete-existing" name="delete-existing" value="true" checked>
+		<label for="delete-existing">{{gettext("Delete existing unstarred scenes")}}</label>
+	</span>
+	<br>
+	<span class="form-field">
+		<a href="{{meeting_url}}" target="_blank">
+			<button type="button">{{gettext("Open Meeting Article")}}</button>
+		</a>
+	</span>
 </section>
 
 </form>
 
 <script>
+document.getElementById("check-all").addEventListener("click", function() {
+	let state = event.target.checked;
+	document.getElementsByName("selected").forEach(checkbox => {
+		checkbox.checked = state;
+		});
+	});
 function loaded_hook() {
 	document.getElementsByTagName("button")[0].disabled = false;
 	}

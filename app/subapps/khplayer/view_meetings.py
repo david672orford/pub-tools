@@ -41,16 +41,22 @@ def page_meetings_update():
 @blueprint.route("/meetings/<int:docid>/")
 def page_meetings_view(docid):
 	title = request.args.get("title")
-	return render_template("khplayer/meeting_media.html", meeting_title=title, top="../..")
+	return render_template(
+		"khplayer/meetings_meeting.html",
+		meeting_title = title,
+		meeting_url = meeting_url(docid),
+		top = "../.."
+		)
 
-# Asyncronous source of meeting media items
+# Asyncronous source which delivers items to a meeting's
+# page as they are loaded
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
 		index = 0
 		previous_section = None
-		for item in get_meeting_media_cached(docid):
-			data = render_template("khplayer/meeting_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
+		for item in get_meeting_media(docid):
+			data = render_template("khplayer/meetings_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
 			previous_section = item.section_title
 			yield "data: " + data.replace("\n", " ") + "\n\n"
 			sleep(.1)
@@ -58,22 +64,24 @@ def page_meetings_view_stream(docid):
 		yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
-# Use has pressed the "Download Media and Create Scenes in OBS" button
+# User has pressed the "Download Media and Create Scenes in OBS"
+# button on a meeting's media page.
 @blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
 def page_meetings_load(docid):
 
 	# Remove all scenes except those with names beginning with an asterisk.
 	# Such scenes are for stage cameras, Zoom, etc.
-	for scene in obs.get_scene_list():
-		if not scene['sceneName'].startswith("*"):
-			obs.remove_scene(scene['sceneName'])
+	if request.form.get("delete-existing","false") == "true":
+		for scene in obs.get_scene_list():
+			if not scene['sceneName'].startswith("*"):
+				obs.remove_scene(scene['sceneName'])
 
 	# The media list will already by in the cache. Loop over it saving only
 	# those items which have a checkbox next to them in the table.
 	selected = set(map(int, request.form.getlist("selected")))
 	media = []
 	index = 0
-	for item in get_meeting_media_cached(docid):
+	for item in get_meeting_media(docid):
 		if index in selected:
 			media.append(item)
 		index += 1
@@ -83,8 +91,9 @@ def page_meetings_load(docid):
 
 	return progress_callback_response(_("Loading media for %s...") % request.form.get("title"))
 
-# Wrapper for get_meeting_media() which caches the responses in a DB table
-def get_meeting_media_cached(docid):
+# Download the meeting article (from the Watchtower or Workbook) and
+# extract a list of the videos and images. Implements caching.
+def get_meeting_media(docid):
 
 	# Look for this meeting's media in the DB cache table
 	# FIXME: Race condition can produce duplicate cache entries, so we use first().
@@ -95,10 +104,11 @@ def get_meeting_media_cached(docid):
 			yield MeetingMedia(**item)
 		return
 
-	# Yield items as they are obtained by the underlying iterator.
-	# Also save them in a list for the cache.
+	# Use the meeting loader to download the article and scan it for media
+	# such as videos and illustrations. This is an iterator, so we can 
+	# yield items as they are obtained. Also save them in a list for the cache.
 	media = []
-	for item in get_meeting_media(docid):
+	for item in meeting_loader.extract_media(meeting_url(docid), callback=progress_callback):
 		yield item
 		media.append(item)
 
@@ -106,17 +116,6 @@ def get_meeting_media_cached(docid):
 	meeting = MeetingCache(docid=docid, media=list(map(lambda item: asdict(item), media)))
 	db.session.add(meeting)
 	db.session.commit()
-
-# Download the meeting article (from the Watchtower or Workbook) and
-# extract a list of the videos and images.
-def get_meeting_media(docid):
-
-	# Construct the sharing URL for the meeting article. This will redirect to the article itself.
-	url = "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
-
-	# Use the meeting loader to download the article and scan it for media
-	# such as videos and illustrations. (Note that this is an iterator.)
-	return meeting_loader.extract_media(url, callback=progress_callback)
 
 # Run in a background thread to download the media and add a scene in OBS for each item.
 def meeting_media_to_obs_scenes(items):
@@ -148,4 +147,8 @@ def meeting_media_to_obs_scenes(items):
 			raise AssertionError("Unhandled case")
 
 	progress_callback("Meeting loaded")
+
+# Construct the sharing URL for a meeting article. This will redirect to the article itself.
+def meeting_url(docid):
+	return "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
 
