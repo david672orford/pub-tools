@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from time import sleep
 import os, logging
 
-from ...utils import progress_callback_response
+from ...utils import progress_response
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
@@ -77,7 +77,7 @@ def page_scenes_submit():
 		flash(_("OBS: %s") % str(e))
 
 	if message is not None:
-		return progress_callback_response(message)
+		return progress_response(message)
 	else:
 		return redirect(".")
 

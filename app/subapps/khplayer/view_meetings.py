@@ -9,7 +9,7 @@ from markupsafe import escape
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_response, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...babel import gettext as _
@@ -66,7 +66,7 @@ def page_meetings_view_stream(docid):
 
 # User has pressed the "Download Media and Create Scenes in OBS"
 # button on a meeting's media page.
-@blueprint.route("/meetings/<int:docid>/load", methods=['POST'])
+@blueprint.route("/meetings/<int:docid>/download", methods=['POST'])
 def page_meetings_load(docid):
 
 	# Remove all scenes except those with names beginning with an asterisk.
@@ -89,7 +89,7 @@ def page_meetings_load(docid):
 	# Download in the background.
 	run_thread(lambda: meeting_media_to_obs_scenes(media))
 
-	return progress_callback_response(_("Loading media for %s...") % request.form.get("title"))
+	return progress_response(_("Loading media for %s...") % request.form.get("title"))
 
 # Download the meeting article (from the Watchtower or Workbook) and
 # extract a list of the videos and images. Implements caching.

@@ -5,27 +5,16 @@ function init_scenes()
 		return document.querySelector(id);
 		}
 
-	function select_all(name, state)
-		{
-		document.getElementsByName(name).forEach(checkbox => {
-			checkbox.checked = state;
+	$("#check-all").addEventListener("click", function() {
+		let state = event.target.checked;
+		document.getElementsByName("del").forEach(checkbox => {
+			if(!state || checkbox.value[0] != "*")
+				checkbox.checked = state;
 			});
-		}
+		});
 
-	function select_unstarred(name, state)
-		{
-		document.getElementsByName(name).forEach(checkbox => {
-				checkbox.checked = (checkbox.value[0] != "*");
-			});
-		}
-
-	document.getElementById("select-unstarred").addEventListener("click", event => { select_unstarred("del",true); });
-	document.getElementById("select-all").addEventListener("click", event => { select_all("del",true); });
-	document.getElementById("deselect-all").addEventListener("click", event => { select_all("del",false); });
-
-	let dropArea = $('UL.scenes');
-
-	/* Allow drop */
+	/* Enable the drag-and-drop dropzone */
+	let dropArea = $('#scenes');
 	dropArea.addEventListener("dragover", (e) => e.preventDefault());
 
 	/* Visual feedback when over drop zone */
@@ -55,8 +44,20 @@ function init_scenes()
 		console.log("Items:", e.dataTransfer.items);
 		console.log("Types:", e.dataTransfer.types);
 
-		$("#files").files = e.dataTransfer.files;
-		$("#upload-form").submit();
+		if(e.dataTransfer.files.length > 0)
+			{
+			$("#files").files = e.dataTransfer.files;
+			$("#upload-form").submit();
+			}
+		else
+			{
+			let list = e.dataTransfer.items;
+			for(let i=0; i < list.length; i++)
+				{
+				console.log(list[i]);
+				list[i].getAsString(s => console.log(s));
+				}
+			}
 
 		dropArea.classList.remove("highlight");
 		counter = 0;

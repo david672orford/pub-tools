@@ -15,12 +15,31 @@
 {% block main %}
 <section>
 
-<form action="load-video" method="POST">
-<ul>
+<form action="download" method="POST">
+<table class="borders full-width selection">
+<thead>
+<tr>
+	<th></th>
+	<th></th>
+	<th>{{gettext("Video Title")}}</th>
+</tr>
+</thead>
+<tbody>
 {% for video in subcategory.videos | sort(attribute="date", reverse=True) %}
-<li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
+	<tr>
+		<td>
+			<button class="add" type="submit" name="lank" value="{{video.lank|urlencode}}">+</button>
+		</td>
+		<td>
+			<div class="thumbnail"><img src="{{video.thumbnail}}"></td>
+		</td>
+		<td>
+			<a href="{{video.href}}" target="_blank">{{video.name}}</a>
+		</td>
+	</tr>
 {% endfor %}
-</ul>
+</tbody>
+</table>
 <input id="title" type="hidden" name="title">
 </form>
 

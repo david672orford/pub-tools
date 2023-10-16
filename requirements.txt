@@ -35,3 +35,5 @@ rich==9.11.1
 # Gettext
 flask-babel==4.0.0
 
+# Russian inflection
+pymorphy2==0.9.1

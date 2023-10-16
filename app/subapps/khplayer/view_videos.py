@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, flash
 from collections import defaultdict
 import logging
 
-from ...utils import progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_response, run_thread
 from ...models import VideoCategories, Videos
 from ...cli_update import update_videos, update_video_subcategory
 from ...babel import gettext as _
@@ -46,9 +46,9 @@ def page_videos_category_subcategory_update(category_key, subcategory_key):
 	return redirect(".")
 
 # Download a video and create a scene for it in OBS
-@blueprint.route("/videos/<category_key>/<subcategory_key>/load-video", methods=["POST"])
-def page_videos_category_subcategory_load_video(category_key, subcategory_key):
+@blueprint.route("/videos/<category_key>/<subcategory_key>/download", methods=["POST"])
+def page_videos_category_subcategory_download(category_key, subcategory_key):
 	lank = request.form.get("lank")
 	run_thread(lambda: load_video(lank))
-	return progress_callback_response(gettext("Loading %s...") % request.form.get("title"))
+	return progress_response(_("Downloading %s...") % request.form.get("title"))
 

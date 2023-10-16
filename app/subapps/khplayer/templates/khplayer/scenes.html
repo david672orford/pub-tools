@@ -9,9 +9,6 @@
 <form action="submit" method="POST">
 <section>
 	<div class="borderless-box">
-		<button type="button" id="select-unstarred">{{gettext("Select Unstarred")}}</button>
-		<button type="button" id="select-all">{{gettext("Select All")}}</button>
-		<button type="button" id="deselect-all">{{gettext("Deselect All")}}</button>
 		<button type="submit" name="action" value="delete">{{gettext("Delete Selected")}}</button>
 		{% if not cameras %}
 		<button type="submit" name="action" value="add-live">{{gettext("Add a Live Scene")}}</button>
@@ -31,14 +28,23 @@
 	</section>
 	{% endif %}
 
-	<ul class="scenes">
+<table id="scenes" class="borders full-width selection">
+<thead>
+<tr>
+	<th><input id="check-all" type="checkbox"></th>
+	<th>{{gettext("Scene Name")}}</th>
+</tr>
+</thead>
+<tbody>
 	{% for scene_name in scene_names %}
-	<li>
-		<input type="checkbox" name="del" value="{{scene_name}}">
-		<button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button>
-		</li>
+	<tr>
+		<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
+		<td><button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
+	</tr>
 	{% endfor %}
-	</ul>
+</tbody>
+</table>
+
 </section>
 </form>
 

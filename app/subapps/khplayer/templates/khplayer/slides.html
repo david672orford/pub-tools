@@ -5,7 +5,7 @@
 {% block main %}
 <section>
 <form action="load" method="POST">
-<table class="borders">
+<table class="borders selection">
 <thead>
 <tr>
 	<th></th>
@@ -25,15 +25,18 @@
 {% endfor %}
 </tbody>
 </table>
-<p>
+<div class="borderless-box">
 	<a href="."><button>{{gettext("Reload")}}</button></a>
 	<button type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
-</p>
+	{% if not form %}
+	<a href=".?action=configuration"><button>{{gettext("Configuration")}}</button></a>
+	{% endif %}
+</div>
 </form>
 </section>
 
 {% if form %}
-<section class="bordered">
+<section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
 {{lib.render_field(form.GDRIVE_url, size=70)}}
@@ -41,9 +44,6 @@
 <a href="."><button>{{gettext("Cancel")}}</button></a>
 </form>
 </section>
-{% else %}
-<section>
-	<a href=".?action=configuration"><button>{{gettext("Configuration")}}</button></a>
-</section>
 {% endif %}
+
 {% endblock %}

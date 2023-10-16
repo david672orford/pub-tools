@@ -2,7 +2,7 @@ from flask import request, session, render_template, redirect
 from time import sleep
 import logging
 
-from ...utils import progress_callback, progress_callback_response, run_thread, turbo_flash
+from ...utils import progress_callback, progress_response, run_thread, turbo_flash
 from ...models import VideoCategories
 from ...babel import gettext as _
 from .views import blueprint, menu
@@ -33,7 +33,7 @@ def page_songs_submit():
 		message = _("Loading song %s") % lank
 		run_thread(lambda: load_video(lank, prefix="♫ ПЕСНЯ "))
 
-	return progress_callback_response(message)
+	return progress_response(message)
 
 # Load a song video identified by song number
 def load_song(song):

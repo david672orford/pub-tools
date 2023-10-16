@@ -6,7 +6,7 @@ import subprocess
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_callback_response, run_thread
+from ...utils import progress_callback, progress_response, run_thread
 from ...jworg.jwstream import StreamRequesterContainer
 from ...babel import gettext as _
 from .views import blueprint, menu
@@ -77,10 +77,10 @@ def page_jwstream_channel(token):
 # User has pressed Update button
 @blueprint.route("/jwstream/<token>/update", methods=["POST"])
 def page_jwstream_update(token):
-	progress_callback("Updating event list...")
+	progress_callback(_("Updating event list..."))
 	channel = jwstream_channels()[token]
 	channel.reload()
-	return progress_callback_response(_("Channel event list updated."))
+	return progress_response(_("Channel event list updated."))
 
 # Player
 @blueprint.route("/jwstream/<token>/<id>/")
@@ -126,7 +126,7 @@ def page_jwstream_clip(token, id):
 		return redirect(return_url)
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
-	progress_callback(("Requesting download URL..."))
+	progress_callback(_("Requesting download URL..."))
 	channel = jwstream_channels()[token]
 	event = channel.get_event(id, preview=False)
 
@@ -139,7 +139,7 @@ def page_jwstream_clip(token, id):
 
 	logger.debug("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
 
-	# If the this clip was made earlier, make the scene right away, otherwise
+	# If this clip was made earlier, make the scene right away, otherwise
 	# spawn a background thread to download it and create the scene when the
 	# download is done.
 	if os.path.exists(media_file):
@@ -182,8 +182,9 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 # Connect to OBS and tell it to make a new scene with this file as the input.
 def create_clip_scene(clip_title, media_file):
 	try:
-		obs.add_media_scene("▷" + clip_title, "video", media_file)
+		obs.add_media_scene("▷ " + clip_title, "video", media_file)
 	except ObsError as e:
+		# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
 		turbo_flash("OBS: %s" % str(e))
 	else:
 		progress_callback(_("Clip created"))

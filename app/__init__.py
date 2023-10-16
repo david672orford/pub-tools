@@ -25,6 +25,7 @@ def create_app(instance_path=None):
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
+		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		FLASK_ADMIN_FLUID_LAYOUT = True,
 		APP_DISPLAY_NAME = "JW Pubs",
 		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs"],

@@ -9,6 +9,7 @@ import click
 import json
 
 from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
+from .models_whoosh import update_video_index, video_search
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
@@ -189,6 +190,7 @@ def update_videos(callback=default_callback):
 				db.session.add(category_db_obj)
 			copy_video_list(subcategory, category_db_obj)
 	db.session.commit()
+	update_video_index()
 	callback("Videos list updated.")
 
 def update_video_subcategory(category_key, subcategory_key, callback=default_callback):
@@ -197,10 +199,12 @@ def update_video_subcategory(category_key, subcategory_key, callback=default_cal
 	subcategory = VideoLister().get_category(subcategory_key)
 	copy_video_list(subcategory, category_db_obj)
 	db.session.commit()
+	update_video_index()
 
+# Copy a list of videos obtained from VidoeLister into a VideoCategories DB object
 def copy_video_list(subcategory, category_db_obj):
 	for video in subcategory.videos:
-		print(" Video:", video.name)
+		#print(" Video:", video.name)
 		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 		if video_obj is None:
 			video_obj = Videos()
@@ -210,4 +214,14 @@ def copy_video_list(subcategory, category_db_obj):
 		video_obj.href = video.href
 		video_obj.thumbnail = video.thumbnail
 		category_db_obj.videos.append(video_obj)
+
+@cli_update.command("video-index", help="Update search index of available videos")
+def cmd_update_video_index():
+	update_video_index()
+
+@cli_update.command("video-search", help="Perform a test query on the video index")
+@click.argument("q")
+def cmd_update_video_query(q):
+	for video in video_search(q):
+		print(video.name)
 

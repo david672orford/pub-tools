@@ -20,10 +20,10 @@ HEADER {
 MAIN {
 	flex-grow: 1;
 	overflow: auto;
-	margin-top: .5em;
+	margin-top: .3rem;
 	}
 SECTION {
-	margin: 0 .5em .5em .5em;
+	margin: 0 .3rem .3rem .3rem;
 	}
 H1, H2 {
 	font-family: sans-serif;
@@ -107,34 +107,40 @@ DIV.flash {
 	background-color: #C00000;
 	color: white;
 	border-radius: 5px;
-	margin: .5em .5em 0 .5em;
+	margin: .3rem .3rem 0 .3rem;
 	padding: .5em;
 	font-family: sans-serif;
 	}
-DIV.progress.flash {
+/*DIV.progress.flash {
 	margin: .1em .1em 0 .1em;
-	}
-
-/* List of videos */
-UL.nowrap LI {
-	white-space: nowrap;
-	}
+	}*/
 
 /* An actual table with borders and shaded header elements */
 TABLE.borders {
 	border-collapse: collapse;
-	margin-bottom: .5em;	
+	margin-bottom: .3em;	
 	}
 TABLE.borders TH, TABLE.borders TD {
-	border: thin solid black;
+	border: thin solid #808080;
 	text-align: left;
 	padding: .3em;
+	}
+TABLE.borders.selection TH:first-child, TABLE.borders.selection TD:first-child {
+	width: 1px;
 	}
 TABLE.borders TH {
 	background-color: #f0f0f0;
 	}
 TABLE.full-width {
 	width: 100%;
+	}
+TABLE.borders BUTTON.add {
+	width: 25pt;
+	height: 25pt;
+	margin: 0;
+	padding: 0;
+	font-weight: bold;
+	font-size: 150%;
 	}
 
 /* Thumbnail image representing video or illustration */
@@ -165,37 +171,36 @@ DIV.thumbnail > DIV.caption {
 	background-color: rgba(255, 255, 255, 0.5);
 	}
 
-/* Box to contain a group of controls, with border */
-.bordered-box {
-	border: thin solid #808080;
-	border-radius: .2em;
-	padding: .25em .25em 0 .25em;
-	}
-.bordered-box > * {
-	margin: .25em;
-	}
-
-/* A container to lay out a group of controls */
+/* A container to lay out a group of controls
+   To suppress the space between inline elements (such as between consecutive
+   buttons) we set the font size to zero and restore it. While the font size
+   is zeroed out we have to use "rem" instead of "em" for sizes.
+   We tried flexbox, but if you enable it, you lose the disction between
+   block and inline elements.
+*/
 .borderless-box {
-	margin: -.25em -.25em 0 -.25em;
-	/*border: 1px dotted green;*/
+	font-size: 0;
+	margin: -.25rem -.25rem 0 0;
+	}
+.borderless-box > * {
+	font-size: 1rem;
+	margin: .25em .25em .25em 0;
 	}
 .borderless-box:last-child {
 	margin-bottom: 0;
 	}
-.borderless-box > * {
-	margin: .25em;
-	}
 
-/*
-.wrapped {
-	display: flex;
-	align-items: stretch;
+/* Box to contain a group of controls, with border */
+.bordered-box {
+	font-size: 0;
+	border: thin solid #808080;
+	border-radius: .2rem;
+	padding: .25rem 0 0 .25rem;
 	}
-.wrapped .form-field {
-	margin: .2em 1em .2em 0;
+.bordered-box > * {
+	font-size: 1rem;
+	margin: 0 .25em .25em 0;
 	}
-*/
 
 /* Labeled form field */
 .form-field {
@@ -203,10 +208,7 @@ DIV.thumbnail > DIV.caption {
 	align-items: center;
 	}
 .form-field > * {
-	margin: 0 .3em;
-	}
-.form-field > *:first-child {
-	margin-left: 0;
+	margin: 0 .3em 0 0;
 	}
 .form-field > *:last-child {
 	margin-right: 0;
@@ -215,28 +217,9 @@ DIV.thumbnail > DIV.caption {
 	content: ":";
 	}
 
-/* for scenes.html */
-UL.scenes {
-	list-style-type: none;
-	margin-left: 0;
-	border: 2px solid #c0c0c0;
-	margin-bottom: .5em;
-	min-height: 10em;		/* so there will always be a clear drop zone */
-	}
-UL.scenes > LI {
-	display: flex;
-	margin: 0 .5em;
-	}
-UL.scenes > LI > * {
-	margin: .5em;
-	}
-UL.scenes > LI > BUTTON {
-	flex-grow: 1;
-	text-align: left;
-	padding: .5em;
-	}
-UL.scenes.highlight {
-	border-color: blue;
+/* For drag-and-drop */
+.highlight {
+	border: blue 2px solid;
 	background-color: #f0f0ff;
 	}
 

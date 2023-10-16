@@ -37,7 +37,7 @@ obs = ObsControl(config=current_app.config.get("OBS_WEBSOCKET"))
 # Download a video (if it is not already cached) and add it to OBS as a scene
 #=============================================================================
 
-def load_video(lank, prefix="▷"):
+def load_video(lank, prefix="▷ "):
 	video = Videos.query.filter_by(lank=lank).one()
 	progress_callback("Getting video URL...")
 	video_metadata = meeting_loader.get_video_metadata(video.href, resolution="480p")

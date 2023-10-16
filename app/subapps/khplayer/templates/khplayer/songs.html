@@ -13,11 +13,26 @@
 <section>
 {% if videos %}
 <form action="submit" method="POST">
-<ul class="nowrap">
+<table class="borders full-width selection">
+<thead>
+<tr>
+	<th></th>
+	<th>{{gettext("Song Number and Name")}}</th>
+</tr>
+</thead>
+<tbody>
 {% for video in videos %}
-<li><button type="submit" name="lank" value="{{video.lank|urlencode}}">{{video.name}}</button></li>
+	<tr>
+		<td>
+			<button class="add" type="submit" name="lank" value="{{video.lank|urlencode}}">+</button>
+		</td>
+		<td>
+			{{video.name}}
+		</td>
+	</tr>
 {% endfor %}
-</ul>
+</tbody>
+</table>
 </form>
 {% else %}
 <p>{{gettext("Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here.")|safe}}</p>
