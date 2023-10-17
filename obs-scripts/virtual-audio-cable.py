@@ -10,11 +10,11 @@ class ObsVirtualAudioCable(ObsScript):
 
 	def on_load(self):
 		self.app = create_app()
-		self.patchbay.load()
-		connect_all(self.patchbay, self.app.config["PERIPHERALS"])
+		patchbay.load()
+		connect_all(patchbay, self.app.config["PERIPHERALS"])
 
 	def on_unload(self):
-		self.patchbay.load()
-		destroy_cable(self.patchbay)
+		patchbay.load()
+		destroy_cable(patchbay)
 
 ObsVirtualAudioCable()

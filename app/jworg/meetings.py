@@ -369,7 +369,8 @@ class MeetingLoader(Fetcher):
 
 			figcaption = figure.find("./figcaption")
 			if figcaption is not None:
-				caption = figcaption.text_content().strip()
+				# Caption text with footnote marker stripped from end and whitespace from both ends
+				caption = figcaption.text_content().strip().removesuffix("*").rstrip()
 			elif link is not None and link.attrib.get("class","").startswith("pub-"):
 				caption_div = figure.getparent().getnext()
 				caption = caption_div.xpath(".//a[@class='%s']" % link.attrib.get("class"))[0].text_content()
@@ -422,6 +423,7 @@ class MeetingLoader(Fetcher):
 					media_title = caption
 				else:
 					media_title = img.attrib.get("alt","").strip()
+
 				if media_title == "":
 					media_title = "%s №%d" % (article_title, n)
 
