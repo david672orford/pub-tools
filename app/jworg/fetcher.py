@@ -8,6 +8,8 @@ import re
 from time import sleep, time
 import logging
 
+from ..babel import gettext as _
+
 logger = logging.getLogger(__name__)
 
 class NoRedirects(HTTPErrorProcessor):
@@ -160,15 +162,15 @@ class Fetcher:
 
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
-		logger.debug("Download media file %s...", url)
-		if callback:
-			callback("Downloading media file...")
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if os.path.exists(cachefile):
-			logger.debug(" Media file already in cache")
+			logger.debug("Media file %s already in cache", url)
 			if callback:
-				callback("Media file already in cache")
+				callback(_("Media file already in cache"))
 		else:
+			logger.debug("Download media file %s...", url)
+			if callback:
+				callback(_("Downloading media file..."))
 			response = self.get(url)
 			total_expected = int(response.headers.get("Content-Length"))
 			with open(cachefile + ".tmp", "wb") as fh:
@@ -183,14 +185,13 @@ class Fetcher:
 					logger.debug("%d byte chunk, %s of %s bytes received", len(chunk), total_recv, total_expected)
 					if callback:
 						now = time()
-						if (now - last_callback) >= 0.5:
-							logger.debug("callback!")
+						if (now - last_callback) >= 0.5 or total_recv == total_expected:
 							callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
 							last_callback = now
 			os.rename(cachefile + ".tmp", cachefile)
 			logger.debug("Media file downloaded, %d bytes received", total_recv)
 			if callback:
-				callback("Media file downloaded")
+				callback(_("Media file downloaded"))
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
@@ -224,7 +225,11 @@ class Fetcher:
 				language = query["wtlocale"],
 				video = query["lank"],
 				), query = { "clientType": "www" })
-			media = media["media"][0]
+			try:
+				media = media["media"][0]
+			except IndexError:
+				logger.error("No media: %s", media)
+				raise
 
 			# If the caller has specified a video resolution, find a suitable file.
 			url = None

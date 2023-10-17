@@ -9,7 +9,7 @@ from markupsafe import escape
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_response, run_thread
+from ...utils import progress_callback, progress_response, async_flash, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...babel import gettext as _
@@ -53,15 +53,19 @@ def page_meetings_view(docid):
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
-		index = 0
-		previous_section = None
-		for item in get_meeting_media(docid):
-			data = render_template("khplayer/meetings_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
-			previous_section = item.section_title
-			yield "data: " + data.replace("\n", " ") + "\n\n"
-			sleep(.1)
-			index += 1
-		yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
+		try:
+			index = 0
+			previous_section = None
+			for item in get_meeting_media(docid):
+				data = render_template("khplayer/meetings_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
+				previous_section = item.section_title
+				yield "data: " + data.replace("\n", " ") + "\n\n"
+				sleep(.1)
+				index += 1
+			progress_callback(_("Meeting media list loaded"), last_message=True)
+			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
+		except Exception as e:
+			async_flash(_("Error: %s" % e))
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
 # User has pressed the "Download Media and Create Scenes in OBS"
@@ -117,7 +121,7 @@ def get_meeting_media(docid):
 	db.session.add(meeting)
 	db.session.commit()
 
-# Run in a background thread to download the media and add a scene in OBS for each item.
+# This function is run in a background thread to download the media and add a scene in OBS for each item.
 def meeting_media_to_obs_scenes(items):
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
@@ -146,7 +150,7 @@ def meeting_media_to_obs_scenes(items):
 		else:
 			raise AssertionError("Unhandled case")
 
-	progress_callback("Meeting loaded")
+	progress_callback(_("Meeting loaded"), last_message=True)
 
 # Construct the sharing URL for a meeting article. This will redirect to the article itself.
 def meeting_url(docid):

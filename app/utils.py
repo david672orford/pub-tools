@@ -24,28 +24,35 @@ def run_thread(func):
 	background_thread.start()
 
 # Send an asyncronous status update to the web browser
-def progress_callback(message, **kwargs):
-	if message == "{total_recv} of {total_expected}":
-		percent = int(kwargs["total_recv"]  * 100 / kwargs["total_expected"] + 0.5)
-		message = '<div style="width: {percent}%; height: 100%; background-color: green"></div>'.format(percent=percent)
-	else:
-		message = message.format(**kwargs)
-		message = '<div>%s</div>' % escape(message)
+def progress_callback(message, last_message=False, **kwargs):
 	to = session['session-id']
 	try:
-		turbo.push(turbo.update(message, target="progress"), to=to)
+		if message == "{total_recv} of {total_expected}":
+			percent = int(kwargs["total_recv"]  * 100 / kwargs["total_expected"] + 0.5)
+			message = '<div style="width: {percent}%"></div>'.format(percent=percent)
+			turbo.push(turbo.update(message, target="progress-bar"), to=to)
+		else:
+			message = message.format(**kwargs)
+			message = '<div>%s</div>%s' % (
+				escape(message),
+				"<script>hide_progress()</script>" if last_message else "",
+				)
+			turbo.push(turbo.update(message, target="progress-message"), to=to)
 	except KeyError:
 		logger.warning("No Turbo connection from client: %s", to)
 
 # Send a syncronous status update to the web browser in response to a form submission
-def progress_response(message, **kwargs):
+def progress_response(message, last_message=False, **kwargs):
 	message = message.format(**kwargs)
 	return turbo.stream([
-		turbo.update('<div>%s</div>' % escape(message), target="progress")
+		turbo.update('<div>%s</div>%s' % (
+			escape(message),
+			"<script>hide_progress()</script>" if last_message else "",
+			), target="progress-message")
 		])
 
 # Asyncronous version of Flask's flash() for use in background download threads
-def turbo_flash(message):
+def async_flash(message):
 	to = session['session-id']
 	turbo.push(turbo.append('<div class="progress flash">%s</div>' % escape(message), target="flashes"), to=to)
 

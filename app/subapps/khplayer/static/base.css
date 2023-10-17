@@ -90,16 +90,37 @@ HEADER H1 A {
 	color: inherit;
 	text-decoration: inherit;
 	}
+HEADER {
+	position: relative;
+	}
 HEADER DIV#progress {
-	float: right;
-	margin: .4em;
-	min-width: 33%;
-	height: 1.3em;
-	background-color: #f8f8f8;
+	position: absolute;
+	top: .5em;
+	right: .5em;
+	width: 50%;
+	min-width: 20em;
+	background-color: #f0f0f0;
+	border: 1px solid #808080;
+	visibility: hidden;
+	}
+HEADER DIV#progress:has(#progress-message > DIV) {
+	visibility: visible;
+	}
+HEADER DIV#progress > * {
+	margin: .3em;
 	border: 1px solid #c0c0c0;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
+	}
+HEADER DIV#progress-bar {
+	background-color: #f8f8f8;
+	height: 1.4em;
+	}
+HEADER DIV#progress-bar > DIV {
+	height: 100%;
+	background-color: green;
+	}
+HEADER DIV#progress-message {
+	min-height: 1.4em;
+	padding: .1em .2em 0 .2em;
 	}
 
 /* Error messages */
@@ -111,9 +132,6 @@ DIV.flash {
 	padding: .5em;
 	font-family: sans-serif;
 	}
-/*DIV.progress.flash {
-	margin: .1em .1em 0 .1em;
-	}*/
 
 /* An actual table with borders and shaded header elements */
 TABLE.borders {
@@ -221,5 +239,19 @@ DIV.thumbnail > DIV.caption {
 .highlight {
 	border: blue 2px solid;
 	background-color: #f0f0ff;
+	}
+
+/* Search box */
+.search {
+	display: flex;
+	}
+.search > INPUT[type='text'] {
+	flex-grow: 1;
+	}
+.search > * {
+	margin-right: .3em;
+	}
+.search > *:last-child {
+	margin-right: 0;
 	}
 

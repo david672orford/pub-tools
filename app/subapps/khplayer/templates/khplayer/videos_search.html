@@ -1,0 +1,55 @@
+{% set title = gettext("Video Search") %}
+{% extends "khplayer/base.html" %}
+
+{% block main %}
+<form action="search" method="GET">
+<section class="search">
+<input type="text" name="q" placeholder="{{gettext('Enter search terms')}}" value="{{q}}">
+<button type="submit">{{gettext("Search")}}</button>
+<a href="."><button type="button">{{gettext("Back")}}</button></a>
+</section>
+</form>
+
+<form action="download" method="POST">
+<section>
+{% if search_results %}
+<table class="borders full-width selection">
+<thead>
+<tr>
+	<th></th>
+	<th></th>
+	<th>{{gettext("Video Title")}}</th>
+</tr>
+</thead>
+<tbody>
+{% for category, video in search_results %}
+	<tr>
+		<td>
+			<button class="add" type="submit" name="id" value="{{video.id}}">+</button>
+		</td>
+		<td>
+			<div class="thumbnail"><img src="{{video.thumbnail}}"></td>
+		</td>
+		<td>
+			{{category.category_name}} - {{category.subcategory_name}}
+			<br>
+			<a href="{{video.href}}" target="_blank">{{video.name}}</a>
+		</td>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p>
+	{{gettext("No videos match your search terms.")}}
+	{% if search_suggestion %}
+	{% autoescape false %}
+	{{gettext("Consider searching for %(search_suggestion)s instead.", search_suggestion=search_suggestion)}}
+	{% endautoescape %}
+	{% endif %}
+</p>
+{% endif %}
+</section>
+</form>
+
+{% endblock %}

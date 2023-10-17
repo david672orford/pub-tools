@@ -4,6 +4,8 @@ import re
 from dataclasses import dataclass
 import logging
 
+from ..babel import gettext as _
+
 logger = logging.getLogger(__name__)
 
 # A single media item, such as a video, for use at a meeting
@@ -73,9 +75,9 @@ class MeetingLoader(Fetcher):
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
 	def extract_media(self, url, callback=None):
-		callback("Downloading article...")
+		callback(_("Downloading article..."))
 		container = self.get_article_html(url)
-		callback("Article title: %s" % container.xpath(".//h1")[0].text_content().strip())
+		callback(_("Article title: %s") % container.xpath(".//h1")[0].text_content().strip())
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib['class'])
@@ -220,7 +222,7 @@ class MeetingLoader(Fetcher):
 
 							# Take the text inside the <a> tag as the article title
 							article_title = a.text_content().strip()
-							callback("Getting media list from %s..." % article_title)
+							callback(_("Getting media list from \"%s\"...") % article_title)
 
 							# Download the article and extract the contents of the <main> tag
 							# (The articles for the first talk in the MWB have the first illustration

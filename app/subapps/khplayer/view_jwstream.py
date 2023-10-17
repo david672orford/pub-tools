@@ -2,11 +2,12 @@ from flask import current_app, Blueprint, render_template, request, redirect, fl
 from wtforms import Form, TextAreaField, SelectField
 from urllib.parse import urlencode
 import os, re
+from time import sleep
 import subprocess
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_response, run_thread
+from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...jworg.jwstream import StreamRequesterContainer
 from ...babel import gettext as _
 from .views import blueprint, menu
@@ -80,14 +81,13 @@ def page_jwstream_update(token):
 	progress_callback(_("Updating event list..."))
 	channel = jwstream_channels()[token]
 	channel.reload()
-	return progress_response(_("Channel event list updated."))
+	return progress_response(_("Channel event list updated."), last_message=True)
 
 # Player
 @blueprint.route("/jwstream/<token>/<id>/")
 def page_jwstream_player(token, id):
 	channel = jwstream_channels()[token]
 	event = channel.get_event(id, preview=True)
-	#print("chapters:", event.chapters)
 	return render_template("khplayer/jwstream_player.html",
 		id = id,
 		channel = channel,
@@ -127,31 +127,26 @@ def page_jwstream_clip(token, id):
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
 	progress_callback(_("Requesting download URL..."))
-	channel = jwstream_channels()[token]
-	event = channel.get_event(id, preview=False)
+	event = jwstream_channels()[token].get_event(id, preview=False)
 
 	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:
 		clip_title = "%s %s-%s" % (event.title, clip_start, clip_end)
 
-	# This is the file into which we will save the downloaded clip.
+	# Spawn a background thread to download it and create the scene when the download is done.
 	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
-
-	logger.debug("Required clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
-
-	# If this clip was made earlier, make the scene right away, otherwise
-	# spawn a background thread to download it and create the scene when the
-	# download is done.
-	if os.path.exists(media_file):
-		create_clip_scene(clip_title, media_file)
-	else:
-		run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))
+	logger.debug("Downloading clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
+	progress_callback(_("Downloading clip..."))
+	run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
-	#return redirect(return_url)
 	return redirect(".")
 
 def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration):
+	sleep(1)
+
+	progress_callback(_("Downloading clip..."))
+
 	# Use FFMpeg to download the part of the video file we need. This is possible
 	# because FFMpeg can take a URL as input and the server supports range requests.
 	cmd = [
@@ -177,17 +172,13 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 		progress_callback(_("Extraction of clip failed!"))
 
 	else:
-		create_clip_scene(clip_title, media_file)
-
-# Connect to OBS and tell it to make a new scene with this file as the input.
-def create_clip_scene(clip_title, media_file):
-	try:
-		obs.add_media_scene("▷ " + clip_title, "video", media_file)
-	except ObsError as e:
-		# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
-		turbo_flash("OBS: %s" % str(e))
-	else:
-		progress_callback(_("Clip created"))
+		try:
+			obs.add_media_scene("▷ " + clip_title, "video", media_file)
+		except ObsError as e:
+			# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
+			async_flash("OBS: %s" % str(e))
+		else:
+			progress_callback(_("Clip created"), last_message=True)
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

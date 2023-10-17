@@ -1,0 +1,50 @@
+{% set title = gettext("Videos: {category} — {subcategory}").format(category=category.category_name, subcategory=category.subcategory_name) %}
+{% extends "khplayer/base.html" %}
+
+{% block header %}
+	<h1>
+		<a href="../..">
+		<div style="float: left; font-size: 200%; margin-right: 10px;">&lt;</div>
+		{{ category.category_name }}
+		<br>
+		{{ category.subcategory_name }}
+		</a>
+	</h1>
+{% endblock %}
+
+{% block main %}
+<form action="../../download" method="POST">
+<section>
+<table class="borders full-width selection">
+<thead>
+<tr>
+	<th></th>
+	<th></th>
+	<th>{{gettext("Video Title")}}</th>
+</tr>
+</thead>
+<tbody>
+{% for video in category.videos | sort(attribute="date", reverse=True) %}
+	<tr>
+		<td>
+			<button class="add" type="submit" name="id" value="{{video.id}}">+</button>
+		</td>
+		<td>
+			<div class="thumbnail"><img src="{{video.thumbnail}}"></td>
+		</td>
+		<td>
+			<a href="{{video.href}}" target="_blank">{{video.name}}</a>
+		</td>
+	</tr>
+{% endfor %}
+</tbody>
+</table>
+</section>
+</form>
+
+<form action="update" method="POST">
+<section class="bordered-box">
+	<button type="submit" name="update" value="1">{{gettext("Update Category")}}</button>
+</section>
+</form>
+{% endblock %}

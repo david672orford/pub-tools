@@ -37,12 +37,14 @@
 	<button type="button"><span>30:00</span><img src="{{top}}/static/button-forward.svg"></button>
 </div>
 
+{% if event.chapters %}
 <div id="chapter-controls" class="controls">
 <label>Chapters:</label>
 {% for chapter in event.chapters %}
 <button type="button" class="chapter-button" data-time="{{chapter['editedStartTime']}}">{{chapter['name']}}</button>
 {% endfor %}
 </div>
+{% endif %}
 
 <div id="trim-controls" class="controls">
 	<label>{{gettext("Clip Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>

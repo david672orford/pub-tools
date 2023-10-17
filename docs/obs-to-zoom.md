@@ -25,10 +25,7 @@ Be sure to follow the part about installing Wireplumber.
 
 Run this script which we supply:
 
-    $ ./bin/virtual-audio-cable create connect-peripherals
-
-Until we figure out how to add it to the configuration you will have to run this
-ever time you log in.
+    $ flask cable create
 
 ## Initial Setup of Zoom
 

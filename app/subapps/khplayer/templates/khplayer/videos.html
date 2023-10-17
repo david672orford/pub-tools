@@ -2,12 +2,12 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-<section>
-<form action="search" method="POST">
-<input type="text" name="search" placeholder="{{gettext('Enter search terms')}}">
+<form action="search" method="GET">
+<section class="search">
+<input type="text" name="q" placeholder="{{gettext('Enter search terms')}}">
 <button type="submit">{{gettext("Search")}}</button>
-</form>
 </section>
+</form>
 
 <section>
 {% if categories %}

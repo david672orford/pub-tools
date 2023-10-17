@@ -2,7 +2,7 @@ from flask import request, session, render_template, redirect
 from time import sleep
 import logging
 
-from ...utils import progress_callback, progress_response, run_thread, turbo_flash
+from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...models import VideoCategories
 from ...babel import gettext as _
 from .views import blueprint, menu
@@ -43,7 +43,7 @@ def load_song(song):
 	try:
 		obs.add_media_scene(_("♫ Song %s") % song, "video", media_file)
 	except ObsError as e:
-		turbo_flash(_("OBS: %s") % str(e))
+		async_flash(_("OBS: %s") % str(e))
 	else:
-		progress_callback(_("Song video loaded"))
+		progress_callback(_("Song video loaded"), last_message=True)
 

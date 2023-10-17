@@ -8,7 +8,7 @@ import logging
 
 from ...babel import gettext as _
 from .views import blueprint, menu
-from .utils import obs
+from .utils import obs, progress_callback
 from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ def page_slides_save_config():
 	ok, response = config_saver(SlidesConfigForm)
 	return response
 
-@blueprint.route("/slides/load", methods=["POST"])
+@blueprint.route("/slides/download", methods=["POST"])
 def page_slides_load():
 	gdrive = GDriveClient(current_app.config["GDRIVE"], cachedir=current_app.config["CACHEDIR"])
 	files = {}
@@ -125,6 +125,7 @@ def page_slides_load():
 		files[file.id] = file
 	for id in request.form.getlist("selected"):
 		if id in files:
+			progress_callback(_("Downloading \"%s\"..." % files[id].filename))
 			filename = gdrive.download(files[id])
 			obs.add_media_scene("□ " + request.form.get("scenename-%s" % id), "image", filename)
 	return redirect(".")

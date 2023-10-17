@@ -13,6 +13,7 @@ from .models_whoosh import update_video_index, video_search
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
+from .babel import gettext as _
 
 from rich.console import Console
 from rich.table import Table
@@ -24,7 +25,7 @@ cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 def init_app(app):
 	app.cli.add_command(cli_update)
 
-def default_callback(message):
+def default_callback(message, last_message=False):
 	print(message)
 
 #=============================================================================
@@ -43,7 +44,7 @@ def update_meetings(callback=default_callback):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
 		if week_obj is None:
-			callback("Fetching week %s %s" % (year, week))
+			callback(_("Fetching week %s %s") % (year, week))
 			week_data = meeting_loader.get_week(year, week)
 			week_obj = Weeks()
 			week_obj.year = year
@@ -53,7 +54,7 @@ def update_meetings(callback=default_callback):
 			db.session.add(week_obj)
 		current_day += timedelta(weeks=1)
 	db.session.commit()
-	callback("Meetings loaded.")
+	callback(_("Meetings loaded."), last_message=True)
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
@@ -169,42 +170,32 @@ def load_books():
 def cmd_update_videos():
 	logging.basicConfig(level=logging.DEBUG)
 	update_videos()
+	db.session.commit()
+	update_video_index()
 
 def update_videos(callback=default_callback):
-	callback("Updating videos list...")
 	for category in VideoLister().get_category("VideoOnDemand").subcategories:
 		callback("%s" % category.name)
 		assert len(category.videos) == 0
 		for subcategory in category.subcategories:
-			callback("%s — %s" % (category.name, subcategory.name))
 			if subcategory.key.endswith("Featured"):
 				continue
-			category_db_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
-			if category_db_obj is None:
-				category_db_obj = VideoCategories(
-					category_key = category.key,
-					category_name = category.name,
-					subcategory_key = subcategory.key,
-					subcategory_name = subcategory.name,
-					)
-				db.session.add(category_db_obj)
-			copy_video_list(subcategory, category_db_obj)
-	db.session.commit()
-	update_video_index()
-	callback("Videos list updated.")
+			update_video_subcategory(category.key, category.subcategory_key, callback=callback)
 
-def update_video_subcategory(category_key, subcategory_key, callback=default_callback):
+def update_video_subcategory(category_key, subcategory_key, callback=default_callback, flash=False):
 	category_db_obj = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	callback("%s — %s" % (category_db_obj.category_name, category_db_obj.subcategory_name))
-	subcategory = VideoLister().get_category(subcategory_key)
-	copy_video_list(subcategory, category_db_obj)
-	db.session.commit()
-	update_video_index()
+	if category_db_obj is None:
+		category_db_obj = VideoCategories(
+			category_key = category.key,
+			category_name = category.name,
+			subcategory_key = subcategory.key,
+			subcategory_name = subcategory.name,
+			)
+		db.session.add(category_db_obj)
 
-# Copy a list of videos obtained from VidoeLister into a VideoCategories DB object
-def copy_video_list(subcategory, category_db_obj):
-	for video in subcategory.videos:
-		#print(" Video:", video.name)
+	callback(_("Scanning {category_name} — {subcategory_name}...".format(category_name=category_db_obj.category_name, subcategory_name=category_db_obj.subcategory_name)))
+
+	for video in VideoLister().get_category(subcategory_key).videos:
 		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 		if video_obj is None:
 			video_obj = Videos()

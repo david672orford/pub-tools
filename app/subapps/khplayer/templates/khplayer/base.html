@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='base.css')}}">
 {{ turbo() }}
+<script src="{{ url_for('.static', filename='base.js')}}"></script>
 {% block head_add %}
 {% endblock %}
 </head>
@@ -21,9 +22,9 @@
 		</ul>
 	</nav>
 
-	<!-- download progress messages go in this div -->
 	<div id="progress">
-		&nbsp;
+		<div id="progress-bar"></div>
+		<div id="progress-message"></div>
 	</div>
 
 	{% block header %}

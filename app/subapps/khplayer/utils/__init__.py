@@ -4,8 +4,9 @@ import re
 import logging
 
 from ....jworg.meetings import MeetingLoader
-from ....utils import progress_callback, turbo_flash
+from ....utils import progress_callback, async_flash
 from ....models import Videos
+from ....babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +40,13 @@ obs = ObsControl(config=current_app.config.get("OBS_WEBSOCKET"))
 
 def load_video(lank, prefix="▷ "):
 	video = Videos.query.filter_by(lank=lank).one()
-	progress_callback("Getting video URL...")
+	progress_callback(_("Getting video URL..."))
 	video_metadata = meeting_loader.get_video_metadata(video.href, resolution="480p")
 	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
 	try:
 		obs.add_media_scene(prefix + video.name, "video", video_file)
 	except ObsError as e:
-		turbo_flash("OBS: %s" % str(e))	
+		async_flash("OBS: %s" % str(e))	
 	else:
-		progress_callback("Video loaded")
+		progress_callback(_("Video loaded"), last_message=True)
 

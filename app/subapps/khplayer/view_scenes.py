@@ -1,7 +1,7 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
-from werkzeug.utils import secure_filename
 from time import sleep
-import os, logging
+from datetime import datetime
+import os, re, logging
 
 from ...utils import progress_response
 from ...babel import gettext as _
@@ -77,7 +77,7 @@ def page_scenes_submit():
 		flash(_("OBS: %s") % str(e))
 
 	if message is not None:
-		return progress_response(message)
+		return progress_response(message, last_message=True)
 	else:
 		return redirect(".")
 
@@ -88,15 +88,22 @@ def page_scenes_submit():
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
 	files = request.files.getlist("files")	# Get the Werkzeug FileStorage object
+	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+	i = 1
 	for file in files:
+		logger.info("Uploading \"%s\" (%s)", file.filename, file.mimetype)
 		major_mimetype = file.mimetype.split("/")[0]
 		if major_mimetype not in ("video", "image"):
 			flash(_("Unsupported media type: %s") % major_mimetype)
 			continue
-		# FIXME: Cyrillic characters are deleted!
-		# FIXME: We need to ensure uniquiness
-		save_as = os.path.join(current_app.config["CACHEDIR"], "upload-" + secure_filename(file.filename))
+		m = re.search(r"\.([a-zA-Z0-9]+)$", file.filename)
+		ext = "." + m.group(1) if m else ""
+		save_as = os.path.join(
+			current_app.config["CACHEDIR"],
+			"upload-%s-%d%s" % (datestamp, i, ext),
+			)
 		file.save(save_as)
 		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
+		i += 1
 	return redirect(".")
 
