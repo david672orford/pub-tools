@@ -251,7 +251,7 @@ class Fetcher:
 				}
 
 		# Video is specified by its MEPS Document ID
-		elif "docid" in query:
+		if "docid" in query:
 
 			docid = int(query["docid"])
 			if 1102016801 <= docid <= 1102016951:
@@ -295,8 +295,7 @@ class Fetcher:
 				"thumbnail_url": thumbnail_url,
 				}
 
-		else:
-			raise AssertionError(url)
+		return None
 
 	# Find the EPUB download URL of a periodical
 	# FIXME: is this really just for periodicals? Note that issue_code is optional

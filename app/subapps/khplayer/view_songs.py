@@ -3,10 +3,11 @@ from time import sleep
 import logging
 
 from ...utils import progress_callback, progress_response, run_thread, async_flash
-from ...models import VideoCategories
+from ...models import VideoCategories, Videos
 from ...babel import gettext as _
 from .views import blueprint, menu
-from .utils import meeting_loader, obs, ObsError, load_video
+from .utils import meeting_loader, obs, ObsError
+from .utils.scenes import load_video, load_song
 
 logger = logging.getLogger(__name__)
 
@@ -31,19 +32,8 @@ def page_songs_submit():
 	lank = request.form.get("lank")
 	if lank:
 		message = _("Loading song %s") % lank
-		run_thread(lambda: load_video(lank, prefix="♫ ПЕСНЯ "))
+		video = Videos.query.filter_by(lank=lank).one()
+		run_thread(lambda: load_video(video.href, prefix="♫ ПЕСНЯ"))
 
 	return progress_response(message)
-
-# Load a song video identified by song number
-def load_song(song):
-	progress_callback(_("Getting song video URL..."))
-	media_url = meeting_loader.get_song_video_url(song, resolution="480p")
-	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
-	try:
-		obs.add_media_scene(_("♫ Song %s") % song, "video", media_file)
-	except ObsError as e:
-		async_flash(_("OBS: %s") % str(e))
-	else:
-		progress_callback(_("Song video loaded"), last_message=True)
 

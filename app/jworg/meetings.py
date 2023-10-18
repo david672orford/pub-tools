@@ -150,6 +150,7 @@ class MeetingLoader(Fetcher):
 						# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 						if a.attrib.get("data-video") is not None:
 							video_metadata = self.get_video_metadata(a.attrib["href"])
+							assert video_metadata is not None, a.attrib["href"]
 							query = dict(parse_qsl(urlparse(a.attrib["href"]).query))
 							yield MeetingMedia(
 								section_title = section_title,
@@ -383,6 +384,7 @@ class MeetingLoader(Fetcher):
 				# Is this image linked to a video?
 				if link.attrib.get("data-video") is not None:
 					video_metadata = self.get_video_metadata(link.attrib["href"])
+					assert video_metadata is not None, link.attrib["href"]
 					query = dict(parse_qsl(urlparse(link.attrib["href"]).query))
 					yield MeetingMedia(
 						# If specified by docid, assume video is part of publication, otherwise extract a pub ID from LANK

@@ -41,21 +41,34 @@ function init_scenes()
 		e.preventDefault();
 		console.log(e.dataTransfer);
 		console.log("Files:", e.dataTransfer.files);
-		console.log("Items:", e.dataTransfer.items);
 		console.log("Types:", e.dataTransfer.types);
+		console.log("Items:", e.dataTransfer.items);
 
-		if(e.dataTransfer.files.length > 0)
+		if(e.dataTransfer.files.length > 0)			/* local files */
 			{
 			$("#files").files = e.dataTransfer.files;
 			$("#upload-form").submit();
 			}
 		else
 			{
-			let list = e.dataTransfer.items;
-			for(let i=0; i < list.length; i++)
+			let i = e.dataTransfer.types.indexOf("text/uri-list");
+			if(i != -1)
 				{
-				console.log(list[i]);
-				list[i].getAsString(s => console.log(s));
+				e.dataTransfer.items[i].getAsString(function(url) {
+					console.log("url:", url);
+					$("#add-url").value = url;
+					$("#add-url-form").submit();
+					});
+				}
+			else
+				{
+				let i = e.dataTransfer.types.indexOf("text/html");
+				if(i != -1)
+					{
+					e.dataTransfer.items[i].getAsString(function(html) {
+						console.log("html:", html);
+						});
+					}
 				}
 			}
 

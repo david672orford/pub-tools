@@ -6,9 +6,10 @@ import lxml.html
 import os, json, re
 import logging
 
+from ...utils import progress_callback
 from ...babel import gettext as _
 from .views import blueprint, menu
-from .utils import obs, progress_callback
+from .utils import obs
 from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)

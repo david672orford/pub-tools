@@ -241,6 +241,11 @@ DIV.thumbnail > DIV.caption {
 	background-color: #f0f0ff;
 	}
 
+/* Scenes table */
+#scenes BUTTON {
+	text-align: left;
+	}
+
 /* Search box */
 .search {
 	display: flex;

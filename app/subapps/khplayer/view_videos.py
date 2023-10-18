@@ -10,7 +10,7 @@ from ...models_whoosh import update_video_index, video_search
 from ...cli_update import update_videos, update_video_subcategory
 from ...babel import gettext as _
 from .views import blueprint, menu
-from .utils import load_video
+from .utils.scenes import load_video
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +71,6 @@ def page_videos_category_subcategory_update(category_key, subcategory_key):
 @blueprint.route("/videos/download", methods=["POST"])
 def page_videos_download():
 	video = Videos.query.filter_by(id=request.form.get("id")).one()
-	run_thread(lambda: load_video(video.lank))
+	run_thread(lambda: load_video(video.href))
 	return progress_response(_("Downloading %s...") % video.name)
 

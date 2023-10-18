@@ -58,6 +58,16 @@
 </section>
 </form>
 
+<form id="add-url-form" action="add-url" method="POST">
+<section class="bordered-box">
+<h2><label for="add-url">{{gettext("URL to Add")}}</label></h2>
+	<div class="borderless-box">
+		<input type="text" id="add-url" name="add-url">
+		<button type="submit">{{gettext("Add")}}</button>
+	</div>
+</section>
+</form>
+
 <script>
 setTimeout(function() { init_scenes() }, 100);
 </script>

@@ -15,6 +15,7 @@ from ...cli_update import update_meetings
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import meeting_loader, obs
+from .utils.scenes import load_video, load_image, load_webpage
 from ...jworg.meetings import MeetingMedia
 
 logger = logging.getLogger(__name__)
@@ -125,31 +126,16 @@ def get_meeting_media(docid):
 def meeting_media_to_obs_scenes(items):
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
-	
-		# Add a symbol to the front of the scene name to indicate its type.
-		if item.pub_code is not None and item.pub_code.startswith("sjj"):
-			scene_name = "♫ " + item.title
-		elif item.media_type == "web":
-			scene_name = "◯" + item.title
-		elif item.media_type == "video":
-			scene_name = "▷ " + item.title
-		elif item.media_type == "image":
-			scene_name = "□ " + item.title
-		else:
-			scene_name = item.title
-	
 		if item.media_type == "web":		# HTML page
-			obs.add_media_scene(scene_name, item.media_type, item.media_url)
+			load_webpage(item.title, item.media_url, close=False)
+		elif item.pub_code is not None and item.pub_code.startswith("sjj"):
+			load_video(item.media_url, prefix="♫ ", close=False)
 		elif item.media_type == "video":
-			video_metadata = meeting_loader.get_video_metadata(item.media_url, resolution="480p")
-			video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
-			obs.add_media_scene(scene_name, item.media_type, video_file)
+			load_video(item.media_url, close=False)
 		elif item.media_type == "image":
-			image_file = meeting_loader.download_media(item.media_url, callback=progress_callback)
-			obs.add_media_scene(scene_name, item.media_type, image_file)
+			load_image(item.title, item.media_url, close=False)
 		else:
 			raise AssertionError("Unhandled case")
-
 	progress_callback(_("Meeting loaded"), last_message=True)
 
 # Construct the sharing URL for a meeting article. This will redirect to the article itself.

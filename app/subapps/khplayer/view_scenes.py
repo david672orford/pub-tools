@@ -1,12 +1,14 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
 from time import sleep
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
 import os, re, logging
 
-from ...utils import progress_response
+from ...utils import progress_callback, progress_response, run_thread
 from ...babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
+from .utils.scenes import load_video, load_webpage
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 
@@ -105,5 +107,18 @@ def page_scenes_upload():
 		file.save(save_as)
 		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
 		i += 1
+	return redirect(".")
+
+# When a URL is dropped onto the scene list
+@blueprint.route("/scenes/add-url", methods=["POST"])
+def page_scenes_add_url():
+	url = request.form["add-url"]
+	parsed_url = urlparse(url)
+	q = parse_qs(parsed_url.query).keys()
+	if parsed_url.hostname == "www.jw.org" and ("lank" in q or "docid" in q):
+		run_thread(lambda: load_video(url))
+	else:
+		load_webpage("Webpage", url)
+	#return progress_response(_("Loading URL..."))
 	return redirect(".")
 
