@@ -59,7 +59,7 @@
 const player = document.getElementById("player");
 const form = document.getElementById("form");
 
-/* First control bar */
+/* Top control bar (Jog, Set Start, Set End) */
 const jog_controls = document.getElementById("jog-controls").children;
 function jog_button(index, amount)
 	{
@@ -98,16 +98,14 @@ jog_button(11, 60);
 jog_button(12, 300);
 jog_button(13, 1800);
 
-/* Second control bar */
+/* Second control bar (chapters) */
 const chapter_buttons = document.getElementsByClassName("chapter-button");
 function on_chapter_button(event)
 	{
 	player.currentTime = this.dataset.time;	
-	if(form.elements["clip_start"].value == "")
-		{
-		form.elements["clip_start"].value = time_to_str(this.dataset.time);
-		form.elements["clip_title"].value = this.innerText;
-		}
+	form.elements["clip_start"].value = time_to_str(this.dataset.time);
+	form.elements["clip_end"].value = "";
+	form.elements["clip_title"].value = this.innerText;
 	}
 for(let i=0; i < chapter_buttons.length; i++)
 	{
