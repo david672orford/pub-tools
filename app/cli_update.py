@@ -54,7 +54,7 @@ def update_meetings(callback=default_callback):
 			db.session.add(week_obj)
 		current_day += timedelta(weeks=1)
 	db.session.commit()
-	callback(_("Meetings loaded."), last_message=True)
+	callback(_("Meetings loaded"), last_message=True)
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into

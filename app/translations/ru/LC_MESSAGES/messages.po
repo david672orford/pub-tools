@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-10-16 23:01-0400\n"
-"PO-Revision-Date: 2023-10-17 12:05-0400\n"
+"POT-Creation-Date: 2023-10-19 17:23-0400\n"
+"PO-Revision-Date: 2023-10-19 17:29-0400\n"
 "Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
@@ -23,10 +23,10 @@ msgstr ""
 #: cli_update.py:47
 #, python-format
 msgid "Fetching week %s %s"
-msgstr ""
+msgstr "Идёт загрузка недели %s %s"
 
 #: cli_update.py:57
-msgid "Meetings loaded."
+msgid "Meetings loaded"
 msgstr "Список встреч обновлен"
 
 #: cli_update.py:196
@@ -35,35 +35,33 @@ msgstr "Обновляется {category_name} — {subcategory_name}..."
 
 #: utils.py:17
 msgid "Please wait for previous download to finish."
-msgstr ""
+msgstr "Подождите завершения предыдущей загрузки."
 
-#: jworg/fetcher.py:169
+#: jworg/fetcher.py:177
 msgid "Media file already in cache"
-msgstr ""
+msgstr "Запись уже находился в кэше"
 
-#: jworg/fetcher.py:173
-#, fuzzy, python-format
+#: jworg/fetcher.py:181
 msgid "Downloading media file..."
-msgstr "Идёт загрузка материала для %s..."
+msgstr "Идёт загрузка записи %s..."
 
-#: jworg/fetcher.py:194
+#: jworg/fetcher.py:202
 msgid "Media file downloaded"
-msgstr ""
+msgstr "Запись загружена"
 
 #: jworg/meetings.py:78
-#, fuzzy, python-format
 msgid "Downloading article..."
-msgstr "Идёт загрузка %s..."
+msgstr "Идёт загрузка стати %s..."
 
 #: jworg/meetings.py:80
-#, fuzzy, python-format
+#, python-format
 msgid "Article title: %s"
-msgstr "Название фрагмента:"
+msgstr "Название стати: %s"
 
 #: jworg/meetings.py:226
-#, fuzzy, python-format
+#, python-format
 msgid "Getting media list from \"%s\"..."
-msgstr "Идёт загрузка материала для %s..."
+msgstr "Идёт загрузка списка материала для «%s»..."
 
 #: subapps/khplayer/view_jwstream.py:19
 msgid "JW Stream"
@@ -91,10 +89,9 @@ msgstr "Публичные речи"
 
 #: subapps/khplayer/view_jwstream.py:34
 msgid "Weekday"
-msgstr ""
+msgstr "Встреча в будни"
 
 #: subapps/khplayer/view_jwstream.py:35
-#, fuzzy
 msgid "Weekend"
 msgstr "Встреча в выходные"
 
@@ -112,7 +109,7 @@ msgstr "Расширение загрузки"
 
 #: subapps/khplayer/view_jwstream.py:81
 msgid "Updating event list..."
-msgstr ""
+msgstr "Идёт обновление списка мероприятий..."
 
 #: subapps/khplayer/view_jwstream.py:84
 msgid "Channel event list updated."
@@ -133,14 +130,12 @@ msgid "Duration is zero or negative!"
 msgstr ""
 
 #: subapps/khplayer/view_jwstream.py:129
-#, fuzzy
 msgid "Requesting download URL..."
-msgstr "Запрос URL песни..."
+msgstr "Запрос на URL для загрузки..."
 
 #: subapps/khplayer/view_jwstream.py:139 subapps/khplayer/view_jwstream.py:148
-#, fuzzy, python-format
 msgid "Downloading clip..."
-msgstr "Идёт загрузка %s..."
+msgstr "Идёт загрузка фрагмента..."
 
 #: subapps/khplayer/view_jwstream.py:172
 msgid "Extraction of clip failed!"
@@ -151,120 +146,119 @@ msgid "Clip created"
 msgstr "Фрагмент загружен"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:1
-#: subapps/khplayer/view_meetings.py:22
+#: subapps/khplayer/view_meetings.py:23
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:65
-#, fuzzy
+#: subapps/khplayer/view_meetings.py:66
 msgid "Meeting media list loaded"
-msgstr "Загрузчик материала для встречи"
+msgstr "Список материала для встречи загружён"
 
-#: subapps/khplayer/view_meetings.py:68
-#, fuzzy, python-format
+#: subapps/khplayer/view_meetings.py:69
+#, python-format
 msgid "Error: %s"
-msgstr "OBS говорит: %s"
+msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:96
+#: subapps/khplayer/view_meetings.py:97
 #, python-format
 msgid "Loading media for %s..."
 msgstr "Идёт загрузка материала для %s..."
 
-#: subapps/khplayer/view_meetings.py:154
-#, fuzzy
+#: subapps/khplayer/view_meetings.py:139
 msgid "Meeting loaded"
-msgstr "Загрузчик материала для встречи"
+msgstr "Материал для встречи загружён"
 
 #: subapps/khplayer/view_patchbay.py:14
 msgid "Audio"
 msgstr "Звук"
 
-#: subapps/khplayer/view_scenes.py:15
+#: subapps/khplayer/view_scenes.py:17
 msgid "Scenes"
 msgstr "Сцены"
 
-#: subapps/khplayer/view_scenes.py:43
+#: subapps/khplayer/view_scenes.py:45
 #, python-format
 msgid "Scene switched to %s"
 msgstr "Переход на сцену %s"
 
-#: subapps/khplayer/view_scenes.py:59
+#: subapps/khplayer/view_scenes.py:61
 msgid "* Camera"
 msgstr "* Камера"
 
-#: subapps/khplayer/view_scenes.py:65
+#: subapps/khplayer/view_scenes.py:67
 msgid "* Zoom"
 msgstr "* Зум"
 
-#: subapps/khplayer/view_scenes.py:73
+#: subapps/khplayer/view_scenes.py:75
 msgid "* Split Screen"
 msgstr "* Разделенный экран"
 
-#: subapps/khplayer/view_scenes.py:77 subapps/khplayer/view_songs.py:46
+#: subapps/khplayer/utils/scenes.py:13 subapps/khplayer/utils/scenes.py:24
+#: subapps/khplayer/utils/scenes.py:34 subapps/khplayer/utils/scenes.py:43
+#: subapps/khplayer/view_scenes.py:79
 #, python-format
 msgid "OBS: %s"
 msgstr "OBS говорит: %s"
 
-#: subapps/khplayer/view_scenes.py:97
+#: subapps/khplayer/view_scenes.py:99
 #, python-format
 msgid "Unsupported media type: %s"
 msgstr ""
 
-#: subapps/khplayer/view_slides.py:16
+#: subapps/khplayer/view_scenes.py:122
+msgid "Loading URL..."
+msgstr "Идёт загрузка URL..."
+
+#: subapps/khplayer/view_slides.py:17
 msgid "Slides"
 msgstr "Слайды"
 
-#: subapps/khplayer/view_slides.py:19
+#: subapps/khplayer/view_slides.py:20
 msgid "Google Drive Sharing URL"
 msgstr "URL от функции Диска Гугла «Поделиться»"
 
-#: subapps/khplayer/view_slides.py:128
-#, fuzzy, python-format
+#: subapps/khplayer/view_slides.py:129
+#, python-format
 msgid "Downloading \"%s\"..."
-msgstr "Идёт загрузка %s..."
+msgstr "Идёт загрузка «%s»..."
 
-#: subapps/khplayer/view_songs.py:13
+#: subapps/khplayer/view_songs.py:15
 msgid "Songbook"
 msgstr "Песеник"
 
-#: subapps/khplayer/view_songs.py:27 subapps/khplayer/view_songs.py:33
+#: subapps/khplayer/view_songs.py:32
+#, python-format
+msgid "Not a valid number: %s"
+msgstr ""
+
+#: subapps/khplayer/view_songs.py:36
+#, python-format
+msgid "No such song: %s"
+msgstr "Песня не существует: %s"
+
+#: subapps/khplayer/view_songs.py:38 subapps/khplayer/view_songs.py:44
 #, python-format
 msgid "Loading song %s"
 msgstr "Идёт загрузка песни %s"
-
-#: subapps/khplayer/view_songs.py:40
-msgid "Getting song video URL..."
-msgstr "Запрос URL песни..."
-
-#: subapps/khplayer/view_songs.py:44
-#, python-format
-msgid "♫ Song %s"
-msgstr "♫ Песня %s"
-
-#: subapps/khplayer/view_songs.py:48
-msgid "Song video loaded"
-msgstr "Песня загружена"
 
 #: subapps/khplayer/view_videos.py:17
 msgid "Videos"
 msgstr "Видео"
 
 #: subapps/khplayer/view_videos.py:45 subapps/khplayer/view_videos.py:62
-#, fuzzy
 msgid "Updating video list..."
-msgstr "Запрос URL песни..."
+msgstr "Обновляется список видеороликов..."
 
 #: subapps/khplayer/view_videos.py:48 subapps/khplayer/view_videos.py:65
 msgid "Updating video index..."
-msgstr ""
+msgstr "Обновляется список видеороликов..."
 
 #: subapps/khplayer/view_videos.py:50 subapps/khplayer/view_videos.py:67
-#, fuzzy
 msgid "Video list updated"
-msgstr "Список мероприятий в канале обновлен."
+msgstr "Список видеороликов обновлён"
 
 #: subapps/khplayer/view_videos.py:75
-#, fuzzy, python-format
+#, python-format
 msgid "Downloading %s..."
 msgstr "Идёт загрузка %s..."
 
@@ -286,7 +280,7 @@ msgstr "Страна"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:13
 msgid "Status"
-msgstr ""
+msgstr "Статус"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:31
 #: subapps/khplayer/templates/khplayer/jwstream.html:44
@@ -397,11 +391,11 @@ msgstr "Загрузить материалы и создать сцены в OB
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:33
 msgid "Delete existing unstarred scenes"
-msgstr ""
+msgstr "Удалить существующие сцены без звёздочки"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:38
 msgid "Open Meeting Article"
-msgstr ""
+msgstr "Открыть статью для встречи"
 
 #: subapps/khplayer/templates/khplayer/patchbay.html:1
 msgid "Audio Routing Patchbay"
@@ -447,6 +441,16 @@ msgstr "Загрузить файлы"
 #: subapps/khplayer/templates/khplayer/scenes.html:56
 msgid "Upload"
 msgstr "Загрузить"
+
+#: subapps/khplayer/templates/khplayer/scenes.html:63
+#, fuzzy
+msgid "URL to Add"
+msgstr "Загрузить"
+
+#: subapps/khplayer/templates/khplayer/scenes.html:66
+#: subapps/khplayer/templates/khplayer/songs.html:9
+msgid "Add"
+msgstr ""
 
 #: subapps/khplayer/templates/khplayer/slides.html:1
 msgid "Speaker's Slide Loader"
@@ -510,18 +514,16 @@ msgstr "Видеоролики: {category} — {subcategory}"
 
 #: subapps/khplayer/templates/khplayer/videos_category.html:23
 #: subapps/khplayer/templates/khplayer/videos_search.html:21
-#, fuzzy
 msgid "Video Title"
-msgstr "Название фрагмента:"
+msgstr "Название ролика"
 
 #: subapps/khplayer/templates/khplayer/videos_category.html:47
 msgid "Update Category"
 msgstr "Обновить эту катигорию"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:1
-#, fuzzy
 msgid "Video Search"
-msgstr "Видео"
+msgstr "Поиск по видеороликам"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:9
 msgid "Back"
@@ -537,15 +539,37 @@ msgstr "Введите поисковые термены"
 msgid "Consider searching for %(search_suggestion)s instead."
 msgstr ""
 
-#: subapps/khplayer/utils/__init__.py:43
+#: subapps/khplayer/utils/scenes.py:6
 #, fuzzy
-msgid "Getting video URL..."
+msgid "Getting video download URL..."
 msgstr "Запрос URL песни..."
 
-#: subapps/khplayer/utils/__init__.py:51
-#, fuzzy
+#: subapps/khplayer/utils/scenes.py:15
 msgid "Video loaded"
-msgstr "Песня загружена"
+msgstr "Видеоролик загружён"
+
+#: subapps/khplayer/utils/scenes.py:18
+#, fuzzy, python-format
+msgid "Getting song %d video download URL..."
+msgstr "Запрос URL песни..."
+
+#: subapps/khplayer/utils/scenes.py:22
+#, python-format
+msgid "♫ Song %s"
+msgstr "♫ Песня %s"
+
+#: subapps/khplayer/utils/scenes.py:26
+#, python-format
+msgid "Song %d video loaded"
+msgstr "Видеоролик песни %d загружён"
+
+#: subapps/khplayer/utils/scenes.py:36
+msgid "Webpage loaded"
+msgstr "Веб-страница загружена"
+
+#: subapps/khplayer/utils/scenes.py:45
+msgid "Image loaded"
+msgstr "Изображение загружено"
 
 #: subapps/khplayer/utils/zoom.py:18
 msgid "Second Zoom window not found."

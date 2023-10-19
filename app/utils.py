@@ -14,7 +14,7 @@ def run_thread(func):
 	global background_thread
 
 	if background_thread is not None and background_thread.is_alive():
-		turbo_flash(_("Please wait for previous download to finish."))
+		async_flash(_("Please wait for previous download to finish."))
 
 	@copy_current_request_context
 	def wrapper():
