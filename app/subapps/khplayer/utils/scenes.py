@@ -15,7 +15,7 @@ def load_video(url, prefix="▷", close=True):
 		progress_callback(_("Video loaded"), last_message=close)
 
 def load_song(song, close=True):
-	progress_callback(_("Getting song video download URL..."))
+	progress_callback(_("Getting song %d video download URL...") % song)
 	media_url = meeting_loader.get_song_video_url(song, resolution="480p")
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 	try:
@@ -23,15 +23,17 @@ def load_song(song, close=True):
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
 	else:
-		progress_callback(_("Song video loaded"), last_message=close)
+		progress_callback(_("Song %d video loaded") % song, last_message=close)
 
 def load_webpage(scene_name, url, close=True):
+	if scene_name is None:
+		scene_name = meeting_loader.get_title(url)
 	try:
 		obs.add_media_scene("◯ " + scene_name, "web", url)
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
 	else:
-		progress_callback(_("webpage loaded"), last_message=close)
+		progress_callback(_("Webpage loaded"), last_message=close)
 
 def load_image(scene_name, url, close=True):
 	try:

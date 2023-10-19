@@ -173,7 +173,7 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 
 	else:
 		try:
-			obs.add_media_scene("▷ " + clip_title, "video", media_file)
+			obs.add_media_scene("▷" + " " + clip_title, "video", media_file)
 		except ObsError as e:
 			# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
 			async_flash("OBS: %s" % str(e))

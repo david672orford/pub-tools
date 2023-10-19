@@ -160,6 +160,14 @@ class Fetcher:
 			if level and (not elem.tail or not elem.tail.strip()):
 				elem.tail = i
 
+	def get_title(self, url):
+		html = self.get_html(url)
+		title = html.xpath("./head/title")
+		if len(title) > 0:
+			return title[0].text
+		else:
+			return "No Title"
+
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
@@ -195,13 +203,13 @@ class Fetcher:
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
-	def get_song_video_url(self, song_number, resolution=None):
+	def get_song_video_url(self, song_number: int, resolution=None):
 		media = self.get_json(self.pub_media_url, query = {
 			'output': 'json',
 			'pub': 'sjjm',
 			'fileformat': 'm4v,mp4,3gp,mp3',
 			'alllangs': '0',
-			'track': song_number,
+			'track': str(song_number),
 			'langwritten': self.language,
 			'txtCMSLang': self.language,
 			})

@@ -1,5 +1,6 @@
-from flask import request, session, render_template, redirect
+from flask import request, session, render_template, redirect, flash
 from time import sleep
+import re
 import logging
 
 from ...utils import progress_callback, progress_response, run_thread, async_flash
@@ -25,6 +26,15 @@ def page_songs_submit():
 	# By song number entered in form
 	song = request.form.get('song')
 	if song:
+		song = song.strip()
+		m = re.match(r"^(\d+)$", song)
+		if not m:
+			flash(_("Not a valid number: %s") % song)
+			return redirect(".")
+		song = int(m.group(1))
+		if not (0 < song <= 151):
+			flash(_("No such song: %s") % song)
+			return redirect(".")
 		message = _("Loading song %s") % song
 		run_thread(lambda: load_song(song))
 

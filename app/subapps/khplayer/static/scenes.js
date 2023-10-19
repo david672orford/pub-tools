@@ -57,7 +57,7 @@ function init_scenes()
 				e.dataTransfer.items[i].getAsString(function(url) {
 					console.log("url:", url);
 					$("#add-url").value = url;
-					$("#add-url-form").submit();
+					$("#add-url-form BUTTON").click();	/* submit doesn't trigger Turbo Stream handling */
 					});
 				}
 			else

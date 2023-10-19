@@ -266,8 +266,11 @@ class ObsControl(ObsControlBase):
 
 		# Get basename of media file
 		if re.match(r"^https?://", media_file, re.I):
-			path = urlparse(media_file).path
-			if path.endswith("/"):
+			parsed_url = urlparse(media_file)
+			path = parsed_url.path
+			if path == "":
+				source_name = parsed_url.hostname
+			elif path.endswith("/"):
 				source_name = path.split("/")[-2]
 			else:
 				source_name = path.split("/")[-1]

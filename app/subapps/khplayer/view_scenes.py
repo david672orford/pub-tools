@@ -118,7 +118,6 @@ def page_scenes_add_url():
 	if parsed_url.hostname == "www.jw.org" and ("lank" in q or "docid" in q):
 		run_thread(lambda: load_video(url))
 	else:
-		load_webpage("Webpage", url)
-	#return progress_response(_("Loading URL..."))
-	return redirect(".")
+		run_thread(lambda: load_webpage(None, url))
+	return progress_response(_("Loading URL..."))
 
