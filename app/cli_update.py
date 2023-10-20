@@ -1,12 +1,10 @@
 # Load lists of publications
 
-import sys, os
-import logging
+import sys, os, re, json
 from datetime import date, timedelta
-import re
 from flask.cli import AppGroup
 import click
-import json
+import logging
 
 from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
 from .models_whoosh import update_video_index, video_search

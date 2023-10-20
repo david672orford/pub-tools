@@ -39,7 +39,7 @@
 	{% for scene_name in scene_names %}
 	<tr>
 		<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
-		<td><button type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
+		<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
 	</tr>
 	{% endfor %}
 </tbody>
@@ -51,7 +51,7 @@
 <form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
 <section class="bordered-box">
 <h2><label for="files">{{_("Upload Media Files")}}</label></h2>
-	<div class="borderless-box">
+	<div class="hbox">
 		<input type="file" id="files" name="files" multiple>
 		<button type="submit">{{_("Upload")}}</button>
 	</div>
@@ -61,7 +61,7 @@
 <form id="add-url-form" action="add-url" method="POST">
 <section class="bordered-box">
 <h2><label for="add-url">{{_("URL to Add")}}</label></h2>
-	<div class="borderless-box">
+	<div class="hbox">
 		<input type="text" id="add-url" name="add-url">
 		<button type="submit">{{_("Add")}}</button>
 	</div>

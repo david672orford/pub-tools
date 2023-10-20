@@ -28,7 +28,8 @@ def update_video_index():
 		)
 
 	index_path = current_app.config["WHOOSH_PATH"]
-	shutil.rmtree(index_path)
+	if os.path.exists(index_path):
+		shutil.rmtree(index_path)
 	os.mkdir(index_path)
 	ix = create_in(index_path, schema)
 	writer = ix.writer()

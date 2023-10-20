@@ -123,7 +123,7 @@ HEADER DIV#progress-message {
 	padding: .1em .2em 0 .2em;
 	}
 
-/* Error messages */
+/* Error messages above content */
 DIV.flash {
 	background-color: #C00000;
 	color: white;
@@ -133,7 +133,7 @@ DIV.flash {
 	font-family: sans-serif;
 	}
 
-/* An actual table with borders and shaded header elements */
+/* An actual content table with borders and shaded header elements */
 TABLE.borders {
 	border-collapse: collapse;
 	margin-bottom: .3em;	
@@ -159,6 +159,9 @@ TABLE.borders BUTTON.add {
 	padding: 0;
 	font-weight: bold;
 	font-size: 150%;
+	}
+TABLE.borders BUTTON.fill {
+	width: 100%;
 	}
 
 /* Thumbnail image representing video or illustration */
@@ -247,16 +250,16 @@ DIV.thumbnail > DIV.caption {
 	}
 
 /* Search box */
-.search {
+.hbox {
 	display: flex;
 	}
-.search > INPUT[type='text'] {
+.hbox > INPUT[type='text'], .hbox > INPUT[type='file'] {
 	flex-grow: 1;
 	}
-.search > * {
+.hbox > * {
 	margin-right: .3em;
 	}
-.search > *:last-child {
+.hbox > *:last-child {
 	margin-right: 0;
 	}
 

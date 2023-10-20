@@ -42,7 +42,7 @@ def page_scenes_submit():
 			case "scene":
 				scene = request.form.get("scene")
 				obs.set_current_program_scene(scene)
-				message = _("Scene switched to %s") % scene
+				message = _("Scene switched to \"%s\"") % scene
 	
 			case "delete":
 				for scene in request.form.getlist("del"):

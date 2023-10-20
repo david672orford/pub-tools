@@ -19,6 +19,7 @@
 
 ## Script Development
 
+* [OBS-Websocket Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
 * [Python/Lua Scripting](https://docs.obsproject.com/scripting)
 * [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API)
 * [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros)

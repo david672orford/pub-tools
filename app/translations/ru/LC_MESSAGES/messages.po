@@ -43,7 +43,7 @@ msgstr "Запись уже находился в кэше"
 
 #: jworg/fetcher.py:181
 msgid "Downloading media file..."
-msgstr "Идёт загрузка записи %s..."
+msgstr "Идёт загрузка записи..."
 
 #: jworg/fetcher.py:202
 msgid "Media file downloaded"
@@ -51,7 +51,7 @@ msgstr "Запись загружена"
 
 #: jworg/meetings.py:78
 msgid "Downloading article..."
-msgstr "Идёт загрузка стати %s..."
+msgstr "Идёт загрузка стати..."
 
 #: jworg/meetings.py:80
 #, python-format
@@ -178,8 +178,8 @@ msgstr "Сцены"
 
 #: subapps/khplayer/view_scenes.py:45
 #, python-format
-msgid "Scene switched to %s"
-msgstr "Переход на сцену %s"
+msgid "Scene switched to \"%s\""
+msgstr "Переход на сцену «%s»"
 
 #: subapps/khplayer/view_scenes.py:61
 msgid "* Camera"
@@ -443,9 +443,8 @@ msgid "Upload"
 msgstr "Загрузить"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:63
-#, fuzzy
 msgid "URL to Add"
-msgstr "Загрузить"
+msgstr "Дабавить URL"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:66
 #: subapps/khplayer/templates/khplayer/songs.html:9
@@ -527,12 +526,11 @@ msgstr "Поиск по видеороликам"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:9
 msgid "Back"
-msgstr ""
+msgstr "Назад"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:44
-#, fuzzy
 msgid "No videos match your search terms."
-msgstr "Введите поисковые термены"
+msgstr "Ролики соответствующих терменам отсутствуют"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:47
 #, python-format
@@ -540,18 +538,17 @@ msgid "Consider searching for %(search_suggestion)s instead."
 msgstr ""
 
 #: subapps/khplayer/utils/scenes.py:6
-#, fuzzy
 msgid "Getting video download URL..."
-msgstr "Запрос URL песни..."
+msgstr "Запрос на URL загрузки ролика..."
 
 #: subapps/khplayer/utils/scenes.py:15
 msgid "Video loaded"
 msgstr "Видеоролик загружён"
 
 #: subapps/khplayer/utils/scenes.py:18
-#, fuzzy, python-format
+#, python-format
 msgid "Getting song %d video download URL..."
-msgstr "Запрос URL песни..."
+msgstr "Запрос на URL для загрузки песни %d..."
 
 #: subapps/khplayer/utils/scenes.py:22
 #, python-format

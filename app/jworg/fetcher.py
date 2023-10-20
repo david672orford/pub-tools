@@ -171,14 +171,7 @@ class Fetcher:
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url, callback=None):
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
-		if os.path.exists(cachefile):
-			logger.debug("Media file %s already in cache", url)
-			if callback:
-				callback(_("Media file already in cache"))
-		else:
-			logger.debug("Download media file %s...", url)
-			if callback:
-				callback(_("Downloading media file..."))
+		if not os.path.exists(cachefile):
 			response = self.get(url)
 			total_expected = int(response.headers.get("Content-Length"))
 			with open(cachefile + ".tmp", "wb") as fh:

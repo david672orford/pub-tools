@@ -37,3 +37,7 @@ flask-babel==4.0.0
 
 # Russian inflection
 pymorphy2==0.9.1
+
+# Search engine
+Whoosh==2.7.4
+
