@@ -30,7 +30,7 @@ When you open Pub-Tools in a web browser, you will see a menu of subapps.
 Each of them requires some setup before they will work. Refer to the
 documentation below.
 
-* [KH Player](docs/subapp-khplayer)
-* [Teaching Toolbox](docs/subapp-teaching-toolbox)
-* [Epub Reader](docs/subapp-epub-reader)
+* [KH Player](docs/subapp-khplayer.md)
+* [Teaching Toolbox](docs/subapp-teaching-toolbox.md)
+* [Epub Reader](docs/subapp-epub-reader.md)
 
