@@ -23,3 +23,7 @@
 * [QjackCtl](https://qjackctl.sourceforge.io/) -- GUI for the JACK audio server, compatible with Pipewire, clutters with MIDI, one box for all OBS sources
 * [Catia](https://kx.studio/Applications:Catia) -- Another GUI for JACK which can be used with Pipewire, clutters with MIDI, one box for all OBS sources
 
+## Filters
+
+* [NoiseTorch](https://github.com/noisetorch/NoiseTorch)
+
