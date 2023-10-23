@@ -9,7 +9,7 @@
 <section class="toc">
 <ul>
 {% for item in epub.opf.toc %}
-<li><a id={{item.id}} href="{{item.href}}">{{item.title}}</a></li>
+<li><a id={{item.id}} href="viewer/{{item.href}}">{{item.title}}</a></li>
 {% endfor %}
 </ul>
 </section>

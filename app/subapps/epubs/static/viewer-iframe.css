@@ -1,0 +1,18 @@
+body {
+	margin: 0 .5em;
+	}
+.groupExt aside.viewer-popup {
+	display: block;
+	}
+.groupExt aside {
+	display: none;
+	position: absolute;
+	left: 5em;
+	width: 25em;
+	padding: .5em .5em 0 .5em;
+	background-color: white;
+	border: thin solid black;
+	}
+.groupExt aside p {
+	margin: 0 0 .5em 0;
+	}

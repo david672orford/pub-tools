@@ -1,4 +1,4 @@
-HTML, BODY, HEADER, SECTION, H1, H2, H3, UL, LI {
+HTML, BODY, HEADER, MAIN, SECTION, H1, H2, H3, UL, LI {
 	margin: 0;
 	padding: 0;
 	}
@@ -21,7 +21,6 @@ HEADER {
 MAIN {
 	flex-grow: 1;
 	overflow: auto;
-	margin-top: .3rem;
 	}
 SECTION {
 	margin: .5em .5em 1em .5em;
@@ -77,3 +76,10 @@ HEADER DIV#progress-message {
 	padding: .1em .2em 0 .2em;
 	}
 
+IFRAME.epub {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: none;
+	margin: 0;
+	}

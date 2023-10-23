@@ -66,7 +66,39 @@ def epub_toc(pub_code):
 
 	return render_template("epubs/toc.html", epub=epub)
 
-# File form an Epub (HTML page, image, etc.)
+# Epub page in an <iframe>
+@blueprint.route("/<pub_code>/viewer/<path:path>")
+def epub_viewer(pub_code, path):
+	epub = open_epub(pub_code)
+	if epub is None:
+		abort(404)
+	return render_template("epubs/viewer.html", epub=epub, path="../" + path)
+
+## CSS rules to append to /css/epubs.css
+## Epub content is in XHTML format, so the tag names must be in lower case.
+#viewer_css_override = """
+#body {
+#	margin: 0 .5em;
+#	}
+#"""
+#
+## Epub stylesheet
+#@blueprint.route("/<pub_code>/css/epubs.css")
+#def epub_css(pub_code):
+#	epub = open_epub(pub_code)
+#	if epub is None:
+#		abort(404)
+#
+#	item = epub.opf.manifest_by_href.get("css/epubs.css")
+#	if item is None:
+#		abort(404)
+#
+#	file_handle, content_length = epub.open(item.href)
+#	css_text = file_handle.read() + viewer_css_override.encode("utf-8")
+#
+#	return Response(css_text, mimetype=item.mimetype)
+
+# File from an Epub (HTML page, image, etc.)
 @blueprint.route("/<pub_code>/<path:path>")
 def epub_file(pub_code, path):
 	epub = open_epub(pub_code)
@@ -77,6 +109,7 @@ def epub_file(pub_code, path):
 	if item is None:
 		abort(404)
 
+	# This may be overkill. It supports range requests
 	file_handle, content_length = epub.open(item.href)
 	response = Response(file_handle, mimetype=item.mimetype)
 	response.make_conditional(request, complete_length = content_length)

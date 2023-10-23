@@ -1,0 +1,37 @@
+{% set title = epub.opf.title %}
+{% extends "epubs/base.html" %}
+
+{% block header %}
+	<h1><a href="../..">&lt;&nbsp;{{ title }}</a></h1>
+{% endblock %}
+
+{% block main %}
+
+<iframe id="epub" class="epub" src="{{path}}">
+</iframe>
+
+<script>
+console.log("Script executing");
+window.addEventListener("DOMContentLoaded", function() {
+	console.log("Viewer loaded");
+	let iframe = document.getElementById("epub");
+	iframe.contentWindow.addEventListener("DOMContentLoaded", function() {
+		console.log("Iframe content loaded");
+		let doc = iframe.contentDocument;
+		let head = doc.getElementsByTagName("head")[0];
+
+		let link = document.createElement("link");
+		link.rel = "stylesheet";
+		link.type = "text/css";
+		link.href = "../static/viewer-iframe.css";
+		head.appendChild(link);
+
+		let script = document.createElement("script");
+		script.type = "text/javascript";
+		script.src = "../static/viewer-iframe.js";
+		head.appendChild(script);
+		});
+	});
+</script>
+
+{% endblock %}
