@@ -1,5 +1,6 @@
 # Load lists of publications
 
+from flask import current_app
 import sys, os, re, json
 from datetime import date, timedelta
 from flask.cli import AppGroup
@@ -63,42 +64,55 @@ def update_meetings(callback=default_callback):
 # Articles model instance for each article.
 #=============================================================================
 
-@cli_update.command("periodicals", help="Add all available Watchtowers, Awakes, and Meeting Workbooks to DB")
-def cmd_update_periodicals():
+class PeriodicalTable:
+	def __init__(self, title):
+		self.table = Table(show_header=True, title=title)
+		for column in ("Code", "Issue Code", "Issue"):
+			self.table.add_column(column)
+	def add_row(self, *row):
+		self.table.add_row(*row)	
+	def print(self):
+		Console().print(self.table)
+
+@cli_update.command("periodicals", help="Get a list of the issues of indicated periodical  ")
+@click.argument("pub_code")
+@click.argument("year", required=False)
+def cmd_update_periodicals(pub_code, year=None):
 	logging.basicConfig(level=logging.DEBUG)
-
-	language = app.config["PUB_LANGUAGE"]
-
-	for year in range(2018, date.today().year):
-		update_periodicals("Magazines for %d" % year, "magazines/", dict(yearFilter=year, contentLanguageFilter=language))
-
-	update_periodicals("Current Magazines", "magazines/", dict(contentLanguageFilter=language))
-
-	update_periodicals("Current Meeting Workbooks", "jw-meeting-workbook/", dict(pubFilter="mwb", contentLanguage=language))
-
-	# Get the table of contents of each issue for which we do not have it already.
-	update_articles()
+	years = []
+	if year == "all":
+		years = list(range(2018, date.today().year))
+		years.append(None)
+	else:
+		years.append(year)		# may be None
+	for year in years:
+		update_periodicals(pub_code, year=year, table=PeriodicalTable("Publication %s for year %s" % (pub_code, year)))
 
 # Using the search parameters provided, get a publications list page from JW.ORG
 # and extract the links to the publications listed. Save the information in our DB.
-def update_periodicals(title, search_path, search_query):
+def update_periodicals(pub_code, year=None, table=None):
 
-	pub_finder = PubFinder(cachedir=app.cachedir, debuglevel=0)
+	if pub_code == "mwb":
+		search_path = "jw-meeting-workbook/"
+	else:
+		search_path = "magazines/"
 
-	pubs = pub_finder.search(search_path, search_query)
+	search_query = {
+		"pubFilter": pub_code,
+		"contentLanguageFilter": current_app.config["PUB_LANGUAGE"],
+		}
 
-	# Print a table of what we are adding to the database
-	console = Console()
-	table = Table(show_header=True, title=title)
-	for column in ("Code", "Issue Code", "Issue"):
-		table.add_column(column)
+	if year is not None:
+		search_query["yearFilter"] = str(year)
+
+	pubs = PubFinder(cachedir=current_app.config["CACHEDIR"], debuglevel=0).search(search_path, search_query)
 
 	# Add these publications to the database or update info if they are already there
 	for pub in pubs:
-		print(pub)
 		if not 'issue_code' in pub:		# Midweek Meeting instructions
 			continue
-		table.add_row(pub['code'], pub.get('issue_code'), pub.get('issue'))
+		if table is not None:
+			table.add_row(pub['code'], pub.get('issue_code'), pub.get('issue'))
 		issue = PeriodicalIssues.query.filter_by(pub_code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
 		if issue is None:
 			issue = PeriodicalIssues()
@@ -109,15 +123,15 @@ def update_periodicals(title, search_path, search_query):
 		issue.issue = pub['issue']
 		issue.thumbnail = pub['thumbnail']
 		issue.href = pub['href']
-
-	console.print(table)
+		issue.formats = pub['formats']
 
 	db.session.commit()
 
-# Download the table of contents of each periodical in the database
-# and add the articles to the Articles model in the DB if they are
-# not there already.
-def update_articles():
+	if table is not None:
+		table.print()
+
+@cli_update.command("articles", help="Load article titles from TOC of every periodical in the DB")
+def cmd_update_articles():
 	pub_finder = PubFinder()
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.pub_code.in_(("w", "mwb"))):
 		print(issue, len(issue.articles))
@@ -135,16 +149,15 @@ def update_articles():
 #=============================================================================
 
 @cli_update.command("books", help="Get a list of books and brochures")
-def cmd_load_books():
+def cmd_update_books():
 	logging.basicConfig(level=logging.DEBUG)
-	load_books()
+	update_books()
 
-def load_books():
-	pub_finder = PubFinder(cachedir=app.cachedir)
-	language = app.config["PUB_LANGUAGE"]
+def update_books():
+	pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+	language = current_app.config["PUB_LANGUAGE"]
 	pubs = pub_finder.search("books/", dict(contentLanguageFilter=language))
 	for pub in pubs:
-		print(pub)
 		book = Books.query.filter_by(pub_code=pub['code']).one_or_none()
 		if book is None:
 			book = Books()
@@ -153,6 +166,7 @@ def load_books():
 		book.pub_code = pub['code']
 		book.thumbnail = pub['thumbnail']
 		book.href = pub['href']
+		book.formats = pub['formats']
 	db.session.commit()
 
 #=============================================================================
@@ -164,10 +178,15 @@ def load_books():
 #        -> Video 
 #=============================================================================
 
-@cli_update.command("videos", help="Update list of all available videos")
-def cmd_update_videos():
+@cli_update.command("videos", help="Update list of available videos")
+@click.argument("category_key", required=False)
+@click.argument("subcategory_key", required=False)
+def cmd_update_videos(category_key=None, subcategory_key=None):
 	logging.basicConfig(level=logging.DEBUG)
-	update_videos()
+	if category_key is not None and subcategory_key is not None:
+		update_video_subcategory(category_key, subcategory_key)
+	else:
+		update_videos()
 	db.session.commit()
 	update_video_index()
 

@@ -5,8 +5,11 @@ import os
 from collections import defaultdict
 import logging
 
-from ...models import PeriodicalIssues, Books
+from ...models import db, PeriodicalIssues, Books
+from ...utils import progress_callback
+from ...jworg.publications import PubFinder
 from ...jworg.epub import EpubLoader
+from ...cli_update import update_periodicals, update_books
 
 logger = logging.getLogger(__name__)
 
@@ -21,29 +24,55 @@ def epub_index():
 		periodicals[periodical.name].append(periodical)
 	return render_template(
 		"epubs/index.html",
-		periodicals=periodicals.items(),
-		books=Books.query.order_by(Books.name),
+		periodicals = (
+			("w", "Watchtower Study Edition",
+				PeriodicalIssues.query.filter_by(pub_code="w").order_by(PeriodicalIssues.issue_code),
+				),
+			("wp", "Watchtower Public Edition",
+				PeriodicalIssues.query.filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code),
+				),
+			("g", "Awake!",
+				PeriodicalIssues.query.filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code),
+				),
+			("mwb", "Meeting Workbook",
+				PeriodicalIssues.query.filter_by(pub_code="mwb").order_by(PeriodicalIssues.issue_code),
+				),
+			),
+		books = Books.query.order_by(Books.name),
 		)
 
-@blueprint.route("/рабочая-тетрадь/")
-def workbook():
-	return render_template("toolbox/publications.html", path_prefix="../", categories=[
-		("Рабочая тетрадь", PeriodicalIssues.query.filter_by(pub_code="mwb").order_by(PeriodicalIssues.issue_code))
-		])
+@blueprint.route("/load", methods=["POST"])
+def epub_load():
+	pub_code = request.form.get("pub_code")
+	if pub_code in ("w", "wp", "g", "mwb"):
+		update_periodicals(pub_code)
+	else:
+		update_books()
+	return redirect(".")
 
+# Table of Contents from Epub
 @blueprint.route("/<pub_code>/")
 def epub_toc(pub_code):
 	epub = open_epub(pub_code)
+	if epub is None:
+		return "Not available as an EPUB"
+
+	# Jump to chapter identified by ID
 	id = request.args.get("id")
 	if id is not None:
 		for item in epub.opf.toc:
 			if item.id == id:
 				return redirect(item.href)
+
 	return render_template("epubs/toc.html", epub=epub)
 
+# File form an Epub (HTML page, image, etc.)
 @blueprint.route("/<pub_code>/<path:path>")
 def epub_file(pub_code, path):
 	epub = open_epub(pub_code)
+	if epub is None:
+		abort(404)
+
 	item = epub.opf.manifest_by_href.get(path)
 	if item is None:
 		abort(404)
@@ -54,25 +83,23 @@ def epub_file(pub_code, path):
 	return response
 
 def open_epub(pub_code):
-	if "-" in pub_code:
-		pub_code, issue_code = pub_code.split("-",1)
+	if "_" in pub_code:
+		pub_code, issue_code = pub_code.split("_",1)
 		pub = PeriodicalIssues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
 	else:
+		issue_code = None
 		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
-	if pub is None or pub.epub_filename is None:
+	if pub is None:
+		logger.error("Publication %s not known", pub_code)
 		abort(404)
+	if pub.epub_filename is None:
+		pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
+		if epub_url is None:
+			return None
+		progress_callback("Downloading %s" % epub_url)
+		epub_filename = pub_finder.download_media(epub_url, callback=progress_callback)
+		pub.epub_filename = os.path.basename(epub_filename)
+		db.session.commit()
 	return EpubLoader(os.path.join(current_app.config["CACHEDIR"], pub.epub_filename))
-
-@blueprint.route("/видеоролики/")
-def video_categories():
-	categories = defaultdict(list)
-	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
-		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
-	return render_template("toolbox/video_categories.html", path_prefix="../", categories=categories.items())
-
-@blueprint.route("/видеоролики/<category_key>/<subcategory_key>/")
-def video_list(category_key, subcategory_key):
-	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	return render_template("toolbox/video_list.html", path_prefix="../../../", category=category)
-
 

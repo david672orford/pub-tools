@@ -1,5 +1,5 @@
 import os
-from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPErrorProcessor, build_opener
+from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPErrorProcessor, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 from gzip import GzipFile
 import lxml.html
@@ -312,6 +312,10 @@ class Fetcher:
 			}
 		if issue_code is not None:
 			query['issue'] = issue_code
-		media = self.get_json(self.pub_media_url, query=query)
+		try:
+			media = self.get_json(self.pub_media_url, query=query)
+		except HTTPError as e:
+			logger.error("Failed to fetch EPUB url for %s %s: %s", pub_code, issue_code, str(e))
+			return None
 		return media['files'][self.language]['EPUB'][0]['file']['url']
 

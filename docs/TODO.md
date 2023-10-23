@@ -4,8 +4,8 @@
 
 * Load the jwpub file with talk illustrations
 * Zoom in browser source
-* Better docs
-* Cache cleaner
+* Write better docs
+* Create a cache cleaner
 
 ## Scenes Tab
 
@@ -20,4 +20,7 @@
 * Fix return-to-first-scene so it does not act if the user stopped the
   video by switching scenes
 * Automatically stop videos before notice card
+* Make sure virtual audio cable can start even if microphone and speakers
+are not yet selected. It should leave off those connections.
+* Add selection of the microphone and speakers to the script configuration screen.
 

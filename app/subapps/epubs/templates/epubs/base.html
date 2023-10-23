@@ -3,15 +3,37 @@
 <head>
 <title>{{title}}</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="turbo-root" content="/epub">
 <link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='base.css')}}">
+{{ turbo() }}
 </head>
 <body>
 <header>
+	<div id="progress">
+		<div id="progress-bar"></div>
+		<div id="progress-message"></div>
+	</div>
+
 	{% block header %}
 	<h1>{{title}}</h1>
 	{% endblock %}
 </header>
+
+<div id="flashes">
+{% with messages = get_flashed_messages() %}
+	{% if messages %}
+		{% for message in messages %}
+			<div class="flash">{{ message }}</div>
+		{% endfor %}
+	{% endif %}
+{% endwith %}
+</div>
+
+<main>
 {% block main %}
 {% endblock %}
+</main>
+
 </body>
 </html>

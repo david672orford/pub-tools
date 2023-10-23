@@ -46,6 +46,7 @@ class Books(db.Model):
 	pub_code = db.Column(db.String)
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
+	formats = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 
 # PeriodicalIssues of the Watchtower, Awake!, or Meeting Workbook
@@ -57,6 +58,7 @@ class PeriodicalIssues(db.Model):
 	issue_code = db.Column(db.String)
 	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
+	formats = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 	articles = db.relationship('Articles', order_by=lambda: Articles.docid)
 	def __str__(self):

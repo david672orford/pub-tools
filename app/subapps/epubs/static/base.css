@@ -2,10 +2,26 @@ HTML, BODY, HEADER, SECTION, H1, H2, H3, UL, LI {
 	margin: 0;
 	padding: 0;
 	}
+* {
+	box-sizing: border-box;
+	}
+HTML, BODY {
+	height: 100%;
+	}
+BODY {
+	font-family: sans-serif;
+	display: flex;
+	flex-direction: column;
+	}
 HEADER {
 	padding: .5em;
 	background-color: #f0f0f0;
-	border-bottom: thin solid #808080;
+	border-bottom: 1px solid #a0a0a0;
+	}
+MAIN {
+	flex-grow: 1;
+	overflow: auto;
+	margin-top: .3rem;
 	}
 SECTION {
 	margin: .5em .5em 1em .5em;
@@ -29,3 +45,35 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+
+/* FIXME: This was copied verbatim from khplayer/static/base.css */
+HEADER DIV#progress {
+	position: absolute;
+	top: .5em;
+	right: .5em;
+	width: 50%;
+	min-width: 20em;
+	background-color: #f0f0f0;
+	border: 1px solid #808080;
+	visibility: hidden;
+	}
+HEADER DIV#progress:has(#progress-message > DIV) {
+	visibility: visible;
+	}
+HEADER DIV#progress > * {
+	margin: .3em;
+	border: 1px solid #c0c0c0;
+	}
+HEADER DIV#progress-bar {
+	background-color: #f8f8f8;
+	height: 1.4em;
+	}
+HEADER DIV#progress-bar > DIV {
+	height: 100%;
+	background-color: green;
+	}
+HEADER DIV#progress-message {
+	min-height: 1.4em;
+	padding: .1em .2em 0 .2em;
+	}
+

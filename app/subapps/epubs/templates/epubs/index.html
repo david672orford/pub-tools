@@ -2,27 +2,29 @@
 {% extends "epubs/base.html" %}
 
 {% block main %}
+<form action="load" method="POST">
+
+{% for pub_code, pub_name, issues in periodicals %}
 <section>
-<h2>Periodicals</h2>
+<h2>{{pub_name}}</h2>
 <ul>
-{% for name, issues in periodicals %}
-  <li>
-    <h3>{{name}}</h3>
-    <ul>
-      {% for issue in issues %}
-      <li><a href="{{issue.pub_code}}-{{issue.issue_code}}/">{{issue.issue}}</a></li>
-      {% endfor %}
-    </ul>
+{% for issue in issues %}
+	<li><a href="{{issue.pub_code}}_{{issue.issue_code}}/">{{issue.issue}}</a> ({{issue.formats}})</li>
 {% endfor %}
 </ul>
+<button name="pub_code" value="{{pub_code}}">Load Current {{pub_name}}</button>
 </section>
+{% endfor %}
 
 <section>
 <h2>Books and Brochures</h2>
 <ul>
 {% for book in books %}
-<li><a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a></li>
+<li><a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a> ({{book.formats}})</li>
 {% endfor %}
 </ul>
+<button name="pub_code" value="books">Load List of Books and Brocures</button>
 </section>
+
+</form>
 {% endblock %}

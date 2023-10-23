@@ -26,7 +26,6 @@ class PubFinder(Fetcher):
 
 			base = html.xpath(".//base")
 			if len(base) > 0:
-				#print("base:", base[0].attrib)
 				base_url = urljoin(base_url, base[0].attrib['href'])
 
 			container = html.get_element_by_id('pubsViewResults')
@@ -65,6 +64,7 @@ class PubFinder(Fetcher):
 				# to more versions of it.
 				syn_body = pub.find_class('syn-body')[0]
 				name = syn_body.find_class('publicationDesc')[0].text_content().strip()
+				formats = " ".join(map(lambda a: a.attrib.get("data-preselect","?"), syn_body.find_class("arrowTop")[0].find_class("jsDownload")))
 
 				# Periodicals will have a periodical name, an issue title, and an issue date.
 				if periodical_name is not None and " iss-" in pub.attrib['class']:
@@ -76,14 +76,16 @@ class PubFinder(Fetcher):
 						code = code,
 						issue_code = issue_code,
 						href = href,
-						thumbnail = thumbnail
+						thumbnail = thumbnail,
+						formats = formats,
 						))
 				else:
 					pubs.append(dict(
 						name = name,
 						code = code,
 						href = href,
-						thumbnail = thumbnail
+						thumbnail = thumbnail,
+						formats = formats,
 					))
 
 			# If there are more pages of results, load the next one.

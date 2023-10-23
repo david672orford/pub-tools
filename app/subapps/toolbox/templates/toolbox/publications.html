@@ -19,7 +19,7 @@
 		{{ menu_item("Буклеты", "tracts") }}
 		{{ menu_item("Видео", "video") }}
 		{{ menu_item("Книги", "books") }}
-		{{ menu_item("СБ", "watchtower") }}
+		{{ menu_item("Сторожевая башня", "watchtower") }}
 		{{ menu_item("Пробудитесь!", "awake") }}
 		</ul>
 	</nav>
@@ -36,7 +36,7 @@ document.getElementsByTagName("body")[0].style.paddingTop
 	<li>
 		<img src="{{pub.thumbnail}}">
 		<div>
-			<a href="{{pub.href}}">{{pub.name}}{% if pub.issue %} {{pub.issue}}{% endif %}</a>
+			<a href="{{pub.href}}" target="_blank">{{pub.name}}{% if pub.issue %} {{pub.issue}}{% endif %}</a>
 			<div>{{share(pub)}}</div>
 		</div>
 	</li>

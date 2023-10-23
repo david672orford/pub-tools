@@ -31,17 +31,17 @@ def toolbox(pub_category):
 			classes = "pubs"
 		case "books":
 			title = "Книги"
-			items = Books.query.filter(Books.pub_code.in_(("lffi", "ld", "ll", "bh","bhs","lv","lvs","jl"))).order_by(Books.pub_code)
+			items = Books.query.filter(Books.pub_code.in_(("lffi", "lff", "ld", "ll", "bh","bhs","lv","lvs","jl"))).order_by(Books.pub_code)
 			share = lambda item: "https://www.jw.org/finder?wtlocale=U&pub=%s&srcid=share" % item.pub_code
 			classes = "pubs"
 		case "watchtower":
 			title = "Сторожовая башня"
-			items = PeriodicalIssues.query.filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code)
+			items = PeriodicalIssues.query.filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code.desc())
 			share = lambda item: "https://www.jw.org/finder?wtlocale=U&issue=%s&pub=%s&srcid=share" % (item.issue_code[:4] + "-" + item.issue_code[4:], item.pub_code + item.issue_code[2:4])
 			classes = "pubs"
 		case "awake":
 			title = "Пробудитесь!"
-			items = PeriodicalIssues.query.filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code)
+			items = PeriodicalIssues.query.filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code.desc())
 			share = lambda item: "https://www.jw.org/finder?wtlocale=U&issue=%s&pub=%s&srcid=share" % (item.issue_code[:4] + "-" + item.issue_code[4:], item.pub_code + item.issue_code[2:4])
 			classes = "pubs"
 		case "invitations":

@@ -97,5 +97,6 @@ SECTION.pubs > UL > LI > DIV {
 	display: flex;
 	flex-direction: column;
 	margin: 3px;
+	gap: .5em;
 	}
 
