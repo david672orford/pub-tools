@@ -28,7 +28,8 @@ def create_app(instance_path=None):
 		APP_DISPLAY_NAME = "JW Pubs",
 		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs"],
 		PUB_LANGUAGE = "ru",
-		CACHEDIR = os.path.join(app.instance_path, "cache")
+		CACHEDIR = os.path.join(app.instance_path, "cache"),
+		ENABLE_SUBTITLES = False,
 		)
 
 	# Overlay with configuration from instance/config.py

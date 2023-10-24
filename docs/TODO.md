@@ -4,7 +4,6 @@
 
 * Write better docs (underway)
 * Zoom in a browser source
-* Try the VLC source. Can we display subtitles?
 * Load the jwpub file with talk illustrations
 * Should we cache thumbnail images in the Videos, Books, and PeriodicalIssues objects
 

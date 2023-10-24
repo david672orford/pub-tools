@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-10-19 17:23-0400\n"
-"PO-Revision-Date: 2023-10-19 17:29-0400\n"
+"POT-Creation-Date: 2023-10-24 15:23-0400\n"
+"PO-Revision-Date: 2023-10-24 15:30-0400\n"
 "Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
@@ -20,45 +20,41 @@ msgstr ""
 "Generated-By: Babel 2.13.0\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: cli_update.py:47
+#: cli_update.py:46
 #, python-format
 msgid "Fetching week %s %s"
 msgstr "Идёт загрузка недели %s %s"
 
-#: cli_update.py:57
+#: cli_update.py:56
 msgid "Meetings loaded"
 msgstr "Список встреч обновлен"
 
-#: cli_update.py:196
+#: cli_update.py:213
 msgid "Scanning {category_name} — {subcategory_name}..."
 msgstr "Обновляется {category_name} — {subcategory_name}..."
 
-#: utils.py:17
-msgid "Please wait for previous download to finish."
-msgstr "Подождите завершения предыдущей загрузки."
-
-#: jworg/fetcher.py:177
-msgid "Media file already in cache"
-msgstr "Запись уже находился в кэше"
-
-#: jworg/fetcher.py:181
-msgid "Downloading media file..."
-msgstr "Идёт загрузка записи..."
-
-#: jworg/fetcher.py:202
+#: jworg/fetcher.py:198
 msgid "Media file downloaded"
 msgstr "Запись загружена"
 
-#: jworg/meetings.py:78
+#: jworg/meetings.py:13
+msgid "image"
+msgstr "изображение"
+
+#: jworg/meetings.py:14
+msgid "video"
+msgstr "видео"
+
+#: jworg/meetings.py:84
 msgid "Downloading article..."
 msgstr "Идёт загрузка стати..."
 
-#: jworg/meetings.py:80
+#: jworg/meetings.py:86
 #, python-format
 msgid "Article title: %s"
 msgstr "Название стати: %s"
 
-#: jworg/meetings.py:226
+#: jworg/meetings.py:232
 #, python-format
 msgid "Getting media list from \"%s\"..."
 msgstr "Идёт загрузка списка материала для «%s»..."
@@ -88,11 +84,12 @@ msgid "Public Talks"
 msgstr "Публичные речи"
 
 #: subapps/khplayer/view_jwstream.py:34
-msgid "Weekday"
+msgid "Weekday Meeting"
 msgstr "Встреча в будни"
 
+#: subapps/khplayer/templates/khplayer/meetings.html:12
 #: subapps/khplayer/view_jwstream.py:35
-msgid "Weekend"
+msgid "Weekend Meeting"
 msgstr "Встреча в выходные"
 
 #: subapps/khplayer/view_jwstream.py:39
@@ -146,25 +143,29 @@ msgid "Clip created"
 msgstr "Фрагмент загружен"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:1
-#: subapps/khplayer/view_meetings.py:23
+#: subapps/khplayer/view_meetings.py:24
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:66
+#: subapps/khplayer/view_meetings.py:67
 msgid "Meeting media list loaded"
 msgstr "Список материала для встречи загружён"
 
-#: subapps/khplayer/view_meetings.py:69
+#: subapps/khplayer/view_meetings.py:71
 #, python-format
 msgid "Error: %s"
 msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:97
+#: subapps/khplayer/view_meetings.py:72
+msgid "Loading of meeting media list failed"
+msgstr "Сбой загрузки списка материала для встречи"
+
+#: subapps/khplayer/view_meetings.py:100
 #, python-format
 msgid "Loading media for %s..."
 msgstr "Идёт загрузка материала для %s..."
 
-#: subapps/khplayer/view_meetings.py:139
+#: subapps/khplayer/view_meetings.py:142
 msgid "Meeting loaded"
 msgstr "Материал для встречи загружён"
 
@@ -193,8 +194,8 @@ msgstr "* Зум"
 msgid "* Split Screen"
 msgstr "* Разделенный экран"
 
-#: subapps/khplayer/utils/scenes.py:13 subapps/khplayer/utils/scenes.py:24
-#: subapps/khplayer/utils/scenes.py:34 subapps/khplayer/utils/scenes.py:43
+#: subapps/khplayer/utils/scenes.py:23 subapps/khplayer/utils/scenes.py:36
+#: subapps/khplayer/utils/scenes.py:48 subapps/khplayer/utils/scenes.py:59
 #: subapps/khplayer/view_scenes.py:79
 #, python-format
 msgid "OBS: %s"
@@ -355,10 +356,6 @@ msgstr "Неделя от"
 msgid "Midweek Meeting"
 msgstr "Встреча в будни"
 
-#: subapps/khplayer/templates/khplayer/meetings.html:12
-msgid "Weekend Meeting"
-msgstr "Встреча в выходные"
-
 #: subapps/khplayer/templates/khplayer/meetings.html:21
 #: subapps/khplayer/templates/khplayer/meetings.html:22
 msgid "Life and Ministry"
@@ -383,7 +380,7 @@ msgstr ""
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:19
 msgid "Media Item"
-msgstr ""
+msgstr "Предмет"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:29
 msgid "Download Media and Create Scenes in OBS"
@@ -449,7 +446,7 @@ msgstr "Дабавить URL"
 #: subapps/khplayer/templates/khplayer/scenes.html:66
 #: subapps/khplayer/templates/khplayer/songs.html:9
 msgid "Add"
-msgstr ""
+msgstr "Добавить"
 
 #: subapps/khplayer/templates/khplayer/slides.html:1
 msgid "Speaker's Slide Loader"
@@ -477,7 +474,7 @@ msgstr "Введите номер песни"
 
 #: subapps/khplayer/templates/khplayer/songs.html:20
 msgid "Song Number and Name"
-msgstr ""
+msgstr "Номер и название песни"
 
 #: subapps/khplayer/templates/khplayer/songs.html:38
 msgid "Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here."
@@ -530,47 +527,89 @@ msgstr "Назад"
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:44
 msgid "No videos match your search terms."
-msgstr "Ролики соответствующих терменам отсутствуют"
+msgstr "Ролики соответствующих терменам отсутствуют."
 
 #: subapps/khplayer/templates/khplayer/videos_search.html:47
 #, python-format
 msgid "Consider searching for %(search_suggestion)s instead."
 msgstr ""
 
-#: subapps/khplayer/utils/scenes.py:6
+#: subapps/khplayer/utils/scenes.py:7
 msgid "Getting video download URL..."
 msgstr "Запрос на URL загрузки ролика..."
 
-#: subapps/khplayer/utils/scenes.py:15
+#: subapps/khplayer/utils/scenes.py:12
+#, python-format
+msgid "Downloading video \"%s\"..."
+msgstr "Идёт загрузка ролика «%s»..."
+
+#: subapps/khplayer/utils/scenes.py:16
+msgid "Downloading subtitles..."
+msgstr "Идёт загрузка субтитров..."
+
+#: subapps/khplayer/utils/scenes.py:24
+msgid "Failed to add video"
+msgstr ""
+
+#: subapps/khplayer/utils/scenes.py:26
 msgid "Video loaded"
 msgstr "Видеоролик загружён"
 
-#: subapps/khplayer/utils/scenes.py:18
+#: subapps/khplayer/utils/scenes.py:29
 #, python-format
-msgid "Getting song %d video download URL..."
-msgstr "Запрос на URL для загрузки песни %d..."
+msgid "Getting song %d download URL..."
+msgstr "Обрабатывается запрос на URL для загрузки песни %d..."
 
-#: subapps/khplayer/utils/scenes.py:22
+#: subapps/khplayer/utils/scenes.py:31
+#, python-format
+msgid "Downloading song %d..."
+msgstr "Идёт загрузка песни %d..."
+
+#: subapps/khplayer/utils/scenes.py:34
 #, python-format
 msgid "♫ Song %s"
 msgstr "♫ Песня %s"
 
-#: subapps/khplayer/utils/scenes.py:26
+#: subapps/khplayer/utils/scenes.py:37
+msgid "Failed to add song"
+msgstr "Сбой добавления писни"
+
+#: subapps/khplayer/utils/scenes.py:39
 #, python-format
 msgid "Song %d video loaded"
 msgstr "Видеоролик песни %d загружён"
 
-#: subapps/khplayer/utils/scenes.py:36
+#: subapps/khplayer/utils/scenes.py:42
+msgid "Loading webpage..."
+msgstr "Идёт загрузка веб-страници..."
+
+#: subapps/khplayer/utils/scenes.py:49
+msgid "Failed to add webpage"
+msgstr "Сбой добавления веб-страници"
+
+#: subapps/khplayer/utils/scenes.py:51
 msgid "Webpage loaded"
 msgstr "Веб-страница загружена"
 
-#: subapps/khplayer/utils/scenes.py:45
+#: subapps/khplayer/utils/scenes.py:55
+msgid "Downloading image..."
+msgstr "Идёт загрузка изображения..."
+
+#: subapps/khplayer/utils/scenes.py:60
+msgid "Failed to add image"
+msgstr "Сбой загрузки изображения"
+
+#: subapps/khplayer/utils/scenes.py:62
 msgid "Image loaded"
 msgstr "Изображение загружено"
 
 #: subapps/khplayer/utils/zoom.py:18
 msgid "Second Zoom window not found."
-msgstr ""
+msgstr "Второе окно Зума не обнаружено."
+
+#: utils/background.py:20
+msgid "Please wait for previous download to finish."
+msgstr "Подождите завершения предыдущей загрузки."
 
 #~ msgid "Current and Upcoming Meetings"
 #~ msgstr "Следующие встречи"
@@ -589,3 +628,15 @@ msgstr ""
 
 #~ msgid "Deselect All"
 #~ msgstr "Снять все выделения"
+
+#~ msgid "Media file already in cache"
+#~ msgstr "Запись уже находился в кэше"
+
+#~ msgid "Downloading media file..."
+#~ msgstr "Идёт загрузка записи..."
+
+#~ msgid "Weekday"
+#~ msgstr "Встреча в будни"
+
+#~ msgid "Weekend"
+#~ msgstr "Встреча в выходные"

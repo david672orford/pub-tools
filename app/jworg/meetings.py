@@ -8,6 +8,12 @@ from ..utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
+# For translation
+(
+	_("image"),
+	_("video"),
+)
+
 # A single media item, such as a video, for use at a meeting
 @dataclass
 class MeetingMedia:
@@ -264,7 +270,6 @@ class MeetingLoader(Fetcher):
 		yield self.make_song(songs[1])
 
 	def make_song(self, a):
-		print("song:", a)
 		song_text = a.text_content().strip()
 		song_number = re.search(r'(\d+)$', song_text)
 		assert song_number is not None, "Song number: %s" % repr(song_number)

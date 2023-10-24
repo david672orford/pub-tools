@@ -261,7 +261,7 @@ class ObsControl(ObsControlBase):
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
-	def add_media_scene(self, scene_name, media_type, media_file):
+	def add_media_scene(self, scene_name, media_type, media_file, enable_subtitles=False):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -279,22 +279,27 @@ class ObsControl(ObsControlBase):
 			source_name = os.path.basename(media_file)
 
 		# Select the appropriate OBS source type and build its settings
-		if media_type in ("video","video-ffmpeg"):
-			source_type = "ffmpeg_source"
-			source_settings = {
-				"local_file": media_file,
-				}
-		elif media_type == "video-vlc":
-			source_type = "vlc_source"
-			source_settings = {
-				"playlist": [
-					{
-					"value": media_file,
-					"selected": False,
-					"hidden": False,
-					}],
-				"loop": False,
-				}
+		if media_type == "video":
+			# If subtitles are enabled and we have a VTT file, use the VLC source
+			subtitles_file = os.path.splitext(media_file)[0] + ".vtt"
+			if enable_subtitles and os.path.exists(subtitles_file):
+				source_type = "vlc_source"
+				source_settings = {
+					"playlist": [
+						{
+						"value": media_file,
+						"selected": False,
+						"hidden": False,
+						}],
+					"loop": False,
+					"subtitle_enable": True,
+					}
+			# Otherwise use the FFmpeg source which seems to be more stable
+			else:	
+				source_type = "ffmpeg_source"
+				source_settings = {
+					"local_file": media_file,
+					}
 		elif media_type == "image":
 			source_type = "image_source"
 			source_settings = {
@@ -342,7 +347,7 @@ class ObsControl(ObsControlBase):
 		self.scale_input(scene_name, scene_item_id)
 
 		# Enable audio monitoring for video files
-		if media_type in ("video", "video-ffmpeg", "video-vlc"):
+		if media_type == "video":
 			payload = {
 				'inputName': source_name,
 				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",

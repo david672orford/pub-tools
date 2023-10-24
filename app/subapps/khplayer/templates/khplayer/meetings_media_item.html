@@ -8,7 +8,7 @@
 		<td>
 			<div class="thumbnail">
 				{% if item.thumbnail_url %}<img src="{{item.thumbnail_url}}">{% endif %}
-	    		<div class="caption">{{item.media_type}}</div>
+	    		<div class="caption">{{_(item.media_type)}}</div>
 			</div>
 		</td>
 	    <td><a href="{{item.media_url}}" target="_blank">{{item.title}}</a></td>

@@ -100,6 +100,7 @@ HEADER DIV#progress {
 	width: 50%;
 	min-width: 20em;
 	background-color: #f0f0f0;
+	z-index: 100;
 	border: 1px solid #808080;
 	visibility: hidden;
 	}

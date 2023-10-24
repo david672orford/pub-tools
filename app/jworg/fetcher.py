@@ -12,6 +12,9 @@ from ..utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
+class FetcherError(Exception):
+	pass
+
 class NoRedirects(HTTPErrorProcessor):
 	def http_response(self, request, response):
 		if response.code in (301, 302, 303, 307):
@@ -226,18 +229,16 @@ class Fetcher:
 				language = query["wtlocale"],
 				video = query["lank"],
 				), query = { "clientType": "www" })
-			try:
-				media = media["media"][0]
-			except IndexError:
-				logger.error("No media: %s", media)
-				raise
+			if len(media["media"]) < 1:
+				raise FetcherError("Video metadata has empty media section: %s %s" % (url, media))
+			media = media["media"][0]
 
 			# If the caller has specified a video resolution, find a suitable file.
-			url = None
+			mp4_url = None
 			if resolution is not None:
 				for variant in media["files"]:
 					if variant.get("label") == resolution:
-						url = variant["progressiveDownloadURL"]
+						mp4_url = variant["progressiveDownloadURL"]
 						break
 
 			try:
@@ -245,10 +246,16 @@ class Fetcher:
 			except KeyError:
 				thumbnail_url = media['images']['lss']['lg']		# 2:1 aspect ratio
 
+			try:
+				subtitles_url = media["files"][0]["subtitles"]["url"]
+			except (IndexError, KeyError):
+				subtitles_url = None
+
 			return {
 				"title": media["title"],
-				"url": url,
+				"url": mp4_url,
 				"thumbnail_url": thumbnail_url,
+				"subtitles_url": subtitles_url,
 				}
 
 		# Video is specified by its MEPS Document ID
@@ -278,11 +285,11 @@ class Fetcher:
 			mp4 = media["files"][query["wtlocale"]]["MP4"]
 
 			# If the caller has specified a video resolution, look for a matching file.
-			url = None
+			mp4_url = None
 			if resolution is not None:
 				for variant in mp4:
 					if variant.get("label") == resolution:
-						url = variant["file"]["url"]
+						mp4_url = variant["file"]["url"]
 						break
 
 			# The pub-media API does not provide a thumbnail image. Get an image from the player page.
@@ -292,8 +299,8 @@ class Fetcher:
 
 			return {
 				"title": mp4[0]["title"],
-				"url": url,
-				"subtitles_url": mp4[0]["subtitles"]["url"]
+				"url": mp4_url,
+				"subtitles_url": mp4[0]["subtitles"]["url"] if "subtitles" in mp4[0] else None,
 				"thumbnail_url": thumbnail_url,
 				}
 

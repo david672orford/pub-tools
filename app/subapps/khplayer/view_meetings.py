@@ -6,6 +6,7 @@ from datetime import date
 from threading import Thread
 from dataclasses import asdict
 from markupsafe import escape
+import traceback
 import logging
 
 from ... import turbo
@@ -66,7 +67,9 @@ def page_meetings_view_stream(docid):
 			progress_callback(_("Meeting media list loaded"), last_message=True)
 			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 		except Exception as e:
+			logger.error(traceback.format_exc())
 			async_flash(_("Error: %s" % e))
+			progress_callback(_("Loading of meeting media list failed"), last_message=True)
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
 # User has pressed the "Download Media and Create Scenes in OBS"
