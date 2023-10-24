@@ -9,7 +9,7 @@ from threading import Thread
 from werkzeug.serving import make_server
 import logging
 
-from app.clean_logs import CleanlogWSGIRequestHandler
+from app.utils.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
 
 logging.basicConfig(

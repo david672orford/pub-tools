@@ -5,7 +5,7 @@ except ModuleNotFoundError:
 	have_ewmh = False
 
 from flask import flash
-from ....babel import gettext as _
+from ....utils.babel import gettext as _
 
 def find_second_window():
 	second_window_name = "Zoom"

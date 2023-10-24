@@ -8,7 +8,7 @@ import re
 from time import sleep, time
 import logging
 
-from ..babel import gettext as _
+from ..utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -274,15 +274,10 @@ class Fetcher:
 				"txtCMSLang": query["wtlocale"],
 				})
 
-			# The API used below does not provide a thumbnail image. Get an image from the player page.
-			player_page = self.get_html(url)
-			poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
-			thumbnail_url = poster_div.attrib["data-src"] if poster_div is not None else None
-
 			media = self.get_json(self.pub_media_url, query = params)
-			mp4 = media['files'][query["wtlocale"]]['MP4']
+			mp4 = media["files"][query["wtlocale"]]["MP4"]
 
-			# If the caller has specified a video resolution, find a suitable file.
+			# If the caller has specified a video resolution, look for a matching file.
 			url = None
 			if resolution is not None:
 				for variant in mp4:
@@ -290,9 +285,15 @@ class Fetcher:
 						url = variant["file"]["url"]
 						break
 
+			# The pub-media API does not provide a thumbnail image. Get an image from the player page.
+			player_page = self.get_html(url)
+			poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
+			thumbnail_url = poster_div.attrib["data-src"] if poster_div is not None else None
+
 			return {
 				"title": mp4[0]["title"],
 				"url": url,
+				"subtitles_url": mp4[0]["subtitles"]["url"]
 				"thumbnail_url": thumbnail_url,
 				}
 

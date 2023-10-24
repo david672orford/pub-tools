@@ -1,12 +1,15 @@
-from flask import session, copy_current_request_context
+from flask import current_app, session, copy_current_request_context
 from threading import Thread
 from markupsafe import escape
 import logging
 
-from . import turbo
 from .babel import gettext as _
+#from turbo_flask import Turbo
+from .turbo_sse import Turbo
 
 logger = logging.getLogger(__name__)
+
+turbo = Turbo()
 
 # Start a background downloader
 background_thread = None

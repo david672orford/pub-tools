@@ -15,7 +15,7 @@ import sys
 import logging
 from werkzeug.serving import run_simple
 from app import create_app
-from app.clean_logs import CleanlogWSGIRequestHandler
+from app.utils.clean_logs import CleanlogWSGIRequestHandler
 
 debug_mode = listen_all = False
 for arg in sys.argv[1:]:

@@ -4,7 +4,7 @@ from sqlalchemy.orm.attributes import flag_modified
 import logging
 
 from ...models import db, Config
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils.virtual_cable import patchbay, connect_all
 from .utils.config_editor import ConfWrapper, config_saver

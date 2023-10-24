@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 import logging
 
-from ..babel import gettext as _
+from ..utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 

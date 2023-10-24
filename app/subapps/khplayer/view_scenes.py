@@ -5,7 +5,7 @@ from urllib.parse import urlparse, parse_qs
 import os, re, logging
 
 from ...utils import progress_callback, progress_response, run_thread
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs, ObsError
 from .utils.scenes import load_video, load_webpage
@@ -102,7 +102,7 @@ def page_scenes_upload():
 		ext = "." + m.group(1) if m else ""
 		save_as = os.path.join(
 			current_app.config["CACHEDIR"],
-			"upload-%s-%d%s" % (datestamp, i, ext),
+			"manually-added-%s-%d%s" % (datestamp, i, ext),
 			)
 		file.save(save_as)
 		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)

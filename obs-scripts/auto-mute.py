@@ -1,6 +1,6 @@
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from app.obs_wrap import ObsScript, ObsScriptSourceEventsMixin
+from app.utils.obs_wrap import ObsScript, ObsScriptSourceEventsMixin
 from subprocess import run
 
 class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):

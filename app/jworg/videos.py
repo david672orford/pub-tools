@@ -59,9 +59,9 @@ class Video:
 		# Shareable link to the video player page
 		self.href = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
 
-		self.files = {}
-		for file in media['files']:
-			self.files[file['label']] = file['progressiveDownloadURL']
+		#self.files = {}
+		#for file in media['files']:
+		#	self.files[file['label']] = file['progressiveDownloadURL']
 
 if __name__ == "__main__":
 	def print_videos(category, indent=0):

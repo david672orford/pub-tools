@@ -8,7 +8,7 @@ from ...models import db, VideoCategories, Videos
 from ...utils import progress_callback, progress_response, run_thread
 from ...models_whoosh import update_video_index, video_search
 from ...cli_update import update_videos, update_video_subcategory
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils.scenes import load_video
 

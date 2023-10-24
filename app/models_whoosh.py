@@ -1,3 +1,5 @@
+# Whoosh search engine integration
+
 from flask import current_app
 import os, shutil
 import pymorphy2

@@ -5,7 +5,7 @@ import logging
 
 from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...models import VideoCategories, Videos
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils import meeting_loader, obs, ObsError
 from .utils.scenes import load_video, load_song

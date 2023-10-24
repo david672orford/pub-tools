@@ -98,7 +98,7 @@ class Videos(db.Model):
 	lank = db.Column(db.String)				# language agnostic natural key
 	date = db.Column(db.DateTime)
 	docid = db.Column(db.String)			# MEPS document ID
-	thumbnail = db.Column(db.String)
+	thumbnail = db.Column(db.String)		# URL of JPEG file
 	href = db.Column(db.String)				# finder link
 	categories = db.relationship(VideoCategories, secondary=videos_rel, back_populates="videos")
 

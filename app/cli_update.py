@@ -12,7 +12,7 @@ from .models_whoosh import update_video_index, video_search
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
-from .babel import gettext as _
+from .utils.babel import gettext as _
 
 from rich.console import Console
 from rich.table import Table
@@ -219,8 +219,8 @@ def update_video_subcategory(category_key, subcategory_key, callback=default_cal
 		video_obj.lank = video.lank
 		video_obj.name = video.name
 		video_obj.date = video.date
-		video_obj.href = video.href
 		video_obj.thumbnail = video.thumbnail
+		video_obj.href = video.href
 		category_db_obj.videos.append(video_obj)
 
 @cli_update.command("video-index", help="Update search index of available videos")

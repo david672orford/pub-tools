@@ -9,7 +9,7 @@ import logging
 from ... import turbo
 from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...jworg.jwstream import StreamRequesterContainer
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
 from .utils.config_editor import ConfWrapper, config_saver

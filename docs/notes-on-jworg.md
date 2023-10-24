@@ -58,5 +58,4 @@ URL in the old format would probabably be like this:
 * [Library API](https://github.com/BenShelton/library-api) -- Library for downloading publications and apps all written in TypeScript, JavaScript, and Vue
 * [JWP](https://github.com/Dimoshka/JWP) -- Old Android app which reportedly uses the RSS feeds
 * [Meeting Media Manager](https://github.com/sircharlo/meeting-media-manager) -- Full-featured program for download and playing media at meetings
-* [Abdon Gadgets](https://github.com/abdon-gadgets/abdon-gadgets) -- Download VTT subtitles
 

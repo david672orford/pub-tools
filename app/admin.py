@@ -1,3 +1,5 @@
+# Flask-Admin access to the database
+
 from flask_admin import Admin
 from flask_admin.contrib.sqla.view import ModelView as InsecureModelView
 from flask_admin.form import SecureForm

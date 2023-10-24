@@ -20,7 +20,13 @@
 <h2>Books and Brochures</h2>
 <ul>
 {% for book in books %}
-<li><a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a> ({{book.formats}})</li>
+<li>
+	{% if "epub" in book.formats %}
+	<a href="{{book.pub_code}}/" title="{{book.pub_code}}">{{book.name}}</a>
+	{% else %}
+	{{book.name}}
+	{% endif %}
+	({{book.formats}})</li>
 {% endfor %}
 </ul>
 <button name="pub_code" value="books">Load List of Books and Brocures</button>

@@ -12,7 +12,7 @@ from ... import turbo
 from ...utils import progress_callback, progress_response, async_flash, run_thread
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils import meeting_loader, obs
 from .utils.scenes import load_video, load_image, load_webpage

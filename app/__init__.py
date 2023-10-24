@@ -1,16 +1,14 @@
 import os, uuid, platform
 from importlib import import_module
 from flask import Flask, session
-#from turbo_flask import Turbo
-from .turbo_sse import Turbo
-from .babel import init_babel
 import logging
+
+from .utils import turbo
+from .utils.babel import init_babel
 
 logger = logging.getLogger(__name__)
 
 def create_app(instance_path=None):
-	global turbo
-
 	app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
 
 	# If we don't have a config file yet, create one
@@ -47,7 +45,6 @@ def create_app(instance_path=None):
 	init_babel(app)
 
 	# Accept SSE connection from Hotwire Turbo running in the browser
-	turbo = Turbo()
 	turbo.init_app(app)
 
 	@app.before_request
@@ -62,7 +59,7 @@ def create_app(instance_path=None):
 
 	# Load, initialize, and connect app components
 	with app.app_context():
-		for module_name in ("views", "admin", "subapps", "cli_update"):
+		for module_name in ("views", "admin", "subapps", "cli_update", "cli_cache"):
 			logger.debug("Loading module %s..." % module_name)
 			try:
 				module = import_module("app.%s" % module_name)

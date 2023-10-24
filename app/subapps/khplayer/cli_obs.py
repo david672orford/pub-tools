@@ -5,7 +5,7 @@ import sys, os
 
 from .utils import obs
 
-cli_obs = AppGroup("obs", help="Control OBS")
+cli_obs = AppGroup("obs", help="Control OBS Studio")
 
 # Pretty print the JSON file which contains the scene list.
 # This is useful for getting the parameters to construct scenes programatically.
@@ -15,17 +15,17 @@ def cmd_obs_dump_scenes():
 		data = json.load(f)
 		json.dump(data, sys.stdout, indent=4)
 
-@cli_obs.command("get-version", help="OBS version and features")
+@cli_obs.command("get-version", help="Show OBS version and features")
 def cmd_obs_get_version():
 	response = obs.request("GetVersion", {})
 	print(json.dumps(response["responseData"], indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-scene-list", help="List scene items by name")
+@cli_obs.command("get-scene-list", help="List scenes by name")
 def cmd_obs_get_scene_list():
 	for scene in obs.get_scene_list():
 		print(json.dumps(scene, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-scene-item-list", help="Show details of a named scene")
+@cli_obs.command("get-scene-item-list", help="Show the items in a named scene")
 @click.argument("scene_name")
 def cmd_obs_get_scene_item_list(scene_name):
 	response = obs.request("GetSceneItemList", {
@@ -44,13 +44,13 @@ def cmd_obs_get_input_settings(input_name):
 	response = obs.request("GetInputSettings", {"inputName": input_name})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-source-filter-list")
+@cli_obs.command("get-source-filter-list", help="Show filters in named source")
 @click.argument("source_name")
 def cmd_obs_get_source_filter_list(source_name):
 	response = obs.request("GetSourceFilterList", {"sourceName": source_name})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-source-screenshot")
+@cli_obs.command("get-source-screenshot", help="Take a screenshot of named source")
 @click.argument("source_name")
 def cmd_obs_get_source_screenshot(source_name):
 	response = obs.request("GetSourceScreenshot", {
@@ -60,7 +60,7 @@ def cmd_obs_get_source_screenshot(source_name):
 		})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-output-list")
+@cli_obs.command("get-output-list", help="Get list of available outputs")
 def cmd_obs_get_output_list():
 	response = obs.request("GetOutputList", {})
 	print(json.dumps(response, indent=2, ensure_ascii=False))

@@ -7,7 +7,7 @@ import os, json, re
 import logging
 
 from ...utils import progress_callback
-from ...babel import gettext as _
+from ...utils.babel import gettext as _
 from .views import blueprint, menu
 from .utils import obs
 from .utils.config_editor import ConfWrapper, config_saver
@@ -94,7 +94,7 @@ class GDriveClient:
 				yield GFile(file)
 
 	def download(self, file):
-		cachefile = os.path.join(self.cachedir, "gdrive-" + file.filename)
+		cachefile = os.path.join(self.cachedir, "manually-added-" + file.filename)
 		response = self.get(file.download_url)
 		with open(cachefile, "wb") as fh:
 			while True:

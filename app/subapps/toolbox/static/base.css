@@ -36,30 +36,39 @@ LI {
 	margin: .2em 0;
 	}
 
-/* Tabs at top of page */
-NAV UL {
+/* Header at top of each tabbed page */
+HEADER > NAV > UL {
 	display: flex;
 	list-style-type: none;
 	margin: 0;
 	background-color: #b0b0b0;
 	padding-top: 1px;
 	}
-NAV UL LI {
+HEADER > NAV > UL > LI {
 	margin: 0 5px;
-	padding: .3em;
 	border-radius: 5px 5px 0 0;
 	background-color: #d0d0d0;
+	white-space: nowrap;
 	}
-NAV UL LI:hover {
+HEADER > NAV > UL > LI:hover {
 	}
-NAV UL LI A {
-	text-decoration: none;
-	color: inherit;
-	}
-NAV UL LI.current {
+HEADER > NAV > UL > LI.current {
 	position: relative;
 	top: 1px;
 	background-color: #f0f0f0;
+	}
+HEADER > NAV > UL > LI > A {
+	padding: .5em;
+	display: block;
+	text-decoration: none;
+	color: inherit;
+	}
+HEADER > H1 {
+	padding: .3em;
+	}
+HEADER H1 A {
+	color: inherit;
+	text-decoration: inherit;
 	}
 
 SECTION.pubs {

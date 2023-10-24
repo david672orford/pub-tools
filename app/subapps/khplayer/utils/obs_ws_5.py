@@ -279,22 +279,41 @@ class ObsControl(ObsControlBase):
 			source_name = os.path.basename(media_file)
 
 		# Select the appropriate OBS source type and build its settings
-		if media_type == "video":
+		if media_type in ("video","video-ffmpeg"):
 			source_type = "ffmpeg_source"
-			source_settings = {'local_file': media_file}
+			source_settings = {
+				"local_file": media_file,
+				}
+		elif media_type == "video-vlc":
+			source_type = "vlc_source"
+			source_settings = {
+				"playlist": [
+					{
+					"value": media_file,
+					"selected": False,
+					"hidden": False,
+					}],
+				"loop": False,
+				}
 		elif media_type == "image":
 			source_type = "image_source"
-			source_settings = {'file': media_file}
+			source_settings = {
+				"file": media_file,
+				}
 		elif media_type == "web":
 			source_type = "browser_source"
-			source_settings = {'url': media_file, 'width': 1280, 'height': 720, 'css': ''}
+			source_settings = {
+				"url": media_file,
+				"width": 1280, "height": 720,
+				"css": "",
+				}
 		else:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
 
 		logger.info(" Source: %s \"%s\"", source_type, source_name)
 		logger.info(" Source settings: %s", source_settings)
 
-		# Add a new scene. Resolve naming conflicts.
+		# Add a new scene. (Naming naming conflicts will be resolved.)
 		scene_name = self.create_scene(scene_name, make_unique=True)
 
 		# Create a source (now called an input) to play our file. Resolve naming conflicts.
@@ -322,8 +341,8 @@ class ObsControl(ObsControlBase):
 
 		self.scale_input(scene_name, scene_item_id)
 
-		# Enable audio for video files
-		if media_type == "video":
+		# Enable audio monitoring for video files
+		if media_type in ("video", "video-ffmpeg", "video-vlc"):
 			payload = {
 				'inputName': source_name,
 				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",

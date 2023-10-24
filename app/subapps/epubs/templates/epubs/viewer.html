@@ -12,26 +12,31 @@
 
 <script>
 console.log("Script executing");
-window.addEventListener("DOMContentLoaded", function() {
-	console.log("Viewer loaded");
+
+function iframe_loaded(event)
+	{
+	console.log("Iframe content loaded");
 	let iframe = document.getElementById("epub");
-	iframe.contentWindow.addEventListener("DOMContentLoaded", function() {
-		console.log("Iframe content loaded");
-		let doc = iframe.contentDocument;
-		let head = doc.getElementsByTagName("head")[0];
+	let doc = iframe.contentDocument;
+	let head = doc.getElementsByTagName("head")[0];
 
-		let link = document.createElement("link");
-		link.rel = "stylesheet";
-		link.type = "text/css";
-		link.href = "../static/viewer-iframe.css";
-		head.appendChild(link);
+	let link = document.createElement("link");
+	link.rel = "stylesheet";
+	link.type = "text/css";
+	link.href = "../static/viewer-iframe.css";
+	head.appendChild(link);
 
-		let script = document.createElement("script");
-		script.type = "text/javascript";
-		script.src = "../static/viewer-iframe.js";
-		head.appendChild(script);
-		});
-	});
+	let script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src = "../static/viewer-iframe.js";
+	head.appendChild(script);
+	}
+
+/* We would like to use DOMContentLoaded here, but we would have to attach
+   it to the <iframe> window, but if we do that, it works only the first
+   time, it does not work on navigation. Because we use load instead,
+   the viewer sees the page without our style additions and then they load. */
+document.getElementById("epub").addEventListener("load", iframe_loaded);
 </script>
 
 {% endblock %}
