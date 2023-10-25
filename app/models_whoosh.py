@@ -2,7 +2,6 @@
 
 from flask import current_app
 import os, shutil
-import pymorphy2
 
 # https://whoosh.readthedocs.io/en/latest/
 from whoosh.index import create_in, open_dir
@@ -13,11 +12,15 @@ from whoosh.qparser import QueryParser
 from .models import VideoCategories, Videos
 
 # Dictionary-based stemmer for Russian
-# Thus function must be defined at the module level because Whoosh
-# pickles a call to it.
-morph = pymorphy2.MorphAnalyzer()
+def morpher():
+	if not hasattr(morpher, "obj"):
+		import pymorphy2
+		morpher.obj = pymorphy2.MorphAnalyzer()
+	return morpher.obj
+
+# Stemmer function for Whoosh which pickels a reference to it
 def stemfn(word):
-	return morph.parse(word)[0].normal_form
+	return morpher().parse(word)[0].normal_form
 
 def update_video_index():
 
@@ -67,7 +70,7 @@ def video_search(q):
 			changes = 0
 			preliminary_suggestion = []
 			for word in q.split():
-				dict_entry = morph.parse(word)[0]
+				dict_entry = morpher().parse(word)[0]
 				if not dict_entry.is_known:
 					alternatives = corrector.suggest(word, limit=1)
 					if len(alternatives) > 0 and alternatives[0] != dict_entry.normal_form:

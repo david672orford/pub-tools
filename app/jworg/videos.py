@@ -11,7 +11,7 @@ class VideoLister(Fetcher):
 	def get_category(self, category_key, category_dict=None):
 		logger.debug("get_category(\"%s\", %s)", category_key, category_dict)
 		if category_dict is None or len(category_dict['media']) == 0:
-			data = self.get_json(self.mediator_categories_url.format(language=self.language, category=category_key))
+			data = self.get_json(self.mediator_categories_url.format(language=self.meps_language, category=category_key))
 			category_dict = data['category']
 		return VideoCategory(self, category_dict)
 
@@ -25,7 +25,7 @@ class VideoCategory:
 		self.video_lister = video_lister
 		self.category_dict = category_dict
 
-		self.language = video_lister.language
+		self.meps_language = video_lister.meps_language
 		self.key = category_dict['key']
 		self.name = category_dict['name']
 

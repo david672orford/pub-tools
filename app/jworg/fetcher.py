@@ -9,6 +9,7 @@ from time import sleep, time
 import logging
 
 from ..utils.babel import gettext as _
+from .codes import iso_language_code_to_meps
 
 logger = logging.getLogger(__name__)
 
@@ -82,8 +83,8 @@ class Fetcher:
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
 	week_url = "https://wol.jw.org/en/wol/meetings/r1/lp-e/{year}/{week}"
 
-	def __init__(self, language="U", cachedir="cache", debuglevel=0):
-		self.language = language
+	def __init__(self, language="ru", cachedir="cache", debuglevel=0):
+		self.meps_language = iso_language_code_to_meps(language)
 		self.cachedir = cachedir
 		self.last_request_time = 0
 		http_handler = HTTPHandler(debuglevel=debuglevel)
@@ -206,10 +207,10 @@ class Fetcher:
 			'fileformat': 'm4v,mp4,3gp,mp3',
 			'alllangs': '0',
 			'track': str(song_number),
-			'langwritten': self.language,
-			'txtCMSLang': self.language,
+			'langwritten': self.meps_language,
+			'txtCMSLang': self.meps_language,
 			})
-		for variant in media['files'][self.language]['MP4']:
+		for variant in media['files'][self.meps_language]['MP4']:
 			if variant["label"] == resolution:
 				return variant['file']['url']
 		raise AssertionError("No match for resolution %s" % resolution)
@@ -217,7 +218,7 @@ class Fetcher:
 	# Given a link to a video from an article, extract the publication ID
 	# and language and go directly to the mediator endpoint to get the
 	# metadata bypassing the player page.
-	def get_video_metadata(self, url, resolution=None):
+	def get_video_metadata(self, url, resolution=None, language=None):
 		query = dict(parse_qsl(urlparse(url).query))
 
 		# Video is specified by its Language Agnostic Natural Key (LANK)
@@ -225,8 +226,13 @@ class Fetcher:
 		# https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
 		if "lank" in query:
 
+			if language is not None:
+				wtlocale = iso_language_code_to_meps(language)
+			else:
+				wtlocale = query["wtlocale"]
+
 			media = self.get_json(self.mediator_items_url.format(
-				language = query["wtlocale"],
+				language = wtlocale,
 				video = query["lank"],
 				), query = { "clientType": "www" })
 			if len(media["media"]) < 1:
@@ -237,7 +243,7 @@ class Fetcher:
 			mp4_url = None
 			if resolution is not None:
 				for variant in media["files"]:
-					if variant.get("label") == resolution:
+					if variant.get("mimetype") == "video/mp4" and variant.get("label") == resolution:
 						mp4_url = variant["progressiveDownloadURL"]
 						break
 
@@ -246,10 +252,10 @@ class Fetcher:
 			except KeyError:
 				thumbnail_url = media['images']['lss']['lg']		# 2:1 aspect ratio
 
-			try:
-				subtitles_url = media["files"][0]["subtitles"]["url"]
-			except (IndexError, KeyError):
-				subtitles_url = None
+			subtitles_url = None
+			for variant in media["files"]:
+				if "subtitles" in variant:
+					subtitles_url = variant["subtitles"]["url"]
 
 			return {
 				"title": media["title"],
@@ -315,8 +321,8 @@ class Fetcher:
 			'pub': pub_code,
 			'fileformat': 'EPUB',
 			'alllangs': '0',
-			'langwritten': self.language,
-			'txtCMSLang': self.language,
+			'langwritten': self.meps_language,
+			'txtCMSLang': self.meps_language,
 			}
 		if issue_code is not None:
 			query['issue'] = issue_code
@@ -325,5 +331,5 @@ class Fetcher:
 		except HTTPError as e:
 			logger.error("Failed to fetch EPUB url for %s %s: %s", pub_code, issue_code, str(e))
 			return None
-		return media['files'][self.language]['EPUB'][0]['file']['url']
+		return media['files'][self.meps_language]['EPUB'][0]['file']['url']
 

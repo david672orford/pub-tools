@@ -15,7 +15,7 @@ from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...utils.babel import gettext as _
 from .views import blueprint, menu
-from .utils import meeting_loader, obs
+from .utils.controllers import meeting_loader, obs
 from .utils.scenes import load_video, load_image, load_webpage
 from ...jworg.meetings import MeetingMedia
 

@@ -11,7 +11,7 @@ from ...utils import progress_callback, progress_response, run_thread, async_fla
 from ...jworg.jwstream import StreamRequesterContainer
 from ...utils.babel import gettext as _
 from .views import blueprint, menu
-from .utils import obs
+from .utils.controllers import obs
 from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)

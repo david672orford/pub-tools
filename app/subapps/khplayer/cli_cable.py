@@ -28,7 +28,7 @@ def cmd_cable_connect_obs():
 @cli_cable.command("connect-zoom", help="Connect Zoom's microphone input to cable")
 def cmd_cable_connect_zoom():
 	patchbay.load()
-	connect_zoom(patchbay)
+	connect_zoom(patchbay, current_app.config["PERIPHERALS"])
 
 @cli_cable.command("connect-all", help="Create cable and connect everything")
 def cmd_cable_connect_all():

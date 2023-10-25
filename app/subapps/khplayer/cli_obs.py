@@ -3,7 +3,7 @@ import click
 import json
 import sys, os
 
-from .utils import obs
+from .utils.controllers import obs
 
 cli_obs = AppGroup("obs", help="Control OBS Studio")
 

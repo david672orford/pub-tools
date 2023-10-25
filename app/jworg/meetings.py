@@ -280,7 +280,7 @@ class MeetingLoader(Fetcher):
 			title = song_text,
 			media_type = "video",
 			media_url = "https://www.jw.org/finder?" + urlencode({
-				"wtlocale": self.language,
+				"wtlocale": self.meps_language,
 				"docid": a.attrib["data-page-id"][3:],
 				"srcid": "share",
 				}),

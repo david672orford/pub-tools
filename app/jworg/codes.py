@@ -1,15 +1,24 @@
-languages = {
+iso_languages = {
+	"en": "E",
+	"ru": "U",
+	}
+
+def iso_language_code_to_meps(code):
+	return iso_languages[code]
+
+meps_languages = {
+	"E": "English",
 	"U": "Russian",
 	}
 
-def language_code_to_name(code):
-	return languages.get(code, code)
+def meps_language_code_to_name(code):
+	return meps_languages.get(code, code)
 
-countries = {
+meps_countries = {
 	"FIN": "Finland",
 	"UKR": "Ukraine",
 	}
 
-def country_code_to_name(code):
-	return countries.get(code, code)
+def meps_country_code_to_name(code):
+	return meps_countries.get(code, code)
 

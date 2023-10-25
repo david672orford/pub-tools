@@ -261,7 +261,7 @@ class ObsControl(ObsControlBase):
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
-	def add_media_scene(self, scene_name, media_type, media_file, enable_subtitles=False):
+	def add_media_scene(self, scene_name, media_type, media_file, subtitle_track=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -280,9 +280,8 @@ class ObsControl(ObsControlBase):
 
 		# Select the appropriate OBS source type and build its settings
 		if media_type == "video":
-			# If subtitles are enabled and we have a VTT file, use the VLC source
-			subtitles_file = os.path.splitext(media_file)[0] + ".vtt"
-			if enable_subtitles and os.path.exists(subtitles_file):
+			# If subtitles are enabled, use the VLC source
+			if subtitle_track is not None:
 				source_type = "vlc_source"
 				source_settings = {
 					"playlist": [
@@ -293,6 +292,7 @@ class ObsControl(ObsControlBase):
 						}],
 					"loop": False,
 					"subtitle_enable": True,
+					"subtitle": subtitle_track,
 					}
 			# Otherwise use the FFmpeg source which seems to be more stable
 			else:	

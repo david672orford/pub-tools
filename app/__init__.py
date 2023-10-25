@@ -27,15 +27,18 @@ def create_app(instance_path=None):
 		FLASK_ADMIN_FLUID_LAYOUT = True,
 		APP_DISPLAY_NAME = "JW Pubs",
 		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs"],
-		PUB_LANGUAGE = "ru",
 		CACHEDIR = os.path.join(app.instance_path, "cache"),
-		ENABLE_SUBTITLES = False,
+		PUB_LANGUAGE = "ru",
+		SUB_LANGUAGE = None,
+		VIDEO_RESOLUTION = "480p",
+		PERIPHERALS = {}
 		)
 
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# Init DB and overlay configuration from the DB
+	# Init DB and load more configuration
+	# (May override settings loaded above.)
 	with app.app_context():
 		from .models import init_app as models_init_app, Config
 		models_init_app(app)

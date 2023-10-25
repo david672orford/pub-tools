@@ -5,7 +5,7 @@ import requests
 from urllib.parse import urlparse, unquote
 from time import time
 from datetime import datetime, date, timezone
-from .codes import language_code_to_name, country_code_to_name
+from .codes import meps_language_code_to_name, meps_country_code_to_name
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +76,8 @@ class StreamEvent:
 			#self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
 			self.title = program_types.get(program_type, program_type)
 		self.duration = int(event["duration"] / 1000)
-		self.language = language_code_to_name(event["languageCode"])
-		self.country = country_code_to_name(event["countryCode"])
+		self.language = meps_language_code_to_name(event["languageCode"])
+		self.country = meps_country_code_to_name(event["countryCode"])
 		self.download_url = download_url
 		self.chapters = chapters
 
@@ -141,8 +141,8 @@ class StreamRequester:
 		info = response.json()[0]["specialties"][0]
 		self.channel_key = info["key"]
 		self.name = info["name"]
-		self.language = language_code_to_name(info["languageCode"])
-		self.country = country_code_to_name(info["countryCode"])
+		self.language = meps_language_code_to_name(info["languageCode"])
+		self.country = meps_country_code_to_name(info["countryCode"])
 
 		self.reload()
 
