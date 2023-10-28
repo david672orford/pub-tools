@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 #
 # This script starts an HTTP server for Pub-Tools and then
-# create a browser widget which connects to it.
+# creates a browser widget which connects to it.
 #
 # This mostly works, but no really well. Problems in KH Player include:
 # * Some elements have odd sizes. We corrected at least one of these

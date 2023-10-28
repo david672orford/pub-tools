@@ -10,8 +10,6 @@
 
 ### virtual-audio-cable.py
 
-* Make sure virtual audio cable can start even if microphone and speakers
-are not yet selected. It should leave off those connections.
 * Add selection of the microphone and speakers to the script configuration screen.
 
 ### auto-mute.py

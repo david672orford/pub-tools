@@ -20,9 +20,13 @@ class ConfWrapper:
 		key1, key2 = self.splitter.match(name).groups()
 		return current_app.config.get(key1,{}).get(key2,"")
 
-	# Copy back into app.config
 	def __setattr__(self, name, value):
 		key1, key2 = self.splitter.match(name).groups()
+		self.set_dict_value(key1, key2, value)
+
+	def set_dict_value(self, key1, key2, value):
+
+		# Copy back into app.config
 		current_app.config[key1][key2] = value
 
 		# Also copy into DB so change will persist across app restarts
@@ -33,6 +37,7 @@ class ConfWrapper:
 		conf.data[key2] = value
 		flag_modified(conf, "data")
 
+# Called from POST handlers to validate form data and save it to the DB
 def config_saver(form_class):
 	config = ConfWrapper()
 	form = form_class(formdata=request.form, obj=config)
@@ -44,4 +49,11 @@ def config_saver(form_class):
 	else:
 		logger.info("Configuration form validation failed")
 		return False, redirect(".?" + urlencode(form.data))
+
+# Update values in a dict in the configuration
+def config_update_dict(key1, dict_obj):
+	config = ConfWrapper()
+	for key2, value in dict_obj.items():
+		config.set_dict_value(key1, key2, value)
+	db.session.commit()
 

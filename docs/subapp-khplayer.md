@@ -64,15 +64,13 @@ Be sure to follow the part about installing Wireplumber.
 * Under **Docks** uncheck **Audio Mixer** since we will not be using it.
 * Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
 directory of this project:
-  * **virtual-audio-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
-  * **auto-mute.py** -- Mute the system default input device (the microphone) when
-videos are playing. This improves sound quality for participant in Zoom considerably.
-This script also initiates a scene switch to the first scene whenever it detects that
-the music or video has finished. To get the desired effect, you should make sure that
-the first scene shows the stage.
-  * **autostart-outputs.py** -- This script starts the virtual camera and a fullscreen
-output on the monitor selected in the script configuration screen.
-  * **khplayer.py**	-- Run the Pub-Tools web server inside of OBS so we will not need
+  * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
+  * **khplayer-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
+  * **khplayer-vidoes.py** 
+    * Mute the system default input device (the microphone) when videos are playing. This improves sound quality for participant in Zoom considerably.
+    * Switch to the scene you specify whenever a video finishes playing. Set this to the scene with the camera which shows the stage.
+    * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
+  * **khplayer-outputs.py** -- Automatically start the virtual camera and a fullscreen output on the monitor you select
 to start it separately
 
 ## Starting the Meeting

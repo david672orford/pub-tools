@@ -94,7 +94,7 @@ class GDriveClient:
 				yield GFile(file)
 
 	def download(self, file):
-		cachefile = os.path.join(self.cachedir, "manually-added-" + file.filename)
+		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
 		response = self.get(file.download_url)
 		with open(cachefile, "wb") as fh:
 			while True:

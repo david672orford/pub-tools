@@ -102,7 +102,7 @@ def page_scenes_upload():
 		ext = "." + m.group(1) if m else ""
 		save_as = os.path.join(
 			current_app.config["CACHEDIR"],
-			"manually-added-%s-%d%s" % (datestamp, i, ext),
+			"user-%s-%d%s" % (datestamp, i, ext),
 			)
 		file.save(save_as)
 		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)

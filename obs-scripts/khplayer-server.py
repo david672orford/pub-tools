@@ -2,8 +2,10 @@
 # the same apps as ../start.py does.
 
 import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from obs_wrap import ObsScript, ObsWidget
 import obspython as obs
 from threading import Thread
 from werkzeug.serving import make_server
@@ -19,62 +21,44 @@ logging.basicConfig(
 	)
 #logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
 
-class KHPlayerScript:
+class KHPlayer(ObsScript):
 	description = "Load videos and illustrations from JW.ORG"
 
-	def __init__(self):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 		self.enable = False		# should the HTTP server be running?
-		self.debug = None
 
+		# Define script configuration GUI
+		self.settings_widgets = [
+			ObsWidget("bool", "enable", "Enable", default_value=False),
+			ObsWidget("bool", "debug", "Debug", default_value=False),
+			]
+
+		# Instantiante the KH Player app and prepare to serve it.
 		self.app = create_app()
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
-
-		# This is the logger to which this class will log
 		self.logger = logging.getLogger("app")
 
-		g = globals()
-		g['script_defaults'] = lambda settings: self.script_defaults(settings)
-		g['script_description'] = lambda: self.description
-		g['script_update'] = lambda settings: self.script_update(settings)
-		g['script_properties'] = lambda: self.script_properties()
-		g['script_unload'] = lambda: self.script_unload()
-
-	# Settings screen defaults
-	def script_defaults(self, settings):
-		obs.obs_data_set_default_bool(settings, "enable", False)
-		obs.obs_data_set_default_bool(settings, "debug", False)
-
-	# Settings screen widgets
-	def script_properties(self):
-		props = obs.obs_properties_create()
-		obs.obs_properties_add_bool(props, "enable", "Enable")
-		obs.obs_properties_add_bool(props, "debug", "Debug")
-		return props
-
-	# Accept settings (possibly changed)
-	def script_update(self, settings):
-		enable = obs.obs_data_get_bool(settings, "enable")
-		debug = obs.obs_data_get_bool(settings, "debug")
-		#self.logger.debug("Settings: enable=%s, debug=%s", enable, debug)
-
-		if debug != self.debug:
-			if debug:
+	# Accept settings from the script configuration GUI
+	def on_settings(self, settings):
+		if settings.debug != self.debug:
+			if settings.debug:
 				self.logger.setLevel(logging.DEBUG)
 				self.logger.debug("log_level set to DEBUG")
 			else:
 				if self.logger.level != logging.NOTSET:
 					self.logger.debug("log_level set to WARN")
 				self.logger.setLevel(logging.WARN)
-			self.debug = debug
+			self.debug = settings.debug
 
-		if enable != self.enable:
-			self.logger.debug("enable changed from %s to %s", self.enable, enable)
-			self.enable = enable
+		if settings.enable != self.enable:
+			self.logger.debug("enable changed from %s to %s", self.enable, settings.enable)
+			self.enable = settings.enable
 			self.update_thread()
 
-	# Shutdown
-	def script_unload(self):
+	# OBS Shutdown
+	def on_unload(self):
 		self.enable = False
 		self.update_thread()
 
@@ -101,5 +85,5 @@ class KHPlayerScript:
 			self.thread.start()
 			self.logger.debug("Server is running.")
 
-KHPlayerScript()
+KHPlayer()
 

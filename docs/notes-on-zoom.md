@@ -15,3 +15,7 @@
 * [API Declarations for Component View](https://github.com/zoom/meetingsdk-web/blob/master/embedded.d.ts)
 * [Example of Component View Config](https://stackoverflow.com/questions/76831074/how-to-implement-multiple-spotlighting-using-the-zoom-web-sdk-in-component-view)
 
+## Native SDK
+
+* [Linux Raw Recording Sample](https://github.com/zoom/meetingsdk-linux-raw-recording-sample)
+

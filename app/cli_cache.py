@@ -48,8 +48,8 @@ def scan_cache(clean=False):
 		elif entry.name.startswith("jwstream-"):
 			category = "Clips from JW Stream"
 			lifetime = 14
-		elif entry.name.startswith("manually-added-"):
-			category = "Manually Added"
+		elif entry.name.startswith("user-"):
+			category = "User-Supplied Files"
 			lifetime = 14
 		elif re.match(r"^\d\d\d\d+_.+\.jpg$", entry.name):
 			category = "Images from JW.ORG"
