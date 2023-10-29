@@ -23,9 +23,6 @@ def handle_500(error):
 	exception = "".join(traceback.format_exception(*sys.exc_info()))
 	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
 
-menu = []
-current_app.jinja_env.globals["menu"] = menu
-
 from . import view_meetings
 from . import view_jwstream
 from . import view_songs

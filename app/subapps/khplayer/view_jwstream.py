@@ -10,7 +10,8 @@ from ... import turbo
 from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...jworg.jwstream import StreamRequesterContainer
 from ...utils.babel import gettext as _
-from .views import blueprint, menu
+from . import menu
+from .views import blueprint
 from .utils.controllers import obs
 from .utils.config_editor import ConfWrapper, config_saver
 
@@ -35,31 +36,38 @@ menu.append((_("JW Stream"), "/jwstream/"))
 	_("Weekend Meeting"),
 )
 
+def jwstream_channels():
+	config = current_app.config.get("JW_STREAM",{})
+	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "url", None) != config.get("url"):
+		try:
+			jwstream_channels.handle = StreamRequesterContainer(config)
+			jwstream_channels.url = config.get("url")
+		except AssertionError as e:
+			flash(str(e))
+	return jwstream_channels.handle
+
 class StreamConfigForm(Form):
 	JW_STREAM_url = TextAreaField(_("URL"), render_kw={"rows": 5})
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
 	JW_STREAM_preview_resolution = SelectField(_("Preview Resolution"), choices=resolutions, coerce=int)
 	JW_STREAM_download_resolution = SelectField(_("Download Resolution"), choices=resolutions, coerce=int)
 
-def jwstream_channels():
-	config = current_app.config.get("JW_STREAM")
-	if config is None:
-		flash("JW_STREAM not found in config.py")
-		return None
-	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "url", None) != config["url"]:
-		try:
-			jwstream_channels.handle = StreamRequesterContainer(config)
-			jwstream_channels.url = config["url"]
-		except AssertionError as e:
-			flash(str(e))
-	return jwstream_channels.handle
-
 @blueprint.route("/jwstream/")
 def page_jwstream():
+	if request.args.get("action") == "configuration":
+		if not "JW_STREAM" in current_app.config:		# If no config, load defaults
+			current_app.config["JW_STREAM"] = {
+				"preview_resolution": 234,	
+				"download_resolution": 540,
+				}
+		form = StreamConfigForm(formdata=request.args, obj=ConfWrapper())
+	else:
+		form = None
+
 	return render_template(
 		"khplayer/jwstream.html",
 		channels = jwstream_channels().values(),
-		form = StreamConfigForm(formdata=request.args, obj=ConfWrapper()) if request.args.get("action") == "configuration" else None,
+		form = form,
 		top = ".."
 		)
 

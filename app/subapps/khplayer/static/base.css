@@ -228,6 +228,7 @@ DIV.thumbnail > DIV.caption {
 .form-field {
 	display: inline-flex;
 	align-items: center;
+	margin: .25em .25em .25em 0;		/* XXX */
 	}
 .form-field > * {
 	margin: 0 .3em 0 0;

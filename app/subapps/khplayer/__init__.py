@@ -1,4 +1,8 @@
+menu = []
+
 def init_app(app, url_prefix):
+	app.jinja_env.globals["menu"] = menu
+
 	from .views import blueprint
 	app.register_blueprint(blueprint, url_prefix=url_prefix)
 

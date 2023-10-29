@@ -9,7 +9,8 @@ from ...utils import progress_callback, progress_response, run_thread
 from ...models_whoosh import update_video_index, video_search
 from ...cli_update import update_videos, update_video_subcategory
 from ...utils.babel import gettext as _
-from .views import blueprint, menu
+from . import menu
+from .views import blueprint
 from .utils.scenes import load_video
 
 logger = logging.getLogger(__name__)

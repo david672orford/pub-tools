@@ -5,7 +5,8 @@ import logging
 
 from ...models import db, Config
 from ...utils.babel import gettext as _
-from .views import blueprint, menu
+from . import menu
+from .views import blueprint
 from .utils.virtual_cable import patchbay, connect_all
 from .utils.config_editor import ConfWrapper, config_saver
 

@@ -27,7 +27,7 @@ class ConfWrapper:
 	def set_dict_value(self, key1, key2, value):
 
 		# Copy back into app.config
-		current_app.config[key1][key2] = value
+		current_app.config.get(key1,dict())[key2] = value
 
 		# Also copy into DB so change will persist across app restarts
 		conf = Config.query.filter_by(name=key1).one_or_none()

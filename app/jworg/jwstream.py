@@ -87,6 +87,12 @@ class StreamRequester:
 
 	def __init__(self, url, config, debug=False):
 		self.token = unquote(urlparse(url).path.split("/")[-1])
+		self.video_info = []
+		self.channel_key = None
+		self.name = None
+		self.language = None
+		self.country = None
+		self.status = None
 
 		self.config = dict(
 			preview_resolution = 234,
@@ -113,6 +119,9 @@ class StreamRequester:
 			json = { "token": self.token },
 			timeout = self.request_timeout,
 			)
+		if response.status_code == 401:
+			self.status = "expired"
+			return
 		if response.status_code != 201:
 			raise StreamError("auth/login/share failed: %s %s" % (response.status_code, response.text))
 
@@ -126,9 +135,9 @@ class StreamRequester:
 			)
 		if response.status_code != 201:
 			raise StreamError("auth/whoami failed: %s %s" % (response.status_code, response.text))
+
 		whoami = response.json()
 		self.session.headers["xsrf-token-stream"] = whoami["xsrfToken"]
-		self.expires = convert_datetime(whoami["expiresOn"])
 		self.status = whoami["status"]
 
 		# Get info about this link
@@ -148,6 +157,8 @@ class StreamRequester:
 
 	# Ask for the list of current videos
 	def reload(self):
+		if self.channel_key is None:
+			return
 
 		# Use the channel key to get a list of the programs
 		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % self.channel_key,
@@ -209,7 +220,7 @@ class StreamRequester:
 
 class StreamRequesterContainer(dict):
 	def __init__(self, config):
-		for url in config["url"].split():
+		for url in config.get("url","").split():
 			requestor = StreamRequester(url, config)
 			self[requestor.token] = requestor
 

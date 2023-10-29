@@ -6,7 +6,8 @@ import os, re, logging
 
 from ...utils import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
-from .views import blueprint, menu
+from . import menu
+from .views import blueprint
 from .utils.controllers import obs, ObsError
 from .utils.scenes import load_video, load_webpage
 from .utils.cameras import list_cameras

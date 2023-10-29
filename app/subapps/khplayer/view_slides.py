@@ -8,7 +8,8 @@ import logging
 
 from ...utils import progress_callback
 from ...utils.babel import gettext as _
-from .views import blueprint, menu
+from . import menu
+from .views import blueprint
 from .utils.controllers import obs
 from .utils.config_editor import ConfWrapper, config_saver
 

@@ -13,7 +13,7 @@ cli_obs = AppGroup("obs", help="Control OBS Studio")
 def cmd_obs_dump_scenes():
 	with open("%s/.config/obs-studio/basic/scenes/KH_Player.json" % os.environ["HOME"]) as f:
 		data = json.load(f)
-		json.dump(data, sys.stdout, indent=4)
+		json.dump(data, sys.stdout, indent=4, ensure_ascii=False)
 
 @cli_obs.command("get-version", help="Show OBS version and features")
 def cmd_obs_get_version():

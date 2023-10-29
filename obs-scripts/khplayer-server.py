@@ -17,12 +17,22 @@ from app import create_app
 logging.basicConfig(
 	level=logging.WARN,
 	format='%(asctime)s %(levelname)s %(name)s %(message)s',
-	datefmt='%H:%M:%S'
+	datefmt='%H:%M:%S',
+	stream=sys.stdout,
 	)
 #logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
 
+# Disable the default handler because it writes to stderr
+# which causes OBS to open the script log.
+logger = logging.getLogger()
+logger.removeHandler(logger.handlers[0])
+
 class KHPlayer(ObsScript):
-	description = "Load videos and illustrations from JW.ORG"
+	description = """
+		<h2>KH Player—Server</h2>
+		<p>KH Player loads videos and illustrations from JW.ORG. Enable it and
+		point a browser at <a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
+		"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -30,7 +40,7 @@ class KHPlayer(ObsScript):
 
 		# Define script configuration GUI
 		self.settings_widgets = [
-			ObsWidget("bool", "enable", "Enable", default_value=False),
+			ObsWidget("bool", "enable", "Enable Server", default_value=False),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 

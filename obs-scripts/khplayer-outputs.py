@@ -7,7 +7,10 @@ from obs_wrap import ObsScript, ObsWidget
 import obspython as obs
 
 class ObsAutostartOutputs(ObsScript):
-	description = "Autostart the virtual camera and fullscreen projector on the selected monitor."
+	description = """
+		<h2>KH Player—Outputs</h2>
+		<p>Autostart the virtual camera and a fullscreen projector on the screen selected below.</p>
+		"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

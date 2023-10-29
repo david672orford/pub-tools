@@ -26,7 +26,19 @@ class MediaStopper:
 			self.source = None
 
 class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
-	description = "Automatically mute default system audio input while videos are playing. Unmute and return to home scene when a video reaches the end."
+	description = """
+	<style>
+		li {
+			margin: .2em 0 .2em -1.5em;	/* see https://bugreports.qt.io/browse/QTBUG-1429 */
+			}
+	</style>
+	<h2>KH Player—Video Actions</h2>
+	<ul>
+    <li>Mute microphone while videos play
+    <li>Stop videos from JW.ORG a few seconds before the end
+    <li>Switch to scene selected below when video ends
+	</ul>
+	"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

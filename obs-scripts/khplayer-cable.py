@@ -8,7 +8,10 @@ from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, dest
 from app.subapps.khplayer.utils.config_editor import config_update_dict
 
 class ObsVirtualAudioCable(ObsScript):
-	description = "Create virtual audio cable in the Pipewire audio server to connect OBS, Zoom, a microphone, and speakers."
+	description = """
+		<h2>KH Player—Virtual Audio Cable</h2>
+		<p>Create virtual audio cable in the Pipewire audio server to connect OBS, Zoom, a microphone, and speakers.</p>
+		"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
