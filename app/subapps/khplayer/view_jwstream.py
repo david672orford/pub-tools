@@ -42,8 +42,10 @@ def jwstream_channels():
 		try:
 			jwstream_channels.handle = StreamRequesterContainer(config)
 			jwstream_channels.url = config.get("url")
-		except AssertionError as e:
+		except Exception as e:
+			logger.error(str(e))
 			flash(str(e))
+			jwstream_channels.handle = {}
 	return jwstream_channels.handle
 
 class StreamConfigForm(Form):
@@ -58,7 +60,7 @@ def page_jwstream():
 		if not "JW_STREAM" in current_app.config:		# If no config, load defaults
 			current_app.config["JW_STREAM"] = {
 				"preview_resolution": 234,	
-				"download_resolution": 540,
+				"download_resolution": 720,
 				}
 		form = StreamConfigForm(formdata=request.args, obj=ConfWrapper())
 	else:

@@ -86,7 +86,7 @@ class StreamRequester:
 	request_timeout = 30
 
 	def __init__(self, url, config, debug=False):
-		self.token = unquote(urlparse(url).path.split("/")[-1])
+		self.debug = debug
 		self.video_info = []
 		self.channel_key = None
 		self.name = None
@@ -105,7 +105,11 @@ class StreamRequester:
 			if not res in (234, 360, 540, 720):
 				raise StreamConfigError("Invalid %s_resolution: %s" % (usage, res))
 
-		self.debug = debug
+		url_obj = urlparse(url)
+		m = re.match(r"^/ts/([0-9a-zA-Z]{10})$", url_obj.path)
+		if url_obj.netloc != "stream.jw.org" or m is None:
+			raise StreamConfigError("Not a JW Stream share URL: %s" % url)
+		self.token = m.group(1)
 
 		self.session = requests.Session()
 		self.session.headers.update({
