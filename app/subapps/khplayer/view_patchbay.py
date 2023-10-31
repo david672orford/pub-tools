@@ -14,12 +14,12 @@ menu.append((_("Audio"), "/patchbay/"))
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
-	#patchbay.print()
+	patchbay.print()
 
 	# Selected microphone and speakers
 	peripherals = get_config("PERIPHERALS")
 
-	# Load the microphone and speaker selectors options
+	# Load the microphone and speaker selector options
 	microphones = []
 	speakers = []
 	for node in patchbay.nodes:

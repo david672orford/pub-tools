@@ -97,7 +97,7 @@ class Patchbay:
 				node.name = props["node.name"]
 				node.nick = props.get("node.nick")
 				node.description = props.get("node.description")
-				node.media_class = props.get("media.class","")
+				node.media_class = props.get("media.class",props.get("media.type",""))
 				self._add_node(node)
 			elif item["type"].endswith("PipeWire:Interface:Port"):
 				port = Port()

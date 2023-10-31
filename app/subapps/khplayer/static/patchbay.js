@@ -10,6 +10,7 @@ function init_patchbay(links) {
 	const link_template = patchbay.getElementsByTagName("template")[0];
 	const dummy_input = patchbay.getElementsByClassName("dummy-input")[0];
 
+	/* Handles the drawing of one line from an output to an input */
 	class LinkDrawer
 		{
 		constructor(start_el, end_el)
@@ -149,10 +150,14 @@ function init_patchbay(links) {
 		{
 		const output_port_id = links[index][0];
 		const input_port_id = links[index][1];
-		const link_drawer = new LinkDrawer(
-			document.getElementById("port-" + output_port_id),
-			document.getElementById("port-" + input_port_id),
-			);
+		const output_port = document.getElementById("port-" + output_port_id);
+		const input_port = document.getElementById("port-" + input_port_id);
+		if(!output_port || !input_port)
+			{
+			alert("Link between nodes not displayed:" + links[index]);
+			return;
+			}
+		const link_drawer = new LinkDrawer(output_port, input_port);
 		link_drawer.path.addEventListener("click", (e) => {
 			link_action("destroy-link", output_port_id, input_port_id);
 			});

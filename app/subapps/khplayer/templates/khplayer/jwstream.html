@@ -22,6 +22,14 @@
 	<td>{{channel.status}}</td>	
 </tr>
 {% endfor %}
+{% for i in range(channels|length, 5) %}
+<tr>
+	<td>&nbsp;</td>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+{% endfor %}
 </tbody>
 </table>
 </section>
@@ -35,13 +43,13 @@
 {{lib.render_select(_("Preview Resolution"), "preview_resolution", config["preview_resolution"], resolutions)}}
 {{lib.render_select(_("Download Resolution"), "download_resolution", config["download_resolution"], resolutions)}}
 </div>
-<button type="submit">{{gettext("Save")}}</button>
-<a href="."><button>{{gettext("Cancel")}}</button></a>
+<button class="save" type="submit">{{gettext("Save")}}</button>
+<a href="."><button class="cancel">{{gettext("Cancel")}}</button></a>
 </form>
 </section>
 {% else %}
 <section>
-	<a href=".?action=configuration"><button>{{gettext("Configuration")}}</button></a>
+	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
 </section>
 {% endif %}
 

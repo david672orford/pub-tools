@@ -75,5 +75,22 @@ function init_scenes()
 		dropArea.classList.remove("highlight");
 		counter = 0;
 		});
+
+	let file_upload = $(".file-upload");
+	let file_input = file_upload.querySelector("INPUT[type='file']");
+	file_input.addEventListener("change", (event) => {
+		let files = event.target;
+		let ul = files.parentElement.getElementsByTagName("ul")[0];
+		for(let i=0; i < files.files.length; i++)
+			{
+			let li = document.createElement("li");
+			li.textContent = files.files[i].name;
+			ul.append(li);
+			}
+		});
+	file_upload.querySelector("BUTTON").addEventListener("click", (event) => {
+		file_input.click();
+		});
+
 	}
 

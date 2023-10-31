@@ -26,10 +26,10 @@
 </tbody>
 </table>
 <div class="borderless-box">
-	<a href="."><button>{{gettext("Reload")}}</button></a>
-	<button type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
+	<button class="add" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
+	<a href="."><button class="reload">{{gettext("Reload")}}</button></a>
 	{% if not form %}
-	<a href=".?action=configuration"><button>{{gettext("Configuration")}}</button></a>
+	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
 	{% endif %}
 </div>
 </form>
@@ -41,7 +41,7 @@
 <h2>{{gettext("Configuration")}}</h2>
 {{lib.render_input_text(_("Google Drive Sharing URL"), "url", config["url"], class="long-url")}}
 <button type="submit">{{gettext("Save")}}</button>
-<a href="."><button>{{gettext("Cancel")}}</button></a>
+<a href="."><button class="config">{{gettext("Cancel")}}</button></a>
 </section>
 </form>
 {% endif %}

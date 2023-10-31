@@ -20,14 +20,17 @@ def create_app(instance_path=None):
 
 	# Set up default configuration
 	app.config.from_mapping(
+		APP_DISPLAY_NAME = "JW Pubs",
+		THEME = "basic-light",
+		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs", "admin"],
+
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
+		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
+		CACHEDIR = os.path.join(app.instance_path, "cache"),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
-		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		FLASK_ADMIN_FLUID_LAYOUT = True,
-		APP_DISPLAY_NAME = "JW Pubs",
-		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs"],
-		CACHEDIR = os.path.join(app.instance_path, "cache"),
+
 		PUB_LANGUAGE = "ru",
 		SUB_LANGUAGE = None,
 		VIDEO_RESOLUTION = "480p",
@@ -60,16 +63,10 @@ def create_app(instance_path=None):
 
 	# Load, initialize, and connect app components
 	with app.app_context():
-		for module_name in ("views", "admin", "subapps", "cli_update", "cli_cache"):
+		for module_name in ("views", "subapps", "cli_update", "cli_cache"):
 			logger.debug("Loading module %s..." % module_name)
-			try:
-				module = import_module("app.%s" % module_name)
-				module.init_app(app)
-			except ModuleNotFoundError as e:
-				if module_name == "admin":
-					logger.info("module %s disabled due to unsatisfied dependencies" % module_name)
-				else:
-					raise e
+			module = import_module("app.%s" % module_name)
+			module.init_app(app)
 
 	# Create the directory to which we download media.
 	if not os.path.exists(app.config["CACHEDIR"]):

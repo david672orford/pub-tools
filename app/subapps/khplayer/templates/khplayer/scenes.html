@@ -9,9 +9,9 @@
 <form action="submit" method="POST">
 <section>
 	<div class="borderless-box">
-		<button type="submit" name="action" value="delete">{{_("Delete Selected")}}</button>
+		<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
 		{% if not cameras %}
-		<button type="submit" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
+		<button type="submit" class="add" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
 		{% endif %}
 	</div>
 
@@ -22,9 +22,10 @@
 			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
 			{% endfor %}
 		</select>
-		<button type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
-		<button type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
-		<button type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
+		<button class="add" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
+		<button class="add" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
+		<button class="add" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
+		<a href="."><button class="cancel" type="button">{{_("Cancel")}}</button></a>
 	</section>
 	{% endif %}
 
@@ -42,6 +43,12 @@
 		<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
 	</tr>
 	{% endfor %}
+	{% for i in range(scene_names|length, 10) %}
+	<tr>
+		<td>&nbsp;</td>
+		<td></td>
+	</tr>
+	{% endfor %}
 </tbody>
 </table>
 
@@ -52,8 +59,13 @@
 <section class="bordered-box">
 <h2><label for="files">{{_("Upload Media Files")}}</label></h2>
 	<div class="hbox">
-		<input type="file" id="files" name="files" multiple>
-		<button type="submit">{{_("Upload")}}</button>
+		<div class="file-upload">
+			<button type="button">{{_("Browse")}}</button>
+			<input type="file" id="files" name="files" multiple>
+			<ul>
+			</ul>
+		</div>
+		<button class="add" type="submit">{{_("Add as Scene")}}</button>
 	</div>
 </section>
 </form>
@@ -63,7 +75,7 @@
 <h2><label for="add-url">{{_("URL to Add")}}</label></h2>
 	<div class="hbox">
 		<input type="text" id="add-url" name="add-url">
-		<button type="submit">{{_("Add")}}</button>
+		<button class="add" type="submit" class="add">{{_("Add as Scene")}}</button>
 	</div>
 </section>
 </form>

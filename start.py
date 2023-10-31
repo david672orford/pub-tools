@@ -26,7 +26,7 @@ for arg in sys.argv[1:]:
 
 logging.basicConfig(
 	level=logging.DEBUG if debug_mode else logging.INFO,
-	format='%(asctime)s %(levelname)s %(name)s %(message)s',
+	format='%(asctime)s.%(msecs)03d %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
 

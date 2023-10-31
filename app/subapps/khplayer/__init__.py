@@ -1,6 +1,7 @@
 menu = []
 
 def init_app(app, url_prefix):
+
 	app.jinja_env.globals["menu"] = menu
 
 	from .views import blueprint
@@ -11,3 +12,4 @@ def init_app(app, url_prefix):
 
 	from .cli_cable import cli_cable
 	app.cli.add_command(cli_cable)
+

@@ -55,8 +55,21 @@ INPUT, TEXTAREA {
 BUTTON, SELECT, OPTION, INPUT[type='text'] {
 	padding: .5em;
 	}
-INPUT[type='file']::file-selector-button {			/* Separate to avoid nixing whole section in pywebview 4.4 with gui="qt" */
-	padding: .5em;
+SELECT, BUTTON {
+	white-space: nowrap;
+	border-width: 1px;
+	border-style: outset;
+	border-color: #808080;
+	border-radius: 2px;
+	}
+
+/* Fancy file upload */
+.file-upload {
+	display: flex;
+	flex-grow: 1;
+	}
+.file-upload INPUT[type='file'] {
+	display: none;
 	}
 
 /* Header at top of each tabbed page */
@@ -140,7 +153,7 @@ DIV.flash {
 /* An actual content table with borders and shaded header elements */
 TABLE.borders {
 	border-collapse: collapse;
-	margin-bottom: .3em;	
+	margin-bottom: .3em;
 	}
 TABLE.borders TH, TABLE.borders TD {
 	border: thin solid #808080;
@@ -151,7 +164,8 @@ TABLE.borders.selection TH:first-child, TABLE.borders.selection TD:first-child {
 	width: 1px;
 	}
 TABLE.borders TH {
-	background-color: #f0f0f0;
+	}
+TABLE.borders TD {
 	}
 TABLE.full-width {
 	width: 100%;
@@ -268,6 +282,7 @@ DIV.thumbnail > DIV.caption {
 /* Search box */
 .hbox {
 	display: flex;
+	align-items: flex-start;
 	}
 .hbox > INPUT[type='text'], .hbox > INPUT[type='file'] {
 	flex-grow: 1;

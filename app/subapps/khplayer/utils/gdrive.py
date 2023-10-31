@@ -10,6 +10,8 @@ class GDriveClient:
 	def __init__(self, config, cachedir="cache", debuglevel=0):
 		self.config = config
 		self.cachedir = cachedir
+		self.debuglevel = debuglevel
+		self.debug = (debuglevel > 0)
 		http_handler = HTTPHandler(debuglevel=debuglevel)
 		https_handler = HTTPSHandler(debuglevel=debuglevel)
 		self.opener = build_opener(http_handler, https_handler)
@@ -38,9 +40,10 @@ class GDriveClient:
 	def list_files(self):
 		root = self.get_html(self.config["url"])
 
-		#text = lxml.html.tostring(root, encoding="UNICODE")
-		#with open("gdrive.html", "w") as fh:
-		#	fh.write(text)
+		if self.debug:
+			text = lxml.html.tostring(root, encoding="UNICODE")
+			with open("gdrive.html", "w") as fh:
+				fh.write(text)
 
 		# Parsing approach from:
 		# https://github.com/wkentaro/gdown/
@@ -54,8 +57,9 @@ class GDriveClient:
 				decoded = item.encode("utf-8").decode("unicode_escape")
 				data = json.loads(decoded)
 
-				with open("gdrive.json", "w") as fh:
-					json.dump(data, fh, indent=4)
+				if self.debug:
+					with open("gdrive.json", "w") as fh:
+						json.dump(data, fh, indent=4)
 
 				break
 
