@@ -8,9 +8,6 @@ Flask==2.3.2
 #Markupsafe==2.1.1
 #Werkzeug==2.2.2
 
-# HTML Forms
-wtforms==3.0.1
-
 # Database integration for the Flask framework
 Flask-SQLAlchemy==2.5.1
 
@@ -27,10 +24,12 @@ websocket-client==1.4.2
 #ewmh==0.1.6
 
 # For embedded web browser (3.7.2 is broken on Windows)
-pywebview==3.7.0
+#pywebview==3.7.0
+#pywebview==4.4
 
 # For printing tables in the CLI
-rich==9.11.1
+#rich==9.11.1
+rich==13.6.0
 
 # Gettext
 flask-babel==4.0.0

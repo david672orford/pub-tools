@@ -30,8 +30,8 @@
 
 <form action="save-config" method="POST">
 <section class="bordered-box">
-{{lib.render_field(form.PERIPHERALS_microphone)}}
-{{lib.render_field(form.PERIPHERALS_speakers)}}
+{{lib.render_select(_("Microphone"), "microphone", peripherals.get("microphone"), microphones)}}
+{{lib.render_select(_("Speakers"), "speakers", peripherals.get("speakers"), speakers)}}
 <button type="Submit">{{gettext("Reconnect Audio")}}</button>
 </section>
 </form>

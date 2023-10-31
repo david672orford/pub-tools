@@ -26,14 +26,14 @@
 </table>
 </section>
 
-{% if form %}
+{% if config is not none %}
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
-{{lib.render_field(form.JW_STREAM_url,cols="40",rows="8")}}
+{{lib.render_textarea(_("JW Stream Sharing URLs"), "url", config["url"], class="urls")}}
 <div class="borderless-box">
-{{lib.render_field(form.JW_STREAM_preview_resolution)}}
-{{lib.render_field(form.JW_STREAM_download_resolution)}}
+{{lib.render_select(_("Preview Resolution"), "preview_resolution", config["preview_resolution"], resolutions)}}
+{{lib.render_select(_("Download Resolution"), "download_resolution", config["download_resolution"], resolutions)}}
 </div>
 <button type="submit">{{gettext("Save")}}</button>
 <a href="."><button>{{gettext("Cancel")}}</button></a>

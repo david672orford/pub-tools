@@ -1,5 +1,4 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
-from wtforms import Form, TextAreaField, SelectField
 from urllib.parse import urlencode
 import os, re
 from time import sleep
@@ -10,10 +9,10 @@ from ... import turbo
 from ...utils import progress_callback, progress_response, run_thread, async_flash
 from ...jworg.jwstream import StreamRequesterContainer
 from ...utils.babel import gettext as _
+from ...utils.config import get_config, put_config
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs
-from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 
@@ -37,46 +36,44 @@ menu.append((_("JW Stream"), "/jwstream/"))
 )
 
 def jwstream_channels():
-	config = current_app.config.get("JW_STREAM",{})
-	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "url", None) != config.get("url"):
+	config = get_config("JW_STREAM")
+	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "urls", None) != config.get("urls"):
 		try:
 			jwstream_channels.handle = StreamRequesterContainer(config)
-			jwstream_channels.url = config.get("url")
+			jwstream_channels.url = config.get("urls")
 		except Exception as e:
 			logger.error(str(e))
 			flash(str(e))
 			jwstream_channels.handle = {}
 	return jwstream_channels.handle
 
-class StreamConfigForm(Form):
-	JW_STREAM_url = TextAreaField(_("URL"), render_kw={"rows": 5})
-	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
-	JW_STREAM_preview_resolution = SelectField(_("Preview Resolution"), choices=resolutions, coerce=int)
-	JW_STREAM_download_resolution = SelectField(_("Download Resolution"), choices=resolutions, coerce=int)
-
 @blueprint.route("/jwstream/")
 def page_jwstream():
 	if request.args.get("action") == "configuration":
-		if not "JW_STREAM" in current_app.config:		# If no config, load defaults
-			current_app.config["JW_STREAM"] = {
-				"preview_resolution": 234,	
-				"download_resolution": 720,
-				}
-		form = StreamConfigForm(formdata=request.args, obj=ConfWrapper())
+		config = {
+			"preview_resolution": 234,	
+			"download_resolution": 720,
+			}
+		config.update(get_config("JW_STREAM"))
 	else:
-		form = None
+		config = None
 
 	return render_template(
 		"khplayer/jwstream.html",
 		channels = jwstream_channels().values(),
-		form = form,
+		config = config,
+		resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720")),
 		top = ".."
 		)
 
 @blueprint.route("/jwstream/save-config", methods=["POST"])
 def page_jwstream_save_config():
-	ok, response = config_saver(StreamConfigForm)
-	return response
+	put_config("JW_STREAM", {
+		"urls": request.form.get("urls").strip(),
+		"preview_resolution": int(request.form.get("preview_resolution")),
+		"download_resolution": int(request.form.get("download_resolution")),
+		})
+	return redirect(".")
 
 @blueprint.route("/jwstream/<token>/")
 def page_jwstream_channel(token):

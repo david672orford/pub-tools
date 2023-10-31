@@ -37,13 +37,10 @@ def create_app(instance_path=None):
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# Init DB and load more configuration
-	# (May override settings loaded above.)
+	# Init DB
 	with app.app_context():
-		from .models import init_app as models_init_app, Config
+		from .models import init_app as models_init_app
 		models_init_app(app)
-		for config in Config.query:
-			app.config[config.name] = config.data
 
 	# Initialize Babel
 	init_babel(app)

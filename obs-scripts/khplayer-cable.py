@@ -3,9 +3,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from obs_wrap import ObsScript, ObsWidget
-from app import create_app
+from config import get_config, put_config
 from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
-from app.subapps.khplayer.utils.config_editor import config_update_dict
 
 class ObsVirtualAudioCable(ObsScript):
 	description = """
@@ -15,47 +14,55 @@ class ObsVirtualAudioCable(ObsScript):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.app = create_app()
-		config = self.app.config.get("PERIPHERALS",{})
+		self.config = None
+		self.microphone_options = []
+		self.speakers_options = []	
 
 		# Define script configuration GUI
-		self.settings_widgets = [
-			ObsWidget("select", "microphone", "Microphone", value=lambda: config.get("microphone"), options=self.get_microphones),
-			ObsWidget("select", "speakers", "Loadspeakers", value=lambda: config.get("speakers"), options=self.get_speakers),
+		self.gui = [
+			ObsWidget("select", "microphone", "Microphone",
+				value=lambda: self.config.get("microphone"),
+				options=lambda: self.microphone_options,
+				),
+			ObsWidget("select", "speakers", "Loadspeakers",
+				value=lambda: self.config.get("speakers"),
+				options=lambda: self.speakers_options,
+				),
 			ObsWidget("button", "reconnect", "Reconnect Audio", callback=self.on_button),
 			]
 
-	def get_microphones(self):
+	def on_load(self, settings):
+		self.config = get_config("PERIPHERALS")
+		if self.debug:
+			print("config:", self.config)
 		patchbay.load()
-		microphones = []
+		connect_all(patchbay, self.config)
+
+	# About to display the GUI
+	def on_before_gui(self):
+		self.config = get_config("PERIPHERALS")
+		if self.debug:
+			print("on_gui()", self.config)
+		patchbay.load()
+		self.microphone_options = []
+		self.speakers_options = []	
 		for node in patchbay.nodes:
 			if node.media_class == "Audio/Source":
-				microphones.append((node.name, node.nick if node.nick else node.name))
-		return microphones
-
-	def get_speakers(self):
-		#patchbay.load()		# already loaded
-		speakers = []
-		for node in patchbay.nodes:
+				self.microphone_options.append((node.name, node.nick if node.nick else node.name))
 			if node.media_class == "Audio/Sink" and node.name != "To-Zoom":
-				speakers.append((node.name, node.nick if node.nick else node.name))
-		return speakers
-
-	def on_button(self):
-		print("button pressed")
+				self.speakers_options.append((node.name, node.nick if node.nick else node.name))
 
 	# Accept settings from the script configuration GUI
-	def on_settings(self, settings):
-		with self.app.app_context():
-			config_update_dict("PERIPHERALS", {
-				"microphone": settings.microphone,
-				"speakers": settings.speakers,
-				})
+	def on_gui_change(self, settings):
+		print("settings:", settings)
+		self.config["microphone"] = settings.microphone
+		self.config["speakers"] = settings.speakers
 
-	def on_load(self):
+	def on_button(self):
+		print("Reconnect Audio")
+		put_config("PERIPHERALS", self.config)
 		patchbay.load()
-		connect_all(patchbay, self.app.config["PERIPHERALS"])
+		connect_all(patchbay, self.config)
 
 	def on_unload(self):
 		patchbay.load()

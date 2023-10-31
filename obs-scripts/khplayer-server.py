@@ -36,22 +36,22 @@ class KHPlayer(ObsScript):
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.enable = False		# should the HTTP server be running?
 
 		# Define script configuration GUI
-		self.settings_widgets = [
+		self.gui = [
 			ObsWidget("bool", "enable", "Enable Server", default_value=False),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
 		# Instantiante the KH Player app and prepare to serve it.
 		self.app = create_app()
+		self.enable = False		# should the HTTP server be running?
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
 		self.logger = logging.getLogger("app")
 
 	# Accept settings from the script configuration GUI
-	def on_settings(self, settings):
+	def on_gui_change(self, settings):
 		if settings.debug != self.debug:
 			if settings.debug:
 				self.logger.setLevel(logging.DEBUG)

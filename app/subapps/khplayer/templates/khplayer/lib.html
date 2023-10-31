@@ -1,8 +1,24 @@
-{% macro render_field(field) %}
+{% macro render_input_text(label, name, value, class="") %}
 <span class="form-field">
-	{{field['label']}} {{field(**kwargs)}}
-	{% if field.errors %}
-	<ul class="errors">{% for error in field.errors %}{{error}}{% endfor %}</ul>
-	{% endif %}
+	<label for="{{name}}">{{label}}</label>
+	<input type="text" id="{{name}}" name="{{name}}" value="{{value}}"{% if class %} class="{{class}}"{%endif%}>
+</span>
+{% endmacro %}
+
+{% macro render_textarea(label, name, value, class="") %}
+<span class="form-field">
+	<label for="{{name}}">{{label}}</label>
+	<textarea id="{{name}}" name="{{name}}"{% if class %} class="{{class}}"{%endif%}>{{value}}</textarea>
+</span>
+{% endmacro %}
+
+{% macro render_select(label, name, value, options, class="") %}
+<span class="form-field">
+	<label for="{{name}}">{{label}}</label>
+	<select id="{{name}}" name="{{name}}"{% if class %} class="{{class}}"{%endif%}>
+		{% for ovalue, odisplay in options %}
+		<option value="{{ovalue}}"{% if ovalue == value %} selected{%endif%}>{{odisplay}}</option>
+		{% endfor %}
+	</select>
 </span>
 {% endmacro %}

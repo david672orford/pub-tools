@@ -22,7 +22,7 @@ def page_scenes():
 	try:
 		scene_names = list(map(lambda scene: scene["sceneName"], reversed(obs.get_scene_list())))
 	except ObsError as e:
-		flash("OBS: %s" % str(e))
+		flash(_("OBS: %s") % str(e))
 		scene_names = []
 
 	return render_template(
@@ -94,11 +94,12 @@ def page_scenes_upload():
 	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 	i = 1
 	for file in files:
-		logger.info("Uploading \"%s\" (%s)", file.filename, file.mimetype)
+		logger.info(_("Uploading \"%s\" (%s)"), file.filename, file.mimetype)
 		major_mimetype = file.mimetype.split("/")[0]
 		if major_mimetype not in ("video", "image"):
 			flash(_("Unsupported media type: %s") % major_mimetype)
 			continue
+
 		m = re.search(r"\.([a-zA-Z0-9]+)$", file.filename)
 		ext = "." + m.group(1) if m else ""
 		save_as = os.path.join(
@@ -106,7 +107,12 @@ def page_scenes_upload():
 			"user-%s-%d%s" % (datestamp, i, ext),
 			)
 		file.save(save_as)
-		obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
+
+		try:
+			obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
+		except ObsError as e:
+			flash(_("OBS: %s") % str(e))
+
 		i += 1
 	return redirect(".")
 

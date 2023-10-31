@@ -27,25 +27,26 @@ class MediaStopper:
 
 class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 	description = """
-	<style>
-		li {
-			margin: .2em 0 .2em -1.5em;	/* see https://bugreports.qt.io/browse/QTBUG-1429 */
-			}
-	</style>
-	<h2>KH Player—Video Actions</h2>
-	<ul>
-    <li>Mute microphone while videos play
-    <li>Stop videos from JW.ORG a few seconds before the end
-    <li>Switch to scene selected below when video ends
-	</ul>
-	"""
+		<style>
+			li {
+				margin: .2em 0 .2em -1.5em;	/* see https://bugreports.qt.io/browse/QTBUG-1429 */
+				}
+		</style>
+		<h2>KH Player—Video Actions</h2>
+		<ul>
+	    <li>Mute microphone while videos play
+	    <li>Stop videos from JW.ORG a few seconds before the end
+	    <li>Switch to scene selected below when any video ends
+		</ul>
+		"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		# Define script configuration GUI
-		self.settings_widgets = [
-			ObsWidget("select", "home_scene", "Home Scene", options=self.get_scene_options)
+		self.gui = [
+			ObsWidget("select", "home_scene", "Home Scene", options=self.get_scene_options),
+			ObsWidget("float", "stop", "Seconds from End", min=0, max=10, step=0.5, default_value=5.0),
 			]
 
 		# Video sources currently playing
@@ -56,6 +57,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 
 		#
 		self.stopper = MediaStopper()
+		self.stop = None
 
 	# Provides the list of scenes for the select box
 	def get_scene_options(self):
@@ -65,6 +67,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 	# Accept settings from the script configuration GUI
 	def on_settings(self, settings):
 		self.home_scene = settings.home_scene
+		self.stop = settings.stop
 
 	def on_media_started(self, source):
 		self.video_add(source)
@@ -97,7 +100,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 				print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 				remaining = (source.duration - source.time)
 				print("remaining:", remaining/1000.0)
-				remaining -= 5000	
+				remaining -= int(self.stop * 1000)
 				print("stop after:", remaining/1000.0)
 				self.stopper.set(source, remaining)
 

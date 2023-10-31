@@ -44,7 +44,7 @@ LI {
 	margin: .2em 0;
 	}
 INPUT, SELECT, TEXTAREA, BUTTON {
-	font-size: inherit;		/* For some reason Pywebview makes these large */
+	font-size: inherit;								/* For some reason Pywebview makes these large */
 	}
 LABEL {
 	font-weight: bold;
@@ -52,7 +52,10 @@ LABEL {
 INPUT, TEXTAREA {
 	padding: .1em .2em;
 	}
-BUTTON, SELECT, OPTION, INPUT[type='text'], INPUT[type='file']::file-selector-button {
+BUTTON, SELECT, OPTION, INPUT[type='text'] {
+	padding: .5em;
+	}
+INPUT[type='file']::file-selector-button {			/* Separate to avoid nixing whole section in pywebview 4.4 with gui="qt" */
 	padding: .5em;
 	}
 
@@ -228,7 +231,8 @@ DIV.thumbnail > DIV.caption {
 .form-field {
 	display: inline-flex;
 	align-items: center;
-	margin: .25em .25em .25em 0;		/* XXX */
+	margin: .25em .25em .25em 0;
+	flex-grow: 1;
 	}
 .form-field > * {
 	margin: 0 .3em 0 0;
@@ -238,6 +242,16 @@ DIV.thumbnail > DIV.caption {
 	}
 .form-field > LABEL:first-child::after {
 	content: ":";
+	}
+.form-field > *:last-child {
+	flex-grow: 1;
+	}
+.form-field > INPUT[type='text'].long-url {
+	width: 60em;
+	}
+.form-field > TEXTAREA.urls {
+	width: 40em;
+	height: 5em;
 	}
 
 /* For drag-and-drop */

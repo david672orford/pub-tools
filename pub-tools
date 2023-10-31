@@ -37,7 +37,11 @@ webview.create_window(
 	width = 1200,
 	height = 900,
 	)
-webview.start(debug=False)
+webview.start(
+	debug=True,
+	gui="qt",		# small unless we set QT_SCALE_FACTOR=2, no button padding
+	#gui="gtk",		# patchbay does not work
+	)
 print("Webview has exited.")
 
 print("Shutting down the web server...")

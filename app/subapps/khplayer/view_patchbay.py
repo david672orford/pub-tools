@@ -1,75 +1,68 @@
-from flask import current_app, Blueprint, render_template, request, flash
-from wtforms import Form, SelectField
-from sqlalchemy.orm.attributes import flag_modified
+from flask import Blueprint, render_template, request, flash, redirect
 import logging
 
-from ...models import db, Config
 from ...utils.babel import gettext as _
+from ...utils.config import get_config, put_config, merge_config
 from . import menu
 from .views import blueprint
 from .utils.virtual_cable import patchbay, connect_all
-from .utils.config_editor import ConfWrapper, config_saver
 
 logger = logging.getLogger(__name__)
 
 menu.append((_("Audio"), "/patchbay/"))
-
-class AudioConfigForm(Form):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		# Load the microphone and speaker selectors options
-		microphones = []
-		speakers = []
-		for node in patchbay.nodes:
-			if node.media_class == "Audio/Source":
-				microphones.append((node.name, node.nick if node.nick else node.name))
-			elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
-				speakers.append((node.name, node.nick if node.nick else node.name))
-		self.PERIPHERALS_microphone.choices = microphones
-		self.PERIPHERALS_speakers.choices = speakers
-
-	PERIPHERALS_microphone = SelectField("Microphone")
-	PERIPHERALS_speakers = SelectField("Speakers")
 
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
 	#patchbay.print()
 
-	form = AudioConfigForm(formdata=request.args, obj=ConfWrapper())
+	# Selected microphone and speakers
+	peripherals = get_config("PERIPHERALS")
 
-	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
-	if node_positions is not None:
-		node_positions = node_positions.data
-		for node in patchbay.nodes:
-			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
-			if position:
-				node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
-			else:
-				node.style = ""
+	# Load the microphone and speaker selectors options
+	microphones = []
+	speakers = []
+	for node in patchbay.nodes:
+		if node.media_class == "Audio/Source":
+			microphones.append((node.name, node.nick if node.nick else node.name))
+		elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
+			speakers.append((node.name, node.nick if node.nick else node.name))
 
-	return render_template("khplayer/patchbay.html", form=form, patchbay=patchbay, node_positions=node_positions, top="..")
+	node_positions = get_config("Patchbay Node Positions")
+	for node in patchbay.nodes:
+		position = node_positions.get("%s-%d" % (node.name, node.name_serial))
+		if position:
+			node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
+		else:
+			node.style = ""
+
+	return render_template("khplayer/patchbay.html",
+		peripherals = peripherals,
+		microphones = microphones,
+		speakers = speakers,
+		patchbay = patchbay,
+		node_positions = node_positions,
+		top = ".."
+		)
 
 @blueprint.route("/patchbay/save-config", methods=["POST"])
 def page_patchbay_save_config():
-	ok, response = config_saver(AudioConfigForm)
-	if ok:
-		patchbay.load()
-		for failure in connect_all(patchbay, current_app.config.get("PERIPHERALS")):
-			flash(failure)
-	return response
+	config = {
+		"microphone": request.form.get("microphone"),
+		"speakers": request.form.get("speakers"),
+		}
+	put_config("PERIPHERALS", config)
+	patchbay.load()
+	for failure in connect_all(patchbay, config):
+		flash(failure)
+	return redirect(".")
 
 @blueprint.route("/patchbay/save-node-pos", methods=["POST"])
 def page_patchbay_save_node_pos():
 	postdata = request.json
-	node_positions = Config.query.filter_by(name="Patchbay Node Positions").one_or_none()
-	if node_positions is None:
-		node_positions = Config(name="Patchbay Node Positions", data={})
-		db.session.add(node_positions)
-	node_positions.data[postdata["key"]] = [postdata["x"], postdata["y"]]
-	flag_modified(node_positions, "data")
-	db.session.commit()
+	merge_config("Patchbay Node Positions", {
+		postdata["key"]: [postdata["x"], postdata["y"]]
+		})
 	return ""
 
 @blueprint.route("/patchbay/create-link", methods=["POST"])

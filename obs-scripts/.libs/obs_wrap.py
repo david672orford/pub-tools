@@ -83,7 +83,7 @@ def freeing(source_list):
 # Derive your OBS script class from this
 class ObsScript:
 	description = "Description of script here"
-	settings_widgets = []
+	gui = []
 
 	def __init__(self, debug=False):
 		self.debug = debug
@@ -111,7 +111,7 @@ class ObsScript:
 	# 2) script_load()
 	# 3) script_update()
 	#
-	# Call Sequence when Scripts Properties Screen is opened
+	# Call Sequence when Script's Properties Screen is opened
 	# 1) script_properties()
 	# 2) script_update()
 	#
@@ -140,46 +140,73 @@ class ObsScript:
 		g['script_properties'] = lambda: self._script_properties()
 		g['script_update'] = lambda settings: self._script_update(settings)
 
-	# Load default settings
-	def _script_defaults(self, settings):
-		if self.debug:
-			print("*** script_defaults()")
-		for widget in self.settings_widgets:
+	# Turn the C settings list into an array of ObsSetting objects
+	def _pythonize_settings(self, raw_settings):
+		settings = ObsSettings()
+		for widget in self.gui:
 			if widget.type == "bool":
-				obs.obs_data_set_default_bool(settings, widget.name, widget.default_value)
-			elif widget.type == "bool":
-				obs.obs_data_set_default_int(settings, widget.name, widget.default_value)
+				setattr(settings, widget.name, obs.obs_data_get_bool(raw_settings, widget.name))
+			elif widget.type == "int":
+				setattr(settings, widget.name, obs.obs_data_get_int(raw_settings, widget.name))
 			elif widget.type == "float":
-				obs.obs_data_set_default_int(settings, widget.name, widget.default_value)
+				setattr(settings, widget.name, obs.obs_data_get_double(raw_settings, widget.name))
 			elif widget.type in ("text", "select"):
-				obs.obs_data_set_default_string(settings, widget.name, widget.default_value)
+				setattr(settings, widget.name, obs.obs_data_get_string(raw_settings, widget.name))
+			elif widget.type != "button":
+				raise AssertionError("Undefined widget type: %s" % widget.type)
+		return settings
 
-	def _script_load(self, settings):
-		if self.debug:
-			print("*** script_load()")
-		for widget in self.settings_widgets:
+	# Apply values to the raw settings for each widget which has a 'value' attribute
+	def _apply_widget_values(self, raw_settings):
+		for widget in self.gui:
 			value = widget.value
 			if value is not None:
 				if hasattr(value, "__call__"):
 					value = value()
 				if widget.type == "bool":
-					obs.obs_data_set_bool(settings, widget.name, value)
+					obs.obs_data_set_bool(raw_settings, widget.name, value)
 				elif widget.type == "int":
-					obs.obs_data_set_int(settings, widget.name, value)
+					obs.obs_data_set_int(raw_settings, widget.name, value)
 				elif widget.type == "float":
-					obs.obs_data_set_float(settings, widget.name, value)
+					obs.obs_data_set_double(raw_settings, widget.name, value)
 				elif widget.type in ("text", "select"):
-					obs.obs_data_set_string(settings, widget.name, value)
-		# FIXME: This caused lockups!
-		#obs.obs_frontend_add_event_callback(lambda event: self._on_event(event))
-		self.on_load()
+					obs.obs_data_set_string(raw_settings, widget.name, value)
+				elif widget.type != "button":
+					raise AssertionError("Undefined widget type: %s" % widget.type)
+
+	# Load default settings
+	def _script_defaults(self, raw_settings):
+		self.raw_settings = raw_settings
+		if self.debug:
+			print("*** script_defaults()")
+		for widget in self.gui:
+			if widget.type == "bool":
+				obs.obs_data_set_default_bool(raw_settings, widget.name, widget.default_value)
+			elif widget.type == "bool":
+				obs.obs_data_set_default_int(raw_settings, widget.name, widget.default_value)
+			elif widget.type == "float":
+				obs.obs_data_set_default_double(raw_settings, widget.name, widget.default_value)
+			elif widget.type in ("text", "select"):
+				obs.obs_data_set_default_string(raw_settings, widget.name, widget.default_value)
+			elif widget.type != "button":
+				raise AssertionError("Undefined widget type: %s" % widget.type)
+
+	def _script_load(self, raw_settings):
+		if self.debug:
+			print("*** script_load()")
+
+		self.on_load(self._pythonize_settings(raw_settings))
+
+		obs.obs_frontend_add_event_callback(lambda event: self._on_event(event))
 
 	# Called just before settings screen is displayed to build the GUI
-	def _script_properties(self):
+	def _script_properties(self):	# why not settings?
 		if self.debug:
 			print("*** script_properties()")
+		self.on_before_gui()
+		self._apply_widget_values(self.raw_settings)
 		props = obs.obs_properties_create()
-		for widget in self.settings_widgets:
+		for widget in self.gui:
 			if widget.type == "bool":		# checkbox
 				obs.obs_properties_add_bool(props, widget.name, widget.display_name)
 			elif widget.type == "int":
@@ -206,19 +233,10 @@ class ObsScript:
 	def _script_update(self, raw_settings):
 		if self.debug:
 			print("*** script_update()")
-		settings = ObsSettings()
-		for widget in self.settings_widgets:
-			if widget.type == "bool":
-				setattr(settings, widget.name, obs.obs_data_get_bool(raw_settings, widget.name))
-			elif widget.type == "int":
-				setattr(settings, widget.name, obs.obs_data_get_int(raw_settings, widget.name))
-			elif widget.type == "float":
-				setattr(settings, widget.name, obs.obs_data_get_float(raw_settings, widget.name))
-			elif widget.type in ("text", "select"):
-				setattr(settings, widget.name, obs.obs_data_get_string(raw_settings, widget.name))
+		settings = self._pythonize_settings(raw_settings)
 		if self.debug:
 			print("*** settings:", settings)
-		self.on_settings(settings)
+		self.on_gui_change(settings)
 
 	# Called just before script_unload()
 	# Documentation is a bit unclear about this, but it sounds like it
@@ -234,28 +252,47 @@ class ObsScript:
 			print("*** script_unload()")
 		self.on_unload()
 
-	#def _on_event(self, event):
-	#	if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
-	#		if self.debug:
-	#			print("*** scene change")
-	#		self.on_scene_change()
-
+	def _on_event(self, event):
+		if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
+			if self.debug:
+				print("*** scene change")
+			self.on_scene_change(self.get_scene())
+		elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
+			if self.debug:
+				print("*** finished loading")
+			self.on_finished_loading()
+			
 	#===================================================================
 	# Override these as needed in derived classes
 	#===================================================================
 
-	def on_load(self):
+	def on_load(self, settings):
 		pass
 
 	def on_unload(self):
 		pass
 
-	def on_settings(self, settings):
+	def on_before_gui(self):
+		pass
+
+	def on_gui_change(self, settings):
+		pass
+
+	def on_scene_change(self, scene_name):
+		pass
+
+	def on_finished_loading(self):
 		pass
 
 	#===================================================================
 	# Call these as needed from derived classes
 	#===================================================================
+
+	def get_scene(self):
+		scene = obs.obs_frontend_get_current_scene()
+		name = obs.obs_source_get_name(scene)
+		obs.obs_source_release(scene)
+		return name
 
 	def set_scene(self, scene_name):
 		for scene in self.iter_scenes():

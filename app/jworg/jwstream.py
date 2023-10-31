@@ -224,7 +224,7 @@ class StreamRequester:
 
 class StreamRequesterContainer(dict):
 	def __init__(self, config):
-		for url in config.get("url","").split():
+		for url in config.get("urls","").split():
 			requestor = StreamRequester(url, config)
 			self[requestor.token] = requestor
 
