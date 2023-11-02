@@ -1,0 +1,58 @@
+TABLE.borders TH {
+	background-color: #e0e0e0;
+	}
+
+BUTTON {
+	background-repeat: no-repeat;
+	background-size: 1em 1em;
+	background-position: .25em center;
+	}
+BUTTON.browse {
+	background-image: url(icon-browse.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.cancel {
+	background-image: url(icon-cancel.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.config {
+	background-image: url(icon-config.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.connect {
+	background-image: url(icon-connect.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.delete {
+	background-image: url(icon-cancel.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.download {
+	background-image: url(icon-download.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.new {
+	background-image: url(icon-new.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.reload {
+	background-image: url(icon-reload.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.save {
+	background-image: url(icon-save.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.search {
+	background-image: url(icon-search.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.upload {
+	background-image: url(icon-upload.svg);
+	padding-left: 1.5em;
+	}
+BUTTON.web {
+	background-image: url(icon-web.svg);
+	padding-left: 1.5em;
+	}
+

@@ -2,7 +2,6 @@
 
 ## General
 
-* Script to mute and switch to initial scene
 * Zoom in a browser source
 * Load the .jwpub file with talk illustrations
 * Load illustrations from .jwlplaylist files (and other zip files)

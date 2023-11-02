@@ -26,7 +26,7 @@
 </tbody>
 </table>
 <div class="borderless-box">
-	<button class="add" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
+	<button class="download" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
 	<a href="."><button class="reload">{{gettext("Reload")}}</button></a>
 	{% if not form %}
 	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
@@ -35,11 +35,11 @@
 </form>
 </section>
 
-{% if config is not none %}
+{% if config2 is not none %}
 <form action="save-config" method="POST">
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
-{{lib.render_input_text(_("Google Drive Sharing URL"), "url", config["url"], class="long-url")}}
+{{lib.render_input_text(_("Google Drive Sharing URL"), "url", config2["url"], class="long-url")}}
 <button type="submit">{{gettext("Save")}}</button>
 <a href="."><button class="config">{{gettext("Cancel")}}</button></a>
 </section>

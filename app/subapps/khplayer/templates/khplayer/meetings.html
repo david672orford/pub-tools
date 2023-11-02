@@ -15,7 +15,7 @@
 <tbody>
 {% for week in weeks %}
 <tr>
-	<th>{{week.week_of()}}</th>
+	<td>{{week.week_of()}}</td>
 	<td>
 		{%if week.mwb_docid%}
 		<a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' ' + gettext('Life and Ministry'))|urlencode}}">

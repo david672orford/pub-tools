@@ -2,6 +2,7 @@ import subprocess
 import json
 from collections import defaultdict
 
+# Has inputs and outputs
 class Node:
 	def __init__(self):
 		self.id = None
@@ -44,6 +45,7 @@ class Node:
 			self.outputs,
 			)
 
+# An input or an output
 class Port:
 	def __init__(self):
 		self.id = None
@@ -65,6 +67,7 @@ class Port:
 			self.direction,
 			)
 
+# Connection between an output and an input
 class Link:
 	def __init__(self):
 		self.id = None
@@ -97,7 +100,12 @@ class Patchbay:
 				node.name = props["node.name"]
 				node.nick = props.get("node.nick")
 				node.description = props.get("node.description")
-				node.media_class = props.get("media.class",props.get("media.type",""))
+				for key in ("media.class", "media.type"):	# media.type observed on Telegram's "alsoft" node
+					if key in props:
+						node.media_class = props[key]
+						break
+				else:
+					node.media_class = ""
 				self._add_node(node)
 			elif item["type"].endswith("PipeWire:Interface:Port"):
 				port = Port()

@@ -61,7 +61,7 @@ def page_jwstream():
 	return render_template(
 		"khplayer/jwstream.html",
 		channels = jwstream_channels().values(),
-		config = config,
+		config2 = config,
 		resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720")),
 		top = ".."
 		)

@@ -34,14 +34,14 @@
 </table>
 </section>
 
-{% if config is not none %}
+{% if config2 is not none %}
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
-{{lib.render_textarea(_("JW Stream Sharing URLs"), "url", config["url"], class="urls")}}
+{{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", config2["urls"], class="urls")}}
 <div class="borderless-box">
-{{lib.render_select(_("Preview Resolution"), "preview_resolution", config["preview_resolution"], resolutions)}}
-{{lib.render_select(_("Download Resolution"), "download_resolution", config["download_resolution"], resolutions)}}
+{{lib.render_select(_("Preview Resolution"), "preview_resolution", config2["preview_resolution"], resolutions)}}
+{{lib.render_select(_("Download Resolution"), "download_resolution", config2["download_resolution"], resolutions)}}
 </div>
 <button class="save" type="submit">{{gettext("Save")}}</button>
 <a href="."><button class="cancel">{{gettext("Cancel")}}</button></a>

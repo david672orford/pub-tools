@@ -90,18 +90,20 @@ def page_scenes_submit():
 #   with drag-and-drop it is more awkward. We would probably have to simulate a button click.
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
-	files = request.files.getlist("files")	# Get the Werkzeug FileStorage object
+	files = request.files.getlist("files")				# Get the Werkzeug FileStorage object
 	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 	i = 1
 	for file in files:
 		logger.info(_("Uploading \"%s\" (%s)"), file.filename, file.mimetype)
+
 		major_mimetype = file.mimetype.split("/")[0]
 		if major_mimetype not in ("video", "image"):
-			flash(_("Unsupported media type: %s") % major_mimetype)
+			flash(_("Unsupported media type: %s") % file.mimetype)
 			continue
 
-		m = re.search(r"\.([a-zA-Z0-9]+)$", file.filename)
-		ext = "." + m.group(1) if m else ""
+		# Save to file with name in format user-YYYYMMDDHHMMSS-X.ext
+		m = re.search(r"(\.[a-zA-Z0-9]+)$", file.filename)
+		ext = m.group(1) if m else ""
 		save_as = os.path.join(
 			current_app.config["CACHEDIR"],
 			"user-%s-%d%s" % (datestamp, i, ext),

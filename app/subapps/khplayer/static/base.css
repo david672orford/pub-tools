@@ -54,13 +54,25 @@ INPUT, TEXTAREA {
 	}
 BUTTON, SELECT, OPTION, INPUT[type='text'] {
 	padding: .5em;
+	border-width: 1px;
+	border-style: inset;
+	border-color: #808080;
+	border-radius: 2px;
 	}
 SELECT, BUTTON {
+	background-color: #f0f0f0;
 	white-space: nowrap;
 	border-width: 1px;
 	border-style: outset;
 	border-color: #808080;
 	border-radius: 2px;
+	}
+SELECT:hover, BUTTON:hover {
+	filter: brightness(85%);
+	}
+BUTTON:active {
+	/*border-width: 2px;*/	/* causes button to grow despite border-box because we have not set a fixed size */
+	border-color: blue;
 	}
 
 /* Fancy file upload */
@@ -167,7 +179,7 @@ TABLE.borders TH {
 	}
 TABLE.borders TD {
 	}
-TABLE.full-width {
+TABLE.borders.full-width {
 	width: 100%;
 	}
 TABLE.borders BUTTON.add {

@@ -23,6 +23,7 @@ def page_songs():
 
 @blueprint.route("/songs/submit", methods=["POST"])
 def page_songs_submit():
+	message = None
 
 	# By song number entered in form
 	song = request.form.get('song')
@@ -46,5 +47,7 @@ def page_songs_submit():
 		video = Videos.query.filter_by(lank=lank).one()
 		run_thread(lambda: load_video(video.href, prefix="♫ ПЕСНЯ"))
 
-	return progress_response(message)
+	if message is not None:
+		return progress_response(message)
+	return redirect(".")
 

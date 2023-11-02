@@ -22,7 +22,8 @@ def create_app(instance_path=None):
 	app.config.from_mapping(
 		APP_DISPLAY_NAME = "JW Pubs",
 		THEME = "basic-light",
-		ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs", "admin"],
+		#ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs", "admin"],
+		ENABLED_SUBAPPS = ["khplayer", "epubs"],
 
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),

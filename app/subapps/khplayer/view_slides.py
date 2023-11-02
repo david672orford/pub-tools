@@ -22,7 +22,7 @@ def page_slides():
 		files = []
 	return render_template(
 		"khplayer/slides.html",
-		config = config if request.args.get("action") == "configuration" else None,
+		config2 = config if request.args.get("action") == "configuration" else None,
 		files = files,
 		top = ".."
 		)

@@ -11,7 +11,7 @@
 	<div class="borderless-box">
 		<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
 		{% if not cameras %}
-		<button type="submit" class="add" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
+		<button type="submit" class="new" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
 		{% endif %}
 	</div>
 
@@ -22,9 +22,9 @@
 			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
 			{% endfor %}
 		</select>
-		<button class="add" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
-		<button class="add" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
-		<button class="add" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
+		<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
+		<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
 		<a href="."><button class="cancel" type="button">{{_("Cancel")}}</button></a>
 	</section>
 	{% endif %}
@@ -60,12 +60,12 @@
 <h2><label for="files">{{_("Upload Media Files")}}</label></h2>
 	<div class="hbox">
 		<div class="file-upload">
-			<button type="button">{{_("Browse")}}</button>
+			<button class="browse" type="button">{{_("Browse")}}</button>
 			<input type="file" id="files" name="files" multiple>
 			<ul>
 			</ul>
 		</div>
-		<button class="add" type="submit">{{_("Add as Scene")}}</button>
+		<button class="upload" type="submit">{{_("Add as Scene")}}</button>
 	</div>
 </section>
 </form>

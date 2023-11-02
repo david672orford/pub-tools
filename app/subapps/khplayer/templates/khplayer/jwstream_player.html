@@ -47,10 +47,10 @@
 {% endif %}
 
 <div id="trim-controls" class="controls">
-	<label>{{gettext("Clip Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
-	<label>{{gettext("Clip End:")}} <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
-	<label class="grow"><span>{{gettext("Clip Title:")}}</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
-	<button type="submit">{{gettext("Make Clip")}}</button>
+	<label>{{gettext("Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
+	<label>{{gettext("End:")}} <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
+	<label class="grow"><span>{{gettext("Title:")}}</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
+	<button class="download" type="submit">{{gettext("Make Clip")}}</button>
 </div>
 
 <script>
