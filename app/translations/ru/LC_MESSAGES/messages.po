@@ -241,7 +241,7 @@ msgstr "Обновляется список видеороликов..."
 
 #: subapps/khplayer/view_videos.py:49 subapps/khplayer/view_videos.py:66
 msgid "Updating video index..."
-msgstr "Обновляется список видеороликов..."
+msgstr "Обновляется индекс видеороликов..."
 
 #: subapps/khplayer/view_videos.py:51 subapps/khplayer/view_videos.py:68
 msgid "Video list updated"
@@ -515,7 +515,7 @@ msgstr "Поиск"
 
 #: subapps/khplayer/templates/khplayer/videos.html:24
 msgid "Run <b>Update</b> to see video categories here."
-msgstr "Нажмите <b>Обновить</l> чтобы категории роликов появились здесь."
+msgstr "Нажмите <b>Обновить</b> чтобы категории роликов появились здесь."
 
 #: subapps/khplayer/templates/khplayer/videos.html:30
 msgid "Update All Categories"

@@ -45,7 +45,7 @@ def page_songs_submit():
 	if lank:
 		message = _("Loading song %s") % lank
 		video = Videos.query.filter_by(lank=lank).one()
-		run_thread(lambda: load_video(video.href, prefix="♫ ПЕСНЯ"))
+		run_thread(lambda: load_video(None, video.href, prefix="♫ ПЕСНЯ"))
 
 	if message is not None:
 		return progress_response(message)

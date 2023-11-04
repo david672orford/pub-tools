@@ -81,6 +81,10 @@ function init_scenes()
 	file_input.addEventListener("change", (event) => {
 		let files = event.target;
 		let ul = files.parentElement.getElementsByTagName("ul")[0];
+		while(ul.firstChild)
+			{
+			ul.removeChild(ul.firstChild);
+			}
 		for(let i=0; i < files.files.length; i++)
 			{
 			let li = document.createElement("li");

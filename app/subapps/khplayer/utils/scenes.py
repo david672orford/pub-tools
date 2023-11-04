@@ -5,7 +5,7 @@ from ....utils import progress_callback, async_flash
 from ....utils.babel import gettext as _
 from .controllers import meeting_loader, obs, ObsError
 
-def load_video(url, prefix="▷", close=True):
+def load_video(scene_name, url, thumbnail_url=None, prefix="▷", close=True):
 	progress_callback(_("Getting video download URL..."))
 	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"])
 	assert video_metadata is not None, url
@@ -31,7 +31,14 @@ def load_video(url, prefix="▷", close=True):
 				subtitle_track = 2
 
 	try:
-		obs.add_media_scene(prefix + " " + video_metadata["title"], "video", video_file, subtitle_track=subtitle_track)
+		print(video_metadata)
+		obs.add_media_scene(
+			prefix + " " + (scene_name if scene_name is not None else video_metadata["title"]),
+			"video",
+			video_file,
+			thumbnail_url = (thumbnail_url if thumbnail_url is not None else video_metadata.get("thumbnail_url")),
+			subtitle_track = subtitle_track,
+			)
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))	
 		progress_callback(_("Failed to add video"), last_message=close)
@@ -51,23 +58,23 @@ def load_song(song, close=True):
 	else:
 		progress_callback(_("Song %d video loaded") % song, last_message=close)
 
-def load_webpage(scene_name, url, close=True):
+def load_webpage(scene_name, url, thumbnail_url=None, close=True):
 	progress_callback(_("Loading webpage..."))
 	if scene_name is None:
 		scene_name = meeting_loader.get_title(url)
 	try:
-		obs.add_media_scene("◯ " + scene_name, "web", url)
+		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail_url=thumbnail_url)
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
 		progress_callback(_("Failed to add webpage"), last_message=close)
 	else:
 		progress_callback(_("Webpage loaded"), last_message=close)
 
-def load_image(scene_name, url, close=True):
+def load_image(scene_name, url, thumbnail_url=None, close=True):
 	try:
 		progress_callback(_("Downloading image..."))
 		image_file = meeting_loader.download_media(url, callback=progress_callback)
-		obs.add_media_scene("□ " + scene_name, "image", image_file)
+		obs.add_media_scene("□ " + scene_name, "image", image_file, thumbnail_url=thumbnail_url)
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
 		progress_callback(_("Failed to add image"), last_message=close)

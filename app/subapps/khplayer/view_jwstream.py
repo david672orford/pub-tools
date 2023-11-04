@@ -35,8 +35,9 @@ menu.append((_("JW Stream"), "/jwstream/"))
 	_("Weekend Meeting"),
 )
 
-def jwstream_channels():
-	config = get_config("JW_STREAM")
+def jwstream_channels(config=None):
+	if config is None:
+		config = get_config("JW_STREAM")
 	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "urls", None) != config.get("urls"):
 		try:
 			jwstream_channels.handle = StreamRequesterContainer(config)
@@ -47,32 +48,51 @@ def jwstream_channels():
 			jwstream_channels.handle = {}
 	return jwstream_channels.handle
 
+class ConfigForm(dict):
+	defaults = {
+		"preview_resolution": 234,	
+		"download_resolution": 720,
+		}
+	def __init__(self, config, data):
+		self.update(self.defaults)
+		if config is not None:
+			self.update(config)
+		if "urls" in data:
+			self.update({
+				"urls": "\n".join(data.get("urls").split()),
+				"preview_resolution": int(data.get("preview_resolution")),
+				"download_resolution": int(data.get("download_resolution")),
+				})
+	def validate(self):
+		flashes = 0
+		for url in self["urls"].split():
+			m = re.match(r"^https://stream\.jw\.org/ts/[0-9a-zA-Z]{10}$", url)
+			if m is None:
+				flash(_("Not a JW Stream sharing URL: %s") % url)
+				flashes += 1
+		return flashes == 0
+
 @blueprint.route("/jwstream/")
 def page_jwstream():
-	if request.args.get("action") == "configuration":
-		config = {
-			"preview_resolution": 234,	
-			"download_resolution": 720,
-			}
-		config.update(get_config("JW_STREAM"))
+	config = get_config("JW_STREAM")
+	if request.args.get("action") == "configuration" or not "urls" in config:
+		form = ConfigForm(config, request.args)
 	else:
-		config = None
-
+		form = None
 	return render_template(
 		"khplayer/jwstream.html",
-		channels = jwstream_channels().values(),
-		config2 = config,
+		channels = jwstream_channels(config).values(),
+		form = form,
 		resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720")),
 		top = ".."
 		)
 
 @blueprint.route("/jwstream/save-config", methods=["POST"])
 def page_jwstream_save_config():
-	put_config("JW_STREAM", {
-		"urls": request.form.get("urls").strip(),
-		"preview_resolution": int(request.form.get("preview_resolution")),
-		"download_resolution": int(request.form.get("download_resolution")),
-		})
+	form = ConfigForm(None, request.form)
+	if not form.validate():
+		return redirect(".?action=configuration&" + urlencode(form))
+	put_config("JW_STREAM", form)
 	return redirect(".")
 
 @blueprint.route("/jwstream/<token>/")

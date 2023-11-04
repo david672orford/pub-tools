@@ -50,13 +50,13 @@ def cmd_obs_get_source_filter_list(source_name):
 	response = obs.request("GetSourceFilterList", {"sourceName": source_name})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
-@cli_obs.command("get-source-screenshot", help="Take a screenshot of named source")
+@cli_obs.command("save-source-screenshot", help="Take a screenshot of named source")
 @click.argument("source_name")
-def cmd_obs_get_source_screenshot(source_name):
-	response = obs.request("GetSourceScreenshot", {
+def cmd_obs_save_source_screenshot(source_name):
+	response = obs.request("SaveSourceScreenshot", {
 		"sourceName": source_name,
 		"imageFormat": "jpeg",
-		"imageWidth": 64,
+		"imageFilePath": os.path.abspath(source_name + ".jpg"),
 		})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 

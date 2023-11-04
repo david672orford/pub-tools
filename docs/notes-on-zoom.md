@@ -2,8 +2,21 @@
 
 ## Installation on Linux
 
+* [Download for Linux](https://zoom.us/download?os=linux)
+* [Release Notes for Linux](https://support.zoom.us/hc/en-us/articles/205759689)
 * [Unoffical Apt Repository](https://www.matthewthom.as/mirrors/#zoom)
-* [OBS to Zoom](obs-to-zoom)
+
+## Zoom meeting URLs
+
+And ordinary meeting URL looks like this:
+
+    https://zoom.us/j/*meeting\_id*?pwd=*encrypted\_password*
+
+A meeting URL which takes the user to the web client looks like this:
+
+    https://zoom.us/wc/join/*meeting\_id*?pwd=*encrypted\_password*
+
+The algorithm for encrypting the password is not publicly known.
 
 ## Web Meeting SDK
 
@@ -19,7 +32,9 @@
 
 * [Welcome to Zoom Apps SDK!](https://devforum.zoom.us/t/welcome-to-zoom-apps-sdk/70841)
 * [Zoom Apps SDK](https://appssdk.zoom.us/classes/ZoomSdk.ZoomSdk.html)
+* [Zoom Apps SDK on Github](https://github.com/zoom/appssdk)
 * [Enable Developer Tools](https://developers.zoom.us/docs/zoom-apps/create/)
+* [Manipulating the UI](https://developers.zoom.us/docs/zoom-apps/guides/layers-manipulating-ui/)
 
 ## Native SDK
 

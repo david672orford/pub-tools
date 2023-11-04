@@ -131,13 +131,13 @@ def meeting_media_to_obs_scenes(items):
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
 		if item.media_type == "web":		# HTML page
-			load_webpage(item.title, item.media_url, close=False)
+			load_webpage(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		elif item.pub_code is not None and item.pub_code.startswith("sjj"):
-			load_video(item.media_url, prefix="♫ ", close=False)
+			load_video(item.title, item.media_url, thumbnail_url=item.thumbnail_url, prefix="♫ ", close=False)
 		elif item.media_type == "video":
-			load_video(item.media_url, close=False)
+			load_video(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		elif item.media_type == "image":
-			load_image(item.title, item.media_url, close=False)
+			load_image(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		else:
 			raise AssertionError("Unhandled case")
 	progress_callback(_("Meeting loaded"), last_message=True)

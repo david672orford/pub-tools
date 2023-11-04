@@ -8,7 +8,7 @@ import click
 import logging
 
 from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
-from .models_whoosh import update_video_index, video_search
+from .models_whoosh import video_index
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
@@ -184,52 +184,70 @@ def update_books():
 def cmd_update_videos(category_key=None, subcategory_key=None):
 	logging.basicConfig(level=logging.DEBUG)
 	if category_key is not None and subcategory_key is not None:
-		update_video_subcategory(category_key, subcategory_key)
+		category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one()
+		update_video_subcategory(category)
 	else:
 		update_videos()
-	db.session.commit()
-	update_video_index()
 
 def update_videos(callback=default_callback):
-	for category in VideoLister().get_category("VideoOnDemand").subcategories:
-		callback("%s" % category.name)
-		assert len(category.videos) == 0
+	# Start with an empty index
+	video_index.create()
+
+	# The top-level video categories are in a root container called "VideoOnDemand"
+	root = VideoLister().get_category("VideoOnDemand")
+
+	# Iterate over the top levels
+	top_level_count = 0
+	for category in root.subcategories:
+		callback(_("Scanning \"{category_name}\"...").format(category_name=category.name))
+		assert len(category.videos) == 0, "Top level categories are not expected to have videos"
+
+		# Each top-level category has two or more subcategories each of which has videos.
+		subcategory_count = 0
 		for subcategory in category.subcategories:
 			if subcategory.key.endswith("Featured"):
 				continue
-			update_video_subcategory(category.key, category.subcategory_key, callback=callback)
+			callback("{total_recv} of {total_expected}",
+				total_recv = (top_level_count * 100 + int(subcategory_count * 100 / category.subcategories_count)),
+				total_expected = (root.subcategories_count * 100),
+				)
+			category_db_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
+			if category_db_obj is None:
+				category_db_obj = VideoCategories(
+					category_key = category.key,
+					category_name = category.name,
+					subcategory_key = subcategory.key,
+					subcategory_name = subcategory.name,
+					)
+				db.session.add(category_db_obj)
+			update_video_subcategory(category_db_obj, category=subcategory, callback=callback, commit=False)
+			subcategory_count += 1
+		top_level_count += 1
 
-def update_video_subcategory(category_key, subcategory_key, callback=default_callback, flash=False):
-	category_db_obj = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	if category_db_obj is None:
-		category_db_obj = VideoCategories(
-			category_key = category.key,
-			category_name = category.name,
-			subcategory_key = subcategory.key,
-			subcategory_name = subcategory.name,
-			)
-		db.session.add(category_db_obj)
-
-	callback(_("Scanning {category_name} — {subcategory_name}...".format(category_name=category_db_obj.category_name, subcategory_name=category_db_obj.subcategory_name)))
-
-	for video in VideoLister().get_category(subcategory_key).videos:
+def update_video_subcategory(category_db_obj, category=None, callback=default_callback, commit=True):
+	callback(_("Scanning \"{category_name} — {subcategory_name}\"...".format(
+		category_name = category_db_obj.category_name,
+		subcategory_name = category_db_obj.subcategory_name
+		)))
+	if category is None:
+		category = VideoLister().get_category(category_db_obj.subcategory_key)
+	for video in category.videos:
 		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 		if video_obj is None:
 			video_obj = Videos()
 		video_obj.lank = video.lank
-		video_obj.name = video.name
+		video_obj.title = video.title
 		video_obj.date = video.date
 		video_obj.thumbnail = video.thumbnail
 		video_obj.href = video.href
 		category_db_obj.videos.append(video_obj)
-
-@cli_update.command("video-index", help="Update search index of available videos")
-def cmd_update_video_index():
-	update_video_index()
+	db.session.commit()
+	video_index.add_videos(category_db_obj.videos)
+	video_index.commit()
 
 @cli_update.command("video-search", help="Perform a test query on the video index")
 @click.argument("q")
 def cmd_update_video_query(q):
-	for video in video_search(q):
-		print(video.name)
+	for video in video_index.search(q):
+		print(video.title)
 

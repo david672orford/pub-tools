@@ -125,8 +125,8 @@ HEADER DIV#progress {
 	position: absolute;
 	top: .5em;
 	right: .5em;
-	width: 50%;
-	min-width: 20em;
+	width: 75%;
+	max-width: 40em;
 	background-color: #f0f0f0;
 	z-index: 100;
 	border: 1px solid #808080;
@@ -181,6 +181,9 @@ TABLE.borders TD {
 	}
 TABLE.borders.full-width {
 	width: 100%;
+	}
+TABLE.borders.medium-width {
+	width: 40em;
 	}
 TABLE.borders BUTTON.add {
 	width: 25pt;

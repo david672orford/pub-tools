@@ -33,7 +33,7 @@
 			<div class="thumbnail"><img src="{{video.thumbnail}}"></td>
 		</td>
 		<td>
-			<a href="{{video.href}}" target="_blank">{{video.name}}</a>
+			<a href="{{video.href}}" target="_blank">{{video.title}}</a>
 		</td>
 	</tr>
 {% endfor %}
@@ -44,7 +44,7 @@
 
 <form action="update" method="POST">
 <section class="bordered-box">
-	<button type="submit" name="update" value="1">{{gettext("Update Category")}}</button>
+	<button class="reload" type="submit">{{gettext("Update Category")}}</button>
 </section>
 </form>
 {% endblock %}

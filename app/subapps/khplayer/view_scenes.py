@@ -125,7 +125,7 @@ def page_scenes_add_url():
 	parsed_url = urlparse(url)
 	q = parse_qs(parsed_url.query).keys()
 	if parsed_url.hostname == "www.jw.org" and ("lank" in q or "docid" in q):
-		run_thread(lambda: load_video(url))
+		run_thread(lambda: load_video(None, url))
 	else:
 		run_thread(lambda: load_webpage(None, url))
 	return progress_response(_("Loading URL..."))

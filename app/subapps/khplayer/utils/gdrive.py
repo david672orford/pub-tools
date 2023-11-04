@@ -15,6 +15,7 @@ class GDriveClient:
 		http_handler = HTTPHandler(debuglevel=debuglevel)
 		https_handler = HTTPSHandler(debuglevel=debuglevel)
 		self.opener = build_opener(http_handler, https_handler)
+		self.root = self.get_html(self.config["url"])
 
 	def get(self, url, query=None):
 		if query:
@@ -38,17 +39,15 @@ class GDriveClient:
 	# Return a list of objects representing the images files at the top
 	# level of this Google Drive folder.
 	def list_files(self):
-		root = self.get_html(self.config["url"])
-
 		if self.debug:
-			text = lxml.html.tostring(root, encoding="UNICODE")
+			text = lxml.html.tostring(self.root, encoding="UNICODE")
 			with open("gdrive.html", "w") as fh:
 				fh.write(text)
 
 		# Parsing approach from:
 		# https://github.com/wkentaro/gdown/
 		data = None
-		for script in root.iterfind(".//script"):
+		for script in self.root.iterfind(".//script"):
 			if script.text is not None and "_DRIVE_ivd" in script.text:
 				js_iter = re.compile(r"'((?:[^'\\]|\\.)*)'").finditer(script.text)
 				item = next(js_iter).group(1)

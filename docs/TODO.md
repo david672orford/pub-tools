@@ -3,12 +3,18 @@
 ## General
 
 * Zoom in a browser source
+* Partial video index updates
+
+## Slides
+
+* Folders?
 * Load the .jwpub file with talk illustrations
 * Load illustrations from .jwlplaylist files (and other zip files)
-* Should we cache thumbnail images in the Videos, Books, and PeriodicalIssues objects?
+* Illustration index?
 
 ## Scenes Tab (Long Term)
 
+* Should we cache thumbnail images in the Videos, Books, and PeriodicalIssues objects?
 * Drag and drop into Scenes tab does not work in OBS browser dock
 * Can we have video and image thumbnails in Scenes tab? Ideas:
   # We could save them to a thumbnails directory named for each scene. However this breaks if the scene is renamed.

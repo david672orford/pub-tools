@@ -32,6 +32,10 @@ BUTTON {
 	background-size: 1em 1em;
 	background-position: .25em center;
 	}
+BUTTON.back {
+	background-image: url(icon-back.svg);
+	padding-left: 1.5em;
+	}
 BUTTON.browse {
 	background-image: url(icon-browse.svg);
 	padding-left: 1.5em;
@@ -63,7 +67,7 @@ BUTTON.download {
 	padding-left: 1.5em;
 	}
 BUTTON.new {
-	background-image: url(icon-add.svg);
+	background-image: url(icon-new.svg);
 	background-color: #729fcf; /* baby blue */
 	color: white;
 	padding-left: 1.5em;

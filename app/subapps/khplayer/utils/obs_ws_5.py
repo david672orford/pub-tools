@@ -261,7 +261,7 @@ class ObsControl(ObsControlBase):
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
-	def add_media_scene(self, scene_name, media_type, media_file, subtitle_track=None):
+	def add_media_scene(self, scene_name, media_type, media_file, thumbnail_url=None, subtitle_track=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -314,6 +314,10 @@ class ObsControl(ObsControlBase):
 				}
 		else:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
+
+		# FIXME: Hopefully we can use this in future
+		if thumbnail_url is not None:
+			source_settings["thumbnail_url"] = thumbnail_url
 
 		logger.info(" Source: %s \"%s\"", source_type, source_name)
 		logger.info(" Source settings: %s", source_settings)

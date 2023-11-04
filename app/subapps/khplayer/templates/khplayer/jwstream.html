@@ -4,7 +4,7 @@
 
 {% block main %}
 <section>
-<table class="borders">
+<table class="borders medium-width">
 <thead>
 <tr>
 	<th>{{gettext("Channel Name")}}</th>
@@ -22,9 +22,9 @@
 	<td>{{channel.status}}</td>	
 </tr>
 {% endfor %}
-{% for i in range(channels|length, 5) %}
+{% for i in range(channels|length, 3) %}
 <tr>
-	<td>&nbsp;</td>
+	<td>&nbsp;&nbsp;</td>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -34,14 +34,14 @@
 </table>
 </section>
 
-{% if config2 is not none %}
+{% if form is not none %}
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
-{{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", config2["urls"], class="urls")}}
+{{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", form["urls"], class="urls")}}
 <div class="borderless-box">
-{{lib.render_select(_("Preview Resolution"), "preview_resolution", config2["preview_resolution"], resolutions)}}
-{{lib.render_select(_("Download Resolution"), "download_resolution", config2["download_resolution"], resolutions)}}
+{{lib.render_select(_("Preview Resolution"), "preview_resolution", form["preview_resolution"], resolutions)}}
+{{lib.render_select(_("Download Resolution"), "download_resolution", form["download_resolution"], resolutions)}}
 </div>
 <button class="save" type="submit">{{gettext("Save")}}</button>
 <a href="."><button class="cancel">{{gettext("Cancel")}}</button></a>

@@ -28,11 +28,12 @@ class VideoCategory:
 		self.meps_language = video_lister.meps_language
 		self.key = category_dict['key']
 		self.name = category_dict['name']
+		self.subcategories_count = len(category_dict.get('subcategories',[]))
 
 		self.videos = []
 		for media in category_dict.get('media',[]):
 			logger.debug("Video title: %s", media['title'])
-			self.videos.append(Video(video_lister.language, media))
+			self.videos.append(Video(video_lister.meps_language, media))
 
 		# As we understand it a category can contain videos or it can contain subcategories, but not both.
 		assert len(self.videos) == 0 or len(category_dict.get('subcategories',[])) == 0
@@ -47,7 +48,7 @@ class VideoCategory:
 class Video:
 	finder_url = 'https://www.jw.org/finder'
 	def __init__(self, language, media):
-		self.name = media['title']
+		self.title = media['title']
 		self.lank = media['languageAgnosticNaturalKey']
 		self.date = datetime.fromisoformat(media['firstPublished'][:-1])	# cut off Z
 
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 	def print_videos(category, indent=0):
 		print("%s%s (%s)" % (" " * indent, category.name, category.key))
 		for video in category.videos:
-			print("%s%s" % (" " * (indent+2), video.name))
+			print("%s%s" % (" " * (indent+2), video.title))
 		for subcategory in category.subcategories:
 			print_videos(subcategory, indent=indent + 4)
 

@@ -40,3 +40,8 @@ Black detection using FFmpeg:
 
     $ ffmpeg -i clip.mp4 -vf blackdetect=d=0.1:pix_th=.1 -f rawvideo -y /dev/null
 
+## Face Detection
+
+* [Build Your Own Face Recognition Tool With Python](https://realpython.com/face-recognition-with-python/)
+* [Face-Recognition](https://pypi.org/project/face-recognition/)
+

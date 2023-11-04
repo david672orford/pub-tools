@@ -7,6 +7,10 @@ BUTTON {
 	background-size: 1em 1em;
 	background-position: .25em center;
 	}
+BUTTON.back {
+	background-image: url(icon-back.svg);
+	padding-left: 1.5em;
+	}
 BUTTON.browse {
 	background-image: url(icon-browse.svg);
 	padding-left: 1.5em;

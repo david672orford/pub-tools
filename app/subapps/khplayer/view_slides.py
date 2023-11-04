@@ -1,4 +1,5 @@
 from flask import current_app, Blueprint, render_template, request, redirect, flash
+from urllib.parse import urlparse, urlencode
 import logging
 
 from ...utils import progress_callback
@@ -13,25 +14,45 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("Slides"), "/slides/"))
 
+class ConfigForm(dict):
+	def __init__(self, config, data):
+		if config is not None:
+			self.update(config)
+		if "url" in data:
+			self["url"] = data["url"].strip()
+	def validate(self):
+		u = urlparse(self["url"])
+		if u.scheme!="https" or u.netloc!="drive.google.com" or u.query!="usp=sharing":
+			flash(_("Not a Google Drive sharing URL"))
+			return False
+		return True
+
 @blueprint.route("/slides/")
 def page_slides():
 	config = get_config("GDRIVE")
+	files = []
 	if "url" in config:
-		files = GDriveClient(config, cachedir=current_app.config["CACHEDIR"]).list_files()
+		try:
+			files = GDriveClient(config, cachedir=current_app.config["CACHEDIR"]).list_files()
+		except Exception as e:
+			flash(_("Exception: %s") % e)
+	if request.args.get("action") == "configuration" or not "url" in config:
+		form = ConfigForm(config, request.args)
 	else:
-		files = []
+		form = None
 	return render_template(
 		"khplayer/slides.html",
-		config2 = config if request.args.get("action") == "configuration" else None,
 		files = files,
+		form = form,
 		top = ".."
 		)
 
 @blueprint.route("/slides/save-config", methods=["POST"])
 def page_slides_save_config():
-	put_config("GDRIVE", {
-		"url": request.form.get("url")
-		})
+	form = ConfigForm(None, request.form)
+	if not form.validate():
+		return redirect(".?action=configuration&" + urlencode(form))
+	put_config("GDRIVE", form)
 	return redirect(".")
 
 @blueprint.route("/slides/download", methods=["POST"])
