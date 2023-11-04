@@ -57,7 +57,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 
 		#
 		self.stopper = MediaStopper()
-		self.stop = 5.0	# FIXME: setting doesn't work
+		self.stop = None
 
 	# Provides the list of scenes for the select box
 	def get_scene_options(self):
@@ -65,7 +65,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 			yield (scene.name, scene.name)
 
 	# Accept settings from the script configuration GUI
-	def on_settings(self, settings):
+	def on_gui_change(self, settings):
 		self.home_scene = settings.home_scene
 		self.stop = settings.stop
 
