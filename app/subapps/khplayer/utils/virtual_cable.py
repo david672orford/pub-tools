@@ -21,8 +21,8 @@ patchbay = Patchbay()
 
 def create_cable(patchbay):
 	for name, media_class in (
-			("To-Zoom", "Audio/Sink"),
 			("From-OBS", "Audio/Source/Virtual"),
+			("To-Zoom", "Audio/Sink"),
 		):
 		node = patchbay.find_node(name=name)
 		if node is None:

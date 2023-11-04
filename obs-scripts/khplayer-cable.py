@@ -68,4 +68,4 @@ class ObsVirtualAudioCable(ObsScript):
 		patchbay.load()
 		destroy_cable(patchbay)
 
-ObsVirtualAudioCable(debug=True)
+ObsVirtualAudioCable(debug=False)

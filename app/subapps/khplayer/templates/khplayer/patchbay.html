@@ -33,6 +33,7 @@
 {{lib.render_select(_("Microphone"), "microphone", peripherals.get("microphone"), microphones)}}
 {{lib.render_select(_("Speakers"), "speakers", peripherals.get("speakers"), speakers)}}
 <button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
+<a href=".?action=reset"><button class="reload">{{_("Arange Nodes")}}</button></a>
 </section>
 </form>
 

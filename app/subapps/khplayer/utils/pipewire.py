@@ -37,10 +37,11 @@ class Node:
 		return None
 
 	def __repr__(self):
-		return "<Node id=%d nick=%s name=%s inputs=%s outputs=%s>" % (
+		return "<Node id=%d nick=%s name=%s media_class=%s inputs=%s outputs=%s>" % (
 			self.id,
 			self.nick,
 			self.name,
+			self.media_class,
 			self.inputs,
 			self.outputs,
 			)

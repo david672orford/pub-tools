@@ -11,10 +11,65 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("Audio"), "/patchbay/"))
 
+class Positioner:
+	def __init__(self):
+		class PositionerColumn:
+			def __init__(self, x, step, reservations=[]):
+				self.x = x
+				self.y = 0
+				self.step = step
+				self.reservations = {}
+				for reservation in reservations:
+					self.reservations[reservation] = self.y
+					self.y += self.step
+		self.columns = {
+			"Left": PositionerColumn(10, 85),
+			"Center": PositionerColumn(300, 150, reservations=["ZOOM VoiceEngine", "To-Zoom", "From-OBS"]),
+			"Right": PositionerColumn(750, 110),
+			}
+
+	def get_column(self, node):
+		cl = node.media_class.split("/")
+		if node.name == "ZOOM VoiceEngine":
+			column_name = {
+				"Output": "Center",
+				"Input": "Right",
+				}.get(cl[1])
+		elif node.name == "To-Zoom":
+			column_name = "Center"
+		elif node.media_class == "Stream/Output/Audio":		# OBS outputs
+			column_name = "Left"
+		elif len(cl) == 2 and cl[0] == "Audio":
+			column_name = {
+				"Source": "Left",		# Audio/Source (microphone)
+				"Sink": "Right",		# Audio/Sink (speakers)
+				}.get(cl[1])
+		else:
+			column_name = "Center"
+
+		print(node, column_name)
+		return self.columns[column_name]
+
+	def record_node(self, node, position):
+		column = self.get_column(node)
+		x, y = position
+		column.y = y + column.step
+
+	def place_node(self, node):
+		column = self.get_column(node)
+		reservation = column.reservations.get(node.name)
+		print("reservtoin:", reservation)
+		if reservation is not None:
+			y = reservation
+		else:
+			y = column.y
+			column.y += column.step
+		return column.x, y
+
 @blueprint.route("/patchbay/")
 def page_patchbay():
 	patchbay.load()
-	patchbay.print()
+	#patchbay.print()
 
 	# Selected microphone and speakers
 	peripherals = get_config("PERIPHERALS")
@@ -28,13 +83,21 @@ def page_patchbay():
 		elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
 			speakers.append((node.name, node.nick if node.nick else node.name))
 
-	node_positions = get_config("Patchbay Node Positions")
+	if request.args.get("action") == "reset":
+		node_positions = {}
+		put_config("Patchbay Node Positions", node_positions)
+	else:
+		node_positions = get_config("Patchbay Node Positions")
+
+	positioner = Positioner()
 	for node in patchbay.nodes:
-		position = node_positions.get("%s-%d" % (node.name, node.name_serial))
-		if position:
+		if "Audio" in node.media_class:
+			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
+			if position is not None:
+				positioner.record_node(node, position)
+			else:
+				position = positioner.place_node(node)
 			node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
-		else:
-			node.style = ""
 
 	return render_template("khplayer/patchbay.html",
 		peripherals = peripherals,

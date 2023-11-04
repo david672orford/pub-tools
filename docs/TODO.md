@@ -2,10 +2,12 @@
 
 ## General
 
-* Zoom in a browser source
-* Partial video index updates
+* Zoom in a browser source. Worth doing?
+* Why doesn't clicking the top checkbox in the Scenes tab select all when KH Player is running in a browser dock?
+* Auto muting bugs? Muted while showing illustrations or browser dock.
+* Is auto-placement of items in patchbay broken.
 
-## Slides
+## Slides Tab
 
 * Folders?
 * Load the .jwpub file with talk illustrations

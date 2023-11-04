@@ -70,7 +70,7 @@ class VideoIndex:
 			dedup = set()
 			query_obj = QueryParser("content", index.schema).parse(q)
 			for hit in searcher.search(query_obj, limit=None):
-				print("hit:", hit)
+				#print("hit:", hit)
 				video_id = int(hit["video_id"])
 				if not video_id in dedup:
 					dedup.add(video_id)

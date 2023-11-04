@@ -71,4 +71,4 @@ class ObsStartup(ObsScript):
 	def on_unload(self):
 		obs.obs_frontend_stop_virtualcam()
 
-ObsStartup(debug=True)
+ObsStartup(debug=False)

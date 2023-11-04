@@ -53,6 +53,7 @@ class ConfigForm(dict):
 		"preview_resolution": 234,	
 		"download_resolution": 720,
 		}
+	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
 	def __init__(self, config, data):
 		self.update(self.defaults)
 		if config is not None:
@@ -83,7 +84,6 @@ def page_jwstream():
 		"khplayer/jwstream.html",
 		channels = jwstream_channels(config).values(),
 		form = form,
-		resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720")),
 		top = ".."
 		)
 

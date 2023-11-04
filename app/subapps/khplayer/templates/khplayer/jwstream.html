@@ -40,8 +40,8 @@
 <form action="save-config" method="POST">
 {{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", form["urls"], class="urls")}}
 <div class="borderless-box">
-{{lib.render_select(_("Preview Resolution"), "preview_resolution", form["preview_resolution"], resolutions)}}
-{{lib.render_select(_("Download Resolution"), "download_resolution", form["download_resolution"], resolutions)}}
+{{lib.render_select(_("Preview Resolution"), "preview_resolution", form["preview_resolution"], form.resolutions)}}
+{{lib.render_select(_("Download Resolution"), "download_resolution", form["download_resolution"], form.resolutions)}}
 </div>
 <button class="save" type="submit">{{gettext("Save")}}</button>
 <a href="."><button class="cancel">{{gettext("Cancel")}}</button></a>
