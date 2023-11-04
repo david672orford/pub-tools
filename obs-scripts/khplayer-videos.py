@@ -8,11 +8,11 @@ class MediaStopper:
 	def __init__(self):
 		self.source = None
 		def _callback():
-			print("In callback")
+			print("In timer callback")
 			obs.remove_current_callback()
 			self.source.stop()
 			self.source = None
-			print("Callback done")
+			print("Timer callback done")
 		self.callback = _callback
 
 	def set(self, source, milliseconds):
@@ -68,6 +68,7 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 	def on_gui_change(self, settings):
 		self.home_scene = settings.home_scene
 		self.stop = settings.stop
+		print("changed:", self.home_scene, self.stop)
 
 	def on_media_started(self, source):
 		self.video_add(source)
