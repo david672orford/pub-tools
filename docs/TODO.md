@@ -3,9 +3,10 @@
 ## General
 
 * Zoom in a browser source. Worth doing?
-* Why doesn't clicking the top checkbox in the Scenes tab select all when KH Player is running in a browser dock?
-* Auto muting bugs? Muted while showing illustrations or browser dock.
-* Is auto-placement of items in patchbay broken.
+* Why doesn't clicking the top checkbox in the Scenes tab select all
+when KH Player is running in a browser dock?
+* Why does OBS exit on the exception in khplayer-server.py which occurs when
+port 5000 is already in use? Why can't we catch this exception?
 
 ## Slides Tab
 

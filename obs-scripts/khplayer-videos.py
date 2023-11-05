@@ -94,18 +94,26 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 				print("playing_sources:", self.playing_sources)
 			if len(self.playing_sources) == 1:						# went from 0 to 1
 				self.enqueue(lambda: self.act(True, False))
+
 			self.stopper.cancel()
 			settings = source.settings
 			print("Settings:", settings)
-			if re.search(r"r\d+P\.mp4$", settings.get("local_file")):
+			if source.id == "ffmpeg_source":
+				filename = settings["local_file"]
+			elif source.id == "vlc_source":
+				filename = settings["playlist"][0]["value"]
+			else:
+				filename = ""
+			if re.search(r"_r\d+P\.mp4$", filename):		# jw.org video, example: *_r480P.mp4
 				print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 				remaining = (source.duration - source.time)
 				print("remaining:", remaining/1000.0)
 				remaining -= int(self.stop * 1000)
 				print("stop after:", remaining/1000.0)
-				self.stopper.set(source, remaining)
+				if remaining > 0:
+					self.stopper.set(source, remaining)
 
-	# Remove a video to the list of those playing
+	# Remove a video from the list of those playing
 	def video_remove(self, source, return_to_home=True):
 		name = source.name
 		if name in self.playing_sources:
@@ -114,7 +122,9 @@ class ObsAutoMute(ObsScriptSourceEventsMixin, ObsScript):
 				print("playing_sources:", self.playing_sources)
 			if len(self.playing_sources) == 0:						# went from 1 to 0
 				self.enqueue(lambda: self.act(False, return_to_home))
-				print("Canceling timer")
+				# FIXME: we are assuming the last remaining video is the same as the first
+				if self.debug:
+					print("Canceling timer")
 				self.stopper.cancel()
 
 	# Mute or unmute the default audio source as indicated.

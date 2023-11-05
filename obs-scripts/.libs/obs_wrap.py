@@ -66,6 +66,7 @@ class ObsSource:
 	def time(self):
 		return obs.obs_source_media_get_time(self.source)
 
+	# Halt playback
 	def stop(self):
 		obs.obs_source_media_stop(self.source)
 
@@ -197,7 +198,17 @@ class ObsScript:
 
 		self.on_load(self._pythonize_settings(raw_settings))
 
-		obs.obs_frontend_add_event_callback(lambda event: self._on_event(event))
+		# Watch frontend events until OBS finishes loading. We dare not leave
+		# this handler installed since it creates lockups when scripts switch
+		# scenes. See: https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
+		def on_event(event):
+			print("*** event:", event)
+			if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
+				if self.debug:
+					print("*** finished loading")
+				self.enqueue(lambda: self.on_finished_loading())
+				obs.obs_frontend_remove_event_callback(on_event)
+		obs.obs_frontend_add_event_callback(on_event)
 
 	# Called just before settings screen is displayed to build the GUI
 	def _script_properties(self):	# why not settings?
@@ -252,16 +263,6 @@ class ObsScript:
 			print("*** script_unload()")
 		self.on_unload()
 
-	def _on_event(self, event):
-		if event == obs.OBS_FRONTEND_EVENT_SCENE_CHANGED:
-			if self.debug:
-				print("*** scene change")
-			self.on_scene_change(self.get_scene())
-		elif event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
-			if self.debug:
-				print("*** finished loading")
-			self.on_finished_loading()
-			
 	#===================================================================
 	# Override these as needed in derived classes
 	#===================================================================
@@ -276,9 +277,6 @@ class ObsScript:
 		pass
 
 	def on_gui_change(self, settings):
-		pass
-
-	def on_scene_change(self, scene_name):
 		pass
 
 	def on_finished_loading(self):
@@ -349,7 +347,11 @@ class ObsScriptSourceEventsMixin:
 		self.on_source_destroy(source)
 
 	def _install_source_listeners(self, source):
-		if source.id in ("ffmpeg_source", "vlc_source"):
+		if source.id == "scene":
+			handler = source.signal_handler
+			obs.signal_handler_connect(handler, "activate", lambda source: self._on_scene_activate(source))
+			obs.signal_handler_connect(handler, "deactivate", lambda source: self._on_scene_deactivate(source))
+		elif source.id in ("ffmpeg_source", "vlc_source"):
 			handler = source.signal_handler
 			obs.signal_handler_connect(handler, "activate", lambda source: self._on_source_activate(source))
 			obs.signal_handler_connect(handler, "deactivate", lambda source: self._on_source_deactivate(source))
@@ -358,6 +360,20 @@ class ObsScriptSourceEventsMixin:
 			obs.signal_handler_connect(handler, "media_pause", lambda source: self._on_media_pause(source))
 			obs.signal_handler_connect(handler, "media_play", lambda source: self._on_media_play(source))
 			obs.signal_handler_connect(handler, "media_stopped", lambda source: self._on_media_stopped(source))
+
+	def _on_scene_activate(self, source):
+		source = obs.calldata_source(source, "source")
+		scene_name = obs.obs_source_get_name(source)
+		if self.debug:
+			print("*** scene activated:", scene_name)
+		self.on_scene_activate(scene_name)
+
+	def _on_scene_deactivate(self, source):
+		source = obs.calldata_source(source, "source")
+		scene_name = obs.obs_source_get_name(source)
+		if self.debug:
+			print("*** scene deactivated:", scene_name)
+		self.on_scene_deactivate(scene_name)
 
 	def _on_source_activate(self, source):
 		source = ObsSource(source)
@@ -405,6 +421,12 @@ class ObsScriptSourceEventsMixin:
 		pass
 
 	def on_source_destroy(self, source):
+		pass
+
+	def on_scene_activate(self, scene_name):
+		pass
+
+	def on_scene_deactivate(self, scene_name):
 		pass
 
 	def on_source_activate(self, source):

@@ -3,11 +3,11 @@
 
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
-from obs_wrap import ObsScript, ObsWidget
+from obs_wrap import ObsScript, ObsScriptSourceEventsMixin, ObsWidget
 from subprocess import run
 import obspython as obs
 
-class ObsStartup(ObsScript):
+class ObsStartup(ObsScriptSourceEventsMixin, ObsScript):
 	description = """
 		<style>
 			li {
@@ -26,7 +26,6 @@ class ObsStartup(ObsScript):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.scene = None
-		self.prev_scene = None
 
 		# Define script configuration GUI
 		self.gui = [
@@ -53,16 +52,19 @@ class ObsStartup(ObsScript):
 	def on_finished_loading(self):
 		self.set_mute(True)
 		self.set_scene(self.scene)
-		self.cur_scene = self.scene
 
 	# Only seems to fire if user initiated the switch
-	def on_scene_change(self, scene_name):
-		print("Scene:", scene_name)
+	def on_scene_activate(self, scene_name):
+		if self.debug:
+			print("Scene:", scene_name)
 		if scene_name == self.scene:
 			self.enqueue(lambda: self.set_mute(True))
-		elif self.prev_scene == self.scene:
+
+	def on_scene_deactivate(self, scene_name):
+		if self.debug:
+			print("Scene deactivated:", scene_name)
+		if scene_name == self.scene:
 			self.enqueue(lambda: self.set_mute(False))
-		self.prev_scene = scene_name
 
 	def set_mute(self, mute):
 		print("Mute:", mute)
