@@ -6,6 +6,7 @@ from collections import defaultdict
 import logging
 
 from ...models import db, PeriodicalIssues, Books
+from ...models_whoosh import illustration_index
 from ...utils import progress_callback
 from ...jworg.publications import PubFinder
 from ...jworg.epub import EpubLoader
@@ -41,6 +42,7 @@ def epub_index():
 		books = Books.query.order_by(Books.name),
 		)
 
+# User has pressed one of the Load buttons to load a list of publications
 @blueprint.route("/load", methods=["POST"])
 def epub_load():
 	pub_code = request.form.get("pub_code")
@@ -50,7 +52,18 @@ def epub_load():
 		update_books()
 	return redirect(".")
 
-# Table of Contents from Epub
+# Search for illustrations
+@blueprint.route("/illustrations")
+def search_illustrations():
+	q = request.args.get("q")	
+	print("q:", q)
+	if q:
+		results = illustration_index.search(q)
+	else:
+		results = []
+	return render_template("epubs/illustrations.html", q = q, results = results)
+
+# Display the Table of Contents from an Epub
 @blueprint.route("/<pub_code>/")
 def epub_toc(pub_code):
 	epub = open_epub(pub_code)
@@ -66,13 +79,53 @@ def epub_toc(pub_code):
 
 	return render_template("epubs/toc.html", epub=epub)
 
-# Epub page in an <iframe>
+# Display an Epub page in an <iframe>
 @blueprint.route("/<pub_code>/viewer/<path:path>")
 def epub_viewer(pub_code, path):
 	epub = open_epub(pub_code)
 	if epub is None:
 		abort(404)
 	return render_template("epubs/viewer.html", epub=epub, path="../" + path)
+
+# Open an epub identified by publication code.
+# Download it first if it is not downloaded already.
+def open_epub(pub_code):
+	if "_" in pub_code:
+		pub_code, issue_code = pub_code.split("_",1)
+		pub = PeriodicalIssues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
+	else:
+		issue_code = None
+		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
+	if pub is None:
+		logger.error("Publication %s not known", pub_code)
+		abort(404)
+	if pub.epub_filename is None:
+		pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
+		if epub_url is None:
+			return None
+		progress_callback("Downloading %s" % epub_url)
+		epub_filename = pub_finder.download_media(epub_url, callback=progress_callback)
+		pub.epub_filename = os.path.basename(epub_filename)
+		db.session.commit()
+	return EpubLoader(os.path.join(current_app.config["CACHEDIR"], pub.epub_filename))
+
+# Fetch a file from an Epub (used for images)
+@blueprint.route("/<pub_code>/<path:path>")
+def epub_file(pub_code, path):
+	epub = open_epub(pub_code)
+	if epub is None:
+		abort(404)
+
+	item = epub.opf.manifest_by_href.get(path)
+	if item is None:
+		abort(404)
+
+	# This may be overkill. It supports range requests
+	file_handle, content_length = epub.open(item.href)
+	response = Response(file_handle, mimetype=item.mimetype)
+	response.make_conditional(request, complete_length = content_length)
+	return response
 
 ## CSS rules to append to /css/epubs.css
 ## Epub content is in XHTML format, so the tag names must be in lower case.
@@ -97,42 +150,4 @@ def epub_viewer(pub_code, path):
 #	css_text = file_handle.read() + viewer_css_override.encode("utf-8")
 #
 #	return Response(css_text, mimetype=item.mimetype)
-
-# File from an Epub (HTML page, image, etc.)
-@blueprint.route("/<pub_code>/<path:path>")
-def epub_file(pub_code, path):
-	epub = open_epub(pub_code)
-	if epub is None:
-		abort(404)
-
-	item = epub.opf.manifest_by_href.get(path)
-	if item is None:
-		abort(404)
-
-	# This may be overkill. It supports range requests
-	file_handle, content_length = epub.open(item.href)
-	response = Response(file_handle, mimetype=item.mimetype)
-	response.make_conditional(request, complete_length = content_length)
-	return response
-
-def open_epub(pub_code):
-	if "_" in pub_code:
-		pub_code, issue_code = pub_code.split("_",1)
-		pub = PeriodicalIssues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
-	else:
-		issue_code = None
-		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
-	if pub is None:
-		logger.error("Publication %s not known", pub_code)
-		abort(404)
-	if pub.epub_filename is None:
-		pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
-		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
-		if epub_url is None:
-			return None
-		progress_callback("Downloading %s" % epub_url)
-		epub_filename = pub_finder.download_media(epub_url, callback=progress_callback)
-		pub.epub_filename = os.path.basename(epub_filename)
-		db.session.commit()
-	return EpubLoader(os.path.join(current_app.config["CACHEDIR"], pub.epub_filename))
 

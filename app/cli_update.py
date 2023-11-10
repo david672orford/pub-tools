@@ -8,14 +8,16 @@ import click
 import logging
 
 from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
-from .models_whoosh import video_index
+from .models_whoosh import video_index, illustration_index
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
+from .jworg.epub import EpubLoader
 from .utils.babel import gettext as _
 
 from rich.console import Console
 from rich.table import Table
+from rich import print as rich_print
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +72,7 @@ class PeriodicalTable:
 		for column in ("Code", "Issue Code", "Issue"):
 			self.table.add_column(column)
 	def add_row(self, *row):
-		self.table.add_row(*row)	
+		self.table.add_row(*row)
 	def print(self):
 		Console().print(self.table)
 
@@ -175,7 +177,7 @@ def update_books():
 # VideoOnDemand
 #   -> Category
 #      -> Subcategory
-#        -> Video 
+#        -> Video
 #=============================================================================
 
 @cli_update.command("videos", help="Update list of available videos")
@@ -245,9 +247,47 @@ def update_video_subcategory(category_db_obj, category=None, callback=default_ca
 	video_index.add_videos(category_db_obj.videos)
 	video_index.commit()
 
+# For testing
 @cli_update.command("video-search", help="Perform a test query on the video index")
 @click.argument("q")
 def cmd_update_video_query(q):
 	for video in video_index.search(q):
 		print(video.title)
+
+#=============================================================================
+# Index illustrations
+#=============================================================================
+
+@cli_update.command("illustrations")
+def cmd_update_illustrations():
+	illustration_index.create()
+	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.epub_filename!=None):
+		print(f"issue: {issue.pub_code} {issue.issue_code}")
+		index_illustrations(issue.pub_code + "_" + issue.issue_code, issue)
+	for book in Books.query.filter(Books.epub_filename!=None):
+		print(f"book: {book.pub_code} {book.name}")
+		index_illustrations(book.pub_code, book)
+	illustration_index.commit()
+
+def index_illustrations(pub_code, publication):
+	namespaces = {"xhtml": "http://www.w3.org/1999/xhtml"}
+	epub = EpubLoader(os.path.join(current_app.config["CACHEDIR"], publication.epub_filename))
+	for article in epub.opf.toc:
+		xhtml = epub.load_xml(article.href)
+		for figure in xhtml.findall(".//xhtml:figure", namespaces):
+			print(" ", figure)
+			figcaption = figure.find("./xhtml:figcaption", namespaces)
+			if figcaption is not None:
+				caption = "".join(figcaption.itertext()).strip().removesuffix("*").rstrip()
+				img = figure.find("./xhtml:img", namespaces)
+				src = img.attrib["src"]
+				alt = img.attrib["alt"]
+				illustration_index.add_illustration(pub_code, src, caption, alt)
+
+# For testing
+@cli_update.command("illustration-search")
+@click.argument("q")
+def cmd_update_illustration_search(q):
+	for illustration in illustration_index.search(q):
+		print(illustration)
 

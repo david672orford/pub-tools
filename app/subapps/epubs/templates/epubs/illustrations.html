@@ -1,0 +1,21 @@
+{% set title = "Search Illustrations" %}
+{% extends "epubs/base.html" %}
+
+{% block main %}
+<form action="illustrations" method="GET">
+<section>
+	<input type="text" name="q" value="{{q}}">
+	<button type="submit">Search Illustrations</button>
+</section>
+</form>
+
+<section class="illustrations">
+{% for hit in results %}
+<div>
+	<img src="{{hit['pub_code']}}/{{hit['src']}}">
+	<div class="caption">{{hit['caption']}}</div>
+	<div class="alt">{{hit['alt']}}</div>
+</div>
+{% endfor %}
+</section>
+{% endblock %}

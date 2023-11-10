@@ -45,3 +45,17 @@ Black detection using FFmpeg:
 * [Build Your Own Face Recognition Tool With Python](https://realpython.com/face-recognition-with-python/)
 * [Face-Recognition](https://pypi.org/project/face-recognition/)
 
+## Bible
+
+* [Linkture](https://github.com/erykjj/linkture) -- parse Scripture references in multiple languages
+
+## Epub
+
+* [HTML to Epub](https://github.com/macgregor/html_to_epub)
+
+## Sqlite3
+
+* [The SQLite OS Interface or "VFS"](https://www.sqlite.org/vfs.html)
+* [sqlite-s3vfs](https://github.com/uktrade/sqlite-s3vfs/)
+* [s3vfs.py](https://gist.github.com/simonwo/b98dc75feb4b53ada46f224a3b26274c)
+

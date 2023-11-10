@@ -28,10 +28,8 @@ def cmd_obs_get_scene_list():
 @cli_obs.command("get-scene-item-list", help="Show the items in a named scene")
 @click.argument("scene_name")
 def cmd_obs_get_scene_item_list(scene_name):
-	response = obs.request("GetSceneItemList", {
-		"sceneName": scene_name,
-		})
-	print(json.dumps(response, indent=2, ensure_ascii=False))
+	for item in obs.get_scene_item_list(scene_name):
+		print(json.dumps(item, indent=2, ensure_ascii=False))
 
 @cli_obs.command("get-input-list", help="List inputs by name")
 def cmd_obs_get_input_list():
@@ -64,4 +62,62 @@ def cmd_obs_save_source_screenshot(source_name):
 def cmd_obs_get_output_list():
 	response = obs.request("GetOutputList", {})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
+
+@cli_obs.command("face-zoom")
+@click.argument("scene1_name")
+@click.argument("scene2_name")
+def cmd_face_zoom(scene1_name, scene2_name):
+	print("Importing face_recognition...")
+	import face_recognition
+
+	scene_item = obs.get_scene_item_list(scene2_name)[0]
+	scene_item_id = scene_item["sceneItemId"]
+	xform = scene_item["sceneItemTransform"]
+
+	while True:
+		print("Getting screenshot...")
+		response = obs.request("SaveSourceScreenshot", {
+			"sourceName": scene1_name,
+			"imageFormat": "jpeg",
+			"imageFilePath": "/tmp/face.jpg",
+			})
+		#print(json.dumps(response, indent=2, ensure_ascii=False))
+
+		image = face_recognition.load_image_file("/tmp/face.jpg")
+		face_locations = face_recognition.face_locations(image)
+		print("face_locations:", face_locations)
+
+		if len(face_locations) > 0:
+			top, right, bottom, left = face_locations[0]
+			face_height = (bottom - top)
+			print("face_height:", face_height)
+
+			source_width = xform["sourceWidth"]
+			source_height = xform["sourceHeight"]
+
+			scale = source_height / face_height
+			scaled_width = source_width * scale
+			scaled_height = source_height * scale
+			print(f"Scaled {source_width}x{source_height} {scale}x to {scaled_width}x{scaled_height}")
+
+			y_center = (left + right) / 2
+
+
+			new_xform = {
+				"width": scaled_width,
+				"height": scaled_height,
+				"scaleX": scale,
+				"scaleY": scale,
+				"positionX": top * scale * -1,
+				"positionY": (scaled_width - source_width) / -2,
+				}
+			print("new_xform:", new_xform)
+			obs.request('SetSceneItemTransform', 
+				{
+				'sceneName': scene2_name,
+				'sceneItemId': scene_item_id,
+				'sceneItemTransform': new_xform,
+	 			})
+		break
+
 

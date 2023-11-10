@@ -35,7 +35,7 @@ class EpubLoader:
 		file_info = self.epub.getinfo("%s/%s" % (self.rootdir, filename))
 		return (self.epub.open(file_info), file_info.file_size)
 
-	# Open one of the files withing the Epub file.
+	# Open one of the files within the Epub file.
 	# Parse it as XML and return an entity tree.
 	def load_xml(self, filename):
 		data, content_length = self.open(filename)

@@ -1,93 +1,188 @@
-from urllib.request import Request, HTTPHandler, HTTPSHandler, build_opener
-from urllib.parse import urlparse, parse_qsl, urlencode, unquote
+import os, json, re, base64, codecs
+import requests
+import lxml.etree
 import lxml.html
-import os, json, re
+from remotezip import RemoteZip
+from tempfile import NamedTemporaryFile
+import sqlite3
+
+class GFile:
+	def __init__(self, file, thumbnail_url):
+		self.id = file[0]
+		self.filename = file[2]
+		self.mimetype = file[3]
+		self.thumbnail_url = thumbnail_url
+
+class IterAsFile:
+	def __init__(self, iterator):
+		self.iterator = iterator
+	def read(self, size=None):
+		chunk = next(self.iterator, None)
+		if chunk is None:
+			return ""
+		return chunk
 
 class GDriveClient:
-	user_agent = "Mozilla/5.0"
-	request_timeout = 30
-
-	def __init__(self, config, cachedir="cache", debuglevel=0):
-		self.config = config
+	def __init__(self, id, thumbnails=False, cachedir="cache", debug=False):
 		self.cachedir = cachedir
-		self.debuglevel = debuglevel
-		self.debug = (debuglevel > 0)
-		http_handler = HTTPHandler(debuglevel=debuglevel)
-		https_handler = HTTPSHandler(debuglevel=debuglevel)
-		self.opener = build_opener(http_handler, https_handler)
-		self.root = self.get_html(self.config["url"])
+		self.debug = debug
 
-	def get(self, url, query=None):
-		if query:
-			url = url + '?' + urlencode(query)
-		request = Request(
-			url,
-			headers={
-				"Accept": "text/html, */*",
-				#"Accept-Encoding": "gzip",
-				"Accept-Language": "en-US",
-				"User-Agent": self.user_agent,
-				}
-			)
-		response = self.opener.open(request, timeout=self.request_timeout)
-		return response
+		url = "https://drive.google.com/drive/folders/{id}?usp=sharing".format(id=id)
+		self.session = requests.Session()
+		response = self.session.get(url, stream=True)
+		self.root = lxml.etree.parse(IterAsFile(response.iter_content()), parser=lxml.etree.HTMLParser(encoding=response.encoding)).getroot()
 
-	def get_html(self, url, query=None):
-		response = self.get(url, query=query)
-		return lxml.html.parse(response).getroot()
-
-	# Return a list of objects representing the images files at the top
-	# level of this Google Drive folder.
-	def list_files(self):
 		if self.debug:
 			text = lxml.html.tostring(self.root, encoding="UNICODE")
 			with open("gdrive.html", "w") as fh:
 				fh.write(text)
 
-		# Parsing approach from:
-		# https://github.com/wkentaro/gdown/
+		self.folder_name = self.root.find(".//title").text
+
+		# Find the JSON object which contains the list of files.
+		#
+		# Extraction approach from:
+		#   https://github.com/wkentaro/gdown/
+		# Correct decoding from:
+		#   https://stackoverflow.com/questions/990169/how-do-convert-unicode-escape-sequences-to-unicode-characters-in-a-python-string
+		#
 		data = None
 		for script in self.root.iterfind(".//script"):
 			if script.text is not None and "_DRIVE_ivd" in script.text:
+				# Find single-quoted strings
 				js_iter = re.compile(r"'((?:[^'\\]|\\.)*)'").finditer(script.text)
 				item = next(js_iter).group(1)
 				assert item == "_DRIVE_ivd", item
 				item = next(js_iter).group(1)
-				decoded = item.encode("utf-8").decode("unicode_escape")
+				decoded = codecs.escape_decode(item)[0].decode("utf-8")
 				data = json.loads(decoded)
-
 				if self.debug:
 					with open("gdrive.json", "w") as fh:
-						json.dump(data, fh, indent=4)
-
+						json.dump(data, fh, indent=4, ensure_ascii=False)
 				break
+		assert data is not None, "_DRIVE_ivd not found"
 
-		assert data is not None	
+		# * If the folder is empty, data[0] will be null
+		# * If the folder is not empty, data[0] will contain a list of files
+		# * Each file entry:
+		#   * 0 -- GDrive ID of this file
+		#   * 1 -- One-element array containing what looks like another Gdrive ID
+		#   * 2 -- The filename
+		#   * 3 -- The MIME type
+		#   * The rest of the array is mainly nulls and numbers like 0 and 1 with a few
+		#   * things that look like timestamps and a URL to view the file thrown in.
+		self.files = []
+		if data[0] is not None:
+			for file in data[0]:
+				id = file[0]
+				if thumbnails:
+					response = self.session.get("https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1".format(id=id))
+					thumbnail_url = "data:{mimetype};base64,{data}".format(
+						mimetype = response.headers.get("Content-Type","").split(";")[0],
+						data = base64.b64encode(response.content).decode('utf-8'),
+						)
+				else:
+					thumbnail_url = None
+				self.files.append(GFile(file, thumbnail_url))
 
-		class GFile:
-			def __init__(self, file):
-				self.id = file[0]
-				self.filename = file[2]
-				self.mimetype = file[3]
-			@property
-			def thumbnail_url(self):
-				return "https://lh3.google.com/u/0/d/%s=w400-h380-p-k-rw-v1-nu-iv1" % self.id
-			@property
-			def download_url(self):
-				return "https://drive.google.com/uc?export=download&id=%s" % self.id
-
-		for file in data[0]:
-			if file[3].startswith("image/"):
-				yield GFile(file)
+	# Get an iterator over a list of objects representing the subfolders.
+	def list_folders(self):
+		for file in self.files:
+			if file.mimetype in ("application/vnd.google-apps.folder", "application/zip"):
+				yield file
+		
+	# Get an iterator over a list of objects representing the images files
+	# at the top level of this Google Drive folder.
+	def list_image_files(self):
+		for file in self.files:
+			if file.mimetype.startswith("image/"):
+				yield file
 
 	def download(self, file):
 		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
-		response = self.get(file.download_url)
+		url = "https://drive.google.com/uc?export=download&id=%s" % file.id
+		response = self.session.get(url)
 		with open(cachefile, "wb") as fh:
-			while True:
-				chunk = response.read(0x10000) # 64k
-				if not chunk:
-					break
-				fh.write(chunk)
+			fh.write(response.content)
+		return cachefile
+
+class GDriveZipMember:
+	def __init__(self, file, mimetype=None, thumbnail_url=None):
+		self.id = file.filename
+		self.filename = file.filename
+		self.mimetype = mimetype
+		self.thumbnail_url = thumbnail_url
+
+class GDriveZip:
+	def __init__(self, id, cachedir="cache"):
+		self.cachedir = cachedir
+		self.folder_name = "Playlist"
+
+		url = "https://drive.google.com/uc?export=download&id=%s" % id
+		url = "http://raven.lan/~david/sample.jwlplaylist"
+		print(url)
+		self.remote = RemoteZip(url)
+
+		self.files = {}
+		is_playlist = False
+		for file in self.remote.infolist():
+			if file.is_dir():
+				fileobj = GDriveZipMember(file)
+				self.files[fileobj.id] = fileobj
+			elif file.filename.endswith(".jpg"):
+				fileobj = GDriveZipMember(file, mimetype="image/jpeg")
+				self.files[fileobj.id] = fileobj
+			elif file.filename == "userData.db":
+				is_playlist = True
+
+		if is_playlist:
+			dbfile = self.remote.read("userData.db")
+			with NamedTemporaryFile() as fh:
+				fh.write(dbfile)
+				fh.flush()
+				conn = sqlite3.connect(fh.name)
+				cur = conn.cursor()
+				for filepath, label, thumbnailfilepath in cur.execute("""
+						select FilePath, Label, ThumbnailFilePath
+							from PlaylistItem, PlaylistItemIndependentMediaMap, IndependentMedia
+							where PlaylistItem.PlaylistItemId = PlaylistItemIndependentMediaMap.PlaylistItemId
+								and PlaylistItemIndependentMediaMap.IndependentMediaId = IndependentMedia.IndependentMediaId;
+						"""):
+					print("row:", filepath, label, thumbnailfilepath)
+					file = self.files[filepath]
+					file.thumbnail_url = "data:{mimetype};base64,{data}".format(
+						mimetype = "image/jpeg",
+						data = base64.b64encode(self.remote.read(thumbnailfilepath)).decode('utf-8'),
+						)
+					file.filename = label
+					
+		self.files = self.files.values()
+
+		for file in self.files:
+			if file.mimetype.startswith("image/") and file.thumbnail_url is None:
+				file.thumbnail_url = "data:{mimetype};base64,{data}".format(
+					mimetype = "image/jpeg",
+					data = base64.b64encode(self.remote.read(file.filename)).decode('utf-8'),
+					)
+
+	def list_folders(self):
+		for file in self.files:
+			if file.mimetype is None:
+				yield file
+
+	def list_image_files(self):
+		for file in self.files:
+			if file.mimetype is not None:
+				yield file
+
+	def download(self, file):
+		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
+		with self.remote.open(file.id) as fh1:
+			with open(cachefile, "wb") as fh2:
+				while True:
+					chunk = fh1.read(0x10000) # 64k
+					if not chunk:
+						break
+					fh2.write(chunk)
 		return cachefile
 

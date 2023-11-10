@@ -8,6 +8,5 @@ def init_app(app):
 @blueprint.route("/")
 def index():
 	subapps = [current_app.blueprints[bp] for bp in current_app.config['ENABLED_SUBAPPS']]
-	print(subapps)
 	return render_template("index.html", subapps=subapps)
 

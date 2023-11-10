@@ -9,15 +9,19 @@
 
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
 * [VDO.Ninja](https://docs.vdo.ninja/)
-* [NDI-to-JACK](https://github.com/lplassman/NDI-to-JACK)
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL)
 
 ## Interesting Plugins
 
 * [OBS-Websocket](https://github.com/obsproject/obs-websocket)
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
+* [Move Transition](https://github.com/exeldro/obs-move-transition)
+* [Transitions Table](https://github.com/exeldro/obs-transition-table)
+* [Source Dock](https://github.com/exeldro/obs-source-dock)
+* [Downstream Keyer](https://github.com/exeldro/obs-downstream-keyer) -- Adds an overlay to all scenes
+* [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/)
+* [Background Removal](https://github.com/occ-ai/obs-backgroundremoval)
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
-* [Advanced OBS Transition Techniques](https://hexeum.net/software/advanced-obs-transition-techniques/) - Move Transition and Transitions Table
 
 ## Script Development
 
@@ -36,7 +40,7 @@
 
 ## Plugin Development
 
-* [Plugin Docs](https://obsproject.com/docs/plugins.html)
+* [Plugin API Docs](https://obsproject.com/docs/plugins.html)
 * [OBS-V4L2Sink](https://github.com/CatxFish/obs-v4l2sink) -- Useful as example of an output plugin
 
 ## Bugs and Feature Requests we are Following

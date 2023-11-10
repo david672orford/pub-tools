@@ -77,6 +77,27 @@ HEADER DIV#progress-message {
 	padding: .1em .2em 0 .2em;
 	}
 
+SECTION.illustrations {
+	}
+SECTION.illustrations > DIV {
+	display: inline-block;
+	vertical-align: text-top;
+	width: 10.2em;
+	margin: 0 .5em .5em 0;
+	border: thin solid grey;
+	}
+SECTION.illustrations IMG {
+	width: 10em;
+	}
+SECTION.illustrations > DIV > DIV {
+	margin: .5em;
+	}
+SECTION.illustrations .caption {
+	font-weight: bold;
+	}
+SECTION.illustrations .alt {
+	}
+
 IFRAME.epub {
 	display: block;
 	width: 100%;

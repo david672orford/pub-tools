@@ -10,6 +10,20 @@ blueprint = Blueprint('toolbox', __name__, template_folder="templates", static_f
 blueprint.display_name = 'Toolbox'
 blueprint.blurb = "Get lists of publications from the Teaching Toolbox"
 
+books = (
+	"lffi",		# Радуйтесь жизни сейчас и вечно! (вводной курс)
+	"lff",		# Радуйтесь жизни сейчас и вечно!
+	"ld",		# Слушайся Бога
+	"ll",		# Слушайся и живи
+	"bh",		# Чему учит Библия?
+	"bhs",		# Чему нас учит Библия?
+	"lv",		# Божья любовь
+	"lvs",		# Любовь Бога
+	"jl",		# Воля Иеговы
+	"lc",		# Была ли жизнь создана?
+	"lf",		# У истоков жизни
+	)
+
 # Redirect to default tab
 @blueprint.route("/")
 def page_index():
@@ -31,7 +45,7 @@ def toolbox(pub_category):
 			classes = "pubs"
 		case "books":
 			title = "Книги"
-			items = Books.query.filter(Books.pub_code.in_(("lffi", "lff", "ld", "ll", "bh","bhs","lv","lvs","jl"))).order_by(Books.pub_code)
+			items = Books.query.filter(Books.pub_code.in_(books)).order_by(Books.pub_code)
 			share = lambda item: "https://www.jw.org/finder?wtlocale=U&pub=%s&srcid=share" % item.pub_code
 			classes = "pubs"
 		case "watchtower":

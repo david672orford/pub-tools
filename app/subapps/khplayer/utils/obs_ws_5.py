@@ -188,6 +188,12 @@ class ObsControlBase:
 			})
 		return response["responseData"]["sceneItemId"]
 
+	def get_scene_item_list(self, scene_name):
+		response = self.request("GetSceneItemList", {
+			"sceneName": scene_name,
+			})
+		return response["responseData"]["sceneItems"]
+
 	def create_input(self, scene_name, input_name, input_kind, input_settings={}):
 		response = self.request("CreateInput", {
 			"sceneName": scene_name,
@@ -206,11 +212,11 @@ class ObsControlBase:
 
 	def scale_input(self, scene_name, scene_item_id, scene_item_transform={}):
 		xform = {
-				'boundsAlignment': 0,
-				'boundsWidth': 1280,
-				'boundsHeight': 720,
-				'boundsType': 'OBS_BOUNDS_SCALE_INNER',
-				}
+			'boundsAlignment': 0,
+			'boundsWidth': 1280,
+			'boundsHeight': 720,
+			'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+			}
 		xform.update(scene_item_transform)
 		self.request('SetSceneItemTransform', 
 			{

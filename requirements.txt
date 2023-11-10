@@ -28,7 +28,6 @@ websocket-client==1.4.2
 #pywebview==4.4
 
 # For printing tables in the CLI
-#rich==9.11.1
 rich==13.6.0
 
 # Gettext
@@ -40,3 +39,4 @@ pymorphy2==0.9.1
 # Search engine
 Whoosh==2.7.4
 
+remotezip==0.12.1

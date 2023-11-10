@@ -2,41 +2,66 @@
 {% extends "khplayer/base.html" %}
 {% import "khplayer/lib.html" as lib -%}
 
+{% block header %}
+	<h1>
+		{% if not client %}
+		{{title}}
+		{% elif top == ".." %}
+		{{client.folder_name}}
+		{% else %}
+		<a href="..">&lt;&nbsp;{{client.folder_name}}</a>
+		{% endif %}
+	</h1>
+{% endblock %}
+
 {% block main %}
+<form action=".download" method="POST">
+<section class="filemanager">
+	{% if client %}
+	<div>
+		{% for folder in client.list_folders() %}
+		<a class="item" href="{% if folder.mimetype == 'application/zip' %}zip-{%endif%}{{folder.id}}/">
+			<div class="folder-icon">
+				<img src="/khplayer/static/icon-folder.svg">
+			</div>
+			<div class="folder-name">
+				{{folder.filename}}
+			</div>
+		</a>
+		{% endfor %}
+	</div>
+	<div>
+		{% for image_file in client.list_image_files() %}
+		<div class="item">
+			<div class="thumbnail large">
+				{% if image_file.thumbnail_url %}
+				<img src="{{image_file.thumbnail_url}}">
+				{% endif %}
+			</div>
+			<div class="bottom-bar">
+				<input type="checkbox" name="selected" value="{{ image_file.id }}" checked>
+				<input class="filename" type="text" name="scenename-{{ image_file.id }}" value="{{ image_file.filename }}"></td>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+</section>
+
 <section>
-<form action="download" method="POST">
-<table class="borders selection medium-width">
-<thead>
-<tr>
-	<th></th>
-	<th>{{gettext("Scene Name")}}</th>
-	<th>{{gettext("Preview")}}</th>
-</tr>
-</thead>
-<tbody>
-{% for file in files %}
-<tr>
-	<td><input type="checkbox" name="selected" value="{{ file.id }}" checked></td>
-	<td><input type="text" name="scenename-{{ file.id }}" value="{{ file.filename }}"></td>
-	<td><div class="thumbnail large">
-		<img src="{{file.thumbnail_url}}" referrerpolicy="no-referrer">
-	</div></td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
 <div class="borderless-box">
 	<button class="download" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
 	<a href="."><button class="reload">{{gettext("Reload")}}</button></a>
-	{% if form is none %}
+	{% if form is none and top == ".." %}
 	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
 	{% endif %}
 </div>
-</form>
 </section>
 
+</form>
+
 {% if form is not none %}
-<form action="save-config" method="POST">
+<form action=".save-config" method="POST">
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 {{lib.render_input_text(_("Google Drive Sharing URL"), "url", form["url"], class="long-url")}}

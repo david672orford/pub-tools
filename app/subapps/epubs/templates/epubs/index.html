@@ -2,6 +2,13 @@
 {% extends "epubs/base.html" %}
 
 {% block main %}
+<form action="illustrations" method="GET">
+<section>
+	<input type="text" name="q" value="{{q}}">
+	<button type="submit">Search Illustrations</button>
+</section>
+</form>
+
 <form action="load" method="POST">
 
 {% for pub_code, pub_name, issues in periodicals %}

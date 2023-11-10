@@ -1,7 +1,7 @@
 # Whoosh search engine integration
 
 from flask import current_app
-import os, shutil
+import os
 
 # https://whoosh.readthedocs.io/en/latest/
 from whoosh.index import create_in, open_dir
@@ -22,30 +22,37 @@ def morpher():
 def stemfn(word):
 	return morpher().parse(word)[0].normal_form
 
-class VideoIndex:
-	def __init__(self, index_path):
-		self.index_path = index_path
-		self.writer = None
+class BaseWhooshIndex:
+	def __init__(self, whoosh_path):
+		self.whoosh_path = whoosh_path
+		self._writer = None
 
 	def create(self):
-		# Define search index schema
-		stemmer = StemmingAnalyzer(stemfn=stemfn)
-		schema = Schema(
-			video_id = ID(stored=True, unique=True),
-			category_id = ID(stored=True, unique=True),
-			content = TEXT(analyzer=stemmer),
-			)
+		if not os.path.exists(self.whoosh_path):
+			os.mkdir(self.whoosh_path)
 
-		# Delete existing index and create a new one
-		if os.path.exists(self.index_path):
-			shutil.rmtree(self.index_path)
-		os.mkdir(self.index_path)
-		create_in(self.index_path, schema)
+		# Create the index or clear it if it already exists
+		create_in(self.whoosh_path, self.schema, indexname=self.indexname)
+
+	@property
+	def writer(self):
+		if self._writer is None:
+			self._writer = open_dir(self.whoosh_path, indexname=self.indexname).writer()
+		return self._writer
+
+	def commit(self):
+		self._writer.commit()
+		self._writer = None
+
+class VideoIndex(BaseWhooshIndex):
+	indexname = "videos"
+	schema = Schema(
+		video_id = ID(stored=True, unique=True),
+		category_id = ID(stored=True, unique=True),
+		content = TEXT(analyzer=StemmingAnalyzer(stemfn=stemfn)),
+		)
 
 	def add_videos(self, videos):
-		if self.writer is None:
-			index = open_dir(self.index_path)
-			self.writer = index.writer()
 		for video in videos:
 			#print(video.title)
 			assert video.id is not None		# can happen if record is not commited yet
@@ -56,15 +63,11 @@ class VideoIndex:
 					content = " ".join((category.category_name, category.subcategory_name, video.title)),
 					)
 
-	def commit(self):
-		self.writer.commit()
-		self.writer = None
-
 	def search(self, q):
 		deduped_results = []
 		suggestion = []
 
-		index = open_dir(self.index_path)
+		index = open_dir(self.whoosh_path, indexname=self.indexname)
 		with index.searcher() as searcher:
 
 			dedup = set()
@@ -96,4 +99,32 @@ class VideoIndex:
 
 		return deduped_results, " ".join(suggestion)
 
+class IllustrationIndex(BaseWhooshIndex):
+	indexname = "illustrations"
+	schema = Schema(
+		pub_code = ID(stored=True, unique=True),
+		src = ID(stored=True, unique=True),
+		caption = TEXT(stored=True),
+		alt = TEXT(stored=True),
+		content = TEXT(analyzer=StemmingAnalyzer(stemfn=stemfn)),
+		)
+
+	def add_illustration(self, pub_code, src, caption, alt):
+		self.writer.update_document(
+			pub_code = pub_code,
+			src = src,
+			caption = caption,
+			alt = alt,
+			content = " ".join((caption, alt)),
+			)
+
+	def search(self, q):
+		index = open_dir(self.whoosh_path, indexname=self.indexname)
+		with index.searcher() as searcher:
+			query_obj = QueryParser("content", index.schema).parse(q)
+			for hit in searcher.search(query_obj, limit=None):
+				yield hit
+
 video_index = VideoIndex(current_app.config["WHOOSH_PATH"])
+illustration_index = IllustrationIndex(current_app.config["WHOOSH_PATH"])
+
