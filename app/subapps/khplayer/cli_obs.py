@@ -45,11 +45,11 @@ def cmd_obs_get_input_settings(input_name):
 @cli_obs.command("set-input-settings", help="Change settings of specified input")
 @click.argument("input_name")
 @click.argument("settings")
-def cmd_obs_get_input_settings(input_name, settings):
+def cmd_obs_set_input_settings(input_name, settings):
 	settings = json.loads(settings)
 	response = obs.request("SetInputSettings", {
 		"inputName": input_name,
-		"settings": settings,
+		"inputSettings": settings,
 		"overlay": True,
 		})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
