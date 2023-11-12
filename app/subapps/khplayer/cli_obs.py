@@ -42,6 +42,18 @@ def cmd_obs_get_input_settings(input_name):
 	response = obs.request("GetInputSettings", {"inputName": input_name})
 	print(json.dumps(response, indent=2, ensure_ascii=False))
 
+@cli_obs.command("set-input-settings", help="Change settings of specified input")
+@click.argument("input_name")
+@click.argument("settings")
+def cmd_obs_get_input_settings(input_name, settings):
+	settings = json.loads(settings)
+	response = obs.request("SetInputSettings", {
+		"inputName": input_name,
+		"settings": settings,
+		"overlay": True,
+		})
+	print(json.dumps(response, indent=2, ensure_ascii=False))
+
 @cli_obs.command("get-source-filter-list", help="Show filters in named source")
 @click.argument("source_name")
 def cmd_obs_get_source_filter_list(source_name):
