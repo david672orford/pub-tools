@@ -14,7 +14,7 @@ Flask-SQLAlchemy==2.5.1
 # For making HTTP requests
 requests==2.31.0
 
-# For parsing the XHTML in ePub files
+# For parsing HTML
 lxml>=3.5.0
 
 # For communicating with the OBS Websocket plugin
@@ -39,4 +39,10 @@ pymorphy2==0.9.1
 # Search engine
 Whoosh==2.7.4
 
-remotezip==0.12.1
+# Experimental
+Flask_Caching==2.1.0
+
+# For making image thumbnails
+Pillow==9.0.1
+
+

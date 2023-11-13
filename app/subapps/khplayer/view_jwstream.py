@@ -161,7 +161,7 @@ def page_jwstream_clip(token, id):
 		clip_title = "%s %s-%s" % (event.title, clip_start, clip_end)
 
 	# Spawn a background thread to download it and create the scene when the download is done.
-	media_file = os.path.join(current_app.config["CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
+	media_file = os.path.join(current_app.config["MEDIA_CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
 	logger.debug("Downloading clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
 	progress_callback(_("Downloading clip..."))
 	run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))

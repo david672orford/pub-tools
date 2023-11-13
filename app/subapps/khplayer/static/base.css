@@ -203,7 +203,7 @@ DIV.thumbnail {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	border: 1px solid grey;
+	border: 1px solid #f0f0f0;
 	width: 92px;			/* 16:9 plus border */
 	height: 52.625px; 
 	}
@@ -316,25 +316,17 @@ DIV.thumbnail > DIV.caption {
 	}
 .filemanager .item {				/* a file or folder */
 	display: inline-block;
+	vertical-align: top;
 	padding: .5em;
 	}
 .filemanager .item:hover {
 	background-color: #f0f0f0;
 	}
-.filemanager .folder-icon {
-	width: 100px;
-	height: 100px;
-	}
-.filemanager .folder-icon > IMG {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	}
 .filemanager .folder-name {
+	width: 184px;
 	text-align: center;
 	}
 .filemanager .bottom-bar {
-	width: 100%;
 	display: flex;
 	}
 .filemanager .bottom-bar INPUT[type='checkbox'] {

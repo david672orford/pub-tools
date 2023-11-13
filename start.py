@@ -19,10 +19,14 @@ from app.utils.clean_logs import CleanlogWSGIRequestHandler
 
 debug_mode = listen_all = False
 for arg in sys.argv[1:]:
-	if arg == "--debug":
-		debug_mode = True
-	elif arg == "--listen-all":
-		listen_all = True
+	match arg:
+		case "--debug":
+			debug_mode = True
+		case "--debug-requests":
+			from http.client import HTTPConnection
+			HTTPConnection.debuglevel = 1
+		case "--listen-all":
+			listen_all = True
 
 logging.basicConfig(
 	level=logging.DEBUG if debug_mode else logging.INFO,

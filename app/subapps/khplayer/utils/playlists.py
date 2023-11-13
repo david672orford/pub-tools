@@ -1,75 +1,153 @@
-import os
-import base64
+import os, json, base64, re, io
 from tempfile import NamedTemporaryFile
 import sqlite3
+from zipfile import ZipFile
+from PIL import Image
 
 class PlaylistItem:
-	def __init__(self, file, mimetype=None, thumbnail_url=None):
-		self.id = file.filename
-		self.filename = file.filename
+	def __init__(self, id, filename, mimetype=None, thumbnail_url=None):
+		self.id = id
+		self.filename = filename
 		self.mimetype = mimetype
 		self.thumbnail_url = thumbnail_url
 
 class ZippedPlaylist:
-	def __init__(self, zipreader, cachedir="cache"):
+	extmap = {
+		"jpg": "image/jpeg",
+		"png": "image/png",
+		"gif": "image/gif",
+		"svg": "image/svg+xml",
+		}
+
+	def __init__(self, zipreader, path, cachedir="cache"):
 		self.zipreader = zipreader
-		self.folder_name = "Playlist"
+		self.path = path
+		self.cachedir = cachedir
 
-		self.files = {}
-		is_playlist = False
-		for file in self.remote.infolist():
-			if file.is_dir():
-				fileobj = PlaylistItem(file)
-				self.files[fileobj.id] = fileobj
-			elif file.filename.endswith(".jpg"):
-				fileobj = PlaylistItem(file, mimetype="image/jpeg")
-				self.files[fileobj.id] = fileobj
-			elif file.filename == "userData.db":
-				is_playlist = True
+		self.folder_name = None
+		self.files = []
+		self.folders = []
 
-		if is_playlist:
-			dbfile = self.remote.read("userData.db")
-			with NamedTemporaryFile() as fh:
-				fh.write(dbfile)
-				fh.flush()
-				conn = sqlite3.connect(fh.name)
-				cur = conn.cursor()
-				for filepath, label, thumbnailfilepath in cur.execute("""
-						select FilePath, Label, ThumbnailFilePath
-							from PlaylistItem, PlaylistItemIndependentMediaMap, IndependentMedia
-							where PlaylistItem.PlaylistItemId = PlaylistItemIndependentMediaMap.PlaylistItemId
-								and PlaylistItemIndependentMediaMap.IndependentMediaId = IndependentMedia.IndependentMediaId;
-						"""):
-					print("row:", filepath, label, thumbnailfilepath)
-					file = self.files[filepath]
-					file.thumbnail_url = "data:{mimetype};base64,{data}".format(
-						mimetype = "image/jpeg",
-						data = base64.b64encode(self.remote.read(thumbnailfilepath)).decode('utf-8'),
-						)
-					file.filename = label
-					
-		self.files = self.files.values()
+		try:
+			manifest = json.loads(self.zipreader.read("manifest.json"))
+		except KeyError:
+			manifest = None
 
-		for file in self.files:
-			if file.mimetype.startswith("image/") and file.thumbnail_url is None:
-				file.thumbnail_url = "data:{mimetype};base64,{data}".format(
-					mimetype = "image/jpeg",
-					data = base64.b64encode(self.remote.read(file.filename)).decode('utf-8'),
-					)
+		if manifest is None:
+			self.load_generic_zip()
+		elif "userDataBackup" in manifest:
+			self.load_jwlplaylist(manifest)
+		elif "publication" in manifest:
+			self.load_talk_playlist(manifest)
+
+	@staticmethod
+	def make_thumbnail_dataurl(zipreader, filename, mimetype):
+		data = zipreader.read(filename)
+		if len(data) > 12000:
+			image = Image.open(io.BytesIO(data))
+			# Scale to our thumbnail.large size
+			image.thumbnail((184, 105))
+			# Save as JPEG. Why do we need to set quality so high?
+			save_to = io.BytesIO()
+			image.save(save_to, format="jpeg", quality=85)
+			data = save_to.getvalue()
+			mimetype = "image/jpeg"
+		return "data:{mimetype};base64,{data}".format(
+			mimetype = mimetype,
+			data = base64.b64encode(data).decode('utf-8'),
+			)
+
+	# Load any files which have an image file extension
+	def load_generic_zip(self):
+		self.folder_name = " - ".join(["Zipfile"] + self.path)
+		image_count = 0
+		path = "/".join(self.path)
+		if len(path) > 0:
+			path += "/"
+		#print("match path:", path)
+		for file in self.zipreader.infolist():
+			#print("file.filename:", file.filename)
+			if file.filename.startswith(path):
+				inside_path = file.filename[len(path):]
+				#print("inside_path:", inside_path)
+				if file.is_dir():
+					inside_path = inside_path[:-1]
+					if len(inside_path) > 0:
+						#print("keep folder:", file.filename, inside_path)
+						self.folders.append(PlaylistItem(id=file.filename, filename=inside_path))
+				elif not "/" in inside_path:
+					m = re.search(r"\.([a-zA-Z0-9]+)$", inside_path)
+					if m:
+						mimetype = self.extmap.get(m.group(1).lower())
+						if mimetype:
+							self.files.append(PlaylistItem(id=file.filename, filename=inside_path, mimetype=mimetype,
+								thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, file.filename, mimetype),
+								))
+							image_count += 1
+
+	# Load images from a playlist shared from JW Library
+	def load_jwlplaylist(self, manifest):
+		self.folder_name = manifest.get("name")
+		dbfile = self.zipreader.read("userData.db")
+		with NamedTemporaryFile() as fh:
+			fh.write(dbfile)
+			fh.flush()
+			conn = sqlite3.connect(fh.name)
+			cur = conn.cursor()
+			for label, filepath, mimetype, thumbnailfilepath in cur.execute("""
+					select Label, FilePath, MimeType, ThumbnailFilePath
+						from PlaylistItem, PlaylistItemIndependentMediaMap, IndependentMedia
+						where PlaylistItem.PlaylistItemId = PlaylistItemIndependentMediaMap.PlaylistItemId
+							and PlaylistItemIndependentMediaMap.IndependentMediaId = IndependentMedia.IndependentMediaId;
+					"""):
+				self.files.append(PlaylistItem(id=filepath, filename=label, mimetype=mimetype,
+					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, thumbnailfilepath, "image/jpeg"),
+					))
+
+	# Load images from a talk playlist as as S-34mp_U.jwpub
+	def load_talk_playlist(self, manifest):
+		publication = manifest["publication"]
+		contents = self.zipreader.open_zipfile("contents")
+		dbfile = contents.read(publication["fileName"])
+		with NamedTemporaryFile() as fh:
+			fh.write(dbfile)
+			fh.flush()
+			conn = sqlite3.connect(fh.name)
+			cur = conn.cursor()
+			if len(self.path) == 0:
+				self.folder_name = publication["title"]
+				for documentid, title in cur.execute("select Document.DocumentId, Title from Document"):
+					self.folders.append(PlaylistItem(id=documentid, filename=title))
+			else:
+				cur.execute("select Title from Document where DocumentId = %d" % int(self.path[0]))
+				self.folder_name = cur.fetchone()[0]
+				for title, filepath, mimetype in cur.execute("""
+						select Title, Filepath, Mimetype
+							from Document, DocumentMultimedia, Multimedia
+							where
+								Document.DocumentId = %d
+								and Document.DocumentId = DocumentMultimedia.Documentid
+								and DocumentMultimedia.MultimediaId = Multimedia.MultimediaId;
+						""" % int(self.path[0])):
+					print("Reading file:", filepath)
+					self.files.append(PlaylistItem(id="contents:"+filepath, filename=filepath, mimetype=mimetype,
+						thumbnail_url = self.make_thumbnail_dataurl(contents, filepath, mimetype),
+						))
 
 	def list_folders(self):
-		for file in self.files:
-			if file.mimetype is None:
-				yield file
+		return self.folders
 
 	def list_image_files(self):
-		for file in self.files:
-			if file.mimetype is not None:
-				yield file
+		return self.files
 
 	def download(self, file):
 		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
-		with self.remote.open(file.id) as fh1:
+		zipreader = self.zipreader
+		id = file.id
+		if id.startswith("contents:"):
+			zipreader = zipreader.open_zipfile("contents")
+			id = id[9:]
+		with zipreader.open(id) as fh1:
 			with open(cachefile, "wb") as fh2:
 				while True:
 					chunk = fh1.read(0x10000) # 64k

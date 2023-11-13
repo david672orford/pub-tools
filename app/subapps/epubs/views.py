@@ -100,7 +100,7 @@ def open_epub(pub_code):
 		logger.error("Publication %s not known", pub_code)
 		abort(404)
 	if pub.epub_filename is None:
-		pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+		pub_finder = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"])
 		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
 		if epub_url is None:
 			return None
@@ -108,7 +108,7 @@ def open_epub(pub_code):
 		epub_filename = pub_finder.download_media(epub_url, callback=progress_callback)
 		pub.epub_filename = os.path.basename(epub_filename)
 		db.session.commit()
-	return EpubLoader(os.path.join(current_app.config["CACHEDIR"], pub.epub_filename))
+	return EpubLoader(os.path.join(current_app.config["MEDIA_CACHEDIR"], pub.epub_filename))
 
 # Fetch a file from an Epub (used for images)
 @blueprint.route("/<pub_code>/<path:path>")

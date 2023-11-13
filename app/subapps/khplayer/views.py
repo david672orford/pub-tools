@@ -1,4 +1,5 @@
 from flask import current_app, Blueprint, request, render_template, redirect
+from flask_caching import Cache
 import sys, traceback
 import logging
 
@@ -7,6 +8,8 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint("khplayer", __name__, template_folder="templates", static_folder="static")
 blueprint.display_name = "KH Player"
 blueprint.blurb = "Download videos and illustrations from JW.ORG and load them into OBS"
+
+blueprint.cache = Cache()
 
 # Redirect to default tab
 @blueprint.route("/")

@@ -7,7 +7,7 @@ from flask import current_app
 from ....jworg.meetings import MeetingLoader
 
 meeting_loader = MeetingLoader(
-	cachedir = current_app.config["CACHEDIR"],
+	cachedir = current_app.config["MEDIA_CACHEDIR"],
 	debuglevel = 0,
 	)
 
@@ -15,16 +15,19 @@ meeting_loader = MeetingLoader(
 # For communication with OBS Studio
 #=============================================================================
 
-# Load a client API for controlling OBS. There are two versions of it.
-# The first in obs_api.py works when we are running inside OBS. The
-# second which is in obs_ws_5.py is what we use when we are running outside.
-# It communicates with OBS through the OBS Websocket plugin.
+# Load a client API for controlling OBS. At one point we had two version of it:
+# * obs_api.py was used when we were running inside OBS.
+#   It worked using the OBS script API.
+# * obs_ws_5.py was used when we are running outside OBS.
+#   It communicates with OBS through the OBS Websocket plugin.
+#
+# At the moment though, obs_ws_5.py is the only one in working order.
+
 #try:
 #	from .obs_api import ObsControl, ObsError
 #except ModuleNotFoundError:
 #	from .obs_ws_5 import ObsControl, ObsError
 
-# For now only obs_ws_5 implements what we need
 from .obs_ws_5 import ObsControl, ObsError
 
 obs = ObsControl(config=current_app.config.get("OBS_WEBSOCKET"))

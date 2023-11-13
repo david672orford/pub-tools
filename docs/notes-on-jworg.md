@@ -28,24 +28,33 @@ tag which encloses the content area. In the Epub files this is
 ## Links to the Songbook
 
 Sharing link to songbook in Russian:
+
 	https://www.jw.org/finder?wtlocale=U&pub=sjjm&srcid=share
+
 Songbook media files (January 2020, still works in January 2021):
+
     https://pubmedia.jw-api.org/GETPUBMEDIALINKS?output=json&pub=sjjm&fileformat=MP3%2CAAC%2CM4V%2CMP4%2C3GP&alllangs=0&langwritten=U&txtCMSLang=U
+
 Songbook media files (January 2021):
+
     https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS?output=json&pub=sjjm&fileformat=MP3%2CAAC%2CM4V%2CMP4%2C3GP&alllangs=0&langwritten=U&txtCMSLang=U
 
 ## Links to Videos
 
 Link to video from Russian Meeting Workbook:
+
     https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
 
 Redirects to:
+
 	https://www.jw.org/ru/библиотека/видео/?item=pub-jwbcov_201505_11_VIDEO&appLanguage=U
 
 Redirects to:
+
 	https://www.jw.org/ru/библиотека/видео/#ru/mediaitems/VODBibleTeachings/pub-jwbcov_201505_11_VIDEO
 
 Which is an HTML page which loads JSON from:
+
 	https://b.jw-cdn.org/apis/mediator/v1/media-items/U/pub-jwbcov_201505_11_VIDEO?clientType=www
 	https://b.jw-cdn.org/apis/mediator/v1/media-items/U/pub-jwbcov_201505_11_AUDIO?clientType=www
 

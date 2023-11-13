@@ -20,8 +20,8 @@
 	{% if client %}
 	<div>
 		{% for folder in client.list_folders() %}
-		<a class="item" href="{% if folder.mimetype == 'application/zip' %}zip-{%endif%}{{folder.id}}/">
-			<div class="folder-icon">
+		<a class="item" href="{{folder.id}}{% if folder.mimetype in ("application/zip","application/x-zip") %}.zip{%endif%}/">
+			<div class="thumbnail large">
 				<img src="/khplayer/static/icon-folder.svg">
 			</div>
 			<div class="folder-name">
@@ -51,7 +51,7 @@
 <section>
 <div class="borderless-box">
 	<button class="download" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
-	<a href="."><button class="reload">{{gettext("Reload")}}</button></a>
+	<button class="reload" type="submit" formaction=".reload">{{gettext("Reload")}}</button>
 	{% if form is none and top == ".." %}
 	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
 	{% endif %}

@@ -41,7 +41,7 @@ class Total:
 def scan_cache(clean=False):
 	totals = defaultdict(Total)
 	time_now = int(time())
-	for entry in os.scandir(current_app.config["CACHEDIR"]):
+	for entry in os.scandir(current_app.config["MEDIA_CACHEDIR"]):
 		if entry.name.startswith("sjjm_") and entry.name.endswith(".mp4"):
 			category = "Songs from JW.ORG"
 			lifetime = 365

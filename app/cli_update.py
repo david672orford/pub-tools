@@ -107,7 +107,7 @@ def update_periodicals(pub_code, year=None, table=None):
 	if year is not None:
 		search_query["yearFilter"] = str(year)
 
-	pubs = PubFinder(cachedir=current_app.config["CACHEDIR"], debuglevel=0).search(search_path, search_query)
+	pubs = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"], debuglevel=0).search(search_path, search_query)
 
 	# Add these publications to the database or update info if they are already there
 	for pub in pubs:
@@ -156,7 +156,7 @@ def cmd_update_books():
 	update_books()
 
 def update_books():
-	pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+	pub_finder = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"])
 	language = current_app.config["PUB_LANGUAGE"]
 	pubs = pub_finder.search("books/", dict(contentLanguageFilter=language))
 	for pub in pubs:
@@ -271,7 +271,7 @@ def cmd_update_illustrations():
 
 def index_illustrations(pub_code, publication):
 	namespaces = {"xhtml": "http://www.w3.org/1999/xhtml"}
-	epub = EpubLoader(os.path.join(current_app.config["CACHEDIR"], publication.epub_filename))
+	epub = EpubLoader(os.path.join(current_app.config["MEDIA_CACHEDIR"], publication.epub_filename))
 	for article in epub.opf.toc:
 		xhtml = epub.load_xml(article.href)
 		for figure in xhtml.findall(".//xhtml:figure", namespaces):

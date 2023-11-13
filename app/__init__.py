@@ -21,21 +21,21 @@ def create_app(instance_path=None):
 	# Set up default configuration
 	app.config.from_mapping(
 		APP_DISPLAY_NAME = "JW Pubs",
-		THEME = "basic-light",
 		#ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs", "admin"],
 		ENABLED_SUBAPPS = ["khplayer", "epubs", "toolbox"],
+		THEME = "basic-light",
+		FLASK_ADMIN_FLUID_LAYOUT = True,
 
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
-		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
-		CACHEDIR = os.path.join(app.instance_path, "cache"),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
-		FLASK_ADMIN_FLUID_LAYOUT = True,
+		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
+		MEDIA_CACHEDIR = os.path.join(app.instance_path, "media-cache"),
+		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
 
 		PUB_LANGUAGE = "ru",
 		SUB_LANGUAGE = None,
 		VIDEO_RESOLUTION = "480p",
-		PERIPHERALS = {}
 		)
 
 	# Overlay with configuration from instance/config.py
@@ -70,8 +70,12 @@ def create_app(instance_path=None):
 			module.init_app(app)
 
 	# Create the directory to which we download media.
-	if not os.path.exists(app.config["CACHEDIR"]):
-		os.mkdir(app.config["CACHEDIR"])
+	if not os.path.exists(app.config["MEDIA_CACHEDIR"]):
+		old_media_cachedir = os.path.join(app.instance_path, "cache")
+		if os.path.isdir(old_media_cachedir):
+			os.rename(old_media_cachedir, app.config["MEDIA_CACHEDIR"])
+		else:
+			os.mkdir(app.config["MEDIA_CACHEDIR"])
 
 	return app
 

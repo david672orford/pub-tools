@@ -10,7 +10,7 @@ cli_epubs = AppGroup("epubs", help="Epub operations")
 
 @cli_epubs.command("download-all", help="Download the Epub of everything in our DB")
 def cmd_epubs_download_all():
-	pub_finder = PubFinder(cachedir=current_app.config["CACHEDIR"])
+	pub_finder = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"])
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.epub_filename==None):
 		print(f"issue: {issue.pub_code} {issue.issue_code}")
 		epub_url = pub_finder.get_epub_url(issue.pub_code, issue.issue_code)
