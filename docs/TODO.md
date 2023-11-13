@@ -8,13 +8,6 @@ when KH Player is running in a browser dock?
 * Why does OBS exit on the exception in khplayer-server.py which occurs when
 port 5000 is already in use? Why can't we catch this exception?
 
-## Slides Tab
-
-* Folders?
-* Load the .jwpub file with talk illustrations
-* Load illustrations from .jwlplaylist files (and other zip files)
-* Illustration index?
-
 ## Scenes Tab (Long Term)
 
 * Should we cache thumbnail images in the Videos, Books, and PeriodicalIssues objects?

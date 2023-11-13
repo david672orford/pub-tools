@@ -23,6 +23,9 @@
 		<a class="item" href="{{folder.id}}{% if folder.mimetype in ("application/zip","application/x-zip") %}.zip{%endif%}/">
 			<div class="thumbnail large">
 				<img src="/khplayer/static/icon-folder.svg">
+				{% if folder.thumbnail_url %}
+				<img class="folder-preview" src="{{folder.thumbnail_url}}">
+				{% endif %}
 			</div>
 			<div class="folder-name">
 				{{folder.filename}}

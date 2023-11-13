@@ -41,7 +41,7 @@ def page_slides_save_config():
 
 @blueprint.route("/slides/", defaults={"path":None})
 @blueprint.route("/slides/<path:path>/")
-@blueprint.cache.cached(timeout=300, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
+@blueprint.cache.cached(timeout=900, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
 def page_slides(path):
 	client, top = get_client(path)
 

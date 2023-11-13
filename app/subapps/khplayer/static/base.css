@@ -316,11 +316,18 @@ DIV.thumbnail > DIV.caption {
 	}
 .filemanager .item {				/* a file or folder */
 	display: inline-block;
+	position: relative;
 	vertical-align: top;
 	padding: .5em;
 	}
 .filemanager .item:hover {
 	background-color: #f0f0f0;
+	}
+.filemanager .folder-preview {
+	position: absolute;
+	width: 75%;
+	top: 4%;
+	left: 12.5%;
 	}
 .filemanager .folder-name {
 	width: 184px;

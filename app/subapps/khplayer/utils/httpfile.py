@@ -82,8 +82,8 @@ class HttpFile(Seekable):
 		return data
 
 	def close(self):
-		percent = int(self._total_read * 100 / self._file_size + 0.5)
-		if self.debug:
+		if self.debug and self._file_size is not None:
+			percent = int(self._total_read * 100 / self._file_size + 0.5)
 			print(f"HttpFile close: {self._request_count} requests read {self._total_read} of {self._file_size} bytes ({percent}%)")
 		self.session = None
 
