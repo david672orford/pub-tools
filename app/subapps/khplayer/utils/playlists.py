@@ -58,23 +58,23 @@ class ZippedPlaylist:
 			)
 
 	# Load any files which have an image file extension
+	# TODO: Skip directories without image files.
+	#       Show first image file as thumbnail.
 	def load_generic_zip(self):
 		self.folder_name = " - ".join(["Zipfile"] + self.path)
 		image_count = 0
 		path = "/".join(self.path)
 		if len(path) > 0:
 			path += "/"
-		#print("match path:", path)
 		for file in self.zipreader.infolist():
-			#print("file.filename:", file.filename)
 			if file.filename.startswith(path):
 				inside_path = file.filename[len(path):]
-				#print("inside_path:", inside_path)
 				if file.is_dir():
 					inside_path = inside_path[:-1]
 					if len(inside_path) > 0:
-						#print("keep folder:", file.filename, inside_path)
-						self.folders.append(PlaylistItem(id=file.filename, filename=inside_path))
+						self.folders.append(PlaylistItem(id=file.filename, filename=inside_path
+							#thumbnail_url = 
+							))
 				elif not "/" in inside_path:
 					m = re.search(r"\.([a-zA-Z0-9]+)$", inside_path)
 					if m:
@@ -85,7 +85,7 @@ class ZippedPlaylist:
 								))
 							image_count += 1
 
-	# Load images from a playlist shared from JW Library
+	# Load images from a playlist shared from JW Library (.jwlplaylist).
 	def load_jwlplaylist(self, manifest):
 		self.folder_name = manifest.get("name")
 		dbfile = self.zipreader.read("userData.db")
@@ -93,15 +93,19 @@ class ZippedPlaylist:
 			fh.write(dbfile)
 			fh.flush()
 			conn = sqlite3.connect(fh.name)
+			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
-			for label, filepath, mimetype, thumbnailfilepath in cur.execute("""
-					select Label, FilePath, MimeType, ThumbnailFilePath
-						from PlaylistItem, PlaylistItemIndependentMediaMap, IndependentMedia
-						where PlaylistItem.PlaylistItemId = PlaylistItemIndependentMediaMap.PlaylistItemId
-							and PlaylistItemIndependentMediaMap.IndependentMediaId = IndependentMedia.IndependentMediaId;
+			for row in cur.execute("""
+					select Label, FilePath, MimeType, DocumentId, KeySymbol, Track, ThumbnailFilePath
+						from PlaylistItem
+						left join PlaylistItemIndependentMediaMap using(PlaylistItemId)
+						left join IndependentMedia using(IndependentMediaId)
+						left join PlaylistItemLocationMap using(PlaylistItemId)
+						left join Location using(LocationId);
 					"""):
-				self.files.append(PlaylistItem(id=filepath, filename=label, mimetype=mimetype,
-					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, thumbnailfilepath, "image/jpeg"),
+				print("jwlplaylist:", row)
+				self.files.append(PlaylistItem(id=row["filepath"], filename=row["label"], mimetype=row["mimetype"],
+					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, row["thumbnailfilepath"], "image/jpeg"),
 					))
 
 	# Load images from a talk playlist such as S-34mp_U.jwpub
@@ -113,31 +117,32 @@ class ZippedPlaylist:
 			fh.write(dbfile)
 			fh.flush()
 			conn = sqlite3.connect(fh.name)
+			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
 			if len(self.path) == 0:		# Table of contents
 				self.folder_name = publication["title"]
-				for documentid, title, filepath, mimetype in cur.execute("""
-						select Document.DocumentId, Document.Title, Multimedia.Filepath, Multimedia.Mimetype
+				for row in cur.execute("""
+						select DocumentId, Title, Filepath, Mimetype
 							from Document
 							inner join DocumentMultimedia using(DocumentId)
 							inner join Multimedia using(MultimediaId)
 							group by Document.DocumentId
 						"""):
-					self.folders.append(PlaylistItem(id=documentid, filename=title,
-						thumbnail_url = self.make_thumbnail_dataurl(contents, filepath, mimetype) if mimetype.startswith("image/") else None,
+					self.folders.append(PlaylistItem(id=row["documentid"], filename=row["title"],
+						thumbnail_url = self.make_thumbnail_dataurl(contents, row["filepath"], row["mimetype"]) if row["mimetype"].startswith("image/") else None,
 						))
 			else:
-				cur.execute("select Title from Document where DocumentId = %d" % int(self.path[0]))
+				cur.execute("select Title from Document where DocumentId = ?", (int(self.path[0]),))
 				self.folder_name = cur.fetchone()[0]
-				for filepath, mimetype in cur.execute("""
-						select Multimedia.Filepath, Multimedia.Mimetype
+				for row in cur.execute("""
+						select Filepath, Mimetype
 							from Document
 							inner join DocumentMultimedia using(DocumentId)
 							inner join Multimedia using(MultimediaId)
 							where Document.DocumentId = %d
 						""" % int(self.path[0])):
-					self.files.append(PlaylistItem(id="contents:"+filepath, filename=filepath, mimetype=mimetype,
-						thumbnail_url = self.make_thumbnail_dataurl(contents, filepath, mimetype),
+					self.files.append(PlaylistItem(id="contents:"+row["filepath"], filename=row["filepath"], mimetype=row["mimetype"],
+						thumbnail_url = self.make_thumbnail_dataurl(contents, row["filepath"], row["mimetype"]),
 						))
 
 	def list_folders(self):
