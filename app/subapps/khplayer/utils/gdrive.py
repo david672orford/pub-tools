@@ -116,7 +116,7 @@ class GDriveClient:
 	def list_image_files(self):
 		return self.image_files
 
-	def download(self, file):
+	def get_file(self, file):
 		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
 		url = "https://drive.google.com/uc?export=download&id={id}".format(id=file.id)
 		response = self.session.get(url)

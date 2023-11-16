@@ -1,4 +1,5 @@
 # Reimplementation of Turbo-Flask using Server Side Events instead of Websocket
+# https://turbo-flask.readthedocs.io/en/latest/index.html
 
 from flask import request, Response
 from markupsafe import Markup
@@ -42,7 +43,7 @@ class Turbo:
 			return Response(stream(), mimetype="text/event-stream")	
 
 		# Define a Jinja2 macro which generates Javascript code to load Hotwire Turbo
-		# and connect it to the event source route defined above.
+		# and connect it to the event source route /turbo-sse defined above.
 		def turbo():
 			url = "https://cdn.jsdelivr.net/npm/@hotwired/turbo@7.2.2/dist/turbo.es2017-umd.js"
 			return Markup('''

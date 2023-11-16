@@ -7,7 +7,7 @@ import logging
 
 from ...models import db, PeriodicalIssues, Books
 from ...models_whoosh import illustration_index
-from ...utils import progress_callback
+from ...utils.background import progress_callback
 from ...jworg.publications import PubFinder
 from ...jworg.epub import EpubLoader
 from ...cli_update import update_periodicals, update_books

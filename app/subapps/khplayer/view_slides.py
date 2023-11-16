@@ -1,10 +1,9 @@
 from flask import current_app, Blueprint, render_template, request, redirect, make_response
 from urllib.parse import urlparse, urlencode
 from urllib.request import HTTPSHandler, build_opener, Request
-import traceback
 import logging
 
-from ...utils.background import progress_callback, flash
+from ...utils.background import progress_callback, progress_response, flash, run_thread
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from . import menu
@@ -32,7 +31,7 @@ class ConfigForm(dict):
 			return False
 		return True
 
-@blueprint.route("/slides/.save-config", methods=["POST"])
+@blueprint.route("/slides/--save-config", methods=["POST"])
 def page_slides_save_config():
 	form = ConfigForm(None, request.form)
 	if not form.validate():
@@ -92,20 +91,23 @@ def get_client(path):
 
 	return client, top
 
-@blueprint.route("/slides/.download", defaults={"path":None}, methods=["POST"])
-@blueprint.route("/slides/<path:path>/.download", methods=["POST"])
+# NOTE: We originally used .download here, but when we did 
+# Turbo failed to enable processing of Turbo-Stream responses.
+@blueprint.route("/slides/--download", defaults={"path":None}, methods=["POST"])
+@blueprint.route("/slides/<path:path>/--download", methods=["POST"])
 def page_slides_folder_download(path):
 	client, top = get_client(path)
 	assert client is not None
+	selected = set(request.form.getlist("selected"))
+	run_thread(lambda: download_slides(client, selected))
+	return progress_response(None)	# so page doesn't reload
+
+def download_slides(client, selected):
+	progress_callback(_("Downloading selected slides..."))
 	try:
-		selected = set(request.form.getlist("selected"))
-		print(selected)
 		for file in client.list_image_files():
 			if file.id in selected:
 				scene_name = request.form.get("scenename-%s" % file.id)
-				print("=================")
-				print(file.id)
-				print("=================")
 				if file.id.startswith("lank="):
 					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id, language=current_app.config["PUB_LANGUAGE"])
 				else:
@@ -122,14 +124,14 @@ def page_slides_folder_download(path):
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("Failed to add slide images"), last_message=True)
-		return redirect(".?action=flash")	# FIXME: action=flash is hack to get flash() past cache
-	return redirect(".")
+	else:
+		progress_callback(_("All selected slides downloaded."), last_message=True)
 
-@blueprint.route("/slides/.reload", defaults={"path":None}, methods=["GET","POST"])
-@blueprint.route("/slides/<path:path>/.reload", methods=["POST"])
+@blueprint.route("/slides/--reload", defaults={"path":None}, methods=["GET","POST"])
+@blueprint.route("/slides/<path:path>/--reload", methods=["POST"])
 def page_slides_reload(path):
-	path = request.path.removesuffix(".reload")
-	print("path:", path)
+	path = request.path.removesuffix("--reload")
+	#print("path:", path)
 	blueprint.cache.delete("slides-%s" % path)
 	return redirect(".")
 

@@ -126,7 +126,7 @@ HEADER DIV#progress {
 	top: .5em;
 	right: .5em;
 	width: 75%;
-	max-width: 40em;
+	max-width: 60em;
 	background-color: #f0f0f0;
 	z-index: 100;
 	border: 1px solid #808080;

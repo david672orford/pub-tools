@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block main %}
-<form action=".download" method="POST">
+<form action="--download" method="POST">
 <section class="filemanager">
 	{% if client %}
 	<div>
@@ -55,7 +55,7 @@
 <section>
 <div class="borderless-box">
 	<button class="download" type="submit">{{gettext("Load Selected Slides into OBS")}}</button>
-	<button class="reload" type="submit" formaction=".reload">{{gettext("Reload")}}</button>
+	<button class="reload" type="submit" formaction="--reload">{{gettext("Reload")}}</button>
 	{% if form is none and top == ".." %}
 	<a href=".?action=configuration"><button class="config">{{gettext("Configuration")}}</button></a>
 	{% endif %}
@@ -65,7 +65,7 @@
 </form>
 
 {% if form is not none %}
-<form action=".save-config" method="POST">
+<form action="--save-config" method="POST">
 <section class="bordered-box">
 <h2>{{gettext("Configuration")}}</h2>
 {{lib.render_input_text(_("Google Drive Sharing URL"), "url", form["url"], class="long-url")}}

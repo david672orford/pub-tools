@@ -195,8 +195,6 @@ class Fetcher:
 							last_callback = now
 			os.rename(cachefile + ".tmp", cachefile)
 			logger.debug("Media file downloaded, %d bytes received", total_recv)
-			if callback:
-				callback(_("Media file downloaded"))
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number

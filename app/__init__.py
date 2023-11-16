@@ -3,7 +3,7 @@ from importlib import import_module
 from flask import Flask, session
 import logging
 
-from .utils import turbo
+from .utils.background import turbo
 from .utils.babel import init_babel
 
 logger = logging.getLogger(__name__)

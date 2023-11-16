@@ -51,26 +51,42 @@ def page_meetings_view(docid):
 		top = "../.."
 		)
 
-# Asyncronous source which delivers items to a meeting's
-# page as they are loaded
+# Asyncronous source which delivers items to a meeting's page as they
+# are loaded using a Turbo Stream.
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
+		progress_callback(_("Loading meeting media list..."))
 		try:
 			index = 0
 			previous_section = None
+
+			# Loop through the videos and illustrations which will be used in the meeting.
 			for item in get_meeting_media(docid):
-				data = render_template("khplayer/meetings_media_item.html", index=index, item=item, new_section=(item.section_title != previous_section))
-				previous_section = item.section_title
+
+				# We use a small Jinja2 template to render the media item to HTML.
+				data = render_template("khplayer/meetings_media_item.html",
+					index = index,
+					item = item,
+					new_section = (item.section_title != previous_section),
+					)
+
+				# Send the media item to the page over the Turbo Stream.
 				yield "data: " + data.replace("\n", " ") + "\n\n"
+
+				# Slight pause so that loading is consistently visible even when meeting is loaded from cache
 				sleep(.1)
+
+				previous_section = item.section_title
 				index += 1
-			progress_callback(_("Meeting media list loaded"), last_message=True)
-			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 		except Exception as e:
 			logger.error(traceback.format_exc())
 			flash(_("Error: %s" % e))
-			progress_callback(_("Loading of meeting media list failed"), last_message=True)
+			progress_callback(_("Unable to load meeting media list."), last_message=True)
+		else:
+			progress_callback(_("Meeting media list has finished loading."), last_message=True)
+			# Enable the Download Media and Create Scenes in OBS button.
+			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
 # User has pressed the "Download Media and Create Scenes in OBS"
@@ -85,8 +101,8 @@ def page_meetings_load(docid):
 			if not scene['sceneName'].startswith("*"):
 				obs.remove_scene(scene['sceneName'])
 
-	# The media list will already by in the cache. Loop over it saving only
-	# those items which have a checkbox next to them in the table.
+	# The media list will already by in the cache. Loop over it collecting
+	# only those items which have a checkbox next to them in the table.
 	selected = set(map(int, request.form.getlist("selected")))
 	media = []
 	index = 0
@@ -96,9 +112,9 @@ def page_meetings_load(docid):
 		index += 1
 
 	# Download in the background.
-	run_thread(lambda: meeting_media_to_obs_scenes(media))
+	run_thread(lambda: meeting_media_to_obs_scenes(request.form.get("title"), media))
 
-	return progress_response(_("Loading media for %s...") % request.form.get("title"))
+	return progress_response(None)
 
 # Download the meeting article (from the Watchtower or Workbook) and
 # extract a list of the videos and images. Implements caching.
@@ -127,7 +143,8 @@ def get_meeting_media(docid):
 	db.session.commit()
 
 # This function is run in a background thread to download the media and add a scene in OBS for each item.
-def meeting_media_to_obs_scenes(items):
+def meeting_media_to_obs_scenes(title, items):
+	progress_callback(_("Loading media for \"{title}\"...").format(title=title))
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
 		if item.media_type == "web":		# HTML page
@@ -140,7 +157,7 @@ def meeting_media_to_obs_scenes(items):
 			load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		else:
 			raise AssertionError("Unhandled case")
-	progress_callback(_("Meeting loaded"), last_message=True)
+	progress_callback(_("All requested media have been loaded into OBS."), last_message=True)
 
 # Construct the sharing URL for a meeting article. This will redirect to the article itself.
 def meeting_url(docid):

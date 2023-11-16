@@ -5,13 +5,13 @@ from markupsafe import escape
 import logging
 
 from ...models import db, VideoCategories, Videos
-from ...utils import progress_callback, progress_response, run_thread
 from ...models_whoosh import video_index
-from ...cli_update import update_videos, update_video_subcategory
+from ...utils.background import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
+from .utils.scenes import load_video_url
+from ...cli_update import update_videos, update_video_subcategory
 from . import menu
 from .views import blueprint
-from .utils.scenes import load_video_url
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def page_videos_list(category_key, subcategory_key):
 def page_videos_download():
 	video = Videos.query.filter_by(id=request.form.get("id")).one()
 	run_thread(lambda: load_video_url(video.title, video.href, thumbnail_url=video.thumbnail))
-	return progress_response(_("Downloading %s...") % video.title)
+	return progress_response(None)	# so page doesn't reload
 
 # When Update button is pressed on top index page
 @blueprint.route("/videos/update-all", methods=["POST"])

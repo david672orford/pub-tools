@@ -81,9 +81,9 @@ class MeetingLoader(Fetcher):
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
 	def extract_media(self, url, callback=None):
-		callback(_("Downloading article..."))
+		callback(_("Downloading article for meeting..."))
 		container = self.get_article_html(url)
-		callback(_("Article title: %s") % container.xpath(".//h1")[0].text_content().strip())
+		callback(_("Article title: \"%s\"") % container.xpath(".//h1")[0].text_content().strip())
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib['class'])

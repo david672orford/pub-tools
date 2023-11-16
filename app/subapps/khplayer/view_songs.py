@@ -23,7 +23,6 @@ def page_songs():
 
 @blueprint.route("/songs/submit", methods=["POST"])
 def page_songs_submit():
-	message = None
 
 	# By song number entered in form
 	song = request.form.get('song')
@@ -37,17 +36,13 @@ def page_songs_submit():
 		if not (0 < song <= 151):
 			flash(_("No such song: %s") % song)
 			return redirect(".")
-		message = _("Loading song %s") % song
 		run_thread(lambda: load_song(song))
 
 	# By clicking on link to video
 	lank = request.form.get("lank")
 	if lank:
-		message = _("Loading song %s") % lank
 		video = Videos.query.filter_by(lank=lank).one()
 		run_thread(lambda: load_video_url(None, video.href, prefix="♫ ПЕСНЯ"))
 
-	if message is not None:
-		return progress_response(message)
-	return redirect(".")
+	return progress_response(None)
 

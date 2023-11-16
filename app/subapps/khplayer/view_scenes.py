@@ -4,7 +4,7 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 import os, re, logging
 
-from ...utils.background import progress_callback, progress_response, run_thread, flash
+from ...utils.background import progress_response, run_thread, flash
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint

@@ -104,7 +104,7 @@ class ZippedPlaylist:
 						left join Location using(LocationId);
 					"""):
 				row = dict(row)
-				print("jwlplaylist:", row)
+				#print("jwlplaylist:", row)
 				if row["FilePath"]:
 					id = row["FilePath"]
 				elif row["KeySymbol"]:
@@ -113,7 +113,7 @@ class ZippedPlaylist:
 					id = urlencode({"lank": "docid-{DocumentId}_{Track}_VIDEO".format(**row)})
 				else:
 					raise AssertionError("Can't make URL: %s" % row)
-				print("id:", id)
+				#print("id:", id)
 				self.files.append(PlaylistItem(id=id, filename=row["Label"], mimetype=row["MimeType"],
 					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, row["ThumbnailFilePath"], "image/jpeg"),
 					))
@@ -149,8 +149,8 @@ class ZippedPlaylist:
 							from Document
 							inner join DocumentMultimedia using(DocumentId)
 							inner join Multimedia using(MultimediaId)
-							where Document.DocumentId = %d
-						""" % int(self.path[0])):
+							where Document.DocumentId = ?
+						""" % (int(self.path[0]),)):
 					self.files.append(PlaylistItem(id="contents:"+row["filepath"], filename=row["filepath"], mimetype=row["mimetype"],
 						thumbnail_url = self.make_thumbnail_dataurl(contents, row["filepath"], row["mimetype"]),
 						))

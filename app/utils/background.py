@@ -19,7 +19,7 @@ def run_thread(func):
 	global background_thread
 
 	if background_thread is not None and background_thread.is_alive():
-		async_flash(_("Please wait for previous download to finish."))
+		flash(_("Please wait for previous download to finish."))
 
 	@copy_current_request_context
 	def wrapper():
@@ -42,22 +42,21 @@ def progress_callback(message, last_message=False, **kwargs):
 				escape(message),
 				"<script>hide_progress()</script>" if last_message else "",
 				)
-			turbo.push(turbo.update(message, target="progress-message"), to=to)
+			turbo.push(turbo.append(message, target="progress-message"), to=to)
 	except KeyError:
 		logger.warning("No Turbo connection from client: %s", to)
 
-# Send a syncronous status update to the web browser in response
-# to a form submission. We sometimes use this for the first progress
-# message with later messages sent by calling progress_callback()
-# from the download thread.
+# Send an update to the web browser in response to a form submission.
 def progress_response(message, last_message=False, **kwargs):
-	message = message.format(**kwargs)
-	return turbo.stream([
-		turbo.update('<div>%s</div>%s' % (
-			escape(message),
-			"<script>hide_progress()</script>" if last_message else "",
-			), target="progress-message")
-		])
+	if message is None:
+		message = ""
+	else:
+		message = message.format(**kwargs)
+	message = turbo.append('<div>%s</div>%s' % (
+		escape(message),
+		"<script>hide_progress()</script>" if last_message else "",
+		), target="progress-message")
+	return turbo.stream(message)
 
 # Version of Flask's flash() which sends the flash using Turbo,
 # if it is called from the background thread.
