@@ -40,6 +40,7 @@
 				{% if image_file.thumbnail_url %}
 				<img src="{{image_file.thumbnail_url}}">
 				{% endif %}
+				<div class="caption">{% if image_file.mimetype == "image/jpeg" %}{{_("image")}}{%else%}{{_("video")}}{%endif%}</div>
 			</div>
 			<div class="bottom-bar">
 				<input type="checkbox" name="selected" value="{{ image_file.id }}" checked>

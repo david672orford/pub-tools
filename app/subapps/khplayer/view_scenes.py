@@ -1,15 +1,15 @@
-from flask import current_app, Blueprint, render_template, request, redirect, flash
+from flask import current_app, Blueprint, render_template, request, redirect
 from time import sleep
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 import os, re, logging
 
-from ...utils import progress_callback, progress_response, run_thread
+from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
-from .utils.scenes import load_video, load_webpage
+from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 
@@ -97,7 +97,8 @@ def page_scenes_upload():
 		logger.info(_("Uploading \"%s\" (%s)"), file.filename, file.mimetype)
 
 		major_mimetype = file.mimetype.split("/")[0]
-		if major_mimetype not in ("video", "image"):
+		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
+		if prefix is None:
 			flash(_("Unsupported media type: %s") % file.mimetype)
 			continue
 
@@ -111,7 +112,11 @@ def page_scenes_upload():
 		file.save(save_as)
 
 		try:
-			obs.add_media_scene(os.path.basename(file.filename), major_mimetype, save_as)
+			obs.add_media_scene(
+				scene_name_prefix + " " + os.path.basename(file.filename),
+				major_mimetype,
+				save_as
+				)
 		except ObsError as e:
 			flash(_("OBS: %s") % str(e))
 
@@ -125,7 +130,7 @@ def page_scenes_add_url():
 	parsed_url = urlparse(url)
 	q = parse_qs(parsed_url.query).keys()
 	if parsed_url.hostname == "www.jw.org" and ("lank" in q or "docid" in q):
-		run_thread(lambda: load_video(None, url))
+		run_thread(lambda: load_video_url(None, url))
 	else:
 		run_thread(lambda: load_webpage(None, url))
 	return progress_response(_("Loading URL..."))

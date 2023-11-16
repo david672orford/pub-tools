@@ -1,14 +1,15 @@
-from flask import current_app, Blueprint, render_template, request, redirect, flash, make_response
+from flask import current_app, Blueprint, render_template, request, redirect, make_response
 from urllib.parse import urlparse, urlencode
 from urllib.request import HTTPSHandler, build_opener, Request
 import traceback
 import logging
 
-from ...utils import progress_callback, async_flash
+from ...utils.background import progress_callback, flash
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from . import menu
 from .views import blueprint
+from .utils.scenes import scene_name_prefixes, load_video_url
 from .utils.controllers import obs, ObsError
 from .utils.gdrive import GDriveClient
 from .utils.playlists import ZippedPlaylist
@@ -94,15 +95,29 @@ def get_client(path):
 @blueprint.route("/slides/.download", defaults={"path":None}, methods=["POST"])
 @blueprint.route("/slides/<path:path>/.download", methods=["POST"])
 def page_slides_folder_download(path):
-	client = get_client(path)[0]
+	client, top = get_client(path)
 	assert client is not None
 	try:
 		selected = set(request.form.getlist("selected"))
+		print(selected)
 		for file in client.list_image_files():
 			if file.id in selected:
-				progress_callback(_("Downloading \"%s\"..." % file.filename))
-				filename = client.download(file)
-				obs.add_media_scene("□ " + request.form.get("scenename-%s" % file.id), "image", filename)
+				scene_name = request.form.get("scenename-%s" % file.id)
+				print("=================")
+				print(file.id)
+				print("=================")
+				if file.id.startswith("lank="):
+					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id, language=current_app.config["PUB_LANGUAGE"])
+				else:
+					progress_callback(_("Downloading \"%s\"..." % file.filename))
+					filename = client.get_file(file)
+					major_mimetype = file.mimetype.split("/")[0]
+					scene_name_prefix = scene_name_prefixes.get(major_mimetype)
+					obs.add_media_scene(
+						scene_name_prefix + " " + request.form.get("scenename-%s" % file.id),
+						major_mimetype,
+						filename,
+						)
 		progress_callback(_("Slide images loaded"), last_message=True)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
@@ -117,5 +132,4 @@ def page_slides_reload(path):
 	print("path:", path)
 	blueprint.cache.delete("slides-%s" % path)
 	return redirect(".")
-
 

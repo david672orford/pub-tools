@@ -1,4 +1,4 @@
-from flask import current_app, Blueprint, render_template, request, redirect, flash
+from flask import current_app, Blueprint, render_template, request, redirect
 from urllib.parse import urlencode
 import os, re
 from time import sleep
@@ -6,7 +6,7 @@ import subprocess
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_response, run_thread, async_flash
+from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...jworg.jwstream import StreamRequesterContainer
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
@@ -203,7 +203,7 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 			obs.add_media_scene("▷" + " " + clip_title, "video", media_file)
 		except ObsError as e:
 			# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
-			async_flash("OBS: %s" % str(e))
+			flash("OBS: %s" % str(e))
 		else:
 			progress_callback(_("Clip created"), last_message=True)
 

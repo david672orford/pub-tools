@@ -1,4 +1,4 @@
-from flask import current_app, render_template, request, redirect, flash, stream_with_context
+from flask import current_app, render_template, request, redirect, stream_with_context
 from datetime import date
 from time import sleep
 from sqlalchemy import or_, and_
@@ -10,14 +10,14 @@ import traceback
 import logging
 
 from ... import turbo
-from ...utils import progress_callback, progress_response, async_flash, run_thread
+from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import meeting_loader, obs
-from .utils.scenes import load_video, load_image, load_webpage
+from .utils.scenes import load_video_url, load_image_url, load_webpage
 from ...jworg.meetings import MeetingMedia
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ def page_meetings_view_stream(docid):
 			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 		except Exception as e:
 			logger.error(traceback.format_exc())
-			async_flash(_("Error: %s" % e))
+			flash(_("Error: %s" % e))
 			progress_callback(_("Loading of meeting media list failed"), last_message=True)
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
 
@@ -133,11 +133,11 @@ def meeting_media_to_obs_scenes(items):
 		if item.media_type == "web":		# HTML page
 			load_webpage(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		elif item.pub_code is not None and item.pub_code.startswith("sjj"):
-			load_video(item.title, item.media_url, thumbnail_url=item.thumbnail_url, prefix="♫ ", close=False)
+			load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, prefix="♫ ", close=False)
 		elif item.media_type == "video":
-			load_video(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
+			load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		elif item.media_type == "image":
-			load_image(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
+			load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		else:
 			raise AssertionError("Unhandled case")
 	progress_callback(_("Meeting loaded"), last_message=True)

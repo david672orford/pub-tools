@@ -1,5 +1,7 @@
-from flask import current_app, session, copy_current_request_context
-from threading import Thread
+# Run downloads in a background thread
+
+from flask import current_app, session, copy_current_request_context, flash as regular_flash
+from threading import Thread, current_thread
 from markupsafe import escape
 import logging
 
@@ -44,7 +46,10 @@ def progress_callback(message, last_message=False, **kwargs):
 	except KeyError:
 		logger.warning("No Turbo connection from client: %s", to)
 
-# Send a syncronous status update to the web browser in response to a form submission
+# Send a syncronous status update to the web browser in response
+# to a form submission. We sometimes use this for the first progress
+# message with later messages sent by calling progress_callback()
+# from the download thread.
 def progress_response(message, last_message=False, **kwargs):
 	message = message.format(**kwargs)
 	return turbo.stream([
@@ -54,8 +59,12 @@ def progress_response(message, last_message=False, **kwargs):
 			), target="progress-message")
 		])
 
-# Asyncronous version of Flask's flash() for use in background download threads
-def async_flash(message):
-	to = session['session-id']
-	turbo.push(turbo.append('<div class="progress flash">%s</div>' % escape(message), target="flashes"), to=to)
+# Version of Flask's flash() which sends the flash using Turbo,
+# if it is called from the background thread.
+def flash(message: str, category: str="message") -> None:
+	if current_thread() is background_thread:
+		to = session['session-id']
+		turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
+	else:
+		regular_flash(message, category=category)
 

@@ -4,7 +4,7 @@ try:
 except ModuleNotFoundError:
 	have_ewmh = False
 
-from flask import flash
+from ....utils.background import flash
 from ....utils.babel import gettext as _
 
 def find_second_window():

@@ -285,7 +285,12 @@ class ObsControl(ObsControlBase):
 			source_name = os.path.basename(media_file)
 
 		# Select the appropriate OBS source type and build its settings
-		if media_type == "video":
+		if media_type == "audio":
+			source_type = "ffmpeg_source"
+			source_settings = {
+				"local_file": media_file,
+				}
+		elif media_type == "video":
 			# If subtitles are enabled, use the VLC source
 			if subtitle_track is not None:
 				source_type = "vlc_source"
@@ -354,7 +359,8 @@ class ObsControl(ObsControlBase):
 					raise ObsError(e)
 			i += 1
 
-		self.scale_input(scene_name, scene_item_id)
+		if media_type != "audio":
+			self.scale_input(scene_name, scene_item_id)
 
 		# Enable audio monitoring for video files
 		if media_type == "video":

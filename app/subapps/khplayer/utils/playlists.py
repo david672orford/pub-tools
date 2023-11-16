@@ -1,8 +1,8 @@
-import os, json, base64, re, io
+import os, json, base64, re, io, sqlite3
 from tempfile import NamedTemporaryFile
-import sqlite3
 from zipfile import ZipFile
 from PIL import Image
+from urllib.parse import urlencode
 
 class PlaylistItem:
 	def __init__(self, id, filename, mimetype=None, thumbnail_url=None):
@@ -103,9 +103,19 @@ class ZippedPlaylist:
 						left join PlaylistItemLocationMap using(PlaylistItemId)
 						left join Location using(LocationId);
 					"""):
+				row = dict(row)
 				print("jwlplaylist:", row)
-				self.files.append(PlaylistItem(id=row["filepath"], filename=row["label"], mimetype=row["mimetype"],
-					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, row["thumbnailfilepath"], "image/jpeg"),
+				if row["FilePath"]:
+					id = row["FilePath"]
+				elif row["KeySymbol"]:
+					id = urlencode({"lank": "pub-{KeySymbol}_{Track}_VIDEO".format(**row)})
+				elif row["DocumentId"]:
+					id = urlencode({"lank": "docid-{DocumentId}_{Track}_VIDEO".format(**row)})
+				else:
+					raise AssertionError("Can't make URL: %s" % row)
+				print("id:", id)
+				self.files.append(PlaylistItem(id=id, filename=row["Label"], mimetype=row["MimeType"],
+					thumbnail_url = self.make_thumbnail_dataurl(self.zipreader, row["ThumbnailFilePath"], "image/jpeg"),
 					))
 
 	# Load images from a talk playlist such as S-34mp_U.jwpub
@@ -151,7 +161,7 @@ class ZippedPlaylist:
 	def list_image_files(self):
 		return self.files
 
-	def download(self, file):
+	def get_file(self, file):
 		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
 		zipreader = self.zipreader
 		id = file.id

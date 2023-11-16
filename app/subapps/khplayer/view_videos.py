@@ -11,7 +11,7 @@ from ...cli_update import update_videos, update_video_subcategory
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
-from .utils.scenes import load_video
+from .utils.scenes import load_video_url
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def page_videos_list(category_key, subcategory_key):
 @blueprint.route("/videos/download", methods=["POST"])
 def page_videos_download():
 	video = Videos.query.filter_by(id=request.form.get("id")).one()
-	run_thread(lambda: load_video(video.title, video.href, thumbnail_url=video.thumbnail))
+	run_thread(lambda: load_video_url(video.title, video.href, thumbnail_url=video.thumbnail))
 	return progress_response(_("Downloading %s...") % video.title)
 
 # When Update button is pressed on top index page

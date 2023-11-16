@@ -173,7 +173,7 @@ class Fetcher:
 			return "No Title"
 
 	# Download a video or picture, store it in the cache directory, and return its path.
-	def download_media(self, url, callback=None):
+	def download_media(self, url: str, callback=None):
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if not os.path.exists(cachefile):
 			response = self.get(url)
@@ -218,6 +218,10 @@ class Fetcher:
 	# Given a link to a video from an article, extract the publication ID
 	# and language and go directly to the mediator endpoint to get the
 	# metadata bypassing the player page.
+	#
+	# url -- sharing URL for video
+	# resolution -- 
+	# language -- optional language override, ISO code
 	def get_video_metadata(self, url, resolution=None, language=None):
 		query = dict(parse_qsl(urlparse(url).query))
 

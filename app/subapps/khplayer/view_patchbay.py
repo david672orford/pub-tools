@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, flash, redirect
+from flask import Blueprint, render_template, request, redirect
 import logging
 
+from ...utils.background import flash
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config, merge_config
 from . import menu

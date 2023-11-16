@@ -1,15 +1,15 @@
-from flask import request, session, render_template, redirect, flash
+from flask import request, session, render_template, redirect
 from time import sleep
 import re
 import logging
 
-from ...utils import progress_callback, progress_response, run_thread, async_flash
+from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...models import VideoCategories, Videos
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import meeting_loader, obs, ObsError
-from .utils.scenes import load_video, load_song
+from .utils.scenes import load_video_url, load_song
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def page_songs_submit():
 	if lank:
 		message = _("Loading song %s") % lank
 		video = Videos.query.filter_by(lank=lank).one()
-		run_thread(lambda: load_video(None, video.href, prefix="♫ ПЕСНЯ"))
+		run_thread(lambda: load_video_url(None, video.href, prefix="♫ ПЕСНЯ"))
 
 	if message is not None:
 		return progress_response(message)
