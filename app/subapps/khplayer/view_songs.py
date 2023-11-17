@@ -42,7 +42,7 @@ def page_songs_submit():
 	lank = request.form.get("lank")
 	if lank:
 		video = Videos.query.filter_by(lank=lank).one()
-		run_thread(lambda: load_video_url(None, video.href, prefix="♫ ПЕСНЯ"))
+		run_thread(lambda: load_video_url(None, video.href, prefix="♫ Песня"))
 
 	return progress_response(None)
 

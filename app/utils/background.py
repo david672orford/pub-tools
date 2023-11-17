@@ -3,6 +3,7 @@
 from flask import current_app, session, copy_current_request_context, flash as regular_flash
 from threading import Thread, current_thread
 from markupsafe import escape
+import traceback
 import logging
 
 from .babel import gettext as _
@@ -23,7 +24,12 @@ def run_thread(func):
 
 	@copy_current_request_context
 	def wrapper():
-		func()
+		try:
+			func()
+		except Exception as e:
+			logger.error(traceback.format_exc())
+			flash(_("Error: %s") % str(e))
+			progress_callback(_("Background task failed."), last_message=True)
 
 	background_thread = Thread(target=wrapper, daemon=True)
 	background_thread.start()

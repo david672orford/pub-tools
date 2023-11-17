@@ -1,6 +1,5 @@
 from flask import current_app, Blueprint, render_template, request, redirect, make_response
 from urllib.parse import urlparse, urlencode
-from urllib.request import HTTPSHandler, build_opener, Request
 import logging
 
 from ...utils.background import progress_callback, progress_response, flash, run_thread
@@ -120,12 +119,11 @@ def download_slides(client, selected):
 						major_mimetype,
 						filename,
 						)
-		progress_callback(_("Slide images loaded"), last_message=True)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Failed to add slide images"), last_message=True)
+		progress_callback(_("Failed to add slide images to OBS."), last_message=True)
 	else:
-		progress_callback(_("All selected slides downloaded."), last_message=True)
+		progress_callback(_("All selected slides added to OBS."), last_message=True)
 
 @blueprint.route("/slides/--reload", defaults={"path":None}, methods=["GET","POST"])
 @blueprint.route("/slides/<path:path>/--reload", methods=["POST"])

@@ -72,7 +72,7 @@ def load_song(song: int, close=True):
 	progress_callback(_("Downloading \"{url}\"...").format(url=media_url))
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
 	try:
-		obs.add_media_scene(_("♫ Song %s") % song, "video", media_file)
+		obs.add_media_scene(_("♫ Song {song}").format(song=song), "video", media_file)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("Unable to song into OBS."), last_message=close)
