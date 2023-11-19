@@ -107,47 +107,83 @@ class ObsControlBase:
 		# We are connected
 		self.ws = ws
 
-	# Send a request to OBS and wait for the response
-	def request(self, req_type, req_data, raise_on_error=True):
-		logger.debug("OBS request: %s %s", req_type, req_data)
+	# Close the connection to OBS-Websocket
+	def close(self):
+		self.ws.close()
+		self.ws = None
 
+	# Internal: Generate the next request ID
+	def next_reqid(self):
+		self.reqid += 1
+		return str(self.reqid)
+
+	# Internal: Open websocket to OBS and send request
+	def ws_write_json(self, message):
+		logger.debug("OBS request: %s", message)
 		if self.ws is None:
 			self.connect()
-
-		self.reqid += 1
-
 		try:
-			self.ws.send(json.dumps({
-				"op": 6,		# request
-				"d": {
-					"requestId": str(self.reqid),
-					"requestType": req_type,
-					"requestData": req_data,
-					}
-				}))
-
-			response = self.ws.recv()
-			logger.debug("OBS response: %s", response)
-			if len(response) == 0:
-				raise ObsError("Empty response")
-
-			response = json.loads(response)
-
-			if response["op"] != 7:
-				raise ObsError("incorrect opcode")
-			if response["d"]["requestType"] != req_type:
-				raise ObsError("incorrect requestType")
-			if response["d"]["requestId"] != str(self.reqid):
-				raise ObsError("incorrect requestId")
-
+			self.ws.send(json.dumps(message))
 		except Exception as e:
-			self.ws.close()
-			self.ws = None
-			raise ObsError(str(e))
+			self.close()
+			raise ObsError("Send failure: " + str(e))
 
+	# Internal: Read response from the websocket to OBS
+	def ws_read_json(self, expected_opcode, req_type=None):
+		try:
+			response = self.ws.recv()
+		except Exception as e:
+			self.close()
+			raise ObsError("Receive failure: " + str(e))
+
+		logger.debug("OBS response: %s", response)
+		if len(response) == 0:
+			raise ObsError("Empty response")
+
+		response = json.loads(response)
+
+		if response["op"] != expected_opcode:
+			raise ObsError("incorrect opcode")
+		if response["d"]["requestId"] != str(self.reqid):
+			raise ObsError("incorrect requestId")
+		if req_type is not None and response["d"]["requestType"] != req_type:
+			raise ObsError("incorrect requestType")
+
+		return response
+
+	# Send a request to OBS and wait for the response
+	def request(self, req_type, req_data, raise_on_error=True):
+		self.ws_write_json({
+			"op": 6,		# Request
+			"d": {
+				"requestId": str(self.reqid),
+				"requestType": req_type,
+				"requestData": req_data,
+				}
+			})
+		response = self.ws_read_json(
+			expected_opcode=7,	# RequestResponse
+			req_type=req_type,
+			)
 		if raise_on_error and not response["d"]["requestStatus"]["result"]:
 			raise ObsError(response)
 		return response["d"]	
+
+	# Send a series of requests to OBS
+	def request_batch(self, requests, halt_on_failure=False, execution_type=0):
+		self.ws_write_json({
+			"op": 8,		# RequestBatch
+			"d": {
+				"requestId": self.next_reqid(),
+				"haltOnFailure": halt_on_failure,
+				"executionType": execution_type,
+				"requests": requests,
+				}
+			})
+		response = self.ws_read_json(
+			expected_opcode=9,	# RequestBatchResponse
+			)
+		return response["d"]["results"]
 
 	def create_scene_collection(self, name):
 		self.request("CreateSceneCollection", {"sceneCollectionName": name})
