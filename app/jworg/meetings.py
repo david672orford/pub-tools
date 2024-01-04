@@ -116,28 +116,34 @@ class MeetingLoader(Fetcher):
 	def extract_media_mwb(self, url, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
+		# Extract the sections from the flat HTML
+		sections = [[None, []]]
+		for el in container:
+			h2 = el.xpath("./h2")
+			if h2:
+				sections.append([h2[0].text_content(), []])
+			else:
+				sections[-1][1].append(el)
+
 		# In the inner for loop we add what we want to keep to this list
 		scenes = []
 
-		# The workbook page has four <sections>:
-		# 1) The title which gives the date, Bible reading, and opening song number
-		# 2) СОКРОВИЩА ИЗ СЛОВА БОГА
-		# 3) ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ
-		# 4) ХРИСТИАНСКАЯ ЖИЗНЬ
-		for section in container:
-			assert section.tag == "div" and section.attrib['class'] == "section"
-			section_id = section.attrib['id']
-			h2s = section.xpath(".//h2")
-			section_title = h2s[0].text_content() if len(h2s) > 0 else None
-			logger.info("Section: id=%s class=%s title=\"%s\"" % (section_id, section.attrib.get("class"), section_title))
+		section_number = 0
+		for section_title, section_els in sections:
+			section_number += 1
+			part_title = None
+			print(section_number, section_title)
 
-			for li in section.xpath("./div/ul/li"):
-
-				# <strong>«</strong><a>Part Title</a><strong>»</strong>
-				# <strong>Part Title</strong>
-				part_title = li.xpath(".//strong")[0].text_content()
-				if len(part_title) == 1:
-					part_title = li.xpath(".//a")[0].text_content()
+			for li in section_els:
+				# <div><h3>Part Title</h3></div>
+				# <h3>Part Title</h3>
+				if li.tag == "h3":
+					h3 = [li]
+				else:
+					h3 = li.xpath(".//h3")
+				if h3 and not h3[0].xpath(".//a"):		# not a song
+					part_title = h3[0].text_content()
+					continue
 
 				# Go through all of the hyperlinks in this section
 				for a in li.xpath(".//a"):
@@ -225,7 +231,9 @@ class MeetingLoader(Fetcher):
 						# Links to other publications. For these we download the article or
 						# chapter and extract illustrations. (But we omit those in 3rd section
 						# because the are just the source material for demonstrations.)
-						if section_id != "section3":
+						# FIXME: include videos for discussions
+						#if section_number != 3:
+						if True:
 
 							# Take the text inside the <a> tag as the article title
 							article_title = a.text_content().strip()
