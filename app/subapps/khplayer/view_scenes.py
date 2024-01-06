@@ -98,7 +98,7 @@ def page_scenes_upload():
 
 		major_mimetype = file.mimetype.split("/")[0]
 		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
-		if prefix is None:
+		if scene_name_prefix is None:
 			flash(_("Unsupported media type: %s") % file.mimetype)
 			continue
 
