@@ -1,9 +1,8 @@
-from .fetcher import Fetcher
 from urllib.parse import urlparse, urljoin, parse_qsl, unquote, urlencode
-import re
 from dataclasses import dataclass
-import logging
+import re, logging
 
+from .fetcher import Fetcher
 from ..utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
@@ -92,15 +91,10 @@ class MeetingLoader(Fetcher):
 
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
 	# the article content. Normally this is the the content of the <article>
-	# tag which is inside the <main> tag. But, if main is True, return the
-	# contents of the <main> tag instead.
+	# tag. But, if main is True, return the contents of the <main> tag instead.
 	def get_article_html(self, url, main=False):
 		html = self.get_html(url)
 
-		logger.debug("URL: %s", url)
-		#self.dump_html(html, "watchtower.html")
-
-		#container = html.xpath(".//main" if main else ".//main//article")
 		container = html.xpath(".//main" if main else ".//article")
 		assert len(container) == 1, "Found %d main containers!" % len(container)
 		container = container[0]
@@ -116,12 +110,12 @@ class MeetingLoader(Fetcher):
 	def extract_media_mwb(self, url, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
-		# Extract the sections from the flat HTML
+		# Extract the top-level sections from the flat HTML
 		sections = [[None, []]]
 		for el in container:
 			h2 = el.xpath("./h2")
 			if h2:
-				sections.append([h2[0].text_content(), []])
+				sections.append([h2[0].text_content().strip(), []])
 			else:
 				sections[-1][1].append(el)
 
@@ -132,21 +126,51 @@ class MeetingLoader(Fetcher):
 		for section_title, section_els in sections:
 			section_number += 1
 			part_title = None
-			print(section_number, section_title)
+			logger.info("Top-level section: %d %s", section_number, section_title)
 
-			for li in section_els:
-				# <div><h3>Part Title</h3></div>
+			part_number = 0
+			for el in section_els:
+
+				#
+				# <h3>
+				#   <a><strong>Song N</strong></a>
+				# </h3>
+				#
+				# or
+				#
+				# <div>
+				#   <h3>Part Title</h3>
+				#   <div></div>
+				#   <div></div>
+				# </div>
+				#
+				# or
+				#
 				# <h3>Part Title</h3>
-				if li.tag == "h3":
-					h3 = [li]
+				# <div></div>
+				#
+				if el.tag == "h3":
+					part_number += 1
+					if el.xpath(".//a"):		# song
+						part_title = "Song"
+					else:
+						part_title = el.text_content().strip()
+						continue
 				else:
-					h3 = li.xpath(".//h3")
-				if h3 and not h3[0].xpath(".//a"):		# not a song
-					part_title = h3[0].text_content()
-					continue
+					h3 = el.xpath(".//h3")
+					if h3:
+						part_number += 1
+						part_title = h3[0].text_content().strip()
+				logger.info("Part: %d %s", part_number, part_title)
+
+				# Illustrations
+				for illustration in self.extract_illustrations("mwb", "Тетрядь", el):
+					illustration.section_title = section_title
+					illustration.part_title = part_title
+					yield illustration
 
 				# Go through all of the hyperlinks in this section
-				for a in li.xpath(".//a"):
+				for a in el.xpath(".//a"):
 					logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
 
 					# Not an actual loop. We always break out on the first iteration.
@@ -228,12 +252,8 @@ class MeetingLoader(Fetcher):
 							is_a = "video"
 							break
 
-						# Links to other publications. For these we download the article or
-						# chapter and extract illustrations. (But we omit those in 3rd section
-						# because the are just the source material for demonstrations.)
-						# FIXME: include videos for discussions
-						#if section_number != 3:
-						if True:
+						# Get videos and illustrations from articles linked to in the last section
+						if section_number == 4:
 
 							# Take the text inside the <a> tag as the article title
 							article_title = a.text_content().strip()
@@ -296,8 +316,7 @@ class MeetingLoader(Fetcher):
 
 	# Find the illustrations (<figure> tags) from an article or chapter body.
 	# The Watchtower extractor runs this on the whole article
-	# The Meeting Workbook extractor runs this on articles to which the
-	# week's page links, omiting only the source material for demonstrations.
+	# The Meeting Workbook extractor runs this on some of the linked articles.
 	def extract_illustrations(self, pub_code, article_title, container):
 		logger.debug("=========================================================")
 		logger.debug(article_title)
