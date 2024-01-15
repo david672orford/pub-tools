@@ -49,4 +49,4 @@
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
 * [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)
 * [Virtual Camera Audio in Linux PR](https://github.com/obsproject/obs-studio/pull/8171)
-
+* [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
