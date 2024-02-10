@@ -39,6 +39,7 @@ class Turbo:
 				yield "retry: 5000\n"
 				while True:
 					data = client_queue.get()
+					logger.debug("Pull message: %s %s", client_id, data)
 					yield "data: " + data.replace("\n", " ") + "\n\n"
 			return Response(stream(), mimetype="text/event-stream")	
 
@@ -73,7 +74,7 @@ class Turbo:
 
 	# Queue a Turbo Stream message for delivery to a client
 	def push(self, message, to=None):
-		logger.debug("Message: %s", message)
+		logger.debug("Push message: %s %s", to, message)
 		try:
 			self.clients[to].put_nowait(message)
 		except queue.Full:

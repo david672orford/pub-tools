@@ -67,6 +67,8 @@ function init_scenes()
 					{
 					e.dataTransfer.items[i].getAsString(function(html) {
 						console.log("html:", html);
+						$("#add-html").value = html;
+						$("#add-html-form BUTTON").click();
 						});
 					}
 				}

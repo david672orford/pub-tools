@@ -140,3 +140,10 @@ def page_scenes_add_url_worker(url):
 	else:
 		load_webpage(None, url)
 
+@blueprint.route("/scenes/add-html", methods=["POST"])
+def page_scenes_add_html():
+	html = request.form["add-html"]
+	# FIXME: code missing
+	print(html)
+	return progress_response(_("Not implemented"), last_message=True)
+

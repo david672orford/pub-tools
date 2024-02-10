@@ -80,6 +80,16 @@
 </section>
 </form>
 
+<form id="add-html-form" action="add-html" method="POST">
+<section class="bordered-box">
+<h2><label for="add-html">{{_("HTML to Add")}}</label></h2>
+	<div class="hbox">
+		<input type="text" id="add-html" name="add-html">
+		<button class="new" type="submit" class="add">{{_("Add as Scene")}}</button>
+	</div>
+</section>
+</form>
+
 <script>
 setTimeout(function() { init_scenes() }, 100);
 </script>

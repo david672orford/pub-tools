@@ -1,7 +1,7 @@
 from flask import current_app, Blueprint, render_template, request, redirect
 from urllib.parse import urlencode
 import os, re
-from time import sleep
+from time import sleep, time
 import subprocess
 import logging
 
@@ -12,7 +12,7 @@ from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from . import menu
 from .views import blueprint
-from .utils.controllers import obs
+from .utils.controllers import obs, ObsError
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +38,16 @@ menu.append((_("JW Stream"), "/jwstream/"))
 def jwstream_channels(config=None):
 	if config is None:
 		config = get_config("JW_STREAM")
-	if not hasattr(jwstream_channels, "handle") or getattr(jwstream_channels, "urls", None) != config.get("urls"):
+	time_now = int(time())
+	if not hasattr(jwstream_channels, "handle") \
+			or getattr(jwstream_channels, "urls", None) != config.get("urls") \
+			or (time_now - getattr(jwstream_channels, "timestamp", 0)) > 3600 \
+			:
+		logger.debug("Creating new jwstream requester")
 		try:
 			jwstream_channels.handle = StreamRequesterContainer(config)
-			jwstream_channels.url = config.get("urls")
+			jwstream_channels.urls = config.get("urls")
+			jwstream_channels.timestamp = time_now
 		except Exception as e:
 			logger.error(str(e))
 			flash(str(e))
@@ -73,6 +79,7 @@ class ConfigForm(dict):
 				flashes += 1
 		return flashes == 0
 
+# Show available JW Stream channels
 @blueprint.route("/jwstream/")
 def page_jwstream():
 	config = get_config("JW_STREAM")
@@ -87,6 +94,7 @@ def page_jwstream():
 		top = ".."
 		)
 
+# Save JW Stream player configuration
 @blueprint.route("/jwstream/save-config", methods=["POST"])
 def page_jwstream_save_config():
 	form = ConfigForm(None, request.form)
@@ -95,6 +103,7 @@ def page_jwstream_save_config():
 	put_config("JW_STREAM", form)
 	return redirect(".")
 
+# Display the programs (talks or meetings) in a channel
 @blueprint.route("/jwstream/<token>/")
 def page_jwstream_channel(token):
 	channel = jwstream_channels()[token]
@@ -102,7 +111,7 @@ def page_jwstream_channel(token):
 	events = sorted(list(events), key=lambda item: (item.datetime, item.title))
 	return render_template("khplayer/jwstream_events.html", channel=channel, events=events, top="../..")
 
-# User has pressed Update button
+# User has pressed Update button to reload the channel's program list
 @blueprint.route("/jwstream/<token>/update", methods=["POST"])
 def page_jwstream_update(token):
 	progress_callback(_("Updating event list..."))
@@ -110,11 +119,11 @@ def page_jwstream_update(token):
 	channel.reload()
 	return progress_response(_("Channel event list updated."), last_message=True)
 
-# Player
+# Video player page for making clips
 @blueprint.route("/jwstream/<token>/<id>/")
 def page_jwstream_player(token, id):
 	channel = jwstream_channels()[token]
-	event = channel.get_event(id, preview=True)
+	event = channel.get_event(id)
 	return render_template("khplayer/jwstream_player.html",
 		id = id,
 		channel = channel,
@@ -125,7 +134,7 @@ def page_jwstream_player(token, id):
 		top = "../../..",
 		)
 
-# When Make Clip button pressed
+# User has pressed the Make Clip button
 @blueprint.route("/jwstream/<token>/<id>/clip", methods=["POST"])
 def page_jwstream_clip(token, id):
 	clip_start = request.form.get("clip_start").strip()
@@ -153,8 +162,10 @@ def page_jwstream_clip(token, id):
 		return redirect(return_url)
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
-	progress_callback(_("Requesting download URL..."))
-	event = jwstream_channels()[token].get_event(id, preview=False)
+	event = jwstream_channels()[token].get_event(id)
+	progress_callback(_("Requesting full-resolution video URL..."))
+	sleep(0.1)
+	download_url = event.download_url
 
 	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:
@@ -163,16 +174,15 @@ def page_jwstream_clip(token, id):
 	# Spawn a background thread to download it and create the scene when the download is done.
 	media_file = os.path.join(current_app.config["MEDIA_CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
 	logger.debug("Downloading clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
-	progress_callback(_("Downloading clip..."))
-	run_thread(lambda: download_clip(clip_title, event.download_url, media_file, clip_start, clip_end, clip_duration))
+	run_thread(lambda: download_clip(clip_title, download_url, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
-	return redirect(".")
+	return progress_response(_("Downloading clip..."))
 
 def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration):
-	sleep(1)
 
-	progress_callback(_("Downloading clip..."))
+	# Sleep not needed since there is no harm if the bar appears before the message
+	#sleep(1)
 
 	# Use FFMpeg to download the part of the video file we need. This is possible
 	# because FFMpeg can take a URL as input and the server supports range requests.
@@ -189,8 +199,10 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 		logger.debug("Output: %s", line)
 		m = re.match(r"out_time_us=(\d+)", line)
 		if m:
-			done = int(int(m.group(1)) / 1000000)
-			progress_callback("{total_recv} of {total_expected}", total_recv=done, total_expected=clip_duration)
+			out_time_us = int(m.group(1))
+			if out_time_us > 0:
+				done = int(out_time_us / 1000000)
+				progress_callback("{total_recv} of {total_expected}", total_recv=done, total_expected=clip_duration)
 	ffmpeg_retcode = ffmpeg.wait()
 	logger.info("FFmpeg exit code: %s", ffmpeg_retcode)
 
@@ -204,8 +216,9 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 		except ObsError as e:
 			# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
 			flash("OBS: %s" % str(e))
+			progress_callback(_("Unable to load clip into OBS."), last_message=True)
 		else:
-			progress_callback(_("Clip created"), last_message=True)
+			progress_callback(_("Clip loaded into OBS."), last_message=True)
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

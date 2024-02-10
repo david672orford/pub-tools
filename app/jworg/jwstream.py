@@ -60,7 +60,9 @@ program_types = {
 
 # A recording of an event
 class StreamEvent:
-	def __init__(self, event, download_url=None, chapters=None):
+	def __init__(self, requester, event):
+		self.requester = requester
+		self.event = event
 		self.id = event["key"]
 		extra = json.loads(event["additionalFields"])
 		program_type = event["categoryProgramType"]
@@ -78,8 +80,56 @@ class StreamEvent:
 		self.duration = int(event["duration"] / 1000)
 		self.language = meps_language_code_to_name(event["languageCode"])
 		self.country = meps_country_code_to_name(event["countryCode"])
-		self.download_url = download_url
-		self.chapters = chapters
+		self._preview_url = None
+		self._download_url = None
+		self._chapters = None
+
+	@property
+	def chapters(self):
+		if self._chapters is None:
+			download_url = self.event["downloadUrls"][0]
+			response = self.requester.session.get(
+				"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"],
+				timeout = self.requestor.request_timeout,
+				)
+			if response.status_code != 200:
+				raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
+			info2 = response.json()
+			chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
+		return self._chapters
+
+	@property
+	def preview_url(self):
+		if self._preview_url is None:
+			self._preview_url = self.get_video_url(self.requester.config["preview_resolution"])
+		return self._preview_url
+
+	@property
+	def download_url(self):
+		if self._download_url is None:
+			self._download_url = self.get_video_url(self.requester.config["download_resolution"])
+		return self._download_url
+
+	def get_video_url(self, resolution):
+		for download_url in self.event['downloadUrls']:
+			m = re.match(r"^(\d+)", download_url['quality'])
+			if int(m.group(1)) == resolution:
+				break
+		else:
+			logger.error("JW Stream event %s not found in resolution %s", id, resolution)
+			return None
+
+		# Ask site to generate an access token and add it to the download URL
+		response = self.requester.session.put(
+			"https://stream.jw.org/api/v1/libraryBranch/program/presignURL",
+			json = download_url,
+			timeout = self.requester.request_timeout,
+			)
+		if response.status_code != 201:
+			raise StreamError("presignURL failed: %d %s" % (response.status_code, response.text))
+		response = response.json()
+		logger.debug("presignURL response: %s", response)
+		return response["presignedUrl"]
 
 class StreamRequester:
 	user_agent = "Mozilla/5.0"
@@ -87,12 +137,13 @@ class StreamRequester:
 
 	def __init__(self, url, config, debug=False):
 		self.debug = debug
-		self.video_info = []
 		self.channel_key = None
 		self.name = None
 		self.language = None
 		self.country = None
 		self.status = None
+		self.video_info = []
+		self.programs = []
 
 		self.config = dict(
 			preview_resolution = 234,
@@ -124,7 +175,7 @@ class StreamRequester:
 			timeout = self.request_timeout,
 			)
 		if response.status_code == 401:
-			self.status = "expired"
+			self.status = "expired"		# sharing URL is too old
 			return
 		if response.status_code != 201:
 			raise StreamError("auth/login/share failed: %s %s" % (response.status_code, response.text))
@@ -176,51 +227,19 @@ class StreamRequester:
 			with open("debug-videos.json", "w") as fh:
 				json.dump(self.video_info, fh, indent=2, ensure_ascii=False)
 
+		self.events = [StreamEvent(self, event) for event in self.video_info]
+
 	# Get a list of the events
 	def list_events(self):
-		for event in self.video_info:
-			yield StreamEvent(event)
+		return self.events
 
 	# Get what we need to play one of the events
-	def get_event(self, id, preview=True):
-
-		for event in self.video_info:
-			if event["key"] == id:
-				break
-		else:
-			logger.error("JW Stream event %s not found", id)
-			return None
-
-		resolution = self.config["preview_resolution" if preview else "download_resolution"]
-		for download_url in event['downloadUrls']:
-			m = re.match(r"^(\d+)", download_url['quality'])
-			if int(m.group(1)) == resolution:
-				break
-		else:
-			logger.error("JW Stream event %s not found in resolution %s", id, resolution)
-			return None
-
-		# Ask site to generate to create an access token and add it to the download URL
-		response = self.session.put(
-			"https://stream.jw.org/api/v1/libraryBranch/program/presignURL",
-			json = download_url,
-			timeout = self.request_timeout,
-			)
-		if response.status_code != 201:
-			raise StreamError("presignURL failed: %d %s" % (response.status_code, response.text))
-		download_url = response.json()
-
-		# Get the chapters
-		response = self.session.get(
-			"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"],
-			timeout = self.request_timeout,
-			)
-		if response.status_code != 200:
-			raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
-		info2 = response.json()
-		chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
-
-		return StreamEvent(event, download_url["presignedUrl"], chapters)
+	def get_event(self, id):
+		for event in self.events:
+			if event.id == id:
+				return event
+		logger.error("JW Stream event %s not found", id)
+		return None
 
 class StreamRequesterContainer(dict):
 	def __init__(self, config):
