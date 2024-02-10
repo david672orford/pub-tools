@@ -12,6 +12,7 @@ from .utils.controllers import obs, ObsError
 from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
+from .utils.controllers import meeting_loader
 
 logger = logging.getLogger(__name__)
 
@@ -129,9 +130,13 @@ def page_scenes_add_url():
 	url = request.form["add-url"]
 	parsed_url = urlparse(url)
 	q = parse_qs(parsed_url.query).keys()
-	if parsed_url.hostname == "www.jw.org" and ("lank" in q or "docid" in q):
-		run_thread(lambda: load_video_url(None, url))
+	run_thread(lambda: page_scenes_add_url_worker(url))
+	return progress_response(_("Loading dropped URL..."))
+
+def page_scenes_add_url_worker(url):
+	sleep(1)
+	if meeting_loader.parse_video_url(url):
+		load_video_url(None, url)
 	else:
-		run_thread(lambda: load_webpage(None, url))
-	return progress_response(_("Loading URL..."))
+		load_webpage(None, url)
 

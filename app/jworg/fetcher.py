@@ -1,11 +1,9 @@
-import os
+import os, json, re
 from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPErrorProcessor, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 from gzip import GzipFile
-import lxml.html
-import json
-import re
 from time import sleep, time
+import lxml.html
 import logging
 
 from ..utils.babel import gettext as _
@@ -220,8 +218,23 @@ class Fetcher:
 	# url -- sharing URL for video
 	# resolution -- 
 	# language -- optional language override, ISO code
+	def parse_video_url(self, url):
+		url_obj = urlparse(url)
+		query = dict(parse_qsl(url_obj.query))
+		if url_obj.netloc == "www.jw.org":
+			if ("lank" in query or "docid" in query) and "wtlocale" in query:
+				return query
+			elif url_obj.fragment:	# player page URL
+				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
+				if m:
+					return {
+						"wtlocale": iso_language_code_to_meps(m.group(1)),
+						"lank": m.group(2),
+						}
+		return {}
+
 	def get_video_metadata(self, url, resolution=None, language=None):
-		query = dict(parse_qsl(urlparse(url).query))
+		query = self.parse_video_url(url)
 
 		# Video is specified by its Language Agnostic Natural Key (LANK)
     	# https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
@@ -267,7 +280,8 @@ class Fetcher:
 				}
 
 		# Video is specified by its MEPS Document ID
-		if "docid" in query:
+		# https://wol.jw.org/wol/datalink/r2/lp-u?docid=1001071937&data-video=webpubvid%3A%2F%2F%2F%3Fpub%3Dnwtsv%26track%3D190
+		elif "docid" in query:
 
 			docid = int(query["docid"])
 			if 1102016801 <= docid <= 1102016951:

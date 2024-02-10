@@ -19,10 +19,13 @@ scene_name_prefixes = {
 # prefix -- media-type marker to put in front of scene name
 # language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
-def load_video_url(scene_name, url, thumbnail_url=None, prefix="▷", language=None, close=True):
-	progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
+def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True):
+	if scene_name is not None:
+		progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
 	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"], language=language)
-	assert video_metadata is not None, url
+	assert video_metadata is not None, "Failed to get metadata for %s" % url
+	if scene_name is None:
+		scene_name = video_metadata["title"]
 
 	progress_callback(_("Downloading \"{url}\"...").format(**video_metadata))
 	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
@@ -49,7 +52,7 @@ def load_video_url(scene_name, url, thumbnail_url=None, prefix="▷", language=N
 
 	try:
 		obs.add_media_scene(
-			prefix + " " + (scene_name if scene_name is not None else video_metadata["title"]),
+			prefix + " " + scene_name,
 			"video",
 			video_file,
 			thumbnail_url = (thumbnail_url if thumbnail_url is not None else video_metadata.get("thumbnail_url")),
@@ -67,7 +70,7 @@ def load_video_url(scene_name, url, thumbnail_url=None, prefix="▷", language=N
 # song -- song number
 # close -- this is the last download in this group, close progress
 def load_song(song: int, close=True):
-	progress_callback(_("Requesting download URL for song {song}...").format(song= song))
+	progress_callback(_("Requesting download URL for song {song}...").format(song=song))
 	media_url = meeting_loader.get_song_video_url(song, resolution=current_app.config["VIDEO_RESOLUTION"])
 	progress_callback(_("Downloading \"{url}\"...").format(url=media_url))
 	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
@@ -102,10 +105,10 @@ def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 # url -- address of web page
 # thumbnail_url -- optional link to small image used in link to this webpage
 # close -- this is the last download in this group, close progress
-def load_webpage(scene_name, url, thumbnail_url=None, close=True):
-	progress_callback(_("Loading webpage \"{url}\"...").filter(url=url))
+def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 	if scene_name is None:
 		scene_name = meeting_loader.get_title(url)
+	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
 		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail_url=thumbnail_url)
 	except ObsError as e:

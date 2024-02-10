@@ -34,6 +34,7 @@ The algorithm for encrypting the password is not publicly known.
 * [Zoom Apps SDK](https://appssdk.zoom.us/classes/ZoomSdk.ZoomSdk.html)
 * [Zoom Apps SDK on Github](https://github.com/zoom/appssdk)
 * [Enable Developer Tools](https://developers.zoom.us/docs/zoom-apps/create/)
+* [Question about Enabling Developer Tools](https://devforum.zoom.us/t/enabling-developer-tools-in-linux/97819)
 * [Manipulating the UI](https://developers.zoom.us/docs/zoom-apps/guides/layers-manipulating-ui/)
 
 ## Native SDK

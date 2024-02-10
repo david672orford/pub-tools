@@ -43,6 +43,5 @@ Whoosh==2.7.4
 Flask_Caching==2.1.0
 
 # For making image thumbnails
-Pillow==10.1.0
-
+Pillow==10.2.0
 
