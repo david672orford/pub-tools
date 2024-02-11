@@ -37,6 +37,7 @@
 * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
 * [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua)
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/)
+* [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
 
 ## Plugin Development
 
