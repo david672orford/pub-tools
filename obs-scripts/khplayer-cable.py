@@ -6,6 +6,11 @@ from obs_wrap import ObsScript, ObsWidget
 from config import get_config, put_config
 from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
 
+#import obspython as obs
+#for item in dir(obs):
+#	if "frontend" in str(item):
+#		print("obs", item)
+
 class ObsVirtualAudioCable(ObsScript):
 	description = """
 		<h2>KH Player—Virtual Audio Cable</h2>
@@ -37,6 +42,7 @@ class ObsVirtualAudioCable(ObsScript):
 			print("config:", self.config)
 		patchbay.load()
 		connect_all(patchbay, self.config)
+		#obs.obs_frontend_add_tools_menu_item("Reconnect Audio", self.on_button)
 
 	# About to display the GUI
 	def on_before_gui(self):

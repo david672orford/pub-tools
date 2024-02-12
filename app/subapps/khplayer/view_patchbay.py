@@ -48,7 +48,7 @@ class Positioner:
 		else:
 			column_name = "Center"
 
-		print(node, column_name)
+		#print(node, column_name)
 		return self.columns[column_name]
 
 	def record_node(self, node, position):
@@ -59,7 +59,7 @@ class Positioner:
 	def place_node(self, node):
 		column = self.get_column(node)
 		reservation = column.reservations.get(node.name)
-		print("reservtoin:", reservation)
+		#print("reservtion:", reservation)
 		if reservation is not None:
 			y = reservation
 		else:

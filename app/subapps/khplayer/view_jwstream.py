@@ -163,9 +163,6 @@ def page_jwstream_clip(token, id):
 
 	# Ask stream.jw.org for the current URL of the full-resolution version.
 	event = jwstream_channels()[token].get_event(id)
-	progress_callback(_("Requesting full-resolution video URL..."))
-	sleep(0.1)
-	download_url = event.download_url
 
 	# If the user did not supply a clip title, make one from the video title and the start and end times.
 	if not clip_title:
@@ -174,15 +171,15 @@ def page_jwstream_clip(token, id):
 	# Spawn a background thread to download it and create the scene when the download is done.
 	media_file = os.path.join(current_app.config["MEDIA_CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
 	logger.debug("Downloading clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
-	run_thread(lambda: download_clip(clip_title, download_url, media_file, clip_start, clip_end, clip_duration))
+	run_thread(lambda: download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
 	return progress_response(_("Downloading clip..."))
 
-def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_duration):
+def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration):
 
-	# Sleep not needed since there is no harm if the bar appears before the message
-	#sleep(1)
+	# Request a download URL with access token
+	video_url = event.get_download_url()
 
 	# Use FFMpeg to download the part of the video file we need. This is possible
 	# because FFMpeg can take a URL as input and the server supports range requests.
@@ -214,7 +211,6 @@ def download_clip(clip_title, video_url, media_file, clip_start, clip_end, clip_
 		try:
 			obs.add_media_scene("▷" + " " + clip_title, "video", media_file)
 		except ObsError as e:
-			# FIXME: If the clip was downloaded previously, this will probably be erased immediately.
 			flash("OBS: %s" % str(e))
 			progress_callback(_("Unable to load clip into OBS."), last_message=True)
 		else:

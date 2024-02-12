@@ -83,18 +83,37 @@ class Link:
 class Patchbay:
 	def load(self):
 		pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
-		pwconf = json.load(pwdump.stdout)
-		#print(json.dumps(pwconf, indent=2))
+
+		# It is not clear why, but pw-dump's output can contain multiple JSON objects.
+		# It is not clear whether this is a bug or not. The additional objects may
+		# represent changes. As observed they always contain one item which has
+		# nothing but on ID and a null "info".
+		pwconf = pwdump.stdout.read()
+		pwconf = "[" + pwconf.replace("\n]\n[\n", "\n],\n[\n") + "]"
+		#with open("pw-dump.json", "w") as fh:
+		#	fh.write(pwconf)
+		pwconf = json.loads(pwconf)
+		def pwconf_iter():
+			for block in pwconf:
+				for item in block:
+					yield item
 
 		self.nodes_by_id = {}
 		self.nodes_by_name = defaultdict(list)
 		self.ports_by_id = {}
 		self.links = []
 		
-		for item in pwconf:
-			#print(item["id"], item["type"])
+		for item in pwconf_iter():
+			#print(item["id"], item.get("type"))
+
+			# The body of the record is in the "info" block.
+			# Skip null records.
 			info = item.get("info",{})
+			if info is None:
+				continue
+
 			props = info.get("props")
+
 			if item["type"] == "PipeWire:Interface:Node":
 				node = Node()
 				node.id = item["id"]

@@ -87,9 +87,10 @@ class StreamEvent:
 	@property
 	def chapters(self):
 		if self._chapters is None:
-			download_url = self.event["downloadUrls"][0]
 			response = self.requester.session.get(
-				"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/%s" % download_url["guid"],
+				"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/{guid}".format(
+					guid = self.event["downloadUrls"][0]["guid"],
+					),
 				timeout = self.requestor.request_timeout,
 				)
 			if response.status_code != 200:
@@ -98,14 +99,12 @@ class StreamEvent:
 			chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
 		return self._chapters
 
-	@property
-	def preview_url(self):
+	def get_preview_url(self):
 		if self._preview_url is None:
 			self._preview_url = self.get_video_url(self.requester.config["preview_resolution"])
 		return self._preview_url
 
-	@property
-	def download_url(self):
+	def get_download_url(self):
 		if self._download_url is None:
 			self._download_url = self.get_video_url(self.requester.config["download_resolution"])
 		return self._download_url

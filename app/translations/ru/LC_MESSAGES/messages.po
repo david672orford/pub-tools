@@ -7,53 +7,54 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-11-02 00:41-0400\n"
-"PO-Revision-Date: 2023-10-24 15:30-0400\n"
+"POT-Creation-Date: 2024-02-11 23:44-0500\n"
+"PO-Revision-Date: 2024-02-11 23:45-0500\n"
 "Last-Translator: \n"
-"Language: ru\n"
 "Language-Team: ru <LL@li.org>\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Generated-By: Babel 2.13.0\n"
+"X-Generator: Poedit 3.0.1\n"
 
-#: cli_update.py:46
+#: cli_update.py:48
 #, python-format
 msgid "Fetching week %s %s"
 msgstr "Идёт загрузка недели %s %s"
 
-#: cli_update.py:56
+#: cli_update.py:58
 msgid "Meetings loaded"
 msgstr "Список встреч обновлен"
 
-#: cli_update.py:213
-msgid "Scanning {category_name} — {subcategory_name}..."
-msgstr "Обновляется {category_name} — {subcategory_name}..."
+#: cli_update.py:204
+msgid "Scanning \"{category_name}\"..."
+msgstr "Обновляется «{category_name}»..."
 
-#: jworg/fetcher.py:199
-msgid "Media file downloaded"
-msgstr "Запись загружена"
+#: cli_update.py:230
+msgid "Scanning \"{category_name} — {subcategory_name}\"..."
+msgstr "Обновляется «{category_name} — {subcategory_name}»..."
 
-#: jworg/meetings.py:13
+#: jworg/meetings.py:12 subapps/khplayer/templates/khplayer/slides.html:43
 msgid "image"
 msgstr "изображение"
 
-#: jworg/meetings.py:14
+#: jworg/meetings.py:13 subapps/khplayer/templates/khplayer/slides.html:43
 msgid "video"
 msgstr "видео"
 
-#: jworg/meetings.py:84
-msgid "Downloading article..."
-msgstr "Идёт загрузка стати..."
+#: jworg/meetings.py:83
+msgid "Downloading article for meeting..."
+msgstr "Идёт загрузка стати для встречи..."
 
-#: jworg/meetings.py:86
+#: jworg/meetings.py:85
 #, python-format
-msgid "Article title: %s"
-msgstr "Название стати: %s"
+msgid "Article title: \"%s\""
+msgstr "Название стати: «%s»"
 
-#: jworg/meetings.py:232
+#: jworg/meetings.py:260
 #, python-format
 msgid "Getting media list from \"%s\"..."
 msgstr "Идёт загрузка списка материала для «%s»..."
@@ -91,166 +92,180 @@ msgstr "Встреча в будни"
 msgid "Weekend Meeting"
 msgstr "Встреча в выходные"
 
-#: subapps/khplayer/view_jwstream.py:88
+#: subapps/khplayer/view_jwstream.py:78
+#, python-format
+msgid "Not a JW Stream sharing URL: %s"
+msgstr "Данный URL к JW Stream не относится: %s"
+
+#: subapps/khplayer/view_jwstream.py:117
 msgid "Updating event list..."
 msgstr "Идёт обновление списка мероприятий..."
 
-#: subapps/khplayer/view_jwstream.py:91
+#: subapps/khplayer/view_jwstream.py:120
 msgid "Channel event list updated."
 msgstr "Список мероприятий в канале обновлен."
 
-#: subapps/khplayer/view_jwstream.py:122
+#: subapps/khplayer/view_jwstream.py:151
 #, python-format
 msgid "Invalid start time: %s"
-msgstr ""
+msgstr "Недопустимое время начала: %s"
 
-#: subapps/khplayer/view_jwstream.py:126
+#: subapps/khplayer/view_jwstream.py:155
 #, python-format
 msgid "Invalid end time: %s"
-msgstr ""
+msgstr "Недопустимое время конца: %s"
 
-#: subapps/khplayer/view_jwstream.py:129
+#: subapps/khplayer/view_jwstream.py:158
 msgid "Duration is zero or negative!"
-msgstr ""
+msgstr "Продолжительность выбранного фрагмента нулевая или отрицательная!"
 
-#: subapps/khplayer/view_jwstream.py:136
-msgid "Requesting download URL..."
-msgstr "Запрос на URL для загрузки..."
-
-#: subapps/khplayer/view_jwstream.py:146 subapps/khplayer/view_jwstream.py:155
+#: subapps/khplayer/view_jwstream.py:177
 msgid "Downloading clip..."
 msgstr "Идёт загрузка фрагмента..."
 
-#: subapps/khplayer/view_jwstream.py:179
+#: subapps/khplayer/view_jwstream.py:208
 msgid "Extraction of clip failed!"
 msgstr "Сбой загрузки фрагмента!"
 
-#: subapps/khplayer/view_jwstream.py:188
-msgid "Clip created"
-msgstr "Фрагмент загружен"
+#: subapps/khplayer/view_jwstream.py:215
+msgid "Unable to load clip into OBS."
+msgstr "Сбой загрузки фрагмента в OBS."
+
+#: subapps/khplayer/view_jwstream.py:217
+msgid "Clip loaded into OBS."
+msgstr "Фрагмент загружен в OBS."
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:1
 #: subapps/khplayer/view_meetings.py:25
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:68
-msgid "Meeting media list loaded"
-msgstr "Список материала для встречи загружён"
+#: subapps/khplayer/view_meetings.py:59
+msgid "Loading meeting media list..."
+msgstr "Загружается список материала для встречи..."
 
-#: subapps/khplayer/view_meetings.py:72
+#: subapps/khplayer/view_meetings.py:84 utils/background.py:31
 #, python-format
 msgid "Error: %s"
 msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:73
-msgid "Loading of meeting media list failed"
-msgstr "Сбой загрузки списка материала для встречи"
+#: subapps/khplayer/view_meetings.py:85
+msgid "Unable to load meeting media list."
+msgstr "Сбой загрузки списка материала для встречи."
 
-#: subapps/khplayer/view_meetings.py:101
-#, python-format
-msgid "Loading media for %s..."
-msgstr "Идёт загрузка материала для %s..."
+#: subapps/khplayer/view_meetings.py:87
+msgid "Meeting media list has finished loading."
+msgstr "Список материала для встречи загружён."
 
-#: subapps/khplayer/view_meetings.py:143
-msgid "Meeting loaded"
-msgstr "Материал для встречи загружён"
+#: subapps/khplayer/view_meetings.py:147
+msgid "Loading media for \"{title}\"..."
+msgstr "Идёт загрузка материала для «{title}»..."
 
-#: subapps/khplayer/view_patchbay.py:12
+#: subapps/khplayer/view_meetings.py:160
+msgid "All requested media have been loaded into OBS."
+msgstr "Все выбранные записи и изображения загружены в OBS."
+
+#: subapps/khplayer/view_patchbay.py:13
 msgid "Audio"
 msgstr "Звук"
 
-#: subapps/khplayer/view_scenes.py:18
+#: subapps/khplayer/view_scenes.py:19
 msgid "Scenes"
 msgstr "Сцены"
 
-#: subapps/khplayer/utils/scenes.py:36 subapps/khplayer/utils/scenes.py:49
-#: subapps/khplayer/utils/scenes.py:61 subapps/khplayer/utils/scenes.py:72
-#: subapps/khplayer/view_scenes.py:25 subapps/khplayer/view_scenes.py:80
-#: subapps/khplayer/view_scenes.py:116
+#: subapps/khplayer/utils/scenes.py:62 subapps/khplayer/utils/scenes.py:80
+#: subapps/khplayer/utils/scenes.py:98 subapps/khplayer/utils/scenes.py:115
+#: subapps/khplayer/view_scenes.py:26 subapps/khplayer/view_scenes.py:81
+#: subapps/khplayer/view_scenes.py:122 subapps/khplayer/view_slides.py:123
 #, python-format
 msgid "OBS: %s"
 msgstr "OBS говорит: %s"
 
-#: subapps/khplayer/view_scenes.py:46
+#: subapps/khplayer/view_scenes.py:47
 #, python-format
 msgid "Scene switched to \"%s\""
 msgstr "Переход на сцену «%s»"
 
-#: subapps/khplayer/view_scenes.py:62
+#: subapps/khplayer/view_scenes.py:63
 msgid "* Camera"
 msgstr "* Камера"
 
-#: subapps/khplayer/view_scenes.py:68
+#: subapps/khplayer/view_scenes.py:69
 msgid "* Zoom"
 msgstr "* Зум"
 
-#: subapps/khplayer/view_scenes.py:76
+#: subapps/khplayer/view_scenes.py:77
 msgid "* Split Screen"
 msgstr "* Разделенный экран"
 
-#: subapps/khplayer/view_scenes.py:97
+#: subapps/khplayer/view_scenes.py:98
 #, python-format
 msgid "Uploading \"%s\" (%s)"
 msgstr "Идёт загрузка «%s» (%s)"
 
-#: subapps/khplayer/view_scenes.py:101
+#: subapps/khplayer/view_scenes.py:103
 #, python-format
 msgid "Unsupported media type: %s"
-msgstr ""
+msgstr "Формат записи не поддерживается: %s"
 
-#: subapps/khplayer/view_scenes.py:131
-msgid "Loading URL..."
-msgstr "Идёт загрузка URL..."
+#: subapps/khplayer/view_scenes.py:134
+msgid "Loading dropped URL..."
+msgstr "Идёт загрузка перетасканного URL..."
 
-#: subapps/khplayer/view_slides.py:14
+#: subapps/khplayer/view_scenes.py:148
+msgid "Not implemented"
+msgstr "Функция нереализованная"
+
+#: subapps/khplayer/view_slides.py:18
 msgid "Slides"
 msgstr "Слайды"
 
-#: subapps/khplayer/view_slides.py:45
+#: subapps/khplayer/view_slides.py:29
+msgid "Not a Google Drive sharing URL"
+msgstr "Не является URL от функции Диска Гугла «Поделиться»"
+
+#: subapps/khplayer/view_slides.py:105
+msgid "Downloading selected slides..."
+msgstr "Загрузить выбранные слайды..."
+
+#: subapps/khplayer/view_slides.py:113
 #, python-format
 msgid "Downloading \"%s\"..."
 msgstr "Идёт загрузка «%s»..."
+
+#: subapps/khplayer/view_slides.py:124
+msgid "Failed to add slide images to OBS."
+msgstr "Сбой загрузки изображения в OBS."
+
+#: subapps/khplayer/view_slides.py:126
+msgid "All selected slides added to OBS."
+msgstr "Все выбранные слайды загружены в OBS."
 
 #: subapps/khplayer/view_songs.py:16
 msgid "Songbook"
 msgstr "Песеник"
 
-#: subapps/khplayer/view_songs.py:34
+#: subapps/khplayer/view_songs.py:33
 #, python-format
 msgid "Not a valid number: %s"
-msgstr ""
+msgstr "Не является номером песни: %s"
 
-#: subapps/khplayer/view_songs.py:38
+#: subapps/khplayer/view_songs.py:37
 #, python-format
 msgid "No such song: %s"
 msgstr "Песня не существует: %s"
-
-#: subapps/khplayer/view_songs.py:40 subapps/khplayer/view_songs.py:46
-#, python-format
-msgid "Loading song %s"
-msgstr "Идёт загрузка песни %s"
 
 #: subapps/khplayer/view_videos.py:18
 msgid "Videos"
 msgstr "Видео"
 
-#: subapps/khplayer/view_videos.py:46 subapps/khplayer/view_videos.py:63
+#: subapps/khplayer/view_videos.py:61 subapps/khplayer/view_videos.py:72
 msgid "Updating video list..."
 msgstr "Обновляется список видеороликов..."
 
-#: subapps/khplayer/view_videos.py:49 subapps/khplayer/view_videos.py:66
-msgid "Updating video index..."
-msgstr "Обновляется индекс видеороликов..."
-
-#: subapps/khplayer/view_videos.py:51 subapps/khplayer/view_videos.py:68
+#: subapps/khplayer/view_videos.py:63 subapps/khplayer/view_videos.py:74
 msgid "Video list updated"
 msgstr "Список видеороликов обновлён"
-
-#: subapps/khplayer/view_videos.py:76
-#, python-format
-msgid "Downloading %s..."
-msgstr "Идёт загрузка %s..."
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:1
 msgid "JW Stream Channels"
@@ -274,15 +289,14 @@ msgstr "Статус"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:39
 #: subapps/khplayer/templates/khplayer/jwstream.html:52
-#: subapps/khplayer/templates/khplayer/slides.html:32
-#: subapps/khplayer/templates/khplayer/slides.html:41
+#: subapps/khplayer/templates/khplayer/slides.html:60
+#: subapps/khplayer/templates/khplayer/slides.html:70
 msgid "Configuration"
 msgstr "Настройки"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:41
-#, fuzzy
 msgid "JW Stream Sharing URLs"
-msgstr "Каналы на сайте JW Stream"
+msgstr "Список URL c сайта JW Stream"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:43
 msgid "Preview Resolution"
@@ -293,13 +307,13 @@ msgid "Download Resolution"
 msgstr "Расширение загрузки"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:46
-#: subapps/khplayer/templates/khplayer/slides.html:43
+#: subapps/khplayer/templates/khplayer/slides.html:72
 msgid "Save"
 msgstr "Сохранять"
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:47
 #: subapps/khplayer/templates/khplayer/scenes.html:28
-#: subapps/khplayer/templates/khplayer/slides.html:44
+#: subapps/khplayer/templates/khplayer/slides.html:73
 msgid "Cancel"
 msgstr "Отменить"
 
@@ -316,7 +330,7 @@ msgid "Date"
 msgstr "Дата"
 
 #: subapps/khplayer/templates/khplayer/jwstream_events.html:27
-#: subapps/khplayer/templates/khplayer/slides.html:30
+#: subapps/khplayer/templates/khplayer/slides.html:58
 msgid "Reload"
 msgstr "Обновить"
 
@@ -379,8 +393,8 @@ msgid "Part"
 msgstr "Пункт"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:18
-msgid "Pub"
-msgstr ""
+msgid "Pub."
+msgstr "Публ."
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:19
 msgid "Media Item"
@@ -404,15 +418,19 @@ msgstr "Коммутационная панель"
 
 #: subapps/khplayer/templates/khplayer/patchbay.html:33
 msgid "Microphone"
-msgstr ""
+msgstr "Микрофон"
 
 #: subapps/khplayer/templates/khplayer/patchbay.html:34
 msgid "Speakers"
-msgstr ""
+msgstr "Колонки"
 
 #: subapps/khplayer/templates/khplayer/patchbay.html:35
 msgid "Reconnect Audio"
 msgstr "Вторично подключить звук"
+
+#: subapps/khplayer/templates/khplayer/patchbay.html:36
+msgid "Arange Nodes"
+msgstr "Растравлять узли"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:1
 msgid "Scene List (OBS)"
@@ -439,7 +457,6 @@ msgid "Add Split Screen Scene"
 msgstr "Добавить сцену с разделённым экраном"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:36
-#: subapps/khplayer/templates/khplayer/slides.html:12
 msgid "Scene Name"
 msgstr "Навание сцены"
 
@@ -449,31 +466,31 @@ msgstr "Загрузить файлы"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:63
 msgid "Browse"
-msgstr ""
+msgstr "Обзор"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:68
 #: subapps/khplayer/templates/khplayer/scenes.html:78
-#, fuzzy
+#: subapps/khplayer/templates/khplayer/scenes.html:88
 msgid "Add as Scene"
-msgstr "Добавить сцену с камерой"
+msgstr "Добавить в качестве сцены"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:75
 msgid "URL to Add"
 msgstr "Дабавить URL"
 
+#: subapps/khplayer/templates/khplayer/scenes.html:85
+msgid "HTML to Add"
+msgstr "Дабавить HTML"
+
 #: subapps/khplayer/templates/khplayer/slides.html:1
 msgid "Speaker's Slide Loader"
 msgstr "Загрущик слайдов доклядчика"
 
-#: subapps/khplayer/templates/khplayer/slides.html:13
-msgid "Preview"
-msgstr "Экскиз"
-
-#: subapps/khplayer/templates/khplayer/slides.html:29
+#: subapps/khplayer/templates/khplayer/slides.html:57
 msgid "Load Selected Slides into OBS"
 msgstr "Загрузить выбранные слайды в OBS"
 
-#: subapps/khplayer/templates/khplayer/slides.html:42
+#: subapps/khplayer/templates/khplayer/slides.html:71
 msgid "Google Drive Sharing URL"
 msgstr "URL от функции Диска Гугла «Поделиться»"
 
@@ -496,8 +513,8 @@ msgstr "Номер и название песни"
 #: subapps/khplayer/templates/khplayer/songs.html:38
 msgid "Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here."
 msgstr ""
-"Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился"
-" здесь."
+"Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился "
+"здесь."
 
 #: subapps/khplayer/templates/khplayer/videos.html:1
 msgid "Video Categories from JW.ORG"
@@ -549,84 +566,84 @@ msgstr "Ролики соответствующих терменам отсут�
 #: subapps/khplayer/templates/khplayer/videos_search.html:47
 #, python-format
 msgid "Consider searching for %(search_suggestion)s instead."
-msgstr ""
+msgstr "Предлагается заменить поисковые термины на %(search_suggestion)s."
 
-#: subapps/khplayer/utils/scenes.py:9
-msgid "Getting video download URL..."
-msgstr "Запрос на URL загрузки ролика..."
+#: subapps/khplayer/utils/scenes.py:24
+msgid "Requesting download URL for \"{scene_name}\"..."
+msgstr "Запрос на URL для загрузки «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:13
-#, python-format
-msgid "Downloading video \"%s\"..."
-msgstr "Идёт загрузка ролика «%s»..."
+#: subapps/khplayer/utils/scenes.py:30 subapps/khplayer/utils/scenes.py:75
+msgid "Downloading \"{url}\"..."
+msgstr "Идёт загрузка «{url}»..."
 
-#: subapps/khplayer/utils/scenes.py:28
-msgid "Downloading subtitles..."
-msgstr "Идёт загрузка субтитров..."
+#: subapps/khplayer/utils/scenes.py:45
+msgid "Requesting subtitles download url for \"{scene_name}\"..."
+msgstr "Подаётся запрос на URL для загрузки субтитров к записи «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:37
-msgid "Failed to add video"
-msgstr ""
+#: subapps/khplayer/utils/scenes.py:48
+msgid "Downloading subtitles from \"{subtitles_url}\"..."
+msgstr "Идёт загрузка субтитров по адресу «{subtitles_url}»..."
 
-#: subapps/khplayer/utils/scenes.py:39
-msgid "Video loaded"
-msgstr "Видеоролик загружён"
+#: subapps/khplayer/utils/scenes.py:63
+msgid "Unable to load video into OBS."
+msgstr "Сбой загрузки видеозаписи в OBS."
 
-#: subapps/khplayer/utils/scenes.py:42
-#, python-format
-msgid "Getting song %d download URL..."
-msgstr "Обрабатывается запрос на URL для загрузки песни %d..."
-
-#: subapps/khplayer/utils/scenes.py:44
-#, python-format
-msgid "Downloading song %d..."
-msgstr "Идёт загрузка песни %d..."
-
-#: subapps/khplayer/utils/scenes.py:47
-#, python-format
-msgid "♫ Song %s"
-msgstr "♫ Песня %s"
-
-#: subapps/khplayer/utils/scenes.py:50
-msgid "Failed to add song"
-msgstr "Сбой добавления писни"
-
-#: subapps/khplayer/utils/scenes.py:52
-#, python-format
-msgid "Song %d video loaded"
-msgstr "Видеоролик песни %d загружён"
-
-#: subapps/khplayer/utils/scenes.py:55
-msgid "Loading webpage..."
-msgstr "Идёт загрузка веб-страници..."
-
-#: subapps/khplayer/utils/scenes.py:62
-msgid "Failed to add webpage"
-msgstr "Сбой добавления веб-страници"
-
-#: subapps/khplayer/utils/scenes.py:64
-msgid "Webpage loaded"
-msgstr "Веб-страница загружена"
-
-#: subapps/khplayer/utils/scenes.py:68
-msgid "Downloading image..."
-msgstr "Идёт загрузка изображения..."
+#: subapps/khplayer/utils/scenes.py:65
+msgid "Video loaded into OBS."
+msgstr "Видеозапись загружена в OBS."
 
 #: subapps/khplayer/utils/scenes.py:73
-msgid "Failed to add image"
-msgstr "Сбой загрузки изображения"
+msgid "Requesting download URL for song {song}..."
+msgstr "Запрос на URL для загрузки песни {song}..."
 
-#: subapps/khplayer/utils/scenes.py:75
-msgid "Image loaded"
-msgstr "Изображение загружено"
+#: subapps/khplayer/utils/scenes.py:78
+msgid "♫ Song {song}"
+msgstr "♫ Песня {song}"
+
+#: subapps/khplayer/utils/scenes.py:81
+msgid "Unable to song into OBS."
+msgstr "Сбой загрузки песни в OBS."
+
+#: subapps/khplayer/utils/scenes.py:83
+#, python-format
+msgid "Song %d loaded into OBS."
+msgstr "Песня %d загружена в OBS."
+
+#: subapps/khplayer/utils/scenes.py:94
+msgid "Downloading image \"{scene_name}\"..."
+msgstr "Идёт загрузка изображения «{scene_name}»..."
+
+#: subapps/khplayer/utils/scenes.py:99
+msgid "Unable to load image into OBS."
+msgstr "Сбой загрузки изображения в OBS."
+
+#: subapps/khplayer/utils/scenes.py:101
+msgid "Image loaded into OBS."
+msgstr "Изображение загружено в OBS."
+
+#: subapps/khplayer/utils/scenes.py:111
+msgid "Loading webpage \"{scene_name}\"..."
+msgstr "Идёт загрузка веб-страницы «{scene_name}»..."
+
+#: subapps/khplayer/utils/scenes.py:116
+msgid "Unable to load webpage into OBS."
+msgstr "Сбой загрузки веб-страницы в OBS."
+
+#: subapps/khplayer/utils/scenes.py:118
+msgid "Webpage loaded into OBS."
+msgstr "Веб-страница загружена в OBS."
 
 #: subapps/khplayer/utils/zoom.py:18
 msgid "Second Zoom window not found."
 msgstr "Второе окно Зума не обнаружено."
 
-#: utils/background.py:20
+#: utils/background.py:23
 msgid "Please wait for previous download to finish."
 msgstr "Подождите завершения предыдущей загрузки."
+
+#: utils/background.py:32
+msgid "Background task failed."
+msgstr "Сбой в выполнении фоновой задачи."
 
 #~ msgid "Current and Upcoming Meetings"
 #~ msgstr "Следующие встречи"
@@ -667,3 +684,41 @@ msgstr "Подождите завершения предыдущей загру�
 #~ msgid "Upload"
 #~ msgstr "Загрузить"
 
+#~ msgid "Media file downloaded"
+#~ msgstr "Запись загружена"
+
+#~ msgid "Clip created"
+#~ msgstr "Фрагмент загружен"
+
+#~ msgid "Meeting loaded"
+#~ msgstr "Материал для встречи загружён"
+
+#~ msgid "Loading song %s"
+#~ msgstr "Идёт загрузка песни %s"
+
+#~ msgid "Updating video index..."
+#~ msgstr "Обновляется индекс видеороликов..."
+
+#~ msgid "Downloading %s..."
+#~ msgstr "Идёт загрузка %s..."
+
+#~ msgid "Preview"
+#~ msgstr "Экскиз"
+
+#~ msgid "Getting video download URL..."
+#~ msgstr "Запрос на URL загрузки ролика..."
+
+#~ msgid "Downloading video \"%s\"..."
+#~ msgstr "Идёт загрузка ролика «%s»..."
+
+#~ msgid "Getting song %d download URL..."
+#~ msgstr "Обрабатывается запрос на URL для загрузки песни %d..."
+
+#~ msgid "Downloading song %d..."
+#~ msgstr "Идёт загрузка песни %d..."
+
+#~ msgid "Failed to add song"
+#~ msgstr "Сбой добавления писни"
+
+#~ msgid "Requesting full-resolution video URL..."
+#~ msgstr "Подаётся запрос на URL для загрузки записи в полном резрешении..."
