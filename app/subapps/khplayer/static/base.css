@@ -5,11 +5,13 @@ HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAR
 * {
 	box-sizing: border-box;
 	}
+
 HTML, BODY {
 	height: 100%;
 	}
 BODY {
 	font-family: sans-serif;
+	/*font-size: 16pt;*/
 	display: flex;
 	flex-direction: column;
 	}

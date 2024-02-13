@@ -56,3 +56,35 @@
 * [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)
 * [Virtual Camera Audio in Linux PR](https://github.com/obsproject/obs-studio/pull/8171)
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
+
+## Coordinate Transformation of Scene Items
+
+The scaling and placement of images and videos in scenes is controlled by the
+transform parameters. One can control these parameters using the **Transform**
+menu in the source context menu. The transform parameters seem to be applied
+in the following manner:
+
+1. The image is scaled to the indicated **Size**. Initially the size will
+be set to the natural size of the image, but this can be changed to make
+the image larger or smaller. If the new size does not preserve the aspect
+ration, the image will be distored.
+2. The image is cropped using the **Left**, **Right**, **Top**, and **Bottom**
+parameters provided. Though the cropping is applied after scaling, the amount
+to crop is in terms of the original image size.
+3. If the **Bounding Box Type** is anything other than **No bounds**, the image
+is scaled again to the size indicated in the **Bounding Box Size**.
+    * **Stretch to bounds** -- The image is scaled to fill the entire bounding
+box without regard to the aspect ratio
+    * **Scale to inner bounds** -- image is sized to that it touches the bounding box at top and bottom or left and right, possibly leaving black bars in the other dimension
+    * **Scale to outer bounds** -- no black bars, even if something has to be but off
+    * **Scale to width of bounds** -- left and right edges or image touch left and right of bounding box, vertical discrepancy causes overflow or black bars
+    * **Scale to height of bounds** -- top and bottom edgesof image touch top and bottom of bounding box, horizontal discrepancy causes overflow or black bars
+    * **Maximum size only** -- shrink the image to fit completely within the bounds, but don't enlarge it to fill the bounds
+4. If a bounding box was used and their is space left around the image, it is positioned as described in **Alignment in Bounding Box**.
+5. The resulting image is placed at the indicated **Position** on the video canvas. The
+**Position Alignment** parameter determines the anchor, the part of the image which is placed
+at the indicated position. The default is to place the top-left corner
+of the image at that position.
+6. The image is rotated around the **Position** by the number of degrees
+indicated in the **Rotation** parameter.
+
