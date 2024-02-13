@@ -4,6 +4,7 @@
 
 * [OBS Main Site](https://obsproject.com/)
 * [OBS Github Site](https://github.com/obsproject/obs-studio)
+* [Building on Debian](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
 
 ## Integration with other Programs
 
