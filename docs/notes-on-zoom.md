@@ -10,11 +10,11 @@
 
 And ordinary meeting URL looks like this:
 
-> https://zoom<span>.</span>us/j/*meeting\_id*?pwd=*encrypted\_password*
+> https<span>://</span>zoom.us/j/*meeting\_id*?pwd=*encrypted\_password*
 
 A meeting URL which takes the user to the web client looks like this:
 
-> https://zoom<span>.</span>us/wc/join/*meeting\_id*?pwd=*encrypted\_password*
+> https<span>://</span>zoom.us/wc/join/*meeting\_id*?pwd=*encrypted\_password*
 
 The algorithm for encrypting the password is not publicly known.
 
