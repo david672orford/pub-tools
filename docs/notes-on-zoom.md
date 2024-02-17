@@ -10,15 +10,17 @@
 
 And ordinary meeting URL looks like this:
 
-    https://zoom.us/j/*meeting\_id*?pwd=*encrypted\_password*
+> https://zoom.us/j/*meeting\_id*?pwd=*encrypted\_password*
 
 A meeting URL which takes the user to the web client looks like this:
 
-    https://zoom.us/wc/join/*meeting\_id*?pwd=*encrypted\_password*
+> https://zoom.us/wc/join/*meeting\_id*?pwd=*encrypted\_password*
 
 The algorithm for encrypting the password is not publicly known.
 
 ## Web Meeting SDK
+
+The Web Meeting SDK can be used to create customized versions of the Zoom web client.
 
 * [Zoom App Marketplace](https://marketplace.zoom.us/) - Sign in and choose Develop and then Build App
 * [Zoom Meeting SDK for web](https://developers.zoom.us/docs/meeting-sdk/web/)
@@ -29,6 +31,8 @@ The algorithm for encrypting the password is not publicly known.
 * [Example of Component View Config](https://stackoverflow.com/questions/76831074/how-to-implement-multiple-spotlighting-using-the-zoom-web-sdk-in-component-view)
 
 ## Zoom Apps SDK
+
+The Zoom Apps SDK can be used to create tools and plugins which can be embedded in the Zoom client.
 
 * [Welcome to Zoom Apps SDK!](https://devforum.zoom.us/t/welcome-to-zoom-apps-sdk/70841)
 * [Zoom Apps SDK](https://appssdk.zoom.us/classes/ZoomSdk.ZoomSdk.html)
