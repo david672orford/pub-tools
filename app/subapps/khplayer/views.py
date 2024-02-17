@@ -14,7 +14,7 @@ blueprint.cache = Cache()
 # Redirect to default tab
 @blueprint.route("/")
 def page_index():
-	return redirect("meetings/")
+	return redirect("scenes/")
 
 # Whenever an uncaught exception occurs in a view function Flask returns
 # HTTP error 500 (Internal Server Error). Here we catch this error so we
@@ -26,12 +26,12 @@ def handle_500(error):
 	exception = "".join(traceback.format_exception(*sys.exc_info()))
 	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
 
+from . import view_scenes
 from . import view_meetings
 from . import view_jwstream
 from . import view_songs
 from . import view_slides
 from . import view_videos
-from . import view_scenes
 if sys.platform == "linux":
 	from . import view_patchbay
 

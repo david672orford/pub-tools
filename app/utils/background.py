@@ -52,12 +52,13 @@ def progress_response(message, last_message=False, **kwargs):
 	logger.debug("Response message: %s", message)
 	return turbo.stream(format_progress_message(message, last_message=last_message, **kwargs))
 
-def format_progress_message(message, last_message=False, **kwargs):
+def format_progress_message(message, last_message=False, cssclass=None, **kwargs):
 	if message is None:
 		message = ""
 	else:
 		message = message.format(**kwargs)
-	message = "<div>%s</div>%s" % (
+	message = "<div%s>%s</div>%s" % (
+		f" class=\"{cssclass}\"" if cssclass is not None else "",
 		escape(message),
 		"<script>hide_progress()</script>" if last_message else "",
 		) 
@@ -68,8 +69,11 @@ def format_progress_message(message, last_message=False, **kwargs):
 # through to the flash() function supplied by Flask.
 def flash(message: str, category: str="message") -> None:
 	if current_thread() is background_thread:
-		to = session["session-id"]
-		turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
+		async_flash(message, category=category)
 	else:
 		flask_flash(message, category=category)
+
+def async_flash(messsage: str, category: str="message") -> None:
+	to = session["session-id"]
+	turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
 

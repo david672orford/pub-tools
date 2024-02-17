@@ -75,9 +75,10 @@ class Turbo:
 	# Queue a Turbo Stream message for delivery to a client
 	def push(self, message, to=None):
 		logger.debug("Push message: %s %s", to, message)
-		try:
-			self.clients[to].put_nowait(message)
-		except queue.Full:
-			logger.info("EventStream client %s disconnected" % to)
-			del self.clients[to]
+		for client in self.clients.keys() if to is None else [to]:
+			try:
+				self.clients[client].put_nowait(message)
+			except queue.Full:
+				logger.info("EventStream client %s disconnected" % client)
+				del self.clients[client]
 

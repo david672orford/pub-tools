@@ -24,6 +24,7 @@ These are notes on the libraries, API's and frameworks used in this project.
 * [Server-Sent Events: the alternative to WebSockets you should be using](https://germano.dev/sse-websockets/)
 * [HTML Drag and Drop API](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
 * [Dragging OS Folders to Webpage](https://stackoverflow.com/questions/3590058/does-html5-allow-drag-drop-upload-of-folders-or-a-folder-tree)
+* [Dragging to Reorder a List](https://stackoverflow.com/questions/10588607/tutorial-for-html5-dragdrop-sortable-list)
 
 ## Web Apps on the Desktop
 

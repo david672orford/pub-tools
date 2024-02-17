@@ -8,7 +8,8 @@ function init_patchbay(links) {
 	const patchbay = document.getElementById("patchbay");
 	const patchbay_svg = patchbay.getElementsByTagName("svg")[0];
 	const link_template = patchbay.getElementsByTagName("template")[0];
-	const dummy_input = patchbay.getElementsByClassName("dummy-input")[0];
+	const dummy_image = document.createElement("img");
+	dummy_image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 	/* Handles the drawing of one line from an output to an input */
 	class LinkDrawer
@@ -105,7 +106,7 @@ function init_patchbay(links) {
 		e.target.addEventListener("drag", on_node_drag);
 		e.target.addEventListener("dragend", on_node_dragend);
 
-		e.dataTransfer.setDragImage(dummy_input, 5, 5);
+		e.dataTransfer.setDragImage(dummy_image, 0, 0);
 		}
 
 	/* Fired several times a second as the user moves the node */
@@ -211,7 +212,7 @@ function init_patchbay(links) {
 		e.dataTransfer.setData("text/plain", e.target.id);
 		e.stopPropagation();		/* so dragstart won't be called on node */
 
-		e.dataTransfer.setDragImage(dummy_input, 5, 5);
+		e.dataTransfer.setDragImage(dummy_image, 0, 0);
 		temp_link = new LinkDrawer(e.target, null);
 		temp_link.path.style.pointerEvents = "none";
 		
@@ -234,8 +235,6 @@ function init_patchbay(links) {
 		e.target.removeEventListener("dragend", on_port_dragend);
 		temp_link.remove()
 		temp_link = null;
-		dummy_input.style.left = null;
-		dummy_input.style.top = null;
 		}
 
 	/* Dragged output port hovering over an input port */

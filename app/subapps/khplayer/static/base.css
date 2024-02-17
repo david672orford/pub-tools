@@ -153,6 +153,9 @@ HEADER DIV#progress-message {
 	min-height: 1.4em;
 	padding: .1em .2em 0 .2em;
 	}
+HEADER DIV#progress-message.error {
+	color: red;
+	}
 
 /* Error messages above content */
 DIV.flash {
@@ -292,8 +295,20 @@ DIV.thumbnail > DIV.caption {
 	}
 
 /* Scenes table */
+#scenes TD:nth-child(2) {
+	padding: 0;
+	}
 #scenes BUTTON {
 	text-align: left;
+	border: none;
+	border-radius: 0;
+	background-color: white;
+	}
+#scenes BUTTON:hover {
+	filter: none;
+	}
+.scene-add-form {
+	display: none;
 	}
 
 /* Search box */

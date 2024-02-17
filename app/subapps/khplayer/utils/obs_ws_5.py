@@ -1,15 +1,14 @@
-# Add a scene with a single media item to OBS
-# This version communicates with OBS through the OBS-Websocket plugin version 5.x.
+# Client for OBS-Websocket 5.x
 #
 # References:
 # * https://github.com/obsproject/obs-websocket
 # * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 #
 
-import os, re, json
+import json
 import websocket
 import base64, hashlib
-from urllib.parse import urlparse, unquote
+from threading import Thread, current_thread, Lock, Condition
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,8 +34,26 @@ class ObsError(Exception):
 class ObsControlBase:
 	def __init__(self, config):
 		self.config = config
+		self.subscribers = []
 		self.ws = None
-		self.reqid = 0
+		self.next_reqid = 0
+		self.next_reqid_lock = Lock()
+		self.thread = None
+		self.condition = Condition()
+		self.responses = {}
+
+		# Connect right away so if browers reconnect they can get events.
+		# But supress the error since we have no one to whom to report it.
+		# The user will get the error again when he tries to do something
+		# which require communication with OBS.
+		try:
+			self.connect()
+		except ObsError as e:
+			logger.warning("Failed to connect to OBS: %s", e)
+
+	def subscribe(self, category, func):
+		assert category == "scenes"
+		self.subscribers.append(func)
 
 	def connect(self):
 		if self.config is None:
@@ -50,9 +67,11 @@ class ObsControlBase:
 			raise ObsError("Bad connection configuration")
 
 		try:
+			# Connect to OBS-Websocket
 			ws = websocket.WebSocket()
 			ws.connect("ws://%s:%d" % (hostname, port))
-	
+
+			# Read greeting from OBS-Websocket	
 			hello = ws.recv()
 			logger.debug("hello: %s", hello)
 			hello = json.loads(hello)
@@ -65,12 +84,13 @@ class ObsControlBase:
 
 		except Exception as e:
 			raise ObsError("Cannot connect: " + str(e))
-	
+
+		# Identify (log in) to OBS-Websocket
 		req = {
 			"op": 1,
 			"d": {
 				"rpcVersion": 1,
-				"eventSubscriptions": 0,
+				"eventSubscriptions": 4,
 				}
 			}
 
@@ -107,61 +127,92 @@ class ObsControlBase:
 		# We are connected
 		self.ws = ws
 
+		# Start receive thread
+		self.thread = Thread(target=lambda: self.recv_thread_body(), daemon=True)
+		self.thread.start()
+
 	# Close the connection to OBS-Websocket
 	def close(self):
 		self.ws.close()
 		self.ws = None
+		self.thread = None
+		self.responses = {}
+
+	def recv_thread_body(self):
+		logger.debug("Receive thread starting")
+
+		while current_thread() is self.thread:
+			try:
+				message = self.ws.recv()
+			except Exception as e:
+				self.close()
+				raise ObsError("Receive failure: " + str(e))
+			logger.debug("OBS recv message: %s", message)
+			if len(message) == 0:
+				raise ObsError("Empty response")
+			message = json.loads(message)
+
+			if message["op"] == 5:			# Event
+				for subscriber in self.subscribers:
+					subscriber(message["d"])
+			elif message["op"] in (7, 9):
+				self.condition.acquire()
+				self.responses[message["d"]["requestId"]] = message
+				self.condition.notify()
+				self.condition.release()
+			else:
+				logger.warning("Unhandled message:", message)
+
+		logger.debug("Receive thread exiting")
 
 	# Internal: Generate the next request ID
-	def next_reqid(self):
-		self.reqid += 1
-		return str(self.reqid)
+	def get_next_reqid(self):
+		self.next_reqid_lock.acquire()
+		reqid = self.next_reqid
+		self.next_reqid += 1
+		self.next_reqid_lock.release()
+		return str(reqid)
 
-	# Internal: Open websocket to OBS and send request
+	# Internal: Send a request
 	def ws_write_json(self, message):
 		logger.debug("OBS request: %s", message)
 		if self.ws is None:
 			self.connect()
 		try:
 			self.ws.send(json.dumps(message))
+			self.responses[message["d"]["requestId"]] = None
 		except Exception as e:
 			self.close()
 			raise ObsError("Send failure: " + str(e))
 
 	# Internal: Read response from the websocket to OBS
-	def ws_read_json(self, expected_opcode, req_type=None):
-		try:
-			response = self.ws.recv()
-		except Exception as e:
-			self.close()
-			raise ObsError("Receive failure: " + str(e))
-
-		logger.debug("OBS response: %s", response)
-		if len(response) == 0:
-			raise ObsError("Empty response")
-
-		response = json.loads(response)
-
+	def ws_read_json(self, reqid, expected_opcode, req_type=None):
+		logger.debug("Waiting for response to %s...", reqid)
+		self.condition.acquire()
+		while self.responses[reqid] is None:
+			#print("responses:", self.responses)
+			self.condition.wait()
+		response = self.responses.pop(reqid)
+		self.condition.release()
 		if response["op"] != expected_opcode:
 			raise ObsError("incorrect opcode")
-		if response["d"]["requestId"] != str(self.reqid):
-			raise ObsError("incorrect requestId")
 		if req_type is not None and response["d"]["requestType"] != req_type:
 			raise ObsError("incorrect requestType")
-
 		return response
 
 	# Send a request to OBS and wait for the response
 	def request(self, req_type, req_data, raise_on_error=True):
+		reqid = self.get_next_reqid()
 		self.ws_write_json({
-			"op": 6,		# Request
+			"op": 6,			# Request
 			"d": {
-				"requestId": str(self.reqid),
+				"requestId": reqid,
 				"requestType": req_type,
 				"requestData": req_data,
 				}
 			})
 		response = self.ws_read_json(
+			reqid,
 			expected_opcode=7,	# RequestResponse
 			req_type=req_type,
 			)
@@ -171,16 +222,18 @@ class ObsControlBase:
 
 	# Send a series of requests to OBS
 	def request_batch(self, requests, halt_on_failure=False, execution_type=0):
+		reqid = self.get_next_reqid()
 		self.ws_write_json({
-			"op": 8,		# RequestBatch
+			"op": 8,			# RequestBatch
 			"d": {
-				"requestId": self.next_reqid(),
+				"requestId": reqid,
 				"haltOnFailure": halt_on_failure,
 				"executionType": execution_type,
 				"requests": requests,
 				}
 			})
 		response = self.ws_read_json(
+			reqid,
 			expected_opcode=9,	# RequestBatchResponse
 			)
 		return response["d"]["results"]
@@ -213,6 +266,15 @@ class ObsControlBase:
 
 	def remove_scene(self, scene_name):
 		self.request("RemoveScene", {"sceneName": scene_name})
+
+	def remove_scenes(self, scene_names):
+		requests = []
+		for scene_name in scene_names:
+			requests.append({
+				"requestType": "RemoveScene",
+				"requestData": {"sceneName": scene_name},
+				})
+		self.request_batch(requests)
 
 	def set_current_program_scene(self, scene_name):
 		self.request("SetCurrentProgramScene", {"sceneName": scene_name})
@@ -279,208 +341,5 @@ class ObsControlBase:
 		self.request("OpenVideoMixProjector", {
 			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
 			"monitorIndex": monitor,
-			})
-
-# Add higher-level methods to do specific things for KH Player
-# FIXME: break this out into a separate file so that it can be used with obs_api.py.
-class ObsControl(ObsControlBase):
-
-	camera_input_settings = {
-		"auto_reset": True,
-		"buffering": False,
-		#"device_id" : "/dev/video1"
-		"input": 0,
-		"pixelformat": 1196444237,		# Motion-JPEG
-		#"pixelformat": 875967048,		# H.264
-		#"pixelformat" : 1448695129,	# YUYV 4:2:2
-		"resolution": 83886800,			# 1280x720
-		}
-
-	zoom_input_settings = {
-		"show_cursor": False,
-		}
-
-	# Create a scene for a video or image file.
-	# Center it and scale to reach the edges.
-	# For videos enable audio monitoring.
-	def add_media_scene(self, scene_name, media_type, media_file, thumbnail_url=None, subtitle_track=None):
-		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
-
-		# Get basename of media file
-		if re.match(r"^https?://", media_file, re.I):
-			parsed_url = urlparse(media_file)
-			path = parsed_url.path
-			if path == "":
-				source_name = parsed_url.hostname
-			elif path.endswith("/"):
-				source_name = path.split("/")[-2]
-			else:
-				source_name = path.split("/")[-1]
-			source_name = unquote(source_name)
-		else:
-			source_name = os.path.basename(media_file)
-
-		# Select the appropriate OBS source type and build its settings
-		if media_type == "audio":
-			source_type = "ffmpeg_source"
-			source_settings = {
-				"local_file": media_file,
-				}
-		elif media_type == "video":
-			# If subtitles are enabled, use the VLC source
-			if subtitle_track is not None:
-				source_type = "vlc_source"
-				source_settings = {
-					"playlist": [
-						{
-						"value": media_file,
-						"selected": False,
-						"hidden": False,
-						}],
-					"loop": False,
-					"subtitle_enable": True,
-					"subtitle": subtitle_track,
-					}
-			# Otherwise use the FFmpeg source which seems to be more stable
-			else:	
-				source_type = "ffmpeg_source"
-				source_settings = {
-					"local_file": media_file,
-					}
-		elif media_type == "image":
-			source_type = "image_source"
-			source_settings = {
-				"file": media_file,
-				}
-		elif media_type == "web":
-			source_type = "browser_source"
-			source_settings = {
-				"url": media_file,
-				"width": 1280, "height": 720,
-				"css": "",
-				}
-		else:
-			raise AssertionError("Unsupported media_type: %s" % media_type)
-
-		# FIXME: Hopefully we can use this in future
-		if thumbnail_url is not None:
-			source_settings["thumbnail_url"] = thumbnail_url
-
-		logger.info(" Source: %s \"%s\"", source_type, source_name)
-		logger.info(" Source settings: %s", source_settings)
-
-		# Add a new scene. (Naming naming conflicts will be resolved.)
-		scene_name = self.create_scene(scene_name, make_unique=True)
-
-		# Create a source (now called an input) to play our file. Resolve naming conflicts.
-		i = 1
-		scene_item_id = None
-		while True:
-			try_source_name = source_name
-			if i > 1:
-				try_source_name += " (%d)" % i
-			payload = {
-				'sceneName': scene_name,
-				'inputName': try_source_name,
-				'inputKind': source_type,
-				'inputSettings': source_settings,
-				}
-			try:
-				response = self.request('CreateInput', payload)
-				source_name = try_source_name
-				scene_item_id = response["responseData"]["sceneItemId"]
-				break
-			except ObsError as e:
-				if e.code != 601:		# resource already exists
-					raise ObsError(e)
-			i += 1
-
-		if media_type != "audio":
-			self.scale_input(scene_name, scene_item_id)
-
-		# Enable audio monitoring for video files
-		if media_type == "video":
-			payload = {
-				'inputName': source_name,
-				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
-				}
-			self.request('SetInputAudioMonitorType', payload)
-
-	# Create the specified OBS input, if it does not exist already,
-	# and add it to the specified scene.
-	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
-		try:
-			scene_item_id = self.create_input(
-				scene_name = scene_name,
-				input_name = input_name,
-				input_kind = input_kind,
-				input_settings = input_settings
-				)
-		except ObsError as e:
-			if e.code != 601:
-				raise(ObsError(e))
-			scene_item_id = self.create_scene_item(
-				scene_name = scene_name,
-				source_name = input_name,
-				)
-		return scene_item_id
-
-	# Create an OBS input for the configured camera, if it does not exist already,
-	# and add it to the specified scene.
-	def add_camera_input(self, scene_name, camera_dev):
-		camera_dev, camera_name = camera_dev.split(" ",1)
-		self.camera_input_settings["device_id"] = camera_dev
-		scene_item_id = self.create_input_with_reuse(
-			scene_name = scene_name,
-			input_name = camera_name,
-			input_kind = "v4l2_input",
-			input_settings = self.camera_input_settings,
-			)
-		return scene_item_id
-
-	# Create an OBS input which captures the specified window, if it does
-	# not exist already, and add it to the specified scene.
-	def add_zoom_input(self, scene_name, capture_window):
-		self.zoom_input_settings["capture_window"] = capture_window
-		scene_item_id = self.create_input_with_reuse(
-			scene_name = scene_name,
-			input_name = "%s Capture" % capture_window,
-			input_kind = "xcomposite_input",
-			input_settings = self.zoom_input_settings,
-			)
-		return scene_item_id
-
-	# Create a scene containing just the specified camera
-	def create_camera_scene(self, scene_name, camera_dev):
-		scene_name = self.create_scene(scene_name, make_unique=True)
-		scene_item_id = self.add_camera_input(scene_name, camera_dev)
-		#self.scale_input(scene_name, scene_item_id)
-
-	# Create a scene containing just a capture of the specified window
-	def create_zoom_scene(self, scene_name, capture_window):
-		scene_name = self.create_scene(scene_name, make_unique=True)
-		scene_item_id = self.add_zoom_input(scene_name, capture_window)
-		self.scale_input(scene_name, scene_item_id)
-
-	# Create a scene with the specified camera on the left and a capture of the specified window on the right
-	def create_split_scene(self, scene_name, camera_dev, capture_window):
-		scene_name = self.create_scene(scene_name, make_unique=True)
-
-		# Camera on left side
-		scene_item_id = self.add_camera_input(scene_name, camera_dev)
-		self.scale_input(scene_name, scene_item_id, {
-			"boundsHeight": 360.0,
-			"boundsWidth": 640.0,
-			"positionX": 0.0,
-			"positionY": 160.0,
-			})
-
-		# Zoom on right side
-		scene_item_id = self.add_zoom_input(scene_name, capture_window)
-		self.scale_input(scene_name, scene_item_id, {
-			"boundsHeight": 360.0,
-			"boundsWidth": 640.0,
-			"positionX": 640.0,
-			"positionY": 160.0,
 			})
 

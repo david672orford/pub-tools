@@ -9,8 +9,7 @@ from markupsafe import escape
 import traceback
 import logging
 
-from ... import turbo
-from ...utils.background import progress_callback, progress_response, run_thread, flash
+from ...utils.background import turbo, progress_callback, progress_response, run_thread, flash
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...utils.babel import gettext as _

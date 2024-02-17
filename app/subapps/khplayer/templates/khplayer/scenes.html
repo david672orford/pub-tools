@@ -36,17 +36,11 @@
 	<th>{{_("Scene Name")}}</th>
 </tr>
 </thead>
-<tbody>
+<tbody id="scenes-list">
 	{% for scene_name in scene_names %}
-	<tr>
+	<tr draggable="true">
 		<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
 		<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
-	</tr>
-	{% endfor %}
-	{% for i in range(scene_names|length, 10) %}
-	<tr>
-		<td>&nbsp;</td>
-		<td></td>
 	</tr>
 	{% endfor %}
 </tbody>
@@ -55,7 +49,7 @@
 </section>
 </form>
 
-<form id="upload-form" action="upload" method="POST" enctype="multipart/form-data">
+<form id="upload-form" class="scene-add-form" action="upload" method="POST" enctype="multipart/form-data">
 <section class="bordered-box">
 <h2><label for="files">{{_("Upload Media Files")}}</label></h2>
 	<div class="hbox">
@@ -70,7 +64,7 @@
 </section>
 </form>
 
-<form id="add-url-form" action="add-url" method="POST">
+<form id="add-url-form" class="scene-add-form" action="add-url" method="POST">
 <section class="bordered-box">
 <h2><label for="add-url">{{_("URL to Add")}}</label></h2>
 	<div class="hbox">
@@ -80,7 +74,7 @@
 </section>
 </form>
 
-<form id="add-html-form" action="add-html" method="POST">
+<form id="add-html-form" class="scene-add-form" action="add-html" method="POST">
 <section class="bordered-box">
 <h2><label for="add-html">{{_("HTML to Add")}}</label></h2>
 	<div class="hbox">

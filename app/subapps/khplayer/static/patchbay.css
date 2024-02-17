@@ -75,11 +75,3 @@
 	fill: red;
 	}
 
-.patchbay .dummy-input {
-	position: absolute;
-	top: 200px;
-	pointer-events: none;
-	width: 10px;
-	height: 10px;
-	}
-

@@ -14,6 +14,9 @@ def init_app(app, url_prefix):
 		})
 	app.register_blueprint(blueprint, url_prefix=url_prefix)
 
+	from .view_scenes import scene_event_handler
+	scene_event_handler.app = app
+
 	from .cli_obs import cli_obs
 	app.cli.add_command(cli_obs)
 

@@ -2,9 +2,9 @@ from flask import current_app, Blueprint, render_template, request, redirect
 from time import sleep
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
-import os, re, logging
+import os, re, json, logging
 
-from ...utils.background import progress_response, run_thread, flash
+from ...utils.background import turbo, progress_callback, progress_response, run_thread, flash, async_flash
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
@@ -36,7 +36,6 @@ def page_scenes():
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
 	logger.debug("scenes form: %s", request.form)
-	message = None
 	try:
 		# Button press
 		match request.form.get("action", "scene"):
@@ -44,15 +43,13 @@ def page_scenes_submit():
 			case "scene":
 				scene = request.form.get("scene")
 				obs.set_current_program_scene(scene)
-				message = _("Scene switched to \"%s\"") % scene
 	
 			case "delete":
-				for scene in request.form.getlist("del"):
-					try:
-						obs.remove_scene(scene)
-					except ObsError as e:
-						flash(str(e))
-				sleep(1)
+				scenes = request.form.getlist("del")
+				try:
+					obs.remove_scenes(scenes)
+				except ObsError as e:
+					async_flash(str(e))
 
 			case "add-live":
 				return redirect(".?action=add-live")
@@ -61,13 +58,11 @@ def page_scenes_submit():
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
 					obs.create_camera_scene(_("* Camera"), camera_dev)
-					sleep(1)
 
 			case "add-zoom":
 				capture_window = find_second_window()
 				if capture_window is not None:
 					obs.create_zoom_scene(_("* Zoom"), capture_window)
-					sleep(1)
 
 			case "add-split":
 				camera_dev = request.form.get("camera")
@@ -75,15 +70,11 @@ def page_scenes_submit():
 					capture_window = find_second_window()
 					if capture_window is not None:
 						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
-						sleep(1)
 
 	except ObsError as e:
-		flash(_("OBS: %s") % str(e))
+		async_flash(_("OBS: %s") % str(e))
 
-	if message is not None:
-		return progress_response(message, last_message=True)
-	else:
-		return redirect(".")
+	return turbo.stream("")
 
 # We tried combining this with the above, but it made things messier:
 # * If no file is selected, you get a dummy file object with a mimetype of application/octet-stream
@@ -95,12 +86,12 @@ def page_scenes_upload():
 	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 	i = 1
 	for file in files:
-		logger.info(_("Uploading \"%s\" (%s)"), file.filename, file.mimetype)
+		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype))
 
 		major_mimetype = file.mimetype.split("/")[0]
 		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
 		if scene_name_prefix is None:
-			flash(_("Unsupported media type: %s") % file.mimetype)
+			progress_callback(_("Unsupported media type: %s") % file.mimetype, cssclass="error")
 			continue
 
 		# Save to file with name in format user-YYYYMMDDHHMMSS-X.ext
@@ -119,10 +110,10 @@ def page_scenes_upload():
 				save_as
 				)
 		except ObsError as e:
-			flash(_("OBS: %s") % str(e))
+			async_flash(_("OBS: %s") % str(e))
 
 		i += 1
-	return redirect(".")
+	return progress_response(_("Done."), last_message=True)
 
 # When a URL is dropped onto the scene list
 @blueprint.route("/scenes/add-url", methods=["POST"])
@@ -146,4 +137,27 @@ def page_scenes_add_html():
 	# FIXME: code missing
 	print(html)
 	return progress_response(_("Not implemented"), last_message=True)
+
+def scene_event_handler(event):
+	if event["eventType"] == "SceneListChanged":
+		return
+	print("%s %s" % (event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False)))
+	update = None
+	with scene_event_handler.app.app_context():
+		match event["eventType"]:
+			case "SceneCreated":
+				update = render_template("khplayer/scenes_event_created.html", event=event)
+			case "SceneRemoved":
+				update = render_template("khplayer/scenes_event_removed.html", event=event)
+			case "SceneNameChanged":
+				update = render_template("khplayer/scenes_event_rename.html", event=event)
+			case "CurrentProgramSceneChanged":
+				update = render_template("khplayer/scenes_event_program.html", event=event)
+			case "CurrentPreviewSceneChanged":
+				update = render_template("khplayer/scenes_event_preview.html", event=event)
+	if update is not None:
+		print("update:", update)
+		turbo.push(update)
+
+obs.subscribe("scenes", scene_event_handler)	
 

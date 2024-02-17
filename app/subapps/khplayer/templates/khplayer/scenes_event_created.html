@@ -1,7 +1,7 @@
 {% set scene_name = event["eventData"]["sceneName"] -%}
 <turbo-stream action="append" target="scenes-list">
 	<template>
-		<tr>
+		<tr draggable="true">
 			<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
 			<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
 	    </tr>

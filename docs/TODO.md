@@ -7,11 +7,12 @@
 when KH Player is running in a browser dock?
 * Why does OBS exit on the exception in khplayer-server.py which occurs when
 port 5000 is already in use? Why can't we catch this exception?
+* Progress bar when loading weeks
 
 ## Scenes Tab (Long Term)
 
 * Should we cache thumbnail images in the Videos, Books, and PeriodicalIssues objects?
-* Drag and drop into Scenes tab does not work in OBS browser dock
+* Drag and drop into Scenes tab does not work in OBS browser dock (for files, works for URL's)
 * Can we have video and image thumbnails in Scenes tab? Ideas:
   * We could save them to a thumbnails directory named for each scene. However this breaks if the scene is renamed.
   * Scenes are sources. It appears you can save arbitrary settings in source settings.
@@ -19,4 +20,5 @@ port 5000 is already in use? Why can't we catch this exception?
 * Scenes tab should update its view when changes are made in OBS. Can we listen
   for events and send Turbo messages? (According to the OBS-Websocket documentation
   SceneListChanged does not fire when scenes are reordered. Propose a change?)
+* Keep our own order with drag and drop
 
