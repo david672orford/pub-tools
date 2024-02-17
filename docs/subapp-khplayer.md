@@ -64,10 +64,14 @@ Be sure to follow the part about installing Wireplumber.
 * Under **Docks** uncheck **Audio Mixer** since we will not be using it.
 * Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
 directory of this project:
-  * **khplayer-startup.py** -- Automatically start the virtual camera and a fullscreen output on the monitor you select,  switch to your initial scene, and mute audio.
   * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
   * **khplayer-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
-  * **khplayer-vidoes.py** 
+  * **khplayer-startup.py** -- Set initial state of OBS
+    * Start the virtual camera
+    * Start a fullscreen output on the monitor you select
+    * Switch to the initial scene you have selected
+    * Mute the system microphone whenever the initial scene is displayed
+  * **khplayer-vidoes.py** -- Simplify playing vidoes
     * Mute the system default input device (the microphone) when videos are playing. This improves sound quality for participant in Zoom considerably.
     * Switch to the scene you specify whenever a video finishes playing. Set this to the scene with the camera which shows the stage.
     * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
@@ -85,7 +89,7 @@ as the audio input and unmute audio.
 
 ## Creating Meeting Scenes
 
-* Open **http://localhost:5000/khplayer** in a web browser
+* Open **http://localhost:5000/khplayer/** in a web browser
 * If this the first time, go to the **Audio** tab and select the desired
 microphone and speakers. Press **Reconnect Audio** to connect then to Zoom and OBS.
 * If this is the first time, go to the **Scenes** tab and press the **Add a Live

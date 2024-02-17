@@ -27,7 +27,7 @@ Then open this URL in a web browser:
 ## Subapps
 
 When you open Pub-Tools in a web browser, you will see a menu of subapps.
-Each of them requires some setup before they will work. Refer to the
+Each of them requires some setup before it will work. Refer to the
 documentation below.
 
 * [KH Player](docs/subapp-khplayer.md)
