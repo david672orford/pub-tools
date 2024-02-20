@@ -1,0 +1,6 @@
+{% macro render_scene(scene) %}
+	<tr draggable="true" id="scene-{{scene['sceneUuid']}}">
+		<td><input type="checkbox" name="del" value="{{scene['sceneUuid']}}"></td>
+		<td><button class="fill" type="submit" name="scene" value="{{scene['sceneUuid']}}">{{scene['sceneName']}}</button></td>
+	</tr>
+{% endmacro %}
