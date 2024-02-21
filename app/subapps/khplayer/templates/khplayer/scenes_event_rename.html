@@ -1,6 +1,6 @@
-<turbo-stream action="append" target="scenes">
+<turbo-stream action="append" target="scenes-list">
 	<template>
-		<script>{{script}}</script>
+		<script>rename_scene("{{scene['sceneUuid']}}", "{{scene['sceneName']}}")</script>
 	</template>
 </turbo-stream>
 

@@ -1,5 +1,10 @@
 # Pub-Tools TODO
 
+## Breakage
+
+* Sometimes only every other or every third scene list update reaches the browser
+* Disconnected of OBS no longer detected
+
 ## General
 
 * Zoom in a browser source. Worth doing?

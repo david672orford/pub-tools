@@ -1,9 +1,6 @@
-{% set scene_name = event["eventData"]["sceneName"] -%}
+{% from "khplayer/scenes_lib.html" import render_scene -%}
 <turbo-stream action="append" target="scenes-list">
 	<template>
-		<tr draggable="true">
-			<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
-			<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
-	    </tr>
+		{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
 	</template>
 </turbo-stream>

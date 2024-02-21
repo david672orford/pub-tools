@@ -1,10 +1,10 @@
 from ..models import db, Config
 from sqlalchemy.orm.attributes import flag_modified
 
-def get_config(name):
+def get_config(name, default={}):
 	conf = Config.query.filter_by(name=name).one_or_none()
 	if conf is None:
-		return {}
+		return default.copy()
 	return conf.data
 
 def put_config(name, data):

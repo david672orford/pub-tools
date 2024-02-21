@@ -23,8 +23,8 @@ function init_scenes()
     */
 	let scenes_list = $("#scenes-list");
 	let moving_scene = null;
-	let dummy_scene = document.createElement("img");
-	dummy_scene.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+	let dummy_image = document.createElement("img");
+	dummy_image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 	function isBefore(el1, el2) {
 		if(el2.parentNode === el1.parentNode)
@@ -52,6 +52,18 @@ function init_scenes()
 	function on_scene_drop(e) {
 		console.log("reorder drop");
 		e.stopPropagation();
+
+		fetch("move-scene", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+				},
+			body: JSON.stringify({
+				uuid: moving_scene.id.slice(6),
+				new_pos: Array.from(moving_scene.parentElement.children).indexOf(moving_scene),
+				})
+			});
+
 		moving_scene.classList.remove("highlight");
 		moving_scene = null;
 		scenes_list.removeEventListener("dragenter", on_scene_dragenter);
@@ -63,7 +75,7 @@ function init_scenes()
 		//e.stopPropagation();
 		e.dataTransfer.effectAllowed = "move";
 		e.dataTransfer.setData("text/plain", null);
-		e.dataTransfer.setDragImage(dummy_scene, 5, 5);
+		e.dataTransfer.setDragImage(dummy_image, 0, 0);
 		moving_scene = e.target;
 		moving_scene.classList.add("highlight");
 		scenes_list.addEventListener("dragenter", on_scene_dragenter);
@@ -161,5 +173,26 @@ function init_scenes()
 		file_input.click();
 		});
 
+	}
+
+/* Scene event handler sometimes inserts <script> tags which call these functions */
+
+function set_current_scene(className, uuid) {
+	console.log("set_current_scene:", className, uuid);
+	//document.currentScript.remove();
+	Array.from(document.getElementById("scenes-list").children).forEach(row => {
+		if(row.id == "scene-" + uuid)
+			row.classList.add(className);
+		else
+			row.classList.remove(className);
+		});
+	}
+
+function rename_scene(uuid, new_name) {
+	console.log("rename_scene:", uuid, new_name);
+	//document.currentScript.remove();
+	let scene = document.getElementById("scene-" + uuid);
+	let button = scene.getElementsByTagName("button")[0];
+	button.textContent = new_name;
 	}
 

@@ -31,6 +31,9 @@ class ObsError(Exception):
 		else:
 			return "<ObsError code=%d comment=%s>" % (self.code, repr(self.comment))
 
+class ObsResponsePending:
+	pass
+
 class ObsControlBase:
 	def __init__(self, config):
 		self.config = config
@@ -42,8 +45,9 @@ class ObsControlBase:
 		self.condition = Condition()
 		self.responses = {}
 
-		# Connect right away so if browers reconnect they can get events.
-		# But supress the error since we have no one to whom to report it.
+		# Connect right away so if browers reconnect after a server restart, they will
+		# receive events right away. But if we cannot connect to OBS, suppress the error
+		# since we have no one to whom to report it.
 		# The user will get the error again when he tries to do something
 		# which require communication with OBS.
 		try:
@@ -51,10 +55,13 @@ class ObsControlBase:
 		except ObsError as e:
 			logger.warning("Failed to connect to OBS: %s", e)
 
+	# Register an event callback function. Currently only scenes-event
+	# subscriptions are implemented.
 	def subscribe(self, category, func):
 		assert category == "scenes"
 		self.subscribers.append(func)
 
+	# Open the websocket connection to OBS, log in, and start a receive thread.
 	def connect(self):
 		if self.config is None:
 			raise ObsError("Connection not configured")
@@ -138,6 +145,8 @@ class ObsControlBase:
 		self.thread = None
 		self.responses = {}
 
+	# Internal: receive messages from OBS-Websocket and dispatch them as events
+	# or insert them into self.responses[].
 	def recv_thread_body(self):
 		logger.debug("Receive thread starting")
 
@@ -149,7 +158,8 @@ class ObsControlBase:
 				raise ObsError("Receive failure: " + str(e))
 			logger.debug("OBS recv message: %s", message)
 			if len(message) == 0:
-				raise ObsError("Empty response")
+				logger.warning("Empty response from OBS. Disconnected?")
+				break
 			message = json.loads(message)
 
 			if message["op"] == 5:			# Event
@@ -163,7 +173,41 @@ class ObsControlBase:
 			else:
 				logger.warning("Unhandled message:", message)
 
-		logger.debug("Receive thread exiting")
+		# Give None responses to all outstanding requests
+		self.condition.acquire()
+		for reqid in self.responses.keys():
+			self.responses[reqid] = None
+		self.condition.notify()
+		self.condition.release()
+
+		logger.debug("*** Receive thread exiting!")
+
+	# Internal: Send a request to OBS-Websocket
+	def ws_write_json(self, message):
+		logger.debug("OBS request: %s", message)
+		if self.ws is None:
+			self.connect()
+		try:
+			self.ws.send(json.dumps(message))
+			self.responses[message["d"]["requestId"]] = ObsResponsePending
+		except Exception as e:
+			self.close()
+			raise ObsError("Send failure: " + str(e))
+
+	# Internal: Read response from OBS-Websocket
+	def ws_read_json(self, reqid, expected_opcode, req_type=None):
+		logger.debug("Waiting for response to %s...", reqid)
+		self.condition.acquire()
+		self.condition.wait_for(lambda: self.responses[reqid] is not ObsResponsePending, timeout=10)
+		response = self.responses.pop(reqid)
+		self.condition.release()
+		if response is None:
+			raise ObsError("response timeout")
+		if response["op"] != expected_opcode:
+			raise ObsError("incorrect opcode")
+		if req_type is not None and response["d"]["requestType"] != req_type:
+			raise ObsError("incorrect requestType")
+		return response
 
 	# Internal: Generate the next request ID
 	def get_next_reqid(self):
@@ -172,33 +216,6 @@ class ObsControlBase:
 		self.next_reqid += 1
 		self.next_reqid_lock.release()
 		return str(reqid)
-
-	# Internal: Send a request
-	def ws_write_json(self, message):
-		logger.debug("OBS request: %s", message)
-		if self.ws is None:
-			self.connect()
-		try:
-			self.ws.send(json.dumps(message))
-			self.responses[message["d"]["requestId"]] = None
-		except Exception as e:
-			self.close()
-			raise ObsError("Send failure: " + str(e))
-
-	# Internal: Read response from the websocket to OBS
-	def ws_read_json(self, reqid, expected_opcode, req_type=None):
-		logger.debug("Waiting for response to %s...", reqid)
-		self.condition.acquire()
-		while self.responses[reqid] is None:
-			#print("responses:", self.responses)
-			self.condition.wait()
-		response = self.responses.pop(reqid)
-		self.condition.release()
-		if response["op"] != expected_opcode:
-			raise ObsError("incorrect opcode")
-		if req_type is not None and response["d"]["requestType"] != req_type:
-			raise ObsError("incorrect requestType")
-		return response
 
 	# Send a request to OBS and wait for the response
 	def request(self, req_type, req_data, raise_on_error=True):
@@ -245,7 +262,9 @@ class ObsControlBase:
 		self.request("SetCurrentSceneCollection", {"sceneCollectionName": name})
 
 	def get_scene_list(self):
-		return self.request("GetSceneList", {})["responseData"]["scenes"]
+		result = self.request("GetSceneList", {})["responseData"]
+		result["scenes"] = list(reversed(result["scenes"]))			# OBS-Websocket returns a backwards list
+		return result
 
 	def create_scene(self, scene_name, make_unique=False):
 		i = 1
@@ -264,20 +283,20 @@ class ObsControlBase:
 					raise ObsError(e)
 			i += 1
 
-	def remove_scene(self, scene_name):
-		self.request("RemoveScene", {"sceneName": scene_name})
+	def remove_scene(self, scene_uuid):
+		self.request("RemoveScene", {"sceneUuid": scene_uuid})
 
-	def remove_scenes(self, scene_names):
+	def remove_scenes(self, scene_uuids):
 		requests = []
-		for scene_name in scene_names:
+		for scene_uuid in scene_uuids:
 			requests.append({
 				"requestType": "RemoveScene",
-				"requestData": {"sceneName": scene_name},
+				"requestData": {"sceneUuid": scene_uuid},
 				})
 		self.request_batch(requests)
 
-	def set_current_program_scene(self, scene_name):
-		self.request("SetCurrentProgramScene", {"sceneName": scene_name})
+	def set_current_program_scene(self, scene_uuid):
+		self.request("SetCurrentProgramScene", {"sceneUuid": scene_uuid})
 
 	def create_scene_item(self, scene_name, source_name):
 		response = self.request("CreateSceneItem", {

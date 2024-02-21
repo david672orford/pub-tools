@@ -18,5 +18,7 @@ meeting_loader = MeetingLoader(
 
 from .obs_control import ObsControl, ObsError
 
-obs = ObsControl(config = current_app.config.get("OBS_WEBSOCKET"))
+obs = ObsControl(
+	config = current_app.config.get("OBS_WEBSOCKET"),
+	)
 

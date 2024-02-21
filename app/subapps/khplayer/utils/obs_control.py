@@ -10,12 +10,79 @@ logger = logging.getLogger(__name__)
 #	from .obs_ws_5 import ObsControl, ObsError
 
 from .obs_ws_5 import ObsControlBase, ObsError
+from ....utils.config import get_config, put_config
 
 class ObsControl(ObsControlBase):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.scene_list = None
 
+	#============================================================================
+	# OBS-Websocker provides no way to reorder scene or control the position
+	# of new scenes. For this reason we maintain or own scene order and
+	# wrap .get_scene_list().
+	#============================================================================
+
+	def get_scene_list(self):
+		if self.scene_list is None:
+			self.scene_list = super().get_scene_list()
+
+			# Restore our saved scene order. New scenes go at the end.
+			scenes = []
+			for scene_uuid in get_config("SCENE_ORDER", []):
+				try:
+					scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
+				except KeyError:
+					pass
+			for scene in self.scene_list["scenes"]:
+				scenes.append(scene)
+			self.scene_list["scenes"] = scenes
+
+			self.subscribe("scenes", lambda event: self.event(event))
+		return self.scene_list
+
+	def event(self, event):
+		data = event["eventData"]
+		match event["eventType"]:
+			case "SceneCreated":
+				self.scene_list["scenes"].append(data)
+				#self.save_scene_order()
+			case "SceneRemoved":
+				self.scene_list["scenes"].pop(self.scene_index(data["sceneUuid"]))
+				#self.save_scene_order()
+			case "SceneNameChanged":
+				self.scene_list["scenes"][self.scene_index(uuid)]["sceneName"] = data["sceneName"]
+			case "CurrentProgramSceneChanged":
+				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
+				self.scene_list["currentProgramSceneName"] = data["sceneName"]
+			case "CurrentPreviewSceneChanged":
+				self.scene_list["currentPreviewSceneUuid"] = data["sceneUuid"]
+				self.scene_list["currentPreviewSceneName"] = data["sceneName"]
+
+	def scene_index(self, uuid):
+		scenes = self.get_scene_list()["scenes"]
+		for i in range(len(scenes)):
+			if scenes[i]["sceneUuid"] == uuid:
+				return i
+		raise KeyError()
+
+	def move_scene(self, uuid, new_index):
+		i = self.scene_index(uuid)
+		scene = self.scene_list["scenes"].pop(i)
+		self.scene_list["scenes"].insert(new_index, scene)
+		self.save_scene_order()
+
+	def save_scene_order(self):
+		uuids = []
+		for scene in self.get_scene_list()["scenes"]:
+			uuids.append(scene["sceneUuid"])
+		put_config("SCENE_ORDER", uuids)
+
+	#============================================================================
 	# Create a scene for a video or image file.
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
+	#============================================================================
 	def add_media_scene(self, scene_name, media_type, media_file, thumbnail_url=None, subtitle_track=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
@@ -119,6 +186,10 @@ class ObsControl(ObsControlBase):
 				}
 			self.request('SetInputAudioMonitorType', payload)
 
+	#============================================================================
+	# Create inputs
+	#============================================================================
+
 	# Create the specified OBS input, if it does not exist already,
 	# and add it to the specified scene.
 	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
@@ -172,6 +243,10 @@ class ObsControl(ObsControlBase):
 				}
 			)
 		return scene_item_id
+
+	#============================================================================
+	# Create standard scenes
+	#============================================================================
 
 	# Create a scene containing just the specified camera
 	def create_camera_scene(self, scene_name, camera_dev):

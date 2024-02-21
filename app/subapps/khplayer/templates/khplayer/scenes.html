@@ -1,5 +1,6 @@
-{% set title = _("Scene List (OBS)") %}
+{% set title = _("Scene List") %}
 {% extends "khplayer/base.html" %}
+{% from "khplayer/scenes_lib.html" import render_scene -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
@@ -37,11 +38,8 @@
 </tr>
 </thead>
 <tbody id="scenes-list">
-	{% for scene_name in scene_names %}
-	<tr draggable="true">
-		<td><input type="checkbox" name="del" value="{{scene_name}}"></td>
-		<td><button class="fill" type="submit" name="scene" value="{{scene_name}}">{{scene_name}}</button></td>
-	</tr>
+	{% for scene in scenes %}
+	{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
 	{% endfor %}
 </tbody>
 </table>

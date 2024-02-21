@@ -73,7 +73,7 @@ def flash(message: str, category: str="message") -> None:
 	else:
 		flask_flash(message, category=category)
 
-def async_flash(messsage: str, category: str="message") -> None:
+def async_flash(message: str, category: str="message") -> None:
 	to = session["session-id"]
 	turbo.push(turbo.append('<div class="flash">%s</div>' % escape(message), target="flashes"), to=to)
 

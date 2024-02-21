@@ -21,17 +21,51 @@ menu.append((_("Scenes"), "/scenes/"))
 @blueprint.route("/scenes/")
 def page_scenes():
 	try:
-		scene_names = list(map(lambda scene: scene["sceneName"], reversed(obs.get_scene_list())))
+		response = obs.get_scene_list()
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		scene_names = []
+		response = {"scenes": []}
 
 	return render_template(
 		"khplayer/scenes.html",
 		cameras = list_cameras() if request.args.get("action") == "add-live" else None,
-		scene_names = scene_names,
+		scenes = response["scenes"],
+		program_scene_uuid = response.get("currentProgramSceneUuid"),
+		preview_scene_uuid = response.get("currentPreviewSceneUuid"),
 		top = ".."
 		)
+
+def scene_event_handler(event):
+	if event["eventType"] == "SceneListChanged":
+		return
+	print("%s %s" % (event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False)))
+	with scene_event_handler.app.app_context():
+		match event["eventType"]:
+			case "SceneCreated":
+				turbo.push(render_template("khplayer/scenes_event_created.html", scene=event["eventData"]))
+			case "SceneRemoved":
+				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=event["eventData"]))
+			case "SceneNameChanged":
+				turbo.push(render_template("khplayer/scenes_event_rename.html", scene=event["eventData"]))
+			case "CurrentProgramSceneChanged":
+				turbo.push(render_template("khplayer/scenes_event_changed.html",
+					class_name = "program-scene",
+					uuid = event["eventData"]["sceneUuid"],
+					))
+			case "CurrentPreviewSceneChanged":
+				turbo.push(render_template("khplayer/scenes_event_changed.html",
+					class_name = "preview-scene",
+					uuid = event["eventData"]["sceneUuid"],
+					))
+
+obs.subscribe("scenes", scene_event_handler)	
+
+@blueprint.route("/scenes/move-scene", methods=["POST"])
+def page_scenes_move_scene():
+	print(request.json)
+	data = request.json
+	obs.move_scene(data["uuid"], data["new_pos"])
+	return ""
 
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
@@ -137,27 +171,4 @@ def page_scenes_add_html():
 	# FIXME: code missing
 	print(html)
 	return progress_response(_("Not implemented"), last_message=True)
-
-def scene_event_handler(event):
-	if event["eventType"] == "SceneListChanged":
-		return
-	print("%s %s" % (event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False)))
-	update = None
-	with scene_event_handler.app.app_context():
-		match event["eventType"]:
-			case "SceneCreated":
-				update = render_template("khplayer/scenes_event_created.html", event=event)
-			case "SceneRemoved":
-				update = render_template("khplayer/scenes_event_removed.html", event=event)
-			case "SceneNameChanged":
-				update = render_template("khplayer/scenes_event_rename.html", event=event)
-			case "CurrentProgramSceneChanged":
-				update = render_template("khplayer/scenes_event_program.html", event=event)
-			case "CurrentPreviewSceneChanged":
-				update = render_template("khplayer/scenes_event_preview.html", event=event)
-	if update is not None:
-		print("update:", update)
-		turbo.push(update)
-
-obs.subscribe("scenes", scene_event_handler)	
 

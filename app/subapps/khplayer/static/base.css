@@ -298,11 +298,17 @@ DIV.thumbnail > DIV.caption {
 #scenes TD:nth-child(2) {
 	padding: 0;
 	}
+#scenes .preview-scene {
+	background-color: #fffff0;
+	}
+#scenes .program-scene {
+	background-color: #f0fff0;
+	}
 #scenes BUTTON {
 	text-align: left;
 	border: none;
 	border-radius: 0;
-	background-color: white;
+	background-color: inherit;
 	}
 #scenes BUTTON:hover {
 	filter: none;
