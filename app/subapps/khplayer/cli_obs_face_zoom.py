@@ -9,14 +9,17 @@ from .utils.controllers import obs
 @click.argument("scene1_name")
 @click.argument("scene2_name")
 def cmd_face_zoom(scene1_name, scene2_name):
-	scene_item = obs.get_scene_item_list(scene2_name)[0]
-	scene_item_id = scene_item["sceneItemId"]
+	scene2_uuid = obs.get_scene_uuid(scene2_name)
+	scene_item_id = 1
 
-	transform = scene_item["sceneItemTransform"]
-	print("Existing transform:", json.dumps(transform, indent=2, ensure_ascii=False))
-	image = FaceImage(transform["sourceWidth"], transform["sourceHeight"])
-
+	image = FaceImage(1280, 720)
 	slider = Slider(image)
+
+	obs.set_scene_item_transform(scene2_uuid, scene_item_id, {
+		"boundsType": "OBS_BOUNDS_SCALE_INNER",
+		"boundsHeight": image.height,
+		"boundsWidth": image.width,
+		})
 
 	print("Initializing face detector...")
 	#face_detector = FaceDetector1()
@@ -47,9 +50,9 @@ def cmd_face_zoom(scene1_name, scene2_name):
 			requests = []
 			for pos in slider.translate(crop.top, crop.bottom, crop.left, crop.right):
 				new_xform = {
-					"boundsHeight": image.height,
-					"boundsWidth": image.width,
-					"boundsType": "OBS_BOUNDS_STRETCH",
+					#"boundsHeight": image.height,
+					#"boundsWidth": image.width,
+					#"boundsType": "OBS_BOUNDS_STRETCH",
 					"cropTop": pos.top,
 					"cropBottom": (image.height - pos.bottom),
 					"cropLeft": pos.left,
@@ -59,7 +62,7 @@ def cmd_face_zoom(scene1_name, scene2_name):
 				requests.append({
 					"requestType": "SetSceneItemTransform", 
 					"requestData": {
-						'sceneName': scene2_name,
+						'sceneUuid': scene2_uuid,
 						'sceneItemId': scene_item_id,
 						'sceneItemTransform': new_xform,
 			 			}

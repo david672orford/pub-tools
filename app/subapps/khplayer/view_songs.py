@@ -1,15 +1,14 @@
 from flask import request, session, render_template, redirect
-from time import sleep
 import re
 import logging
 
-from ...utils.background import progress_callback, progress_response, run_thread, flash
-from ...models import VideoCategories, Videos
-from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
+from ...utils.background import progress_callback, progress_response, run_thread, flash
+from ...utils.babel import gettext as _
 from .utils.controllers import meeting_loader, obs, ObsError
 from .utils.scenes import load_video_url, load_song
+from ...models import VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
 

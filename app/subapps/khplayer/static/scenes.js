@@ -10,8 +10,10 @@ function init_scenes()
     */
 	$("#check-all").addEventListener("click", function() {
 		let state = event.target.checked;
-		document.getElementsByName("del").forEach(checkbox => {
-			if(!state || checkbox.value[0] != "*")
+		Array.from($("#scenes-list").children).forEach(scene => {
+			let checkbox = scene.getElementsByTagName("input")[0];
+			let button = scene.getElementsByTagName("button")[0];
+			if(!state || button.textContent[0] != "*")
 				checkbox.checked = state;
 			});
 		});

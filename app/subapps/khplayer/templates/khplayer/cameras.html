@@ -2,8 +2,82 @@
 {% extends "khplayer/base.html" %}
 
 {% block main %}
-<section>
+{% for camera in cameras %}
+<section class="bordered-box">
+<h2>{{camera.index+1}} {{camera.name}}</h2>
+<form id="camera{{camera.id}}">
 
+	<input type="hidden" name="scene_uuid" value="{{camera.scene_uuid}}">
+	<input type="hidden" id="width" value="{{camera.width}}">
+	<input type="hidden" id="height" value="{{camera.height}}">
+
+	<div class="slider">
+		<input type="range" id="camera{{camera.id}}zoom" name="zoom" min="1" max="3" value="{{camera.zoom}}" step=".1">
+		<span></span>
+		<label for="camera{{camera.id}}zoom">Zoom</label>
+	</div>
+
+	<div class="slider">
+		<input type="range" id="camera{{camera.id}}x" name="x" min="0" max="100" value="{{camera.x}}" step="1">
+		<span></span>
+		<label for="camera{{camera.id}}x">X</label>
+	</div>
+
+	<div class="slider">
+		<input type="range" id="camera{{camera.id}}y" name="y" min="0" may="100" value="{{camera.y}}" step="1">
+		<span></span>
+		<label for="camera{{camera.id}}y">Y</label>
+	</div>
+
+</form>
 </section>
+{% endfor %}
+
+<style>
+.slider {
+	display: flex;
+	margin: 0 0 .5em 0;
+	}
+.slider INPUT {
+	flex-grow: 1;
+	}
+.slider SPAN {
+	width: 3em;
+	}
+.slider LABEL {
+	width: 5em;
+	}
+</style>
+
+<script>
+Array.from(document.getElementsByTagName("form")).forEach(form_el => {
+	Array.from(form_el.getElementsByClassName("slider")).forEach(slider => {
+		let input = slider.getElementsByTagName("input")[0];
+		let span = slider.getElementsByTagName("span")[0];
+		span.textContent = input.value;
+		input.addEventListener("input", (event) => {
+			span.textContent = event.target.value;
+			post_ptz(form_el);
+			});
+		});
+	});
+function post_ptz(form_el) {
+	fetch("ptz", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+			},
+		body: JSON.stringify({
+			scene_name: form_el.scene_name.value,
+			id: parseInt(form_el.id.slice(6)),
+			width: parseInt(form_el.width.value),
+			height: parseInt(form_el.height.value),
+			x: parseInt(form_el.x.value),
+			y: parseInt(form_el.y.value),
+			zoom: parseFloat(form_el.zoom.value),
+			})
+		});
+	}
+</script>
 {% endblock %}
 

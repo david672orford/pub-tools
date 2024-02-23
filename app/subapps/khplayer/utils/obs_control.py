@@ -142,7 +142,7 @@ class ObsControl(ObsControlBase):
 		else:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
 
-		# FIXME: Hopefully we can use this in future
+		# FIXME: Remove if we don't find a way to use this
 		if thumbnail_url is not None:
 			source_settings["thumbnail_url"] = thumbnail_url
 
@@ -150,25 +150,27 @@ class ObsControl(ObsControlBase):
 		logger.info(" Source settings: %s", source_settings)
 
 		# Add a new scene. (Naming naming conflicts will be resolved.)
-		scene_name = self.create_scene(scene_name, make_unique=True)
+		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
 
 		# Create a source (now called an input) to play our file. Resolve naming conflicts.
 		i = 1
 		scene_item_id = None
 		while True:
 			try_source_name = source_name
-			if i > 1:
-				try_source_name += " (%d)" % i
+			if i == 1:
+				try_source_name = source_name
+			else:
+				try_source_name = f"{source_name} ({i})"
 			payload = {
-				'sceneName': scene_name,
+				'sceneUuid': scene_uuid,
 				'inputName': try_source_name,
 				'inputKind': source_type,
 				'inputSettings': source_settings,
 				}
 			try:
-				response = self.request('CreateInput', payload)
+				response = create_input(scene_uuid, try_source_name, source_type, source_settings)
 				source_name = try_source_name
-				scene_item_id = response["responseData"]["sceneItemId"]
+				scene_item_id = response["sceneItemId"]
 				break
 			except ObsError as e:
 				if e.code != 601:		# resource already exists
@@ -176,7 +178,7 @@ class ObsControl(ObsControlBase):
 			i += 1
 
 		if media_type != "audio":
-			self.scale_input(scene_name, scene_item_id)
+			self.scale_scene_item(scene_uuid, scene_item_id)
 
 		# Enable audio monitoring for video files
 		if media_type == "video":
@@ -192,10 +194,10 @@ class ObsControl(ObsControlBase):
 
 	# Create the specified OBS input, if it does not exist already,
 	# and add it to the specified scene.
-	def create_input_with_reuse(self, scene_name, input_name, input_kind, input_settings):
+	def create_input_with_reuse(self, scene_uuid, input_name, input_kind, input_settings):
 		try:
 			scene_item_id = self.create_input(
-				scene_name = scene_name,
+				scene_uuid = scene_uuid,
 				input_name = input_name,
 				input_kind = input_kind,
 				input_settings = input_settings
@@ -204,17 +206,17 @@ class ObsControl(ObsControlBase):
 			if e.code != 601:
 				raise(ObsError(e))
 			scene_item_id = self.create_scene_item(
-				scene_name = scene_name,
+				scene_uuid = scene_uuid,
 				source_name = input_name,
 				)
 		return scene_item_id
 
 	# Create an OBS input for the configured camera, if it does not exist already,
 	# and add it to the specified scene.
-	def add_camera_input(self, scene_name, camera_dev):
+	def add_camera_input(self, scene_uuid, camera_dev):
 		camera_dev, camera_name = camera_dev.split(" ",1)
 		scene_item_id = self.create_input_with_reuse(
-			scene_name = scene_name,
+			scene_uuid = scene_uuid,
 			input_name = camera_name,
 			input_kind = "v4l2_input",
 			input_settings = {
@@ -232,9 +234,9 @@ class ObsControl(ObsControlBase):
 
 	# Create an OBS input which captures the specified window, if it does
 	# not exist already, and add it to the specified scene.
-	def add_zoom_input(self, scene_name, capture_window):
+	def add_zoom_input(self, scene_uuid, capture_window):
 		scene_item_id = self.create_input_with_reuse(
-			scene_name = scene_name,
+			scene_uuid = scene_uuid,
 			input_name = "%s Capture" % capture_window,
 			input_kind = "xcomposite_input",
 			input_settings = {
@@ -248,25 +250,35 @@ class ObsControl(ObsControlBase):
 	# Create standard scenes
 	#============================================================================
 
+	def scale_scene_item(self, scene_uuid, scene_item_id, scene_item_transform={}):
+		xform = {
+			'boundsAlignment': 0,
+			'boundsWidth': 1280,
+			'boundsHeight': 720,
+			'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+			}
+		xform.update(scene_item_transform)
+		self.set_scene_item_transform(scene_uuid, scene_item_id, xform)
+
 	# Create a scene containing just the specified camera
 	def create_camera_scene(self, scene_name, camera_dev):
-		scene_name = self.create_scene(scene_name, make_unique=True)
-		scene_item_id = self.add_camera_input(scene_name, camera_dev)
-		#self.scale_input(scene_name, scene_item_id)
+		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
+		#self.scale_scene_item(scene_uuid, scene_item_id)
 
 	# Create a scene containing just a capture of the specified window
 	def create_zoom_scene(self, scene_name, capture_window):
-		scene_name = self.create_scene(scene_name, make_unique=True)
-		scene_item_id = self.add_zoom_input(scene_name, capture_window)
-		self.scale_input(scene_name, scene_item_id)
+		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		scene_item_id = self.add_zoom_input(scene_uuid, capture_window)
+		self.scale_scene_item(scene_uuid, scene_item_id)
 
 	# Create a scene with the specified camera on the left and a capture of the specified window on the right
 	def create_split_scene(self, scene_name, camera_dev, capture_window):
-		scene_name = self.create_scene(scene_name, make_unique=True)
+		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
 
 		# Camera on left side
-		scene_item_id = self.add_camera_input(scene_name, camera_dev)
-		self.scale_input(scene_name, scene_item_id, {
+		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
+		self.scale_scene_item(scene_uuid, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 0.0,
@@ -274,8 +286,8 @@ class ObsControl(ObsControlBase):
 			})
 
 		# Zoom on right side
-		scene_item_id = self.add_zoom_input(scene_name, capture_window)
-		self.scale_input(scene_name, scene_item_id, {
+		scene_item_id = self.add_zoom_input(scene_uuid, capture_window)
+		self.scale_scene_item(scene_uuid, scene_item_id, {
 			"boundsHeight": 360.0,
 			"boundsWidth": 640.0,
 			"positionX": 640.0,

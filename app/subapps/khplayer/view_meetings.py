@@ -96,9 +96,9 @@ def page_meetings_load(docid):
 	# Remove all scenes except those with names beginning with an asterisk.
 	# Such scenes are for stage cameras, Zoom, etc.
 	if request.form.get("delete-existing","false") == "true":
-		for scene in obs.get_scene_list():
-			if not scene['sceneName'].startswith("*"):
-				obs.remove_scene(scene['sceneName'])
+		for scene in obs.get_scene_list()["scenes"]:
+			if not scene["sceneName"].startswith("*"):
+				obs.remove_scene(scene["sceneUuid"])
 
 	# The media list will already by in the cache. Loop over it collecting
 	# only those items which have a checkbox next to them in the table.

@@ -3,7 +3,18 @@
 			if scene['sceneUuid'] == program_scene_uuid %} class="program-scene"{%
 			elif scene['sceneUuid'] == preview_scene_uuid %} class="preview-scene"{%
 			endif %}>
-		<td><input type="checkbox" name="del" value="{{scene['sceneUuid']}}"></td>
-		<td><button class="fill" type="submit" name="scene" value="{{scene['sceneUuid']}}">{{scene['sceneName']}}</button></td>
+		<td>
+			<input type="checkbox" name="del" value="{{scene['sceneUuid']}}">
+		</td>
+		<td>
+			<div class="thumbnail">
+			{% if scene['thumbnail_url'] %}<img src="{{scene['thumbnail_url']}}">{% endif %}
+			</div>
+		</td>
+		<td>
+			<button class="fill" type="submit" name="scene" value="{{scene['sceneUuid']}}">
+				{{scene['sceneName']}}
+			</button>
+		</td>
 	</tr>
 {% endmacro %}

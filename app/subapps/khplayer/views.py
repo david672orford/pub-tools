@@ -34,4 +34,5 @@ from . import view_slides
 from . import view_videos
 if sys.platform == "linux":
 	from . import view_patchbay
+from . import view_cameras
 

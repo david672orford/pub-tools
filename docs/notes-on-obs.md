@@ -12,6 +12,11 @@
 * [VDO.Ninja](https://docs.vdo.ninja/)
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL)
 
+## OBS-Websocket
+
+* [Github Site](https://github.com/obsproject/obs-websocket)
+* [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
+
 ## OBS Script Development
 
 * [Python/Lua Scripting](https://docs.obsproject.com/scripting)
@@ -38,8 +43,6 @@
 
 ## Interesting Plugins
 
-* [OBS-Websocket](https://github.com/obsproject/obs-websocket)
-* [OBS-Websocket Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
 * [Move Transition](https://github.com/exeldro/obs-move-transition)
 * [Transitions Table](https://github.com/exeldro/obs-transition-table)
@@ -58,6 +61,18 @@
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
+
+## Object Hierarcy
+
+Each **Scene** has zero or more **Scene Items**. Each Scene Item has a **Source** to which it applies
+a **Scene Item Transform**. A source is an **Input** or another Scene.
+
+Scenes are identified by Name and by UUID. Scene Items are identified by Scene and ID. 
+Scene Item ID's are a small integers. They are unique only within the scene.
+
+Each Scene Item also has an **Index** which determines its place in the stacking order
+within the Scene. The index starts with 0. Stacking orders ascend from background to
+foreground. However, they descend in the Sources Dock.
 
 ## Coordinate Transformation of Scene Items
 

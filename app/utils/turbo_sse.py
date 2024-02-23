@@ -4,6 +4,7 @@
 from flask import request, Response
 from markupsafe import Markup
 import queue
+from threading import Lock
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ class Turbo:
 		if app:
 			self.init_app(app)
 		self.clients = {}
+		self.clients_lock = Lock()
 
 		# Define the functions which create Turbo Stream messages
 		template = '<turbo-stream action="{action}" target="{target}"><template>{content}</template></turbo-stream>'
@@ -33,7 +35,10 @@ class Turbo:
 			client_id = self.user_id_callback()
 			logger.debug("EventStream from %s connected" % client_id)
 			if not client_id in self.clients:
-				self.clients[client_id] = queue.Queue(maxsize=10)
+				client_queue = queue.Queue(maxsize=10)
+				self.clients_lock.acquire()
+				self.clients[client_id] = client_queue
+				self.clients_lock.release()
 			client_queue = self.clients[client_id]
 			def stream():
 				yield "retry: 5000\n"
@@ -87,9 +92,17 @@ class Turbo:
 	def push(self, message, to=None):
 		"Queue a Turbo Stream message for delivery to a client"
 		logger.debug("Push message: %s %s", to, message)
-		for client in self.clients.keys() if to is None else [to]:
+		if to is None:
+			self.clients_lock.acquire()
+			to = list(self.clients.keys())
+			self.clients_lock.release()
+		elif type(to) is str:
+			to = [to]
+		for client in to:
 			try:
 				self.clients[client].put_nowait(message)
+			except KeyError:
+				pass
 			except queue.Full:
 				logger.info("EventStream client %s disconnected" % client)
 				del self.clients[client]

@@ -209,8 +209,8 @@ DIV.thumbnail {
 	flex-direction: column;
 	justify-content: center;
 	border: 1px solid #f0f0f0;
-	width: 92px;			/* 16:9 plus border */
-	height: 52.625px; 
+	width: 98px;			/* 16:9 plus border */
+	height: 56px;
 	}
 DIV.thumbnail.large {
 	width: 184px;
@@ -260,6 +260,9 @@ DIV.thumbnail > DIV.caption {
 	font-size: 1rem;
 	margin: 0 .25em .25em 0;
 	}
+.bordered-box > A {				/* without this a <a><button></button></a> has no margin */
+	display: inline-block;
+	}
 
 /* Labeled form field */
 .form-field {
@@ -295,7 +298,7 @@ DIV.thumbnail > DIV.caption {
 	}
 
 /* Scenes table */
-#scenes TD:nth-child(2) {
+#scenes TD:nth-child(3) {
 	padding: 0;
 	}
 #scenes .preview-scene {

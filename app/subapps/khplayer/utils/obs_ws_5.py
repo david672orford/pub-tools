@@ -187,9 +187,9 @@ class ObsControlBase:
 		logger.debug("OBS request: %s", message)
 		if self.ws is None:
 			self.connect()
+		self.responses[message["d"]["requestId"]] = ObsResponsePending
 		try:
 			self.ws.send(json.dumps(message))
-			self.responses[message["d"]["requestId"]] = ObsResponsePending
 		except Exception as e:
 			self.close()
 			raise ObsError("Send failure: " + str(e))
@@ -201,8 +201,10 @@ class ObsControlBase:
 		self.condition.wait_for(lambda: self.responses[reqid] is not ObsResponsePending, timeout=10)
 		response = self.responses.pop(reqid)
 		self.condition.release()
-		if response is None:
+		if response is ObsResponsePending:
 			raise ObsError("response timeout")
+		if type(response) is not dict:
+			raise ObsError("response is not dict: %s" % response)
 		if response["op"] != expected_opcode:
 			raise ObsError("incorrect opcode")
 		if req_type is not None and response["d"]["requestType"] != req_type:
@@ -266,6 +268,12 @@ class ObsControlBase:
 		result["scenes"] = list(reversed(result["scenes"]))			# OBS-Websocket returns a backwards list
 		return result
 
+	def get_scene_uuid(self, scene_name):
+		for scene in self.get_scene_list()["scenes"]:
+			if scene["sceneName"] == scene_name:
+				return scene["sceneUuid"]
+		return None
+
 	def create_scene(self, scene_name, make_unique=False):
 		i = 1
 		while True:
@@ -276,8 +284,12 @@ class ObsControlBase:
 				"sceneName": try_scene_name,
 				}
 			try:
-				self.request("CreateScene", payload)
-				return try_scene_name
+				response = self.request("CreateScene", payload)
+				return {
+					"sceneName": try_scene_name,
+					"sceneUuid": response["responseData"]["sceneUuid"],
+					}
+		
 			except ObsError as e:
 				if not make_unique or e.code != 601:		# resource already exists
 					raise ObsError(e)
@@ -295,52 +307,65 @@ class ObsControlBase:
 				})
 		self.request_batch(requests)
 
+	def get_current_program_scene(self):
+		response = self.request("GetCurrentProgramScene", {})
+		return response["responseData"]
+
 	def set_current_program_scene(self, scene_uuid):
 		self.request("SetCurrentProgramScene", {"sceneUuid": scene_uuid})
 
-	def create_scene_item(self, scene_name, source_name):
-		response = self.request("CreateSceneItem", {
-			"sceneName": scene_name,
-			"sourceName": source_name,
-			})
+	def create_scene_item(self, scene_uuid, source_name=None, source_uuid=None):
+		req = {
+			"sceneUuid": scene_uuid,
+			}
+		if source_name is not None:
+			req["sourceName"] = source_name
+		if source_uuid is not None:
+			req["sourceUuid"] = source_uuid
+		response = self.request("CreateSceneItem", req)
 		return response["responseData"]["sceneItemId"]
 
-	def get_scene_item_list(self, scene_name):
+	def get_scene_item_list(self, uuid):
 		response = self.request("GetSceneItemList", {
-			"sceneName": scene_name,
+			"sceneUuid": uuid,
 			})
 		return response["responseData"]["sceneItems"]
 
-	def create_input(self, scene_name, input_name, input_kind, input_settings={}):
+	def get_scene_item_transform(self, scene_uuid, scene_item_id):
+		response = self.request("GetSceneItemTransform", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			})
+		return response["responseData"]["sceneItemTransform"]
+
+	def set_scene_item_transform(self, scene_uuid, scene_item_id, transform):
+		response = self.request("SetSceneItemTransform", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			"sceneItemTransform": transform,
+			})
+
+	def create_input(self, scene_uuid, input_name, input_kind, input_settings={}):
 		response = self.request("CreateInput", {
-			"sceneName": scene_name,
+			"sceneUuid": scene_uuid,
 			"inputName": input_name,
 			"inputKind": input_kind,
 			"inputSettings": input_settings,
 			})
 		return response["responseData"]["sceneItemId"]
 
-	def set_input_settings(self, input_name, input_settings={}):
-		self.request("SetInputSettings", {
-			"inputName": input_name,
-			"inputSettings": input_settings,
-			"overlay": True,
+	def get_input_settings(self, input_uuid):
+		response = self.request("GetInputSettings", {
+			"inputUuid": input_uuid,
 			})
+		return response["responseData"]
 
-	def scale_input(self, scene_name, scene_item_id, scene_item_transform={}):
-		xform = {
-			'boundsAlignment': 0,
-			'boundsWidth': 1280,
-			'boundsHeight': 720,
-			'boundsType': 'OBS_BOUNDS_SCALE_INNER',
-			}
-		xform.update(scene_item_transform)
-		self.request('SetSceneItemTransform', 
-			{
-			'sceneName': scene_name,
-			'sceneItemId': scene_item_id,
-			'sceneItemTransform': xform,
- 			})
+	def set_input_settings(self, input_uuid, input_settings={}, overlay=True):
+		self.request("SetInputSettings", {
+			"inputUuid": input_uuid,
+			"inputSettings": input_settings,
+			"overlay": overlay,
+			})
 
 	def get_virtual_camera_status(self):
 		return self.request("GetVirtualCamStatus", {})["responseData"]["outputActive"]
@@ -361,4 +386,15 @@ class ObsControlBase:
 			"videoMixType": "OBS_WEBSOCKET_VIDEO_MIX_TYPE_PROGRAM",
 			"monitorIndex": monitor,
 			})
+
+	def get_source_screenshot(self, source_uuid):
+		response = self.request("GetSourceScreenshot", {
+			"sourceUuid": source_uuid,
+			"imageFormat": "jpeg",
+			"imageWidth": 96,
+			"imageHeight": 54,
+			})
+		data = response["responseData"]["imageData"]
+		assert data.startswith("data:")
+		return data
 

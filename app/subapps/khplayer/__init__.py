@@ -18,6 +18,7 @@ def init_app(app, url_prefix):
 	scene_event_handler.app = app
 
 	from .cli_obs import cli_obs
+	#from . import cli_obs_face_zoom
 	app.cli.add_command(cli_obs)
 
 	from .cli_cable import cli_cable

@@ -22,6 +22,8 @@ menu.append((_("Scenes"), "/scenes/"))
 def page_scenes():
 	try:
 		response = obs.get_scene_list()
+		for scene in response["scenes"]:
+			scene["thumbnail_url"] = get_scene_thumbnail(scene)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		response = {"scenes": []}
@@ -35,6 +37,15 @@ def page_scenes():
 		top = ".."
 		)
 
+def get_scene_thumbnail(scene):
+	for scene_item in obs.get_scene_item_list(scene["sceneUuid"]):
+		if scene_item["sourceType"] == "OBS_SOURCE_TYPE_INPUT":
+			settings = obs.get_input_settings(scene_item["sourceUuid"])["inputSettings"]
+			print(settings)
+			if "thumbnail_url" in settings:
+				return settings["thumbnail_url"]
+	return obs.get_source_screenshot(scene["sceneUuid"])
+
 def scene_event_handler(event):
 	if event["eventType"] == "SceneListChanged":
 		return
@@ -42,7 +53,9 @@ def scene_event_handler(event):
 	with scene_event_handler.app.app_context():
 		match event["eventType"]:
 			case "SceneCreated":
-				turbo.push(render_template("khplayer/scenes_event_created.html", scene=event["eventData"]))
+				scene = event["eventData"]
+				scene["thumbnail_url"] = get_scene_thumbnail(scene)
+				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
 			case "SceneRemoved":
 				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=event["eventData"]))
 			case "SceneNameChanged":
