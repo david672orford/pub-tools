@@ -15,3 +15,14 @@ function hide_progress()
 		/* Do this five seconds from now */
 		}, 5000)
 	}
+
+/* CEF in OBS 3.1.x does not implement :has() */
+function css_has_polyfill() {
+	let progress = document.getElementById("progress");
+	let messages = document.getElementById("progress-message");
+	let observer = new MutationObserver((mutationList) => {
+		progress.style.visibility = messages.children.length > 0 ? "visible" : "hidden";
+		});
+	observer.observe(messages, {childList: true});
+	}
+

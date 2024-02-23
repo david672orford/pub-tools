@@ -168,9 +168,8 @@ class ObsControl(ObsControlBase):
 				'inputSettings': source_settings,
 				}
 			try:
-				response = create_input(scene_uuid, try_source_name, source_type, source_settings)
+				scene_item_id = self.create_input(scene_uuid, try_source_name, source_type, source_settings)
 				source_name = try_source_name
-				scene_item_id = response["sceneItemId"]
 				break
 			except ObsError as e:
 				if e.code != 601:		# resource already exists
@@ -183,6 +182,7 @@ class ObsControl(ObsControlBase):
 		# Enable audio monitoring for video files
 		if media_type == "video":
 			payload = {
+				# FIXME: shouldn't we use the source UUID?
 				'inputName': source_name,
 				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
 				}

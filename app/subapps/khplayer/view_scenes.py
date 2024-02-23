@@ -54,7 +54,8 @@ def scene_event_handler(event):
 		match event["eventType"]:
 			case "SceneCreated":
 				scene = event["eventData"]
-				scene["thumbnail_url"] = get_scene_thumbnail(scene)
+				# FIXME: gets no response
+				#scene["thumbnail_url"] = get_scene_thumbnail(scene)
 				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
 			case "SceneRemoved":
 				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=event["eventData"]))
