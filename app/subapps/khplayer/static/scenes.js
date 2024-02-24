@@ -13,7 +13,7 @@ function init_scenes()
 		Array.from($("#scenes-list").children).forEach(scene => {
 			let checkbox = scene.getElementsByTagName("input")[0];
 			let button = scene.getElementsByTagName("button")[0];
-			if(!state || button.textContent[0] != "*")
+			if(!state || button.textContent.trim()[0] != "*")
 				checkbox.checked = state;
 			});
 		});

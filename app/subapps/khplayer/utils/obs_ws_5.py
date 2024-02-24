@@ -5,10 +5,9 @@
 # * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 #
 
-import json
-import websocket
-import base64, hashlib
+import websocket, json, base64, hashlib
 from threading import Thread, current_thread, Lock, Condition
+import queue
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,9 +40,10 @@ class ObsControlBase:
 		self.ws = None
 		self.next_reqid = 0
 		self.next_reqid_lock = Lock()
-		self.thread = None
-		self.condition = Condition()
+		self.recv_thread = None
+		self.responses_lock = Condition()
 		self.responses = {}
+		self.event_queue = queue.SimpleQueue()
 
 		# Connect right away so if browers reconnect after a server restart, they will
 		# receive events right away. But if we cannot connect to OBS, suppress the error
@@ -81,10 +81,13 @@ class ObsControlBase:
 			# Read greeting from OBS-Websocket	
 			hello = ws.recv()
 			logger.debug("hello: %s", hello)
-			hello = json.loads(hello)
+			try:
+				hello = json.loads(hello)
+			except json.JSONDecodeError:
+				raise ObsError("Server Hello is not valid JSON")
 
 			if hello["d"]["rpcVersion"] != 1:
-				raise ObsError("Incorrect protocol version")
+				raise ObsError("Incorrect protocol version in server Hello")
 
 		except ConnectionRefusedError:
 			raise ObsError("Not found on {hostname} port {port}".format(**self.config))
@@ -123,7 +126,10 @@ class ObsControlBase:
 			if response == "":
 				raise ObsError("Incorrect password")
 
-			response = json.loads(response)
+			try:
+				response = json.loads(response)
+			except json.JSONDecodeError:
+				raise ObsError("Identify response is not valid JSON")
 
 			if response["op"] != 2:
 				raise ObsError("incorrect opcode")
@@ -135,55 +141,70 @@ class ObsControlBase:
 		self.ws = ws
 
 		# Start receive thread
-		self.thread = Thread(target=lambda: self.recv_thread_body(), daemon=True)
-		self.thread.start()
+		self.recv_thread = Thread(target=lambda: self._recv_thread_body(), daemon=True)
+		self.recv_thread.start()
 
 	# Close the connection to OBS-Websocket
 	def close(self):
 		self.ws.close()
 		self.ws = None
-		self.thread = None
+		self.recv_thread = None
 		self.responses = {}
 
 	# Internal: receive messages from OBS-Websocket and dispatch them as events
 	# or insert them into self.responses[].
-	def recv_thread_body(self):
+	def _recv_thread_body(self):
 		logger.debug("Receive thread starting")
 
-		while current_thread() is self.thread:
-			try:
-				message = self.ws.recv()
-			except Exception as e:
-				self.close()
-				raise ObsError("Receive failure: " + str(e))
-			logger.debug("OBS recv message: %s", message)
-			if len(message) == 0:
-				logger.warning("Empty response from OBS. Disconnected?")
-				break
-			message = json.loads(message)
+		# Read messages from OBS until .close() is called
+		while current_thread() is self.recv_thread:
+			self._recv_message()
 
-			if message["op"] == 5:			# Event
+			while True:
+				try:
+					event = self.event_queue.get_nowait()
+				except queue.Empty:
+					break
 				for subscriber in self.subscribers:
-					subscriber(message["d"])
-			elif message["op"] in (7, 9):
-				self.condition.acquire()
-				self.responses[message["d"]["requestId"]] = message
-				self.condition.notify()
-				self.condition.release()
-			else:
-				logger.warning("Unhandled message:", message)
+					subscriber(event)
 
 		# Give None responses to all outstanding requests
-		self.condition.acquire()
+		self.responses_lock.acquire()
 		for reqid in self.responses.keys():
 			self.responses[reqid] = None
-		self.condition.notify()
-		self.condition.release()
+		self.responses_lock.notify()
+		self.responses_lock.release()
 
-		logger.debug("*** Receive thread exiting!")
+		logger.debug("Receive thread exiting!")
+
+	# Internal: read the next message from OBS-Websocket and place it in the proper queue
+	def _recv_message(self):
+		try:
+			message = self.ws.recv()
+		except Exception as e:
+			self.close()
+			raise ObsError("Receive failure: " + str(e))
+
+		logger.debug("OBS recv message: %s", message)
+		if len(message) == 0:
+			raise ObsError("Empty response from OBS. Disconnected?")
+		try:
+			message = json.loads(message)
+		except json.JSONDecodeError:
+			raise ObsError("Response is not valid JSON")
+
+		if message["op"] == 5:			# Event
+			self.event_queue.put(message["d"])
+		elif message["op"] in (7, 9):
+			self.responses_lock.acquire()
+			self.responses[message["d"]["requestId"]] = message
+			self.responses_lock.notify()
+			self.responses_lock.release()
+		else:
+			logger.warning("Unhandled message: %s", message)
 
 	# Internal: Send a request to OBS-Websocket
-	def ws_write_json(self, message):
+	def _ws_write_json(self, message):
 		logger.debug("OBS request: %s", message)
 		if self.ws is None:
 			self.connect()
@@ -195,14 +216,26 @@ class ObsControlBase:
 			raise ObsError("Send failure: " + str(e))
 
 	# Internal: Read response from OBS-Websocket
-	def ws_read_json(self, reqid, expected_opcode, req_type=None):
+	def _ws_read_json(self, reqid, expected_opcode, req_type=None):
 		logger.debug("Waiting for response to %s...", reqid)
-		self.condition.acquire()
-		self.condition.wait_for(lambda: self.responses[reqid] is not ObsResponsePending, timeout=10)
+
+		# Event handlers are run from the receive thread. They may in turn make
+		# requests to OBS-Websocket. In such as case, we need to keep receiving
+		# and queueing messages from OBS-Websocket until we get our own when
+		# we can return, the event handler can finish, and the regular receive
+		# loop resumes its work.
+		if current_thread() is self.recv_thread:
+			while self.responses[reqid] is ObsResponsePending:
+				self._recv_message()
+
+		# Wait for response with proper reqid to appear in self.responses[]
+		self.responses_lock.acquire()
+		self.responses_lock.wait_for(lambda: self.responses[reqid] is not ObsResponsePending, timeout=10)
 		response = self.responses.pop(reqid)
-		self.condition.release()
+		self.responses_lock.release()
+
 		if response is ObsResponsePending:
-			raise ObsError("response timeout")
+			raise ObsError("response timeout waiting for %s" % reqid)
 		if type(response) is not dict:
 			raise ObsError("response is not dict: %s" % response)
 		if response["op"] != expected_opcode:
@@ -212,7 +245,7 @@ class ObsControlBase:
 		return response
 
 	# Internal: Generate the next request ID
-	def get_next_reqid(self):
+	def _get_next_reqid(self):
 		self.next_reqid_lock.acquire()
 		reqid = self.next_reqid
 		self.next_reqid += 1
@@ -221,8 +254,8 @@ class ObsControlBase:
 
 	# Send a request to OBS and wait for the response
 	def request(self, req_type, req_data, raise_on_error=True):
-		reqid = self.get_next_reqid()
-		self.ws_write_json({
+		reqid = self._get_next_reqid()
+		self._ws_write_json({
 			"op": 6,			# Request
 			"d": {
 				"requestId": reqid,
@@ -230,7 +263,7 @@ class ObsControlBase:
 				"requestData": req_data,
 				}
 			})
-		response = self.ws_read_json(
+		response = self._ws_read_json(
 			reqid,
 			expected_opcode=7,	# RequestResponse
 			req_type=req_type,
@@ -241,8 +274,8 @@ class ObsControlBase:
 
 	# Send a series of requests to OBS
 	def request_batch(self, requests, halt_on_failure=False, execution_type=0):
-		reqid = self.get_next_reqid()
-		self.ws_write_json({
+		reqid = self._get_next_reqid()
+		self._ws_write_json({
 			"op": 8,			# RequestBatch
 			"d": {
 				"requestId": reqid,
@@ -251,7 +284,7 @@ class ObsControlBase:
 				"requests": requests,
 				}
 			})
-		response = self.ws_read_json(
+		response = self._ws_read_json(
 			reqid,
 			expected_opcode=9,	# RequestBatchResponse
 			)
