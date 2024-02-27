@@ -223,7 +223,8 @@ class ObsControlBase:
 		# requests to OBS-Websocket. In such as case, we need to keep receiving
 		# and queueing messages from OBS-Websocket until we get our own when
 		# we can return, the event handler can finish, and the regular receive
-		# loop resumes its work.
+		# loop resumes its work. No need to lock since only we will be making
+		# this mesage appear in self.responses[].
 		if current_thread() is self.recv_thread:
 			while self.responses[reqid] is ObsResponsePending:
 				self._recv_message()
@@ -290,11 +291,19 @@ class ObsControlBase:
 			)
 		return response["d"]["results"]
 
+	#=========================================================================
+	# Scene Collections
+	#=========================================================================
+
 	def create_scene_collection(self, name):
 		self.request("CreateSceneCollection", {"sceneCollectionName": name})
 
 	def set_current_scene_collection(self, name):
 		self.request("SetCurrentSceneCollection", {"sceneCollectionName": name})
+
+	#=========================================================================
+	# Scenes
+	#=========================================================================
 
 	def get_scene_list(self):
 		result = self.request("GetSceneList", {})["responseData"]
@@ -347,14 +356,18 @@ class ObsControlBase:
 	def set_current_program_scene(self, scene_uuid):
 		self.request("SetCurrentProgramScene", {"sceneUuid": scene_uuid})
 
-	def create_scene_item(self, scene_uuid, source_name=None, source_uuid=None):
+	#=========================================================================
+	# Scene items
+	#=========================================================================
+
+	def create_scene_item(self, *, scene_uuid:str, source_uuid:str=None, source_name:str=None):
 		req = {
 			"sceneUuid": scene_uuid,
 			}
-		if source_name is not None:
-			req["sourceName"] = source_name
 		if source_uuid is not None:
 			req["sourceUuid"] = source_uuid
+		elif source_name is not None:
+			req["sourceName"] = source_name
 		response = self.request("CreateSceneItem", req)
 		return response["responseData"]["sceneItemId"]
 
@@ -371,23 +384,38 @@ class ObsControlBase:
 			})
 		return response["responseData"]["sceneItemTransform"]
 
-	def set_scene_item_transform(self, scene_uuid, scene_item_id, transform):
+	def set_scene_item_transform(self, scene_uuid:str, scene_item_id:int, transform:dict):
 		response = self.request("SetSceneItemTransform", {
 			"sceneUuid": scene_uuid,
 			"sceneItemId": scene_item_id,
 			"sceneItemTransform": transform,
 			})
 
-	def create_input(self, scene_uuid, input_name, input_kind, input_settings={}):
+	#=========================================================================
+	# Inputs (a kind of source)
+	#=========================================================================
+
+	def get_input_list(self):
+		return self.request("GetInputList", {})["responseData"]["inputs"]
+
+	def get_input_uuid(self, input_name:str):
+		for item in self.get_input_list():
+			if item["inputName"] == input_name:
+				return scene["inputUuid"]
+		return None
+
+	def create_input(self, *, scene_uuid:str, input_name:str, input_kind:str, input_settings:dict={}):
 		response = self.request("CreateInput", {
 			"sceneUuid": scene_uuid,
 			"inputName": input_name,
 			"inputKind": input_kind,
 			"inputSettings": input_settings,
 			})
-		return response["responseData"]["sceneItemId"]
+		result = response["responseData"]
+		result["inputName"] = input_name
+		return result
 
-	def get_input_settings(self, input_uuid):
+	def get_input_settings(self, input_uuid:str):
 		response = self.request("GetInputSettings", {
 			"inputUuid": input_uuid,
 			})
@@ -400,6 +428,10 @@ class ObsControlBase:
 			"overlay": overlay,
 			})
 
+	#=========================================================================
+	# Virtual Camera
+	#=========================================================================
+
 	def get_virtual_camera_status(self):
 		return self.request("GetVirtualCamStatus", {})["responseData"]["outputActive"]
 
@@ -411,6 +443,10 @@ class ObsControlBase:
 		else:
 			self.request("StopVirtualCam", {})
 
+	#=========================================================================
+	# Output Projectors
+	#=========================================================================
+
 	def get_monitor_list(self):
 		return self.request("GetMonitorList", {})["responseData"]["monitors"]
 
@@ -420,12 +456,16 @@ class ObsControlBase:
 			"monitorIndex": monitor,
 			})
 
-	def get_source_screenshot(self, source_uuid):
+	#=========================================================================
+	# Screenshots
+	#=========================================================================
+
+	def get_source_screenshot(self, source_uuid:str, width=96, height=54):
 		response = self.request("GetSourceScreenshot", {
 			"sourceUuid": source_uuid,
 			"imageFormat": "jpeg",
-			"imageWidth": 96,
-			"imageHeight": 54,
+			"imageWidth": width,
+			"imageHeight": height,
 			})
 		data = response["responseData"]["imageData"]
 		assert data.startswith("data:")

@@ -83,7 +83,7 @@ class ObsControl(ObsControlBase):
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
 	#============================================================================
-	def add_media_scene(self, scene_name, media_type, media_file, thumbnail_url=None, subtitle_track=None):
+	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str=None, subtitle_track:str=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -91,26 +91,26 @@ class ObsControl(ObsControlBase):
 			parsed_url = urlparse(media_file)
 			path = parsed_url.path
 			if path == "":
-				source_name = parsed_url.hostname
+				input_name = parsed_url.hostname
 			elif path.endswith("/"):
-				source_name = path.split("/")[-2]
+				input_name = path.split("/")[-2]
 			else:
-				source_name = path.split("/")[-1]
-			source_name = unquote(source_name)
+				input_name = path.split("/")[-1]
+			input_name = unquote(input_name)
 		else:
-			source_name = os.path.basename(media_file)
+			input_name = os.path.basename(media_file)
 
 		# Select the appropriate OBS source type and build its settings
 		if media_type == "audio":
-			source_type = "ffmpeg_source"
-			source_settings = {
+			input_kind = "ffmpeg_source"
+			input_setting = {
 				"local_file": media_file,
 				}
 		elif media_type == "video":
 			# If subtitles are enabled, use the VLC source
 			if subtitle_track is not None:
-				source_type = "vlc_source"
-				source_settings = {
+				input_kind = "vlc_source"
+				input_setting = {
 					"playlist": [
 						{
 						"value": media_file,
@@ -123,18 +123,18 @@ class ObsControl(ObsControlBase):
 					}
 			# Otherwise use the FFmpeg source which seems to be more stable
 			else:	
-				source_type = "ffmpeg_source"
-				source_settings = {
+				input_kind = "ffmpeg_source"
+				input_setting = {
 					"local_file": media_file,
 					}
 		elif media_type == "image":
-			source_type = "image_source"
-			source_settings = {
+			input_kind = "image_source"
+			input_setting = {
 				"file": media_file,
 				}
 		elif media_type == "web":
-			source_type = "browser_source"
-			source_settings = {
+			input_kind = "browser_source"
+			input_setting = {
 				"url": media_file,
 				"width": 1280, "height": 720,
 				"css": "",
@@ -142,66 +142,57 @@ class ObsControl(ObsControlBase):
 		else:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
 
-		# FIXME: Remove if we don't find a way to use this
-		if thumbnail_url is not None:
-			source_settings["thumbnail_url"] = thumbnail_url
-
-		logger.info(" Source: %s \"%s\"", source_type, source_name)
-		logger.info(" Source settings: %s", source_settings)
+		logger.info(" Input: %s \"%s\"", input_kind, input_name)
+		logger.info(" Input settings: %s", input_setting)
 
 		# Add a new scene. (Naming naming conflicts will be resolved.)
 		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
 
-		# Create a source (now called an input) to play our file. Resolve naming conflicts.
-		i = 1
-		scene_item_id = None
-		while True:
-			try_source_name = source_name
-			if i == 1:
-				try_source_name = source_name
-			else:
-				try_source_name = f"{source_name} ({i})"
-			payload = {
-				'sceneUuid': scene_uuid,
-				'inputName': try_source_name,
-				'inputKind': source_type,
-				'inputSettings': source_settings,
-				}
-			try:
-				scene_item_id = self.create_input(scene_uuid, try_source_name, source_type, source_settings)
-				source_name = try_source_name
-				break
-			except ObsError as e:
-				if e.code != 601:		# resource already exists
-					raise ObsError(e)
-			i += 1
+		# If there is a thumbnail image, insert it behind the main media.
+		if thumbnail is not None:
+			thumbnail_source = self.create_unique_input(
+				scene_uuid = scene_uuid,
+				input_name = os.path.basename(thumbnail),
+				input_kind = "image_source",
+				input_settings = {"file": thumbnail},
+				)
+			self.scale_scene_item(scene_uuid, thumbnail_source["sceneItemId"])
+
+		# Create an input (a kind of source) to play our file.
+		source = self.create_unique_input(
+			scene_uuid = scene_uuid,
+			input_name = input_name,
+			input_kind = input_kind,
+			input_settings = input_setting,
+			)
 
 		if media_type != "audio":
-			self.scale_scene_item(scene_uuid, scene_item_id)
+			self.scale_scene_item(scene_uuid, source["sceneItemId"])
 
 		# Enable audio monitoring for video files
-		if media_type == "video":
-			payload = {
-				# FIXME: shouldn't we use the source UUID?
-				'inputName': source_name,
-				'monitorType': "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
-				}
-			self.request('SetInputAudioMonitorType', payload)
+		if media_type in ("video", "audio"):
+			self.request("SetInputAudioMonitorType", {
+				"inputUuid": source["inputUuid"],
+				"monitorType": "OBS_MONITORING_TYPE_MONITOR_AND_OUTPUT",
+				})
 
 	#============================================================================
 	# Create inputs
 	#============================================================================
 
-	# Create the specified OBS input, if it does not exist already,
-	# and add it to the specified scene.
+	# Create the specified OBS input and add it as a scene item to the specified scene.
+	# If the input already exists, reuse it and add it as a scene item to the specified scene.
+	# We use this for cameras and screen captures.
 	def create_input_with_reuse(self, scene_uuid, input_name, input_kind, input_settings):
+		scene_item_id = None
 		try:
-			scene_item_id = self.create_input(
+			result = self.create_input(
 				scene_uuid = scene_uuid,
 				input_name = input_name,
 				input_kind = input_kind,
-				input_settings = input_settings
+				input_settings = input_settings,
 				)
+			scene_item_id = result["sceneItemId"]
 		except ObsError as e:
 			if e.code != 601:
 				raise(ObsError(e))
@@ -210,6 +201,31 @@ class ObsControl(ObsControlBase):
 				source_name = input_name,
 				)
 		return scene_item_id
+
+	# Create the specified OBS input and add it as a scene item to the specified scene.
+	# If an input with the specified name already exists, permutate the name until it is unique.
+	def create_unique_input(self, scene_uuid, input_name, input_kind, input_settings):
+		result = None
+		i = 1
+		while True:
+			try_input_name = input_name
+			if i == 1:
+				try_input_name = input_name
+			else:
+				try_input_name = f"{input_name} ({i})"
+			try:
+				result = self.create_input(
+					scene_uuid = scene_uuid,
+					input_name = try_input_name,
+					input_kind = input_kind,
+					input_settings = input_settings,
+					)
+				break
+			except ObsError as e:
+				if e.code != 601:		# resource already exists
+					raise ObsError(e)
+			i += 1
+		return result
 
 	# Create an OBS input for the configured camera, if it does not exist already,
 	# and add it to the specified scene.

@@ -30,6 +30,14 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 	progress_callback(_("Downloading \"{url}\"...").format(**video_metadata))
 	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
 
+	if thumbnail_url is None:
+		thumbnail_url = video_metadata.get("thumbnail_url")
+	if thumbnail_url is not None:
+		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))
+		thumbnail = meeting_loader.download_media(thumbnail_url, callback=progress_callback)
+	else:
+		thumbnail = None
+
 	# If subtitles have been enabled by setting SUB_LANGUAGE, enable them,
 	# if they are available.
 	subtitle_track = None
@@ -55,7 +63,7 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 			prefix + " " + scene_name,
 			"video",
 			video_file,
-			thumbnail_url = (thumbnail_url if thumbnail_url is not None else video_metadata.get("thumbnail_url")),
+			thumbnail = thumbnail,
 			subtitle_track = subtitle_track,
 			)
 	except ObsError as e:
@@ -87,13 +95,13 @@ def load_song(song: int, close=True):
 # names to user-supplied images.
 # scene_name -- name of scene to create in OBS
 # url -- direct download link to the image file
-# thumbnail_url -- link to a smaller version of the image
+# thumbnail_url -- link to a smaller version of the image (unused at present)
 # close -- this is the last download in this group, close progress
 def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 	try:
 		progress_callback(_("Downloading image \"{scene_name}\"...").format(scene_name=scene_name))
 		image_file = meeting_loader.download_media(url, callback=progress_callback)
-		obs.add_media_scene("□ " + scene_name, "image", image_file, thumbnail_url=thumbnail_url)
+		obs.add_media_scene("□ " + scene_name, "image", image_file)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("Unable to load image into OBS."), last_message=close)
@@ -108,9 +116,16 @@ def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 	if scene_name is None:
 		scene_name = meeting_loader.get_title(url)
+
+	if thumbnail_url is not None:
+		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))
+		thumbnail = meeting_loader.download_media(thumbnail_url, callback=progress_callback)
+	else:
+		thumbnail = None
+
 	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
-		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail_url=thumbnail_url)
+		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("Unable to load webpage into OBS."), last_message=close)

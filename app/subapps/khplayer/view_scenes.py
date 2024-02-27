@@ -43,12 +43,6 @@ def page_scenes():
 		)
 
 def get_scene_thumbnail(scene):
-	for scene_item in obs.get_scene_item_list(scene["sceneUuid"]):
-		if scene_item["sourceType"] == "OBS_SOURCE_TYPE_INPUT":
-			settings = obs.get_input_settings(scene_item["sourceUuid"])["inputSettings"]
-			print(settings)
-			if "thumbnail_url" in settings:
-				return settings["thumbnail_url"]
 	return obs.get_source_screenshot(scene["sceneUuid"])
 
 def scene_event_handler(event):
