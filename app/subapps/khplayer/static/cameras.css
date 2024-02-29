@@ -1,0 +1,13 @@
+.slider {
+	display: flex;
+	margin: 0 0 .5em 0;
+	}
+.slider INPUT {
+	flex-grow: 1;
+	}
+.slider SPAN {
+	width: 3em;
+	}
+.slider LABEL {
+	width: 5em;
+	}
