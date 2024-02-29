@@ -14,8 +14,12 @@ def init_app(app, url_prefix):
 		})
 	app.register_blueprint(blueprint, url_prefix=url_prefix)
 
-	from .view_scenes import scene_event_handler
-	scene_event_handler.app = app
+	# FIXME: There must be a better way to make the app available to
+	# the event handlers in view_scenes.py.
+	blueprint.app = app
+
+	from .utils.controllers import obs
+	obs.init_app(app)
 
 	from .cli_obs import cli_obs
 	#from . import cli_obs_face_zoom

@@ -16,7 +16,7 @@ def page_cameras():
 	cameras = []
 	try:
 		scene_uuid = obs.get_current_program_scene()["sceneUuid"]
-		for scene_item in obs.get_scene_item_list(uuid):
+		for scene_item in obs.get_scene_item_list(scene_uuid):
 			# FIXME: An ffmpeg_source which is not playing will have no width and will
 			# cause a ZeroDivisionError exception, so we slip it for now.
 			if scene_item["sceneItemTransform"]["sourceWidth"] == 0:

@@ -62,12 +62,15 @@
 </div>
 
 <script>
-var links = [
-{% for link in patchbay.links %}
-[{{link.output_port.id}}, {{link.input_port.id}}],
-{% endfor %}
-];
-setTimeout(function() { init_patchbay(links) }, 100);
+if(!document.documentElement.hasAttribute("data-turbo-preview"))
+	{
+	var links = [
+	{% for link in patchbay.links %}
+	[{{link.output_port.id}}, {{link.input_port.id}}],
+	{% endfor %}
+	];
+	setTimeout(function() { init_patchbay(links) }, 100);
+	}
 </script>
 
 {% endblock %}

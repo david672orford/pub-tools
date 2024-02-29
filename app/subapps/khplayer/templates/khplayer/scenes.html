@@ -84,6 +84,7 @@
 </form>
 
 <script>
-setTimeout(function() { init_scenes() }, 100);
+if(!document.documentElement.hasAttribute("data-turbo-preview"))
+	setTimeout(function() { init_scenes() }, 100);
 </script>
 {% endblock %}

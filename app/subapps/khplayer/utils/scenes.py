@@ -73,22 +73,24 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 		progress_callback(_("Video loaded into OBS."), last_message=close)
 
 # Add a scene which plays a song from the songbook with onscreen lyrics
-# The video will be downloaded, if necessary.
+# The video will be downloaded, if it is not already in the cache.
 # scene_name -- name of scene to create in OBS
 # song -- song number
 # close -- this is the last download in this group, close progress
 def load_song(song: int, close=True):
 	progress_callback(_("Requesting download URL for song {song}...").format(song=song))
-	media_url = meeting_loader.get_song_video_url(song, resolution=current_app.config["VIDEO_RESOLUTION"])
-	progress_callback(_("Downloading \"{url}\"...").format(url=media_url))
-	media_file = meeting_loader.download_media(media_url, callback=progress_callback)
+	metadata = meeting_loader.get_song_metadata(song, resolution=current_app.config["VIDEO_RESOLUTION"])
+	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["thumbnail_url"]))
+	thumbnail = meeting_loader.download_media(metadata["thumbnail_url"], callback=progress_callback)
+	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["url"]))
+	media_file = meeting_loader.download_media(metadata["url"], callback=progress_callback)
 	try:
-		obs.add_media_scene(_("♫ Song {song}").format(song=song), "video", media_file)
+		obs.add_media_scene(_("♫ Song") + " " + metadata["title"], "video", media_file, thumbnail=thumbnail)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("Unable to song into OBS."), last_message=close)
 	else:
-		progress_callback(_("Song %d loaded into OBS.") % song, last_message=close)
+		progress_callback(_("Song {song} loaded into OBS.").format(song=song), last_message=close)
 
 # Add a scene which displays an image downloaded from the URL provided.
 # Images from JW.ORG have unique names. Take care to assign non-colliding

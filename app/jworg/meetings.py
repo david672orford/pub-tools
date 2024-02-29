@@ -302,16 +302,18 @@ class MeetingLoader(Fetcher):
 		song_number = re.search(r'(\d+)$', song_text)
 		assert song_number is not None, "Song number: %s" % repr(song_number)
 		song_number = song_number.group(1)
+		metadata = self.get_song_metadata(song_number)
 		return MeetingMedia(
 			pub_code = "sjj %s" % song_number,
 			part_title = song_text,
-			title = song_text,
+			title = metadata["title"],
 			media_type = "video",
 			media_url = "https://www.jw.org/finder?" + urlencode({
 				"wtlocale": self.meps_language,
 				"docid": a.attrib["data-page-id"][3:],
 				"srcid": "share",
 				}),
+			thumbnail_url = metadata["thumbnail_url"],
 			)
 
 	# Find the illustrations (<figure> tags) from an article or chapter body.

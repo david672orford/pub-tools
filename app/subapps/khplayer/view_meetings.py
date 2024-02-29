@@ -39,7 +39,6 @@ def page_meetings_update():
 	return redirect(".")
 
 # User has clicked on a meeting from the list.
-# Download a meeting article, extract the media list, and display it.
 @blueprint.route("/meetings/<int:docid>/")
 def page_meetings_view(docid):
 	title = request.args.get("title")
@@ -50,8 +49,11 @@ def page_meetings_view(docid):
 		top = "../.."
 		)
 
-# Asyncronous source which delivers items to a meeting's page as they
-# are loaded using a Turbo Stream.
+# Asyncronous source which:
+# 1) Downloads a meeting article
+# 2) Extract the media list
+# 3) Delivers items to a meeting's page using a Turbo Stream
+# 4) Calls loaded_hook() in browser
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
@@ -96,9 +98,11 @@ def page_meetings_load(docid):
 	# Remove all scenes except those with names beginning with an asterisk.
 	# Such scenes are for stage cameras, Zoom, etc.
 	if request.form.get("delete-existing","false") == "true":
+		to_remove = []
 		for scene in obs.get_scene_list()["scenes"]:
 			if not scene["sceneName"].startswith("*"):
-				obs.remove_scene(scene["sceneUuid"])
+				to_remove.append(scene["sceneUuid"])
+		obs.remove_scenes(to_remove)
 
 	# The media list will already by in the cache. Loop over it collecting
 	# only those items which have a checkbox next to them in the table.

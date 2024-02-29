@@ -16,6 +16,10 @@ class ObsControl(ObsControlBase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.scene_list = None
+		self.app = None
+
+	def init_app(self, app):
+		self.app = app
 
 	#============================================================================
 	# OBS-Websocker provides no way to reorder scene or control the position
@@ -38,7 +42,7 @@ class ObsControl(ObsControlBase):
 				scenes.append(scene)
 			self.scene_list["scenes"] = scenes
 
-			self.subscribe("scenes", lambda event: self.event(event))
+			self.subscribe("Scenes", lambda event: self.event(event))
 		return self.scene_list
 
 	def event(self, event):
@@ -46,12 +50,14 @@ class ObsControl(ObsControlBase):
 		match event["eventType"]:
 			case "SceneCreated":
 				self.scene_list["scenes"].append(data)
-				#self.save_scene_order()
+				with self.app.app_context():
+					self.save_scene_order()
 			case "SceneRemoved":
 				self.scene_list["scenes"].pop(self.scene_index(data["sceneUuid"]))
-				#self.save_scene_order()
+				with self.app.app_context():
+					self.save_scene_order()
 			case "SceneNameChanged":
-				self.scene_list["scenes"][self.scene_index(uuid)]["sceneName"] = data["sceneName"]
+				self.scene_list["scenes"][self.scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
 			case "CurrentProgramSceneChanged":
 				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
 				self.scene_list["currentProgramSceneName"] = data["sceneName"]

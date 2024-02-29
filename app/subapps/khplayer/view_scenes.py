@@ -42,22 +42,15 @@ def page_scenes():
 		top = ".."
 		)
 
-def get_scene_thumbnail(scene):
-	return obs.get_source_screenshot(scene["sceneUuid"])
-
-def scene_event_handler(event):
+def scenes_event_handler(event):
 	if event["eventType"] == "SceneListChanged":
 		return
-	print("%s %s" % (event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False)))
+	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 
-	with scene_event_handler.app.app_context():
+	with blueprint.app.app_context():
 		match event["eventType"]:
 			case "SceneCreated":
-				scene = event["eventData"]
-				# FIXME: This sleep() allows time for the addition of the scene items
-				sleep(1)
-				scene["thumbnail_url"] = get_scene_thumbnail(scene)
-				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
+				turbo.push(render_template("khplayer/scenes_event_created.html", scene=event["eventData"]))
 			case "SceneRemoved":
 				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=event["eventData"]))
 			case "SceneNameChanged":
@@ -73,7 +66,19 @@ def scene_event_handler(event):
 					uuid = event["eventData"]["sceneUuid"],
 					))
 
-obs.subscribe("scenes", scene_event_handler)	
+obs.subscribe("Scenes", scenes_event_handler)
+
+def scene_items_event_handler(event):
+	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
+	scene = event["eventData"]
+	scene["thumbnail_url"] = get_scene_thumbnail(scene)
+	with blueprint.app.app_context():
+		turbo.push(render_template("khplayer/scenes_event_thumbnail.html", scene=scene))
+
+obs.subscribe("SceneItems", scene_items_event_handler)
+
+def get_scene_thumbnail(scene):
+	return obs.get_source_screenshot(scene["sceneUuid"])
 
 @blueprint.route("/scenes/move-scene", methods=["POST"])
 def page_scenes_move_scene():

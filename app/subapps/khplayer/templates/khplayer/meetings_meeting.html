@@ -43,20 +43,23 @@
 </form>
 
 <script>
-document.getElementById("check-all").addEventListener("click", function() {
-	let state = event.target.checked;
-	document.getElementsByName("selected").forEach(checkbox => {
-		checkbox.checked = state;
+if(!document.documentElement.hasAttribute("data-turbo-preview"))
+	{
+	document.getElementById("check-all").addEventListener("click", function() {
+		let state = event.target.checked;
+		document.getElementsByName("selected").forEach(checkbox => {
+			checkbox.checked = state;
+			});
 		});
-	});
-function loaded_hook() {
-	document.getElementsByTagName("button")[0].disabled = false;
+	function loaded_hook() {
+		document.getElementsByTagName("button")[0].disabled = false;
+		}
+	(function() {
+		let sse = new EventSource("stream");
+		sse.onerror = () => { sse.close() }
+		Turbo.connectStreamSource(sse);
+		})();
 	}
-(function() {
-	let sse = new EventSource("stream");
-	sse.onerror = () => { sse.close() }
-	Turbo.connectStreamSource(sse);
-	})();
 </script>
 
 {% endblock %}

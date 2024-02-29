@@ -196,7 +196,7 @@ class Fetcher:
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
-	def get_song_video_url(self, song_number: int, resolution=None):
+	def get_song_metadata(self, song_number: int, resolution=None):
 		media = self.get_json(self.pub_media_url, query = {
 			'output': 'json',
 			'pub': 'sjjm',
@@ -206,10 +206,20 @@ class Fetcher:
 			'langwritten': self.meps_language,
 			'txtCMSLang': self.meps_language,
 			})
-		for variant in media['files'][self.meps_language]['MP4']:
-			if variant["label"] == resolution:
-				return variant['file']['url']
-		raise AssertionError("No match for resolution %s" % resolution)
+		#self.dump_json(media)
+
+		mp4 = media["files"][self.meps_language]["MP4"]
+		mp4_url = None
+		if resolution is not None:
+			for variant in mp4:
+				if variant["label"] == resolution:
+					mp4_url = variant["file"]["url"]
+
+		return {
+			"title": mp4[0]["title"],
+			"url": mp4_url,
+			"thumbnail_url": mp4[0]["trackImage"]["url"],
+			}
 
 	# Given a link to a video from an article, extract the publication ID
 	# and language and go directly to the mediator endpoint to get the

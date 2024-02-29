@@ -1,6 +1,11 @@
 {% set title = gettext("Control Cameras") %}
 {% extends "khplayer/base.html" %}
 
+{% block head_add %}
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='cameras.css')}}">
+<script src="{{ url_for('.static', filename='cameras.js')}}"></script>
+{% endblock %}
+
 {% block main %}
 {% for camera in cameras %}
 <section class="bordered-box">
@@ -33,51 +38,9 @@
 </section>
 {% endfor %}
 
-<style>
-.slider {
-	display: flex;
-	margin: 0 0 .5em 0;
-	}
-.slider INPUT {
-	flex-grow: 1;
-	}
-.slider SPAN {
-	width: 3em;
-	}
-.slider LABEL {
-	width: 5em;
-	}
-</style>
-
 <script>
-Array.from(document.getElementsByTagName("form")).forEach(form_el => {
-	Array.from(form_el.getElementsByClassName("slider")).forEach(slider => {
-		let input = slider.getElementsByTagName("input")[0];
-		let span = slider.getElementsByTagName("span")[0];
-		span.textContent = input.value;
-		input.addEventListener("input", (event) => {
-			span.textContent = event.target.value;
-			post_ptz(form_el);
-			});
-		});
-	});
-function post_ptz(form_el) {
-	fetch("ptz", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-			},
-		body: JSON.stringify({
-			scene_name: form_el.scene_name.value,
-			id: parseInt(form_el.id.slice(6)),
-			width: parseInt(form_el.width.value),
-			height: parseInt(form_el.height.value),
-			x: parseInt(form_el.x.value),
-			y: parseInt(form_el.y.value),
-			zoom: parseFloat(form_el.zoom.value),
-			})
-		});
-	}
+if(!document.documentElement.hasAttribute("data-turbo-preview"))
+	init_cameras();
 </script>
 {% endblock %}
 

@@ -1,5 +1,5 @@
-<turbo-stream action="replace" targets="TR#scene-{{scene['sceneUuid']}} TD.scene-name">
+<turbo-stream action="update" targets="TR#scene-{{scene['sceneUuid']}} .thumbnail">
 	<template>
-		<td class="scene-name">{{scene['sceneName']}}</td>
+		<img src="{{scene['thumbnail_url']}}">
 	</template>
 </turbo-stream>

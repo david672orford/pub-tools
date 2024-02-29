@@ -153,6 +153,10 @@ HEADER DIV#progress-message {
 	min-height: 1.4em;
 	padding: .1em .2em 0 .2em;
 	}
+HEADER DIV#progress-message DIV {
+	text-indent: -1em;
+	padding-left: 1em;
+	}
 HEADER DIV#progress-message.error {
 	color: red;
 	}
@@ -298,23 +302,20 @@ DIV.thumbnail > DIV.caption {
 	}
 
 /* Scenes table */
-#scenes TD:nth-child(3) {
-	padding: 0;
+#scenes TR:hover {
+	background-color: #f0f0f0;
 	}
-#scenes .preview-scene {
+#scenes TR.active {
+	background-color: #e0e0e0;
+	}
+#scenes TR.preview-scene {
 	background-color: #fffff0;
 	}
-#scenes .program-scene {
+#scenes TR.program-scene {
 	background-color: #f0fff0;
 	}
-#scenes BUTTON {
-	text-align: left;
-	border: none;
-	border-radius: 0;
-	background-color: inherit;
-	}
-#scenes BUTTON:hover {
-	filter: none;
+#scenes TD:nth-child(2) {
+	width: 1px;
 	}
 .scene-add-form {
 	display: none;

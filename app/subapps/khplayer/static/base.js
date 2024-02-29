@@ -1,5 +1,6 @@
 function hide_progress()
 	{
+	let this_script = document.currentScript;
 	setTimeout(function() {
 
 		/* Remove the <div> which grows wider as progress is made */
@@ -7,10 +8,15 @@ function hide_progress()
 		while(bar.firstChild)
 			bar.removeChild(bar.firstChild);
 
-		/* Remove the <div>'s with progress messages and the <script> tag which called this function */
+		/* Remove the <div>'s with progress messages and the <script> tag
+		   which installed this timer callback, but only if that <script>
+		   tag is still the last one, that is if no messages have been
+		   added since. */
 		let message = document.getElementById('progress-message');
-		while(message.firstChild)
-			message.removeChild(message.firstChild);
+		if(message.lastChild == this_script) {
+			while(message.firstChild)
+				message.removeChild(message.firstChild);
+		}
 
 		/* Do this five seconds from now */
 		}, 5000)

@@ -11,10 +11,8 @@
 			{% if scene['thumbnail_url'] %}<img src="{{scene['thumbnail_url']}}">{% endif %}
 			</div>
 		</td>
-		<td>
-			<button class="fill" type="submit" name="scene" value="{{scene['sceneUuid']}}">
-				{{scene['sceneName']}}
-			</button>
+		<td class="scene-name">
+			{{scene['sceneName']}}
 		</td>
 	</tr>
 {% endmacro %}

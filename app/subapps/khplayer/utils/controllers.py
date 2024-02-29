@@ -22,3 +22,6 @@ obs = ObsControl(
 	config = current_app.config.get("OBS_WEBSOCKET"),
 	)
 
+def init_app(app):
+	obs.app = app
+

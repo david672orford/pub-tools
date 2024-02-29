@@ -53,7 +53,7 @@ class Turbo:
 		# Define a Jinja2 macro which generates Javascript code to load Hotwire Turbo
 		# and connect it to the event source route /turbo-sse defined above.
 		def turbo():
-			url = "https://cdn.jsdelivr.net/npm/@hotwired/turbo@7.2.2/dist/turbo.es2017-umd.js"
+			url = "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.3/dist/turbo.es2017-umd.js"
 			return Markup('''
 				<script src="{url}"></script>
 				<script>

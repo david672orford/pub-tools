@@ -6,14 +6,32 @@ function init_scenes()
 		}
 
 	/* ===============================================================
+	   Click on scene
+    */
+	$("#scenes-list").addEventListener("click", (e) => {
+		let target = e.target;
+		if(target.tagName == "INPUT")
+			return;
+		while(target.tagName != "TR")
+			target = target.parentElement;
+		target.classList.add("active");
+		let data = new FormData();
+		data.append("scene", target.id.slice(6));
+		fetch("submit", {
+			body: data,
+			method: "POST",
+			});
+		});
+
+	/* ===============================================================
 	   Checkbox for selecting all scenes except those which begin with a star
     */
 	$("#check-all").addEventListener("click", function() {
 		let state = event.target.checked;
 		Array.from($("#scenes-list").children).forEach(scene => {
 			let checkbox = scene.getElementsByTagName("input")[0];
-			let button = scene.getElementsByTagName("button")[0];
-			if(!state || button.textContent.trim()[0] != "*")
+			let scene_name = scene.getElementsByClassName("scene-name")[0];
+			if(!state || scene_name.textContent.trim()[0] != "*")
 				checkbox.checked = state;
 			});
 		});
@@ -40,10 +58,8 @@ function init_scenes()
 		console.log("reorder dragenter:", e.target);
 		e.stopPropagation();
 		let over = e.target;
-		if(over.nodeName == "BUTTON")				/* FIXME: fragile code */
-			over = over.parentNode.parentNode;
-		else if(over.nodeName == "TD")
-			over = over.parentNode;
+		while(over.tagName != "TR")
+			over = over.parentElement;
 		/*console.log(moving_scene, over);*/
 		if (isBefore(moving_scene, over))
 			scenes_list.insertBefore(moving_scene, over);
@@ -181,20 +197,13 @@ function init_scenes()
 
 function set_current_scene(className, uuid) {
 	console.log("set_current_scene:", className, uuid);
-	//document.currentScript.remove();
+	document.currentScript.remove();
 	Array.from(document.getElementById("scenes-list").children).forEach(row => {
 		if(row.id == "scene-" + uuid)
 			row.classList.add(className);
 		else
 			row.classList.remove(className);
+		row.classList.remove("active");
 		});
-	}
-
-function rename_scene(uuid, new_name) {
-	console.log("rename_scene:", uuid, new_name);
-	//document.currentScript.remove();
-	let scene = document.getElementById("scene-" + uuid);
-	let button = scene.getElementsByTagName("button")[0];
-	button.textContent = new_name;
 	}
 

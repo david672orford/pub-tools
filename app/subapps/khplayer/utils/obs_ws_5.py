@@ -13,22 +13,22 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ObsError(Exception):
-	def __init__(self, response):
-		super().__init__()
-		if type(response) is dict:
+	def __init__(self, message:str, *, response:dict=None):
+		super().__init__(message)
+		if response is not None:
 			self.code = response["d"]["requestStatus"]["code"]
 			self.comment = response["d"]["requestStatus"].get("comment")
-		elif type(response) is ObsError:
-			self.code = response.code
-			self.comment = response.comment
 		else:
 			self.code = 0
 			self.comment = response
 	def __str__(self):
 		if self.code == 0:
-			return self.comment
+			return super().__str__()
 		else:
-			return "<ObsError code=%d comment=%s>" % (self.code, repr(self.comment))
+			return "<ObsError %s code=%d comment=%s>" % (super().__str__(), self.code, repr(self.comment))
+
+class ObsHangup(ObsError):
+	pass
 
 class ObsResponsePending:
 	pass
@@ -36,7 +36,14 @@ class ObsResponsePending:
 class ObsControlBase:
 	def __init__(self, config):
 		self.config = config
-		self.subscribers = []
+		self.event_intents = {
+			"Scenes": 4,
+			"SceneItems": 128,
+			}
+		self.subscribers = {
+			4: [],
+			128: [],
+			}
 		self.ws = None
 		self.next_reqid = 0
 		self.next_reqid_lock = Lock()
@@ -58,8 +65,8 @@ class ObsControlBase:
 	# Register an event callback function. Currently only scenes-event
 	# subscriptions are implemented.
 	def subscribe(self, category, func):
-		assert category == "scenes"
-		self.subscribers.append(func)
+		assert category in self.event_intents
+		self.subscribers[self.event_intents[category]].append(func)
 
 	# Open the websocket connection to OBS, log in, and start a receive thread.
 	def connect(self):
@@ -100,7 +107,7 @@ class ObsControlBase:
 			"op": 1,
 			"d": {
 				"rpcVersion": 1,
-				"eventSubscriptions": 4,
+				"eventSubscriptions": 4 | 128,
 				}
 			}
 
@@ -158,14 +165,17 @@ class ObsControlBase:
 
 		# Read messages from OBS until .close() is called
 		while current_thread() is self.recv_thread:
-			self._recv_message()
+			try:
+				self._recv_message()
+			except ObsHangup:
+				break
 
 			while True:
 				try:
 					event = self.event_queue.get_nowait()
 				except queue.Empty:
 					break
-				for subscriber in self.subscribers:
+				for subscriber in self.subscribers[event["eventIntent"]]:
 					subscriber(event)
 
 		# Give None responses to all outstanding requests
@@ -184,14 +194,16 @@ class ObsControlBase:
 		except Exception as e:
 			self.close()
 			raise ObsError("Receive failure: " + str(e))
-
 		logger.debug("OBS recv message: %s", message)
+
 		if len(message) == 0:
-			raise ObsError("Empty response from OBS. Disconnected?")
+			raise ObsHangup("Zero-length read")
+
 		try:
 			message = json.loads(message)
 		except json.JSONDecodeError:
 			raise ObsError("Response is not valid JSON")
+		assert type(message) is dict
 
 		if message["op"] == 5:			# Event
 			self.event_queue.put(message["d"])
@@ -235,10 +247,10 @@ class ObsControlBase:
 		response = self.responses.pop(reqid)
 		self.responses_lock.release()
 
+		if response is None:
+			raise ObsHangup("OBS terminated connection")
 		if response is ObsResponsePending:
 			raise ObsError("response timeout waiting for %s" % reqid)
-		if type(response) is not dict:
-			raise ObsError("response is not dict: %s" % response)
 		if response["op"] != expected_opcode:
 			raise ObsError("incorrect opcode")
 		if req_type is not None and response["d"]["requestType"] != req_type:
@@ -266,11 +278,11 @@ class ObsControlBase:
 			})
 		response = self._ws_read_json(
 			reqid,
-			expected_opcode=7,	# RequestResponse
-			req_type=req_type,
+			expected_opcode = 7,	# RequestResponse
+			req_type = req_type,
 			)
 		if raise_on_error and not response["d"]["requestStatus"]["result"]:
-			raise ObsError(response)
+			raise ObsError("Request failed", response=response)
 		return response["d"]	
 
 	# Send a series of requests to OBS
@@ -333,8 +345,8 @@ class ObsControlBase:
 					}
 		
 			except ObsError as e:
-				if not make_unique or e.code != 601:		# resource already exists
-					raise ObsError(e)
+				if not make_unique or e.code != 601:		# 601 is resource already exists
+					raise
 			i += 1
 
 	def remove_scene(self, scene_uuid):
@@ -466,6 +478,7 @@ class ObsControlBase:
 			"imageFormat": "jpeg",
 			"imageWidth": width,
 			"imageHeight": height,
+			"imageCompressionQuality": 85,
 			})
 		data = response["responseData"]["imageData"]
 		assert data.startswith("data:")
