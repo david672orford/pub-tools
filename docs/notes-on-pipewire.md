@@ -8,6 +8,12 @@
 * [Wireplumber Documentation](https://pipewire.pages.freedesktop.org/wireplumber/)
 * [Pipewire Under the Hood](https://venam.nixers.net/blog/unix/2021/06/23/pipewire-under-the-hood.html) -- Decent overview from somebody frustrated by the poor documentation
 * [Migrate PulseAudio](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
+* [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
+* [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
+
+## API
+
+* [Python Pulsectl](https://pypi.org/project/pulsectl/)
 
 ## Virtual Audio Cable
 
@@ -23,7 +29,12 @@
 * [QjackCtl](https://qjackctl.sourceforge.io/) -- GUI for the JACK audio server, compatible with Pipewire, clutters with MIDI, one box for all OBS sources
 * [Catia](https://kx.studio/Applications:Catia) -- Another GUI for JACK which can be used with Pipewire, clutters with MIDI, one box for all OBS sources
 
-## Filters
+## Compatible Audio Filters
 
 * [NoiseTorch](https://github.com/noisetorch/NoiseTorch)
+
+## Recipies
+
+* [Rename Devices in Pipewire](https://unix.stackexchange.com/questions/648666/rename-devices-in-pipewire)
+* [How to Disable Audio Devices in Pipewire / Wireplumber](https://gist.github.com/gtirloni/4384f4de6f4d3fda8446b04057ca5f9d)
 

@@ -174,9 +174,10 @@ def page_jwstream_clip(token, id):
 	run_thread(lambda: download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration))
 
 	# Go back to the player page in case the user wants to make another clip.
-	return progress_response(_("Downloading clip..."))
+	return progress_response(None)
 
 def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration):
+	progress_callback(_("Downloading clip..."))
 
 	# Request a download URL with access token
 	video_url = event.get_download_url()

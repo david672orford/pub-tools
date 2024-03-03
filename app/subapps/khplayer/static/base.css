@@ -160,6 +160,9 @@ HEADER DIV#progress-message DIV {
 HEADER DIV#progress-message.error {
 	color: red;
 	}
+HEADER DIV#progress-message.heading {
+	font-weight: bold;
+	}
 
 /* Error messages above content */
 DIV.flash {

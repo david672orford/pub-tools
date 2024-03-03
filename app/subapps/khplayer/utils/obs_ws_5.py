@@ -85,7 +85,7 @@ class ObsControlBase:
 			ws = websocket.WebSocket()
 			ws.connect("ws://%s:%d" % (hostname, port))
 
-			# Read greeting from OBS-Websocket	
+			# Read greeting from OBS-Websocket
 			hello = ws.recv()
 			logger.debug("hello: %s", hello)
 			try:
@@ -125,7 +125,7 @@ class ObsControlBase:
 					).digest()
 				).decode()
 
-		try:	
+		try:
 			ws.send(json.dumps(req))
 			response = ws.recv()
 			logger.debug("auth response: %s", response)
@@ -155,28 +155,9 @@ class ObsControlBase:
 	def close(self):
 		self.ws.close()
 		self.ws = None
+
+		# Tell the receive thread to stop
 		self.recv_thread = None
-		self.responses = {}
-
-	# Internal: receive messages from OBS-Websocket and dispatch them as events
-	# or insert them into self.responses[].
-	def _recv_thread_body(self):
-		logger.debug("Receive thread starting")
-
-		# Read messages from OBS until .close() is called
-		while current_thread() is self.recv_thread:
-			try:
-				self._recv_message()
-			except ObsHangup:
-				break
-
-			while True:
-				try:
-					event = self.event_queue.get_nowait()
-				except queue.Empty:
-					break
-				for subscriber in self.subscribers[event["eventIntent"]]:
-					subscriber(event)
 
 		# Give None responses to all outstanding requests
 		self.responses_lock.acquire()
@@ -185,10 +166,31 @@ class ObsControlBase:
 		self.responses_lock.notify()
 		self.responses_lock.release()
 
+	# Internal: receive messages from OBS-Websocket and dispatch them as events
+	# or insert them into self.responses[].
+	def _recv_thread_body(self):
+		logger.debug("Receive thread starting")
+
+		# Read messages from OBS until .close() is called or OBS hangs up
+		while current_thread() is self.recv_thread:
+			try:
+				self._recv_one_message()
+			except ObsHangup:
+				break
+
+			# Dispatch events to subscribers
+			while True:
+				try:
+					event = self.event_queue.get_nowait()
+				except queue.Empty:
+					break
+				for subscriber in self.subscribers[event["eventIntent"]]:
+					subscriber(event)
+
 		logger.debug("Receive thread exiting!")
 
 	# Internal: read the next message from OBS-Websocket and place it in the proper queue
-	def _recv_message(self):
+	def _recv_one_message(self):
 		try:
 			message = self.ws.recv()
 		except Exception as e:
@@ -197,6 +199,7 @@ class ObsControlBase:
 		logger.debug("OBS recv message: %s", message)
 
 		if len(message) == 0:
+			self.close()
 			raise ObsHangup("Zero-length read")
 
 		try:
@@ -239,7 +242,7 @@ class ObsControlBase:
 		# this mesage appear in self.responses[].
 		if current_thread() is self.recv_thread:
 			while self.responses[reqid] is ObsResponsePending:
-				self._recv_message()
+				self._recv_one_message()
 
 		# Wait for response with proper reqid to appear in self.responses[]
 		self.responses_lock.acquire()
@@ -283,7 +286,7 @@ class ObsControlBase:
 			)
 		if raise_on_error and not response["d"]["requestStatus"]["result"]:
 			raise ObsError("Request failed", response=response)
-		return response["d"]	
+		return response["d"]
 
 	# Send a series of requests to OBS
 	def request_batch(self, requests, halt_on_failure=False, execution_type=0):
@@ -343,7 +346,7 @@ class ObsControlBase:
 					"sceneName": try_scene_name,
 					"sceneUuid": response["responseData"]["sceneUuid"],
 					}
-		
+
 			except ObsError as e:
 				if not make_unique or e.code != 601:		# 601 is resource already exists
 					raise

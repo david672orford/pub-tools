@@ -2,7 +2,6 @@ from flask import render_template, request, redirect, abort
 from collections import defaultdict
 from urllib.parse import urlencode
 from markupsafe import escape
-from time import sleep
 import logging
 
 from ...models import db, VideoCategories, Videos
@@ -53,11 +52,8 @@ def page_videos_list(category_key, subcategory_key):
 @blueprint.route("/videos/download", methods=["POST"])
 def page_videos_download():
 	video = Videos.query.filter_by(id=request.form.get("id")).one()
-	def download():
-		sleep(1)
-		load_video_url(video.title, video.href, thumbnail_url=video.thumbnail)
-	run_thread(download)
-	return progress_response(_("Downloading video..."))
+	run_thread(lambda: load_video_url(video.title, video.href, thumbnail_url=video.thumbnail))
+	return progress_response(None)
 
 # When Update button is pressed on top index page
 @blueprint.route("/videos/update-all", methods=["POST"])

@@ -13,6 +13,7 @@ menu.append((_("Cameras"), "/cameras/"))
 
 @blueprint.route("/cameras/")
 def page_cameras():
+	scene_uuid = None
 	cameras = []
 	try:
 		scene_uuid = obs.get_current_program_scene()["sceneUuid"]

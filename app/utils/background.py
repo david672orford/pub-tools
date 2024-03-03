@@ -20,7 +20,8 @@ def run_thread(func):
 	global background_thread
 
 	if background_thread is not None and background_thread.is_alive():
-		flash(_("Please wait for previous download to finish."))
+		async_flash(_("Please wait for previous download to finish."))
+		return
 
 	@copy_current_request_context
 	def wrapper():
@@ -50,13 +51,12 @@ def progress_callback(message, last_message=False, **kwargs):
 # Send an update to the web browser in response to a form submission.
 def progress_response(message, last_message=False, **kwargs):
 	logger.debug("Response message: %s", message)
+	if message is None:		# empty message to prevent navigation
+		return turbo.stream("")
 	return turbo.stream(format_progress_message(message, last_message=last_message, **kwargs))
 
 def format_progress_message(message, last_message=False, cssclass=None, **kwargs):
-	if message is None:
-		message = ""
-	else:
-		message = message.format(**kwargs)
+	message = message.format(**kwargs)
 	message = "<div%s>%s</div>%s" % (
 		f" class=\"{cssclass}\"" if cssclass is not None else "",
 		escape(message),

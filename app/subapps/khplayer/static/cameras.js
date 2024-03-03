@@ -18,7 +18,7 @@ function post_ptz(form_el) {
 			"Content-Type": "application/json"
 			},
 		body: JSON.stringify({
-			scene_name: form_el.scene_name.value,
+			scene_uuid: form_el.scene_uuid.value,
 			id: parseInt(form_el.id.slice(6)),
 			width: parseInt(form_el.width.value),
 			height: parseInt(form_el.height.value),

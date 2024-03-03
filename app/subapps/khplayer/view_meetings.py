@@ -147,7 +147,7 @@ def get_meeting_media(docid):
 
 # This function is run in a background thread to download the media and add a scene in OBS for each item.
 def meeting_media_to_obs_scenes(title, items):
-	progress_callback(_("Loading media for \"{title}\"...").format(title=title))
+	progress_callback(_("Loading media for \"{title}\"...").format(title=title), ccsclass="heading")
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
 		if item.media_type == "web":		# HTML page

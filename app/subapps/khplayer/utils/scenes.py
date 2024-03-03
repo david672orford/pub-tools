@@ -20,6 +20,7 @@ scene_name_prefixes = {
 # language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
 def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True):
+	progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), ccsclass="heading")
 	if scene_name is not None:
 		progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
 	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"], language=language)
@@ -78,6 +79,7 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 # song -- song number
 # close -- this is the last download in this group, close progress
 def load_song(song: int, close=True):
+	progress_callback(_("Loading song \"{song}\"...").format(song=song))
 	progress_callback(_("Requesting download URL for song {song}...").format(song=song))
 	metadata = meeting_loader.get_song_metadata(song, resolution=current_app.config["VIDEO_RESOLUTION"])
 	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["thumbnail_url"]))
@@ -100,8 +102,8 @@ def load_song(song: int, close=True):
 # thumbnail_url -- link to a smaller version of the image (unused at present)
 # close -- this is the last download in this group, close progress
 def load_image_url(scene_name, url, thumbnail_url=None, close=True):
+	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
-		progress_callback(_("Downloading image \"{scene_name}\"...").format(scene_name=scene_name))
 		image_file = meeting_loader.download_media(url, callback=progress_callback)
 		obs.add_media_scene("□ " + scene_name, "image", image_file)
 	except ObsError as e:
@@ -118,6 +120,7 @@ def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 	if scene_name is None:
 		scene_name = meeting_loader.get_title(url)
+	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 
 	if thumbnail_url is not None:
 		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))

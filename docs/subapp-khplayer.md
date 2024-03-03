@@ -36,16 +36,15 @@ and **Videos** which can be used to load videos material into OBS.
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install obs-studio
 
-## Install the Video For Linux Loopback Device
-
-    $ sudo modprobe v4l2loopback
-	$ sudo sh -c 'echo v4l2loopback >>/etc/modules'
-
 ## Install Pipewire
 
 Install the new audio subsystem called Pipewire following the instructions
 in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
 Be sure to follow the part about installing Wireplumber.
+
+## Set Up Audio and Video Loopback Devices
+
+    $ ./docs/setup-loopback.sh
 
 ## Initial Setup of Zoom
 
