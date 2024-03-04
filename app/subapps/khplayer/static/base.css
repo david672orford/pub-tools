@@ -22,10 +22,9 @@ HEADER {
 MAIN {
 	flex-grow: 1;
 	overflow: auto;
-	margin-top: .3rem;
 	}
 SECTION {
-	margin: 0 .3rem .3rem .3rem;
+	margin: 0.3rem;
 	}
 H1, H2 {
 	font-family: sans-serif;
@@ -157,11 +156,14 @@ HEADER DIV#progress-message DIV {
 	text-indent: -1em;
 	padding-left: 1em;
 	}
-HEADER DIV#progress-message.error {
-	color: red;
-	}
-HEADER DIV#progress-message.heading {
+HEADER DIV#progress-message DIV.heading {
 	font-weight: bold;
+	}
+HEADER DIV#progress-message DIV.success {
+	color: green;
+	}
+HEADER DIV#progress-message DIV.error {
+	color: red;
 	}
 
 /* Error messages above content */
@@ -305,6 +307,15 @@ DIV.thumbnail > DIV.caption {
 	}
 
 /* Scenes table */
+#scenes-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	}
+#scenes-scroller {
+	flex-grow: 1;
+	overflow-y: scroll;
+	}
 #scenes TR:hover {
 	background-color: #f0f0f0;
 	}
@@ -319,6 +330,12 @@ DIV.thumbnail > DIV.caption {
 	}
 #scenes TD:nth-child(2) {
 	width: 1px;
+	}
+#scenes-controls {
+	border-top: thin solid grey;
+	margin: 0;
+	padding: .3rem .3rem 0 .3rem;
+	background-color: #f8f8f8;
 	}
 .scene-add-form {
 	display: none;

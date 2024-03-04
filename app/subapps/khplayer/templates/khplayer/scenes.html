@@ -7,45 +7,42 @@
 {% endblock %}
 
 {% block main %}
-<form action="submit" method="POST">
-<section>
-	<div class="borderless-box">
-		<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
-		{% if not cameras %}
-		<button type="submit" class="new" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
-		{% endif %}
+<form id="scenes-container" action="submit" method="POST">
+
+	<div id="scenes-scroller">
+		<table id="scenes" class="borders full-width selection">
+			<tbody id="scenes-list">
+				{% for scene in scenes %}
+				{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
+				{% endfor %}
+			</tbody>
+		</table>
 	</div>
 
-	{% if cameras %}
-	<section class="bordered-box">
-		<select name="camera">
-			{% for camera_dev, camera_name in cameras %}
-			<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
-			{% endfor %}
-		</select>
-		<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
-		<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
-		<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
-		<a href="."><button class="cancel" type="button">{{_("Cancel")}}</button></a>
+	<section id="scenes-controls">
+		<div class="borderless-box">
+			<input id="check-all" type="checkbox">
+			<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
+			{% if not cameras %}
+			<button type="submit" class="new" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
+			{% endif %}
+			<a href="composer/"><button>{{_("Composer")}}</button></a>
+		</div>
+
+		{% if cameras %}
+		<section class="bordered-box">
+			<select name="camera">
+				{% for camera_dev, camera_name in cameras %}
+				<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
+				{% endfor %}
+			</select>
+			<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
+			<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
+			<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
+			<a href="."><button class="cancel" type="button">{{_("Cancel")}}</button></a>
+		</section>
+		{% endif %}
 	</section>
-	{% endif %}
-
-<table id="scenes" class="borders full-width selection">
-<thead>
-<tr>
-	<th><input id="check-all" type="checkbox"></th>
-	<th></th>
-	<th>{{_("Scene Name")}}</th>
-</tr>
-</thead>
-<tbody id="scenes-list">
-	{% for scene in scenes %}
-	{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
-	{% endfor %}
-</tbody>
-</table>
-
-</section>
 </form>
 
 <form id="upload-form" class="scene-add-form" action="upload" method="POST" enctype="multipart/form-data">

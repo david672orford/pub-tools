@@ -1,4 +1,4 @@
-function init_cameras() {
+function init_scene_composer() {
 
 Array.from(document.getElementsByTagName("form")).forEach(form_el => {
 	Array.from(form_el.getElementsByClassName("slider")).forEach(slider => {
@@ -19,9 +19,9 @@ function post_ptz(form_el) {
 			},
 		body: JSON.stringify({
 			scene_uuid: form_el.scene_uuid.value,
-			id: parseInt(form_el.id.slice(6)),
-			width: parseInt(form_el.width.value),
-			height: parseInt(form_el.height.value),
+			id: parseInt(form_el.id.slice(10)), /* "sceneitem" */
+			bounds: form_el.bounds.value,
+			dimensions: form_el.dimensions.value,
 			x: parseInt(form_el.x.value),
 			y: parseInt(form_el.y.value),
 			zoom: parseFloat(form_el.zoom.value),

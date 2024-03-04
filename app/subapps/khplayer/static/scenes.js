@@ -103,7 +103,7 @@ function init_scenes()
 	/* ===============================================================
        Drag-and-drop dropzone for adding scenes
 	*/
-	let dropArea = $('#scenes');
+	let dropArea = $("#scenes");
 	dropArea.addEventListener("dragover", (e) => e.preventDefault());
 
 	/* Visual feedback when over drop zone */

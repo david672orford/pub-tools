@@ -12,19 +12,19 @@ from ...models import VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
 
-menu.append((_("Songbook"), "/songs/"))
+menu.append((_("Songbook"), "/songbook/"))
 
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
-@blueprint.route("/songs/")
-def page_songs():
+@blueprint.route("/songbook/")
+def page_songbook():
 	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
-	return render_template("khplayer/songs.html", videos=category.videos if category else None, top="..")
+	return render_template("khplayer/songbook.html", videos=category.videos if category else None, top="..")
 
-@blueprint.route("/songs/submit", methods=["POST"])
-def page_songs_submit():
+@blueprint.route("/songbook/submit", methods=["POST"])
+def page_songbook_submit():
 
-	# By song number entered in form
-	song = request.form.get('song')
+	# If user entered a song number into the form,
+	song = request.form.get("song")
 	if song:
 		song = song.strip()
 		m = re.match(r"^(\d+)$", song)
@@ -37,11 +37,12 @@ def page_songs_submit():
 			return redirect(".")
 		run_thread(lambda: load_song(song))
 
-	# By clicking on link to video
+	# If the user clicked on a link to a song,
 	lank = request.form.get("lank")
 	if lank:
+		lank, scene_name = lank.split(" ",1)
 		video = Videos.query.filter_by(lank=lank).one()
-		run_thread(lambda: load_video_url(None, video.href, prefix="♫ Песня"))
+		run_thread(lambda: load_video_url(scene_name, video.href, prefix="♫ Песня"))
 
 	return progress_response(None)
 

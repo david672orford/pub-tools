@@ -247,8 +247,8 @@ class ObsControl(ObsControlBase):
 				"pixelformat": 1196444237,		# Motion-JPEG
 				#"pixelformat": 875967048,		# H.264
 				#"pixelformat" : 1448695129,	# YUYV 4:2:2
-				"resolution": 83886800,			# 1280x720
-				"auto_reset": True,
+				"resolution": 83886800,		# 1280x720
+				#"auto_reset": True,			# FIXME: poison in OBS 3.1.0-beta3
 				"buffering": False,
 				}
 			)

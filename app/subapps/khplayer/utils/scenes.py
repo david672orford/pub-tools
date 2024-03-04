@@ -20,7 +20,7 @@ scene_name_prefixes = {
 # language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
 def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True):
-	progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), ccsclass="heading")
+	progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	if scene_name is not None:
 		progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
 	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"], language=language)
@@ -69,9 +69,9 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 			)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))	
-		progress_callback(_("Unable to load video into OBS."), last_message=close)
+		progress_callback(_("Loading of video failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Video loaded into OBS."), last_message=close)
+		progress_callback(_("Video has been loaded."), last_message=close, cssclass="success")
 
 # Add a scene which plays a song from the songbook with onscreen lyrics
 # The video will be downloaded, if it is not already in the cache.
@@ -79,7 +79,7 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 # song -- song number
 # close -- this is the last download in this group, close progress
 def load_song(song: int, close=True):
-	progress_callback(_("Loading song \"{song}\"...").format(song=song))
+	progress_callback(_("Loading song {song}...").format(song=song), cssclass="heading")
 	progress_callback(_("Requesting download URL for song {song}...").format(song=song))
 	metadata = meeting_loader.get_song_metadata(song, resolution=current_app.config["VIDEO_RESOLUTION"])
 	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["thumbnail_url"]))
@@ -90,9 +90,9 @@ def load_song(song: int, close=True):
 		obs.add_media_scene(_("♫ Song") + " " + metadata["title"], "video", media_file, thumbnail=thumbnail)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Unable to song into OBS."), last_message=close)
+		progress_callback(_("Loading of song failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Song {song} loaded into OBS.").format(song=song), last_message=close)
+		progress_callback(_("Song {song} has been loaded.").format(song=song), last_message=close, cssclass="success")
 
 # Add a scene which displays an image downloaded from the URL provided.
 # Images from JW.ORG have unique names. Take care to assign non-colliding
@@ -102,15 +102,15 @@ def load_song(song: int, close=True):
 # thumbnail_url -- link to a smaller version of the image (unused at present)
 # close -- this is the last download in this group, close progress
 def load_image_url(scene_name, url, thumbnail_url=None, close=True):
-	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name))
+	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	try:
 		image_file = meeting_loader.download_media(url, callback=progress_callback)
 		obs.add_media_scene("□ " + scene_name, "image", image_file)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Unable to load image into OBS."), last_message=close)
+		progress_callback(_("Loading of image failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Image loaded into OBS."), last_message=close)
+		progress_callback(_("Image has been loaded."), last_message=close, cssclass="success")
 
 # Add a scene which displays a webpage from any site
 # scene_name -- name of scene to create in OBS
@@ -120,7 +120,7 @@ def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 	if scene_name is None:
 		scene_name = meeting_loader.get_title(url)
-	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
+	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 
 	if thumbnail_url is not None:
 		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))
@@ -133,7 +133,7 @@ def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Unable to load webpage into OBS."), last_message=close)
+		progress_callback(_("Loading of webpage failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Webpage loaded into OBS."), last_message=close)
+		progress_callback(_("Webpage has been loaded."), last_message=close, cssclass="success")
 
