@@ -43,11 +43,9 @@
 </table>
 
 {% if weeks|length < 8 %}
-<p>
-	<form action="update" method="POST">
-	<button class="reload" type="submit">{{gettext("Load More Weeks")}}</button>
-	</form>
-</p>
+<form action="update" method="POST">
+	<p><button class="reload" type="submit">{{gettext("Load More Weeks")}}</button></p>
+</form>
 {% endif %}
 
 </section>

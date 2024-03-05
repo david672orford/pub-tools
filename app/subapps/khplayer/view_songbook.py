@@ -42,7 +42,7 @@ def page_songbook_submit():
 	if lank:
 		lank, scene_name = lank.split(" ",1)
 		video = Videos.query.filter_by(lank=lank).one()
-		run_thread(lambda: load_video_url(scene_name, video.href, prefix="♫ Песня"))
+		run_thread(lambda: load_video_url(scene_name, video.href, prefix="♫ Песня", skiplist="*"))
 
 	return progress_response(None)
 

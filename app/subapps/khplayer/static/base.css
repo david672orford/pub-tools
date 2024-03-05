@@ -47,6 +47,14 @@ LI {
 INPUT, SELECT, TEXTAREA, BUTTON {
 	font-size: inherit;								/* For some reason Pywebview makes these large */
 	}
+INPUT[type=checkbox] {
+	width: 1.2em;
+	height: 1.2em;
+	}
+.borderless-box INPUT[type=checkbox] {				/* FIXME: Hack for bad alignment in Scenes tab toolbar */
+	vertical-align: bottom;
+	margin-bottom: .78em;
+	}
 LABEL {
 	font-weight: bold;
 	}
@@ -124,7 +132,7 @@ HEADER {
 	}
 HEADER DIV#progress {
 	position: absolute;
-	top: .5em;
+	top: 2.5em;
 	right: .5em;
 	width: 75%;
 	max-width: 60em;
@@ -241,18 +249,18 @@ DIV.thumbnail > DIV.caption {
 
 /* A container to lay out a group of controls
    To suppress the space between inline elements (such as between consecutive
-   buttons) we set the font size to zero and restore it. While the font size
-   is zeroed out we have to use "rem" instead of "em" for sizes.
+   buttons) we set the font size to zero and restore it within the elements.
+   While the font size is zeroed out we have to use "rem" instead of "em" for sizes.
    We tried flexbox, but if you enable it, you lose the disction between
    block and inline elements.
 */
 .borderless-box {
 	font-size: 0;
-	margin: -.25rem -.25rem 0 0;
+	margin: 0;
 	}
 .borderless-box > * {
 	font-size: 1rem;
-	margin: .25em .25em .25em 0;
+	margin: 0 .25em .25em 0;
 	}
 .borderless-box:last-child {
 	margin-bottom: 0;
@@ -277,7 +285,7 @@ DIV.thumbnail > DIV.caption {
 .form-field {
 	display: inline-flex;
 	align-items: center;
-	margin: .25em .25em .25em 0;
+	margin: 0 .25em .25em 0;
 	flex-grow: 1;
 	}
 .form-field > * {
@@ -306,15 +314,25 @@ DIV.thumbnail > DIV.caption {
 	background-color: #f0f0ff;
 	}
 
-/* Scenes table */
-#scenes-container {
+/* Scenes Tab */
+#scenes-tab-layout {				/* scene list, bottom toolbar */
 	display: flex;
 	flex-direction: column;
 	height: 100%;
 	}
-#scenes-scroller {
+#scenes-scroller {					/* scrolling container for scene list table */
 	flex-grow: 1;
 	overflow-y: scroll;
+	}
+#scenes {							/* scenes list table */
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: .1em;			/* little clue we have scrolled to the bottom */
+	}
+#scenes TD {
+	border: thin solid #808080;
+	text-align: left;
+	padding: .3em;
 	}
 #scenes TR:hover {
 	background-color: #f0f0f0;
@@ -328,16 +346,26 @@ DIV.thumbnail > DIV.caption {
 #scenes TR.program-scene {
 	background-color: #f0fff0;
 	}
-#scenes TD:nth-child(2) {
+#scenes TD:nth-child(2) {			/* thumbnail image */
 	width: 1px;
 	}
-#scenes-controls {
+#scenes TR:first-child TD {			/* remove top border of first row */
+	border-top: none;
+	}
+#scenes TD:first-child {			/* remove dup border from far left cell */
+	border-left: none;
+	width: 1px;						/* checkbox column, don't expand */
+	}
+#scenes TD:last-child {
+	border-right: none;
+	}
+#scenes-controls {					/* bottom toolbar */
 	border-top: thin solid grey;
 	margin: 0;
 	padding: .3rem .3rem 0 .3rem;
 	background-color: #f8f8f8;
 	}
-.scene-add-form {
+.scene-add-form {					/* hidden forms for drag-n-drop */
 	display: none;
 	}
 

@@ -47,23 +47,25 @@ def scenes_event_handler(event):
 		return
 	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 
+	scene = event["eventData"]
 	with blueprint.app.app_context():
 		match event["eventType"]:
 			case "SceneCreated":
-				turbo.push(render_template("khplayer/scenes_event_created.html", scene=event["eventData"]))
+				print("view_scenes:", scene)
+				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
 			case "SceneRemoved":
-				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=event["eventData"]))
+				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=scene))
 			case "SceneNameChanged":
-				turbo.push(render_template("khplayer/scenes_event_rename.html", scene=event["eventData"]))
+				turbo.push(render_template("khplayer/scenes_event_rename.html", scene=scene))
 			case "CurrentProgramSceneChanged":
 				turbo.push(render_template("khplayer/scenes_event_changed.html",
 					class_name = "program-scene",
-					uuid = event["eventData"]["sceneUuid"],
+					uuid = scene["sceneUuid"],
 					))
 			case "CurrentPreviewSceneChanged":
 				turbo.push(render_template("khplayer/scenes_event_changed.html",
 					class_name = "preview-scene",
-					uuid = event["eventData"]["sceneUuid"],
+					uuid = scene["sceneUuid"],
 					))
 
 obs.subscribe("Scenes", scenes_event_handler)
@@ -127,6 +129,9 @@ def page_scenes_submit():
 
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
+
+	# FIXME: It seems if we return before the change is rendered, it may not be.
+	sleep(1)
 
 	return turbo.stream("")
 

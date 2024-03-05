@@ -7,7 +7,7 @@ import lxml.html
 import logging
 
 from ..utils.babel import gettext as _
-from .codes import iso_language_code_to_meps
+from .wtcodes import iso_language_code_to_meps
 
 logger = logging.getLogger(__name__)
 

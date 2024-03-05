@@ -7,10 +7,10 @@
 {% endblock %}
 
 {% block main %}
-<form id="scenes-container" action="submit" method="POST">
+<form id="scenes-tab-layout" action="submit" method="POST">
 
 	<div id="scenes-scroller">
-		<table id="scenes" class="borders full-width selection">
+		<table id="scenes">
 			<tbody id="scenes-list">
 				{% for scene in scenes %}
 				{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}

@@ -114,10 +114,10 @@ def page_jwstream_channel(token):
 # User has pressed Update button to reload the channel's program list
 @blueprint.route("/jwstream/<token>/update", methods=["POST"])
 def page_jwstream_update(token):
-	progress_callback(_("Updating event list..."))
+	progress_callback(_("Updating event list..."), cssclass="heading")
 	channel = jwstream_channels()[token]
 	channel.reload()
-	return progress_response(_("Channel event list updated."), last_message=True)
+	return progress_response(_("✔ Channel event list updated."), last_message=True, cssclass="success")
 
 # Video player page for making clips
 @blueprint.route("/jwstream/<token>/<id>/")
@@ -128,8 +128,8 @@ def page_jwstream_player(token, id):
 		id = id,
 		channel = channel,
 		event = event,
-		clip_start = request.args.get("clip_start","0:00"),
-		clip_end = request.args.get("clip_end","%d:%02d" % (int(event.duration / 60), event.duration % 60)),
+		clip_start = request.args.get("clip_start", "0:00"),
+		clip_end = request.args.get("clip_end", time_to_str(event.duration)),
 		clip_title = request.args.get("clip_title", _(event.title)),
 		top = "../../..",
 		)
@@ -177,7 +177,7 @@ def page_jwstream_clip(token, id):
 	return progress_response(None)
 
 def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration):
-	progress_callback(_("Downloading clip..."))
+	progress_callback(_("Downloading clip..."), cssclass="heading")
 
 	# Request a download URL with access token
 	video_url = event.get_download_url()
@@ -189,7 +189,8 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 			"-i", video_url,
 			"-ss", clip_start,
 			"-to", clip_end,
-			"-c", "copy", media_file
+			"-c", "copy",
+			"-y", media_file
 		]
 	logger.info("Download cmd: %s", cmd)
 	ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
@@ -206,16 +207,40 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 
 	# Sanity check: is the file there now?
 	if not os.path.exists(media_file):
-		progress_callback(_("Extraction of clip failed!"))
+		progress_callback(_("✘ Extraction of clip failed!"), cssclass="error")
 
 	else:
+		thumbnail = re.sub(r"\.[^\.]*$", ".jpg", media_file)
+		cmd = [
+			"ffmpeg",
+			"-ss", "0:%02d" % min(clip_duration / 2, 30),
+			"-i", media_file,
+			"-frames:v", "1",
+			"-q:v", "2",
+			"-y", thumbnail,
+			]
+		logger.info("Thumbnail cmd: %s", cmd)
+		subprocess.run(cmd, check=True)
+
+
 		try:
-			obs.add_media_scene("▷" + " " + clip_title, "video", media_file)
+			obs.add_media_scene("▷" + " " + clip_title, "video", media_file, thumbnail=thumbnail, skiplist="*♫▷")
 		except ObsError as e:
-			flash("OBS: %s" % str(e))
-			progress_callback(_("Unable to load clip into OBS."), last_message=True)
+			flash(_("OBS: %s") % str(e))
+			progress_callback(_("✘ Unable to load clip into OBS."), last_message=True, cssclass="error")
 		else:
-			progress_callback(_("Clip loaded into OBS."), last_message=True)
+			progress_callback(_("✔ Clip has been loaded."), last_message=True, cssclass="success")
+
+# Convert a time in seconds into a string such as "4:45" or even "1:04:45"
+def time_to_str(seconds):
+	hours = int(seconds / 3600)
+	seconds = seconds % 3600
+	minutes = int(seconds / 60)
+	seconds = seconds % 60
+	if hours > 0:
+		return "%d:%02d:%02d" % (hours, minutes, seconds)
+	else:
+		return "%d:%02d" % (minutes, seconds)
 
 # Parse a time string such as "4:45" into seconds
 def parse_time(timestr):

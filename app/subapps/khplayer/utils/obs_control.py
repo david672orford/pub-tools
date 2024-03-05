@@ -1,4 +1,5 @@
 import os, re
+from time import sleep
 from urllib.parse import urlparse, unquote
 import logging
 
@@ -15,8 +16,9 @@ from ....utils.config import get_config, put_config
 class ObsControl(ObsControlBase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.scene_list = None
+		self.scene_pos = {}
 		self.app = None
+		self.scene_list = None
 
 	def init_app(self, app):
 		self.app = app
@@ -27,29 +29,58 @@ class ObsControl(ObsControlBase):
 	# wrap .get_scene_list().
 	#============================================================================
 
+	def init_scene_list(self):
+		self.scene_list = super().get_scene_list()
+
+		# Restore our saved scene order. New scenes go at the end.
+		scenes = []
+		for scene_uuid in get_config("SCENE_ORDER", []):
+			try:
+				scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
+			except KeyError:
+				pass
+		for scene in self.scene_list["scenes"]:
+			scenes.append(scene)
+		self.scene_list["scenes"] = scenes
+
+		self.subscribe("Scenes", lambda event: self.event(event))
+
+	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
+		if pos is not None:
+			self.scene_pos[scene_name] = pos
+		return super().create_scene(scene_name, make_unique=make_unique)
+
+	def select_scene_pos(self, skiplist:str=None):
+		if skiplist is None:
+			return None
+		pos = 0
+		for scene in self.scene_list["scenes"]:
+			scene_name = scene["sceneName"]
+			if len(scene_name) == 0:		# shouldn't happen, but...
+				break
+			if scene_name[0] not in skiplist:
+				break
+			pos += 1
+		return pos
+
 	def get_scene_list(self):
-		if self.scene_list is None:
-			self.scene_list = super().get_scene_list()
-
-			# Restore our saved scene order. New scenes go at the end.
-			scenes = []
-			for scene_uuid in get_config("SCENE_ORDER", []):
-				try:
-					scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
-				except KeyError:
-					pass
-			for scene in self.scene_list["scenes"]:
-				scenes.append(scene)
-			self.scene_list["scenes"] = scenes
-
-			self.subscribe("Scenes", lambda event: self.event(event))
+		if self.scene_list is None:			# FIXME: too late
+			self.init_scene_list()
 		return self.scene_list
 
 	def event(self, event):
 		data = event["eventData"]
 		match event["eventType"]:
 			case "SceneCreated":
-				self.scene_list["scenes"].append(data)
+				print("new scene:", self.scene_pos)
+				scene_name = re.sub(r" \(\d+\)$", "", data["sceneName"])
+				pos = self.scene_pos.pop(scene_name, None)
+				if pos is not None and pos < len(self.scene_list["scenes"]):
+					data["before"] = self.scene_list["scenes"][pos]["sceneUuid"]	# for handler in view_scenes.py
+					self.scene_list["scenes"].insert(pos, data)
+				else:
+					self.scene_list["scenes"].append(data)
+				print("data:", data)
 				with self.app.app_context():
 					self.save_scene_order()
 			case "SceneRemoved":
@@ -89,7 +120,7 @@ class ObsControl(ObsControlBase):
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
 	#============================================================================
-	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str=None, subtitle_track:str=None):
+	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str=None, subtitle_track:str=None, skiplist:str=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -151,8 +182,13 @@ class ObsControl(ObsControlBase):
 		logger.info(" Input: %s \"%s\"", input_kind, input_name)
 		logger.info(" Input settings: %s", input_setting)
 
+
 		# Add a new scene. (Naming naming conflicts will be resolved.)
-		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		scene_uuid = self.create_scene(
+			scene_name,
+			make_unique=True,
+			pos = self.select_scene_pos(skiplist=skiplist),
+			)["sceneUuid"]
 
 		# If there is a thumbnail image, insert it behind the main media.
 		if thumbnail is not None:
@@ -284,19 +320,22 @@ class ObsControl(ObsControlBase):
 
 	# Create a scene containing just the specified camera
 	def create_camera_scene(self, scene_name, camera_dev):
-		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
 		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
 		#self.scale_scene_item(scene_uuid, scene_item_id)
 
 	# Create a scene containing just a capture of the specified window
 	def create_zoom_scene(self, scene_name, capture_window):
-		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
 		scene_item_id = self.add_zoom_input(scene_uuid, capture_window)
 		self.scale_scene_item(scene_uuid, scene_item_id)
 
 	# Create a scene with the specified camera on the left and a capture of the specified window on the right
 	def create_split_scene(self, scene_name, camera_dev, capture_window):
-		scene_uuid = self.create_scene(scene_name, make_unique=True)["sceneUuid"]
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
 
 		# Camera on left side
 		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)

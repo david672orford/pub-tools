@@ -19,7 +19,7 @@ scene_name_prefixes = {
 # prefix -- media-type marker to put in front of scene name
 # language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
-def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True):
+def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True, skiplist=None):
 	progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	if scene_name is not None:
 		progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
@@ -66,12 +66,13 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 			video_file,
 			thumbnail = thumbnail,
 			subtitle_track = subtitle_track,
+			skiplist = skiplist,
 			)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))	
-		progress_callback(_("Loading of video failed."), last_message=close, cssclass="error")
+		progress_callback(_("✘ Loading of video failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Video has been loaded."), last_message=close, cssclass="success")
+		progress_callback(_("✔ Video has been loaded."), last_message=close, cssclass="success")
 
 # Add a scene which plays a song from the songbook with onscreen lyrics
 # The video will be downloaded, if it is not already in the cache.
@@ -87,12 +88,12 @@ def load_song(song: int, close=True):
 	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["url"]))
 	media_file = meeting_loader.download_media(metadata["url"], callback=progress_callback)
 	try:
-		obs.add_media_scene(_("♫ Song") + " " + metadata["title"], "video", media_file, thumbnail=thumbnail)
+		obs.add_media_scene(_("♫ Song") + " " + metadata["title"], "video", media_file, thumbnail=thumbnail, skiplist="*")
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Loading of song failed."), last_message=close, cssclass="error")
+		progress_callback(_("✘ Loading of song failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Song {song} has been loaded.").format(song=song), last_message=close, cssclass="success")
+		progress_callback(_("✔ Song {song} has been loaded.").format(song=song), last_message=close, cssclass="success")
 
 # Add a scene which displays an image downloaded from the URL provided.
 # Images from JW.ORG have unique names. Take care to assign non-colliding
@@ -105,12 +106,12 @@ def load_image_url(scene_name, url, thumbnail_url=None, close=True):
 	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	try:
 		image_file = meeting_loader.download_media(url, callback=progress_callback)
-		obs.add_media_scene("□ " + scene_name, "image", image_file)
+		obs.add_media_scene("□ " + scene_name, "image", image_file, skiplist="*♫")
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Loading of image failed."), last_message=close, cssclass="error")
+		progress_callback(_("✘ Loading of image failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Image has been loaded."), last_message=close, cssclass="success")
+		progress_callback(_("✔ Image has been loaded."), last_message=close, cssclass="success")
 
 # Add a scene which displays a webpage from any site
 # scene_name -- name of scene to create in OBS
@@ -130,10 +131,10 @@ def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 
 	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
-		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail)
+		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail, skiplist="*♫")
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Loading of webpage failed."), last_message=close, cssclass="error")
+		progress_callback(_("✘ Loading of webpage failed."), last_message=close, cssclass="error")
 	else:
-		progress_callback(_("Webpage has been loaded."), last_message=close, cssclass="success")
+		progress_callback(_("✔ Webpage has been loaded."), last_message=close, cssclass="success")
 

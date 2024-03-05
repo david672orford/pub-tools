@@ -1,5 +1,9 @@
 {% from "khplayer/scenes_lib.html" import render_scene -%}
+{% if "before" in scene -%}
+<turbo-stream action="before" target="scene-{{scene['before']}}">
+{%- else -%}
 <turbo-stream action="append" target="scenes-list">
+{%- endif %}
 	<template>
 		{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
 	</template>

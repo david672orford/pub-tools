@@ -5,7 +5,7 @@ import requests
 from urllib.parse import urlparse, unquote
 from time import time
 from datetime import datetime, date, timezone
-from .codes import meps_language_code_to_name, meps_country_code_to_name
+from .wtcodes import meps_language_code_to_name, meps_country_code_to_name
 
 logger = logging.getLogger(__name__)
 
@@ -91,12 +91,13 @@ class StreamEvent:
 				"https://stream.jw.org/api/v1/program/getByGuidForHome/vod/{guid}".format(
 					guid = self.event["downloadUrls"][0]["guid"],
 					),
-				timeout = self.requestor.request_timeout,
+				timeout = self.requester.request_timeout,
 				)
 			if response.status_code != 200:
 				raise StreamError("getByGuidForHome failed: %d %s" % (response.status_code, response.text))
 			info2 = response.json()
-			chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
+			#print("info2:", json.dumps(info2, indent=2))
+			self._chapters = sorted(info2["chapters"], key=lambda item: int(item["editedStartTime"]))
 		return self._chapters
 
 	def get_preview_url(self):
@@ -254,7 +255,10 @@ if __name__ == "__main__":
 
 	if len(sys.argv) > 2:
 		event = requester.get_event(sys.argv[2])
-		print("Program name:", event.title)
-		print("Video URL:", event.download_url)
-		print("Chapters:", event.chapters)
+		if event is None:
+			print("Not found")
+		else:
+			print("Program name:", event.title)
+			print("Video URL:", event.get_download_url())
+			print("Chapters:", event.chapters)
 

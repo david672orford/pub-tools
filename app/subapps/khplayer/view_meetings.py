@@ -57,7 +57,7 @@ def page_meetings_view(docid):
 @blueprint.route("/meetings/<int:docid>/stream")
 def page_meetings_view_stream(docid):
 	def streamer():
-		progress_callback(_("Loading meeting media list..."))
+		progress_callback(_("Loading meeting media list..."), cssclass="heading")
 		try:
 			index = 0
 			previous_section = None
@@ -83,9 +83,9 @@ def page_meetings_view_stream(docid):
 		except Exception as e:
 			logger.error(traceback.format_exc())
 			flash(_("Error: %s" % e))
-			progress_callback(_("Unable to load meeting media list."), last_message=True)
+			progress_callback(_("✘ Unable to load meeting media list."), last_message=True, cssclass="error")
 		else:
-			progress_callback(_("Meeting media list has finished loading."), last_message=True)
+			progress_callback(_("✔ Meeting media list has finished loading."), last_message=True, cssclass="success")
 			# Enable the Download Media and Create Scenes in OBS button.
 			yield "data: " + turbo.append("<script>loaded_hook()</script>", target="button-box") + "\n\n"
 	return current_app.response_class(stream_with_context(streamer()), content_type="text/event-stream")
@@ -147,7 +147,7 @@ def get_meeting_media(docid):
 
 # This function is run in a background thread to download the media and add a scene in OBS for each item.
 def meeting_media_to_obs_scenes(title, items):
-	progress_callback(_("Loading media for \"{title}\"...").format(title=title), ccsclass="heading")
+	progress_callback(_("Loading media for \"{title}\"...").format(title=title), cssclass="heading")
 	for item in items:
 		logger.info("Loading scene: %s", repr(item))
 		if item.media_type == "web":		# HTML page
@@ -160,7 +160,7 @@ def meeting_media_to_obs_scenes(title, items):
 			load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 		else:
 			raise AssertionError("Unhandled case")
-	progress_callback(_("All requested media have been loaded into OBS."), last_message=True)
+	progress_callback(_("✔ All requested media have been loaded."), last_message=True, cssclass="success")
 
 # Construct the sharing URL for a meeting article. This will redirect to the article itself.
 def meeting_url(docid):

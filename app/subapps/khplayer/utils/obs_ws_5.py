@@ -331,7 +331,7 @@ class ObsControlBase:
 				return scene["sceneUuid"]
 		return None
 
-	def create_scene(self, scene_name, make_unique=False):
+	def create_scene(self, scene_name:str, *, make_unique:bool=False):
 		i = 1
 		while True:
 			try_scene_name = scene_name

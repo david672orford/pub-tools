@@ -36,6 +36,7 @@ These are notes on the libraries, API's and frameworks used in this project.
 
 * [FFmpeg](https://ffmpeg.org/)
 * [How to Trim and Reencode Video Files](http://tech-for-teaching.nuhub.net/howto/trim-video/)
+* [How to extract 1 screenshot for a video with ffmpeg at a given time?](https://stackoverflow.com/questions/27568254/how-to-extract-1-screenshot-for-a-video-with-ffmpeg-at-a-given-time)
 
 Black detection using FFmpeg:
 
