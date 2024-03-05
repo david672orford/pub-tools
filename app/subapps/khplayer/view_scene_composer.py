@@ -39,10 +39,12 @@ class SceneItem:
 		self.index = scene_item["sceneItemIndex"]
 		self.name = scene_item["sourceName"]
 		xform = scene_item["sceneItemTransform"]
-		self.bounds_width = xform["boundsWidth"]
-		self.bounds_height = xform["boundsHeight"]
 		self.width = xform["sourceWidth"]
 		self.height = xform["sourceHeight"]
+		self.bounds_width = xform["boundsWidth"]
+		self.bounds_height = xform["boundsHeight"]
+		self.position_x = xform["positionX"]
+		self.position_y = xform["positionY"]
 
 		x_total_crop = xform["cropLeft"] + xform["cropRight"]
 		y_total_crop = xform["cropTop"] + xform["cropBottom"]
@@ -59,9 +61,9 @@ def page_scene_composer_ptz():
 	ptz(**request.json)
 	return "OK"
 
-def ptz(scene_uuid, id, bounds, dimensions, x, y, zoom):
+def ptz(scene_uuid, id, bounds, new_bounds, dimensions, x, y, zoom):
 
-	bounds_width, bounds_height = map(float, bounds.split(" "))
+	bounds_width, bounds_height, position_x, position_y = map(float, bounds.split(" "))
 	width, height = map(float, dimensions.split(" "))
 
 	# If we scale the image to (in OBS terminology) the inner bounds
@@ -87,10 +89,20 @@ def ptz(scene_uuid, id, bounds, dimensions, x, y, zoom):
 	crop_left = x_total_crop * (x / 100.0)
 	crop_bottom = y_total_crop * (y / 100.0)
 
-	obs.set_scene_item_transform(scene_uuid, id, {
+	xform = {
 		"cropLeft": crop_left, 
 		"cropRight": (x_total_crop - crop_left),
 		"cropTop": (y_total_crop - crop_bottom),
 		"cropBottom": crop_bottom,
-		})
+		}
+
+	if new_bounds:
+		xform.update({
+			"boundsWidth": bounds_width,
+			"boundsHeight": bounds_height,
+			"positionX": position_x,
+			"positionY": position_y,
+			})
+
+	obs.set_scene_item_transform(scene_uuid, id, xform)
 

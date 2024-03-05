@@ -80,7 +80,7 @@ class MeetingLoader(Fetcher):
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
 	def extract_media(self, url, callback=None):
-		callback(_("Downloading article for meeting..."))
+		#callback(_("Downloading article for meeting..."))
 		container = self.get_article_html(url)
 		callback(_("Article title: \"%s\"") % container.xpath(".//h1")[0].text_content().strip())
 
@@ -92,7 +92,7 @@ class MeetingLoader(Fetcher):
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
 	# the article content. Normally this is the the content of the <article>
 	# tag. But, if main is True, return the contents of the <main> tag instead.
-	def get_article_html(self, url, main=False):
+	def get_article_html(self, url:str, main:bool=False):
 		html = self.get_html(url)
 
 		container = html.xpath(".//main" if main else ".//article")
@@ -130,6 +130,7 @@ class MeetingLoader(Fetcher):
 
 			part_number = 0
 			for el in section_els:
+				article_href_dedup = set()
 
 				#
 				# <h3>
@@ -253,22 +254,27 @@ class MeetingLoader(Fetcher):
 							break
 
 						# Get videos and illustrations from articles linked to in the last section
+						# (Христианская жизнь)
 						if section_number == 4:
 
 							# Take the text inside the <a> tag as the article title
 							article_title = a.text_content().strip()
 							callback(_("Getting media list from \"%s\"...") % article_title)
 
-							# Download the article and extract the contents of the <main> tag
-							# (The articles for the first talk in the MWB have the first illustration
-							# between the <main> tag and the <article> tag inside it.)
-							article_main = self.get_article_html(urljoin(url, a.attrib['href']), main=True)
+							# If we have not scripted this article for illustrations yet, do so now.
+							# TODO: interpret the paragraph ranges in the URL fragment
+							article_href = urljoin(url, a.attrib['href'])
+							article_href_nofragment = article_href.split("#")[0]
+							if not article_href_nofragment in article_href_dedup:
 
-							# Pull out illustrations
-							for illustration in self.extract_illustrations(pub_code, article_title, article_main):
-								illustration.section_title = section_title
-								illustration.part_title = part_title
-								yield illustration
+								# Get the content of the article's <main> tag and extract illustrations
+								article_main = self.get_article_html(article_href, main=True)
+								for illustration in self.extract_illustrations(pub_code, article_title, article_main):
+									illustration.section_title = section_title
+									illustration.part_title = part_title
+									yield illustration
+
+								article_href_dedup.add(article_href_nofragment)
 
 							is_a = "article"
 							break

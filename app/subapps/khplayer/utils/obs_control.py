@@ -16,9 +16,14 @@ from ....utils.config import get_config, put_config
 class ObsControl(ObsControlBase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.scene_pos = {}
 		self.app = None
-		self.scene_list = None
+
+		# Scene list hooks. We have to install the event handler
+		# immediately, since it needs to come before the one
+		# in view_scenes.py so we can pass "before" to it.
+		self._scene_list = None
+		self.scene_pos = {}
+		self.subscribe("Scenes", lambda event: self.event(event))
 
 	def init_app(self, app):
 		self.app = app
@@ -29,46 +34,35 @@ class ObsControl(ObsControlBase):
 	# wrap .get_scene_list().
 	#============================================================================
 
-	def init_scene_list(self):
-		self.scene_list = super().get_scene_list()
-
-		# Restore our saved scene order. New scenes go at the end.
-		scenes = []
-		for scene_uuid in get_config("SCENE_ORDER", []):
-			try:
-				scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
-			except KeyError:
-				pass
-		for scene in self.scene_list["scenes"]:
-			scenes.append(scene)
-		self.scene_list["scenes"] = scenes
-
-		self.subscribe("Scenes", lambda event: self.event(event))
-
-	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
-		if pos is not None:
-			self.scene_pos[scene_name] = pos
-		return super().create_scene(scene_name, make_unique=make_unique)
-
-	def select_scene_pos(self, skiplist:str=None):
-		if skiplist is None:
-			return None
-		pos = 0
-		for scene in self.scene_list["scenes"]:
-			scene_name = scene["sceneName"]
-			if len(scene_name) == 0:		# shouldn't happen, but...
-				break
-			if scene_name[0] not in skiplist:
-				break
-			pos += 1
-		return pos
-
 	def get_scene_list(self):
-		if self.scene_list is None:			# FIXME: too late
-			self.init_scene_list()
 		return self.scene_list
 
+	@property
+	def scene_list(self):
+		if self._scene_list is None:
+
+			# Initial load scene list is from OBS 
+			self._scene_list = super().get_scene_list()
+	
+			# Restore our saved scene order.
+			scenes = []
+			for scene_uuid in get_config("SCENE_ORDER", []):
+				try:
+					scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
+				except KeyError:
+					pass
+
+			# New scenes go at the end.
+			for scene in self.scene_list["scenes"]:
+				scenes.append(scene)
+
+			self.scene_list["scenes"] = scenes
+
+		return self._scene_list
+
 	def event(self, event):
+		if self._scene_list is None:
+			return
 		data = event["eventData"]
 		match event["eventType"]:
 			case "SceneCreated":
@@ -95,6 +89,24 @@ class ObsControl(ObsControlBase):
 			case "CurrentPreviewSceneChanged":
 				self.scene_list["currentPreviewSceneUuid"] = data["sceneUuid"]
 				self.scene_list["currentPreviewSceneName"] = data["sceneName"]
+
+	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
+		if pos is not None:
+			self.scene_pos[scene_name] = pos
+		return super().create_scene(scene_name, make_unique=make_unique)
+
+	def select_scene_pos(self, skiplist:str=None):
+		if skiplist is None:
+			return None
+		pos = 0
+		for scene in self.scene_list["scenes"]:
+			scene_name = scene["sceneName"]
+			if len(scene_name) == 0:		# shouldn't happen, but...
+				break
+			if scene_name[0] not in skiplist:
+				break
+			pos += 1
+		return pos
 
 	def scene_index(self, uuid):
 		scenes = self.get_scene_list()["scenes"]

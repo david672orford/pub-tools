@@ -2,8 +2,8 @@
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='scene_composer.css')}}">
 <script src="{{ url_for('.static', filename='scene_composer.js')}}"></script>
+<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='scene_composer.css')}}">
 {% endblock %}
 
 {% block header %}
@@ -17,7 +17,7 @@
 <form id="scene_item{{scene_item.id}}">
 
 	<input type="hidden" name="scene_uuid" value="{{scene_item.scene_uuid}}">
-	<input type="hidden" id="bounds" value="{{scene_item.bounds_width}} {{scene_item.bounds_height}}">
+	<input type="hidden" id="bounds" value="{{scene_item.bounds_width}} {{scene_item.bounds_height}} {{scene_item.position_x}} {{scene_item.position_y}}">
 	<input type="hidden" id="dimensions" value="{{scene_item.width}} {{scene_item.height}}">
 
 	<div class="slider">
@@ -36,6 +36,15 @@
 		<input type="range" id="scene_item{{scene_item.id}}y" name="y" min="0" may="100" value="{{scene_item.y}}" step="1">
 		<span></span>
 		<label for="scene_item{{scene_item.id}}y">Y</label>
+	</div>
+
+	<div class="position borderless-box">
+		<button type="button" value="1280 720 0 0">Fullscreen</button>
+		<button type="button" value="638 720 0 0">Left Half</button>
+		<button type="button" value="638 720 642 0">Right Half</button>
+		<button type="button" value="640 360 0 180">Left Letterbox</button>
+		<button type="button" value="640 360 640 180">Right Letterbox</button>
+		<button type="button" value="240 360 0 0">Portrait</button>
 	</div>
 
 </form>

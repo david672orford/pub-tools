@@ -7,11 +7,19 @@ Array.from(document.getElementsByTagName("form")).forEach(form_el => {
 		span.textContent = input.value;
 		input.addEventListener("input", (event) => {
 			span.textContent = event.target.value;
-			post_ptz(form_el);
+			post_ptz(form_el, false);
 			});
 		});
+	Array.from(form_el.getElementsByClassName("position")).forEach(position => {
+		Array.from(position.getElementsByTagName("button")).forEach(button => {
+			button.addEventListener("click", (event) => {
+				form_el.bounds.value = event.target.value;
+				post_ptz(form_el, true);
+				});
+			});
+		})
 	});
-function post_ptz(form_el) {
+function post_ptz(form_el, new_bounds) {
 	fetch("ptz", {
 		method: "POST",
 		headers: {
@@ -21,6 +29,7 @@ function post_ptz(form_el) {
 			scene_uuid: form_el.scene_uuid.value,
 			id: parseInt(form_el.id.slice(10)), /* "sceneitem" */
 			bounds: form_el.bounds.value,
+			new_bounds: new_bounds,
 			dimensions: form_el.dimensions.value,
 			x: parseInt(form_el.x.value),
 			y: parseInt(form_el.y.value),
