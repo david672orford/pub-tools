@@ -1,6 +1,6 @@
-# Notes on OBS
+# Notes on OBS Studio
 
-## OBS Studio
+## OBS Studio Installation
 
 * [OBS Main Site](https://obsproject.com/)
 * [OBS Github Site](https://github.com/obsproject/obs-studio)
@@ -9,7 +9,7 @@
 * [Building on Debian (from forum)](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
 * [Checking out Pull Requests](https://stackoverflow.com/questions/27567846/how-can-i-check-out-a-github-pull-request-with-git#30584951)
 
-## Integration with other Programs
+## Integration of OBS Studio with other Programs
 
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
 * [VDO.Ninja](https://docs.vdo.ninja/)
@@ -32,7 +32,7 @@
 * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
 * [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua)
 
-## Interesting Scripts
+## Useful-Looking Scripts
 
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in text source
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/)
@@ -54,6 +54,7 @@
 * [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/)
 * [Background Removal](https://github.com/occ-ai/obs-backgroundremoval)
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
+* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/)
 
 ## Bugs and Feature Requests we are Following
 
@@ -87,7 +88,10 @@ in the following manner:
 1. The image is scaled to the indicated **Size**. Initially the size will
 be set to the natural size of the image, but this can be changed to make
 the image larger or smaller. If the new size does not preserve the aspect
-ration, the image will be distored.
+ration, the image will be distored. In OBS-Websocket the original image size
+is **sourceWidth** and **sourceHeight** whereas **Size** is **width** and
+**height**. The parameters **scaleX** and **scaleY** gives the scaling
+ratio.
 2. The image is cropped using the **Left**, **Right**, **Top**, and **Bottom**
 parameters provided. Though the cropping is applied after scaling, the amount
 to crop is in terms of the original image size.

@@ -24,35 +24,44 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 class VolumePanel(Gtk.Window):
 	def __init__(self):
 		super().__init__()
+		self.set_title(app_name)
 		self.set_decorated(False)
 		self.set_default_size(app_width, 100)
 		self.set_keep_above(True)
 		first_monitor_geometry = Gdk.Display.get_default().get_monitor(0).get_geometry()
 		self.move(first_monitor_geometry.width-app_width, 0)
+
 		self.box = Gtk.VBox()
 		self.box.set_margin_start(15)
 		self.box.set_margin_end(15)
 		super().add(self.box)
-	def add(self, box):
-		self.box.pack_start(box, expand=False, fill=False, padding=25)
 
-class VolumeControl(Gtk.VBox):
+		close_hbox = Gtk.HBox()
+		close_button = Gtk.Button(label="X")
+		close_hbox.pack_end(close_button, fill=False, expand=False, padding=0)
+		self.add(close_hbox)
+		close_button.connect("clicked", Gtk.main_quit)
+
+	def add(self, box):
+		self.box.pack_start(box, expand=False, fill=False, padding=10)
+
+class VolumeControl(Gtk.Frame):
 	def __init__(self, pulse, sink, listener):
-		super().__init__()
+		super().__init__(label=sink.description)
+
+		# Some themes do not render this
+		self.set_shadow_type(Gtk.ShadowType.OUT)
+
 		self.pulse = pulse
 		self.sink = sink
 		self.listener = listener
-
-		label = Gtk.Label(label=sink.description)
-		label.set_xalign(0.0)
-		self.pack_start(label, expand=False, fill=False, padding=0)
 
 		volume = sink.volume.value_flat * 100.0
 		self.adjustment = Gtk.Adjustment(value=volume, lower=0, upper=153, step_increment=1, page_increment=10, page_size=0)
 		self.scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=self.adjustment)
 		self.scale.set_digits(0)
 		self.scale.add_mark(100, Gtk.PositionType.LEFT, None)
-		self.pack_start(self.scale, expand=True, fill=True, padding=0)
+		self.add(self.scale)
 
 		# Slider changes volume which changes slider. This prevents looping.
 		self.change_lock = False
@@ -99,8 +108,11 @@ class PulseListener:
 			if self.event is not None:
 				node_index = self.event.index
 				if node_index in self.listeners:
-					info = self.pulse.sink_info(node_index)
-					self.listeners[node_index](info)
+					try:
+						info = self.pulse.sink_info(node_index)
+						self.listeners[node_index](info)
+					except pulsectl.PulseIndexError:
+						print("PulseIndexError!")
 				self.event = None
 			while self.paused:
 				sleep(1.0)
@@ -114,22 +126,26 @@ class PulseListener:
 
 def main():
 	panel = VolumePanel()
-	panel.show_all()
 
 	pulse = pulsectl.Pulse(app_name, threading_lock=True)
 	#pulse.connect()
 
 	listener = PulseListener(pulse)
 
-	for sink in pulse.sink_list() + pulse.source_list():
-		print(sink)
-		control = VolumeControl(pulse, sink, listener)
-		panel.add(control)
-		control.show_all()
+	for node in pulse.sink_list() + pulse.source_list():
+		print(node)
+		if not node.name.endswith(".monitor"):
+			control = VolumeControl(pulse, node, listener)
+			panel.add(control)
+
+	for client in pulse.client_list():
+		print("client:", client)
 
 	thread = threading.Thread(target=lambda: listener.run())
+	thread.daemon = True
 	thread.start()
 
+	panel.show_all()
 	Gtk.main()
 
 main()
