@@ -5,11 +5,13 @@
 # ## Currently Used
 # * [Python Gtk+ 3.0 API](https://athenajc.gitbooks.io/python-gtk-3-api/content/)
 # * [Python bindings for Libpulse](https://github.com/mk-fg/python-pulse-control/)
+# * [PulseAudio Stream API](https://www.freedesktop.org/software/pulseaudio/doxygen/stream_8h.html)
 #
 # ## For the Future
 # * [Python bindings for Libpulse with Async](https://pypi.org/project/pulsectl-asyncio/ 
 # * [GLib event loop integration for asyncio](https://github.com/jhenstridge/asyncio-glib)
 # * [Attempts to integrate above with Gtk](https://github.com/jhenstridge/asyncio-glib/issues/1)
+# * https://github.com/henrikschnor/pasimple/
 #
 
 app_name = "my-volume"
@@ -27,6 +29,7 @@ from gi.repository import GLib, Gtk, Gdk
 # Interface to PulseAudio
 # pip3 install pulsectl
 import pulsectl
+from pulsectl import _pulsectl
 
 # Borderless window always-on-top at top-right
 class VolumePanel(Gtk.Window):
@@ -74,10 +77,22 @@ class VolumeControl(Gtk.Frame):
 		self.mute = Gtk.CheckButton(label="Mute")
 		self.mute.set_active(audio_device.mute)
 
-		box = Gtk.HBox()
-		box.pack_start(self.scale, expand=True, fill=True, padding=0)
-		box.pack_start(self.mute, expand=False, fill=False, padding=0)
-		self.add(box)
+		self.vu = Gtk.LevelBar()
+		self.vu.set_min_value(0)
+		self.vu.set_max_value(100)
+
+		hbox1 = Gtk.HBox()
+		hbox1.pack_start(self.scale, expand=True, fill=True, padding=0)
+		hbox1.pack_start(self.mute, expand=False, fill=False, padding=0)
+
+		hbox2 = Gtk.HBox()
+		hbox2.pack_start(self.vu, expand=True, fill=True, padding=5)
+
+		vbox = Gtk.VBox()
+		vbox.pack_start(hbox1, expand=False, fill=False, padding=5)
+		vbox.pack_start(hbox2, expand=False, fill=False, padding=5)
+		vbox.pack_start(self.vu, expand=False, fill=False, padding=0)
+		self.add(vbox)
 
 		self.expect_slider = 0
 		self.expect_mute = 0
@@ -99,7 +114,7 @@ class VolumeControl(Gtk.Frame):
 				self.expect_mute -= 1
 			else:
 				self.expect_pulseaudio += 1
-				self.pulse_wrapper.set_mute(self.audio_device, self.mute.get_active())
+				self.pulse_wrapper.mute(self.audio_device, self.mute.get_active())
 		self.mute.connect("toggled", on_mute_checkbox_changed)
 
 		# PulseAudio reports the state of the source or audio_device has changed
@@ -119,6 +134,14 @@ class VolumeControl(Gtk.Frame):
 				self.mute.set_active(info.mute)
 		pulse_wrapper.subscribe(audio_device, on_volume_change)
 
+		def vu_callback(level):
+			#print("level:", level)
+			self.vu.set_value(level)
+		if type(audio_device) is pulsectl.PulseSourceInfo:
+			pulse_wrapper.stream(audio_device.name, vu_callback)
+		else:
+			pulse_wrapper.stream(audio_device.monitor_source_name, vu_callback)
+
 class PulseWrapper:
 	def __init__(self, pulse):
 		self.pulse = pulse
@@ -126,6 +149,7 @@ class PulseWrapper:
 		self._event = None				# event currently being processed
 		self._listener_paused = False
 		self._in_listener = False
+		self._refs = []					# keep a ref to cb funcs, otherwise segfault
 
 		def queue_event(event):
 			self._event = event
@@ -135,6 +159,44 @@ class PulseWrapper:
 
 	def subscribe(self, audio_device, callback):
 		self._subscribers[audio_device.index] = callback
+
+	def stream(self, audio_device_name, callback):
+		print("stream:", audio_device_name)
+		proplist = _pulsectl.pa.proplist_from_string('application.id=org.PulseAudio.pavucontrol')
+		stream = _pulsectl.pa.stream_new_with_proplist(
+			self.pulse._ctx,
+			app_name,
+			_pulsectl.byref(_pulsectl.PA_SAMPLE_SPEC(
+				format=0, # PA_SAMPLE_U8
+				rate=25,
+				channels=1,
+				)),
+			None,
+			proplist,
+			)
+		_pulsectl.pa.proplist_free(proplist)
+
+		@_pulsectl.PA_STREAM_REQUEST_CB_T
+		def read_cb(stream, length, userdata):
+			buff = _pulsectl.c_void_p()
+			_pulsectl.pa.stream_peek(stream, buff, _pulsectl.byref(_pulsectl.c_int(length)))
+			buff = _pulsectl.cast(buff, _pulsectl.POINTER(_pulsectl.c_ubyte))
+			buff = list([int((buff[i]-128) / 1.28) for i in range(length)])
+			#print("buff:", buff)
+			callback(max(buff))
+			_pulsectl.pa.stream_drop(stream)
+		_pulsectl.pa.stream_set_read_callback(stream, read_cb, None)
+		self._refs.append(read_cb)
+
+		ret = _pulsectl.pa.stream_connect_record(
+			stream,
+			audio_device_name,
+			_pulsectl.PA_BUFFER_ATTR(fragsize=2, maxlength=2**32-1),
+			_pulsectl.PA_STREAM_DONT_MOVE \
+				| _pulsectl.PA_STREAM_PEAK_DETECT \
+				| _pulsectl.PA_STREAM_ADJUST_LATENCY \
+				| _pulsectl.PA_STREAM_DONT_INHIBIT_AUTO_SUSPEND,
+			)
 
 	def run_event_listener(self):
 		while True:
@@ -155,7 +217,7 @@ class PulseWrapper:
 						print("PulseIndexError!")
 				self._event = None
 			while self._listener_paused:
-				sleep(1.0)
+				sleep(0.1)
 
 	def _pause_listener(self):
 		self._listener_paused = True
@@ -171,13 +233,10 @@ class PulseWrapper:
 		self.pulse.volume_set_all_chans(audio_device, volume)
 		self._resume_listener()
 
-	def set_mute(self, audio_device, mute:bool):
+	def mute(self, audio_device, mute:bool):
 		print("set_mute:", mute)
 		self._pause_listener()
-		if type(audio_device) is pulsectl.PulseSourceInfo:
-			self.pulse.source_mute(audio_device.index, mute)
-		else:
-			self.pulse.sink_mute(audio_device.index, mute)
+		self.pulse.mute(audio_device, mute)
 		self._resume_listener()
 
 def main():
@@ -192,8 +251,8 @@ def main():
 			control = VolumeControl(pulse_wrapper, audio_device)
 			panel.add(control)
 
-	for client in pulse.client_list():
-		print("client:", client)
+	#for client in pulse.client_list():
+	#	print("client:", client)
 
 	thread = threading.Thread(target=lambda: pulse_wrapper.run_event_listener())
 	thread.daemon = True
