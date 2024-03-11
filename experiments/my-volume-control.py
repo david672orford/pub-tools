@@ -6,6 +6,8 @@
 # * [Python Gtk+ 3.0 API](https://athenajc.gitbooks.io/python-gtk-3-api/content/)
 # * [Python bindings for Libpulse](https://github.com/mk-fg/python-pulse-control/)
 # * [PulseAudio Stream API](https://www.freedesktop.org/software/pulseaudio/doxygen/stream_8h.html)
+# * [Gtk Inspector](https://wiki.gnome.org/Projects/GTK/Inspector)
+# * [Monitoring Audio Levels with PulseAudio](https://menno.io/posts/pulseaudio_monitoring/)
 #
 # ## For the Future
 # * [Python bindings for Libpulse with Async](https://pypi.org/project/pulsectl-asyncio/ 
@@ -65,33 +67,34 @@ class VolumeControl(Gtk.Frame):
 		self.audio_device = audio_device
 		super().__init__(label=audio_device.description)
 
-		# Some themes do not render this
-		self.set_shadow_type(Gtk.ShadowType.OUT)
-
+		# Volume slider
 		volume = audio_device.volume.value_flat * 100.0
 		self.adjustment = Gtk.Adjustment(value=volume, lower=0, upper=153, step_increment=1, page_increment=10, page_size=0)
 		self.scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=self.adjustment)
 		self.scale.set_digits(0)
 		self.scale.add_mark(100, Gtk.PositionType.LEFT, None)
 
+		# Mute checkbox
 		self.mute = Gtk.CheckButton(label="Mute")
 		self.mute.set_active(audio_device.mute)
 
+		# VU Meter
 		self.vu = Gtk.LevelBar()
 		self.vu.set_min_value(0)
 		self.vu.set_max_value(100)
 
+		# Row 1
 		hbox1 = Gtk.HBox()
 		hbox1.pack_start(self.scale, expand=True, fill=True, padding=0)
 		hbox1.pack_start(self.mute, expand=False, fill=False, padding=0)
 
+		# Row 2
 		hbox2 = Gtk.HBox()
-		hbox2.pack_start(self.vu, expand=True, fill=True, padding=5)
+		hbox2.pack_start(self.vu, expand=True, fill=True, padding=10)
 
 		vbox = Gtk.VBox()
 		vbox.pack_start(hbox1, expand=False, fill=False, padding=5)
 		vbox.pack_start(hbox2, expand=False, fill=False, padding=5)
-		vbox.pack_start(self.vu, expand=False, fill=False, padding=0)
 		self.add(vbox)
 
 		self.expect_slider = 0
@@ -239,6 +242,41 @@ class PulseWrapper:
 		self.pulse.mute(audio_device, mute)
 		self._resume_listener()
 
+def load_styles():
+	provider = Gtk.CssProvider()
+	style_context = Gtk.StyleContext()
+	style_context.add_provider_for_screen(
+		Gdk.Screen.get_default(),
+		provider,
+		Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+		)
+	provider.load_from_data(b"""
+		window {
+			border: 2px solid black;
+			}
+		frame border {
+			border: 2px solid black;
+			border-radius: 5px;
+			}
+        label {
+			color: black;
+            font-weight: bold;
+        	}
+		checkbutton check {
+			min-width: 25px;
+			min-height: 25px;
+			}
+		scale trough highlight {
+			padding: 6px;
+			}
+		levelbar trough block {
+			padding: 5px;
+			}
+		levelbar trough block.filled {
+			background-color: green;
+			}
+        """)
+
 def main():
 	panel = VolumePanel()
 
@@ -258,6 +296,7 @@ def main():
 	thread.daemon = True
 	thread.start()
 
+	load_styles()
 	panel.show_all()
 	Gtk.main()
 
