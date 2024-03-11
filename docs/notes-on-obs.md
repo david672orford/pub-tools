@@ -60,11 +60,13 @@
 
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
-* [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351)
+* [Sample Rate Conversion PR](https://github.com/obsproject/obs-studio/pull/6351) -- Could be blocking implementation of audio output
 * [Virtual Camera Audio in Linux PR](https://github.com/obsproject/obs-studio/pull/8171)
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
+* Bug: Browser dock resizing sometimes stops working
+* Bug: DND of file into browser dock does nothing, but URL works
 
 ## Object Hierarcy
 
