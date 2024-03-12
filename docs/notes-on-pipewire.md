@@ -10,10 +10,13 @@
 * [Migrate PulseAudio](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
+* [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/)
 
-## API
+## PulseAudio
 
+* [PulseAudio Under the Hood](https://gavv.net/articles/pulseaudio-under-the-hood/)
 * [Python Pulsectl](https://pypi.org/project/pulsectl/)
+* [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
 
 ## Virtual Audio Cable
 
@@ -37,4 +40,5 @@
 
 * [Rename Devices in Pipewire](https://unix.stackexchange.com/questions/648666/rename-devices-in-pipewire)
 * [How to Disable Audio Devices in Pipewire / Wireplumber](https://gist.github.com/gtirloni/4384f4de6f4d3fda8446b04057ca5f9d)
+* [Pulseaudio cracking/skipping sound glitches](https://community.solid-run.com/t/pulseaudio-crackling-skipping-sound-glitches/120)
 
