@@ -66,7 +66,6 @@ class ObsControl(ObsControlBase):
 		data = event["eventData"]
 		match event["eventType"]:
 			case "SceneCreated":
-				print("new scene:", self.scene_pos)
 				scene_name = re.sub(r" \(\d+\)$", "", data["sceneName"])
 				pos = self.scene_pos.pop(scene_name, None)
 				if pos is not None and pos < len(self.scene_list["scenes"]):
@@ -74,7 +73,6 @@ class ObsControl(ObsControlBase):
 					self.scene_list["scenes"].insert(pos, data)
 				else:
 					self.scene_list["scenes"].append(data)
-				print("data:", data)
 				with self.app.app_context():
 					self.save_scene_order()
 			case "SceneRemoved":

@@ -129,39 +129,38 @@ function init_scenes()
 	dropArea.addEventListener('drop', (e) => {
 		e.preventDefault();
 		console.log(e.dataTransfer);
-		console.log("Files:", e.dataTransfer.files);
 		console.log("Types:", e.dataTransfer.types);
-		console.log("Items:", e.dataTransfer.items);
+		console.log("Files:", e.dataTransfer.files);
 
-		if(e.dataTransfer.files.length > 0)			/* local files */
+		/* Pick a drag-n-drop type we support, insert the data into the
+		   appropriate form, and submit it. Note that we submit the
+		   form using .click() because .submit() does not trigger
+		   Turbo Stream handling. */
+		let i;
+		if((i = e.dataTransfer.types.indexOf("text/uri-list")) != -1)
+			{
+			e.dataTransfer.items[i].getAsString(function(url) {
+				console.log("url:", url);
+				$("#add-url").value = url;
+				$("#add-url-form BUTTON").click();
+				});
+			}
+		else if((i = e.dataTransfer.types.indexOf("text/html")) != -1)
+			{
+			e.dataTransfer.items[i].getAsString(function(html) {
+				console.log("html:", html);
+				$("#add-html").value = html;
+				$("#add-html-form BUTTON").click();
+				});
+			}
+		else if(e.dataTransfer.files.length > 0)			/* local files */
 			{
 			$("#files").files = e.dataTransfer.files;
-			/* $("#upload-form").submit() doesn't trigger Turbo Stream handling */
 			$("#upload-form BUTTON[type='submit']").click();
 			}
 		else
 			{
-			let i = e.dataTransfer.types.indexOf("text/uri-list");
-			if(i != -1)
-				{
-				e.dataTransfer.items[i].getAsString(function(url) {
-					console.log("url:", url);
-					$("#add-url").value = url;
-					$("#add-url-form BUTTON").click();
-					});
-				}
-			else
-				{
-				let i = e.dataTransfer.types.indexOf("text/html");
-				if(i != -1)
-					{
-					e.dataTransfer.items[i].getAsString(function(html) {
-						console.log("html:", html);
-						$("#add-html").value = html;
-						$("#add-html-form BUTTON").click();
-						});
-					}
-				}
+			alert("No supported dataTransfer type");
 			}
 
 		dropArea.classList.remove("highlight");
