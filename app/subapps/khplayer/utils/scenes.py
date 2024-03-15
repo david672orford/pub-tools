@@ -20,13 +20,15 @@ scene_name_prefixes = {
 # language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
 def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True, skiplist=None):
-	progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	if scene_name is not None:
-		progress_callback(_("Requesting download URL for \"{scene_name}\"...").format(scene_name=scene_name))
+		progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
+
 	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"], language=language)
 	assert video_metadata is not None, "Failed to get metadata for %s" % url
+
 	if scene_name is None:
 		scene_name = video_metadata["title"]
+		progress_callback(_("Video title is \"{scene_name}\".").format(scene_name=scene_name))
 
 	progress_callback(_("Downloading \"{url}\"...").format(**video_metadata))
 	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
@@ -81,7 +83,6 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 # close -- this is the last download in this group, close progress
 def load_song(song: int, close=True):
 	progress_callback(_("Loading song {song}...").format(song=song), cssclass="heading")
-	progress_callback(_("Requesting download URL for song {song}...").format(song=song))
 	metadata = meeting_loader.get_song_metadata(song, resolution=current_app.config["VIDEO_RESOLUTION"])
 	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["thumbnail_url"]))
 	thumbnail = meeting_loader.download_media(metadata["thumbnail_url"], callback=progress_callback)
@@ -131,7 +132,7 @@ def load_webpage(scene_name: str, url: str, thumbnail_url=None, close=True):
 
 	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
-		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail, skiplist="*♫")
+		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail, skiplist=None)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("✘ Loading of webpage failed."), last_message=close, cssclass="error")

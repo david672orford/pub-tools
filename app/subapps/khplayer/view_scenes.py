@@ -178,17 +178,14 @@ def page_scenes_upload():
 @blueprint.route("/scenes/add-url", methods=["POST"])
 def page_scenes_add_url():
 	url = request.form["add-url"]
-	parsed_url = urlparse(url)
-	q = parse_qs(parsed_url.query).keys()
-	run_thread(lambda: page_scenes_add_url_worker(url))
-	return progress_response(_("Loading dropped URL..."))
-
-def page_scenes_add_url_worker(url):
-	sleep(1)
-	if meeting_loader.parse_video_url(url):
-		load_video_url(None, url)
-	else:
-		load_webpage(None, url)
+	def background_loader():
+		sleep(1)
+		if meeting_loader.parse_video_url(url):
+			load_video_url(None, url)
+		else:
+			load_webpage(None, url)
+	run_thread(background_loader)
+	return progress_response(_("Loading dropped URL..."), cssclass="heading")
 
 @blueprint.route("/scenes/add-html", methods=["POST"])
 def page_scenes_add_html():
