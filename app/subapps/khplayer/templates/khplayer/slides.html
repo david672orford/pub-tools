@@ -66,7 +66,7 @@
 
 {% if form is not none %}
 <form action="--save-config" method="POST">
-<section class="bordered-box">
+<section class="bordered-box popup">
 <h2>{{gettext("Configuration")}}</h2>
 {{lib.render_input_text(_("Google Drive Sharing URL"), "url", form["url"], class="long-url")}}
 <button class="save" type="submit">{{gettext("Save")}}</button>

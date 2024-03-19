@@ -110,26 +110,34 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		if scene_name == self.yeartext_scene:
 			self.video_remove(DummySource(), return_to_home=False)
 
+	# Playing started for any reason
 	def on_media_started(self, source):
 		self.video_add(source)
 
-	def on_media_play(self, source):
-		self.video_add(source)
-
+	# Video played to the end without interfernce
 	def on_media_ended(self, source):
 		self.video_remove(source, return_to_home=True)
 
+	# User pressed the Play button
+	def on_media_play(self, source):
+		self.video_add(source)
+
+	# User pressed the stop button
 	def on_media_stopped(self, source):
 		self.video_remove(source, return_to_home=True)
 
+	# User pressed the play button
 	def on_media_pause(self, source):
 		self.video_remove(source, return_to_home=False)
 
-	def on_source_destroy(self, source):
-		self.video_remove(source, return_to_home=False)
-
+	# Video stopped because user switched away from scene
 	def on_source_deactivate(self, source):
 		self.video_remove(source, return_to_home=False)
+
+	# Video was removed from scene
+	def on_source_destroy(self, source):
+		if source.id.endswith("_source"):	# i.e., not a scene
+			self.video_remove(source, return_to_home=False)
 
 	# Add a video to the list of those playing
 	def video_add(self, source):

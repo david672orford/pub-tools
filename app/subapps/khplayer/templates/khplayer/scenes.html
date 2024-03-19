@@ -24,13 +24,13 @@
 			<input id="check-all" type="checkbox">
 			<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
 			{% if not cameras %}
-			<button type="submit" class="new" name="action" value="add-live">{{_("Add a Live Scene")}}</button>
+			<button type="submit" class="new" name="action" value="add-scene">{{_("Add Scene")}}</button>
 			{% endif %}
 			<a href="composer/"><button>{{_("Composer")}}</button></a>
 		</div>
 
 		{% if cameras %}
-		<section class="bordered-box">
+		<section class="bordered-box popup">
 			<select name="camera">
 				{% for camera_dev, camera_name in cameras %}
 				<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
@@ -39,7 +39,8 @@
 			<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
 			<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
 			<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
-			<a href="."><button class="cancel" type="button">{{_("Cancel")}}</button></a>
+			<button class="new" type="submit" name="action" value="add-empty">{{_("Add Empty Scene")}}</button>
+			<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
 		</section>
 		{% endif %}
 	</section>

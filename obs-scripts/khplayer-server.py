@@ -65,16 +65,16 @@ class KHPlayer(ObsScript):
 		if settings.enable != self.enable:
 			self.logger.debug("enable changed from %s to %s", self.enable, settings.enable)
 			self.enable = settings.enable
-			self.update_thread()
+			self.apply_server_thread_state()
 
 	# OBS Shutdown
 	def on_unload(self):
 		self.enable = False
-		self.update_thread()
+		self.apply_server_thread_state()
 
 	# Start or stop the HTTP server thread in accord with the current settings
-	def update_thread(self):
-		self.logger.debug("update_thread(): enable=%s thread=%s", self.enable, self.thread)
+	def apply_server_thread_state(self):
+		self.logger.debug("apply_server_thread_state(): enable=%s thread=%s", self.enable, self.thread)
 
 		if self.thread is not None:
 			self.logger.info("Stopping HTTP server...")
@@ -89,11 +89,14 @@ class KHPlayer(ObsScript):
 			#listen_address = "127.0.0.1"
 			listen_address = "0.0.0.0"
 			listen_port = 5000
-			self.server = make_server(listen_address, port=listen_port, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
-			self.thread = Thread(target=lambda: self.server.serve_forever())
-			self.thread.daemon = True
-			self.thread.start()
-			self.logger.debug("Server is running.")
+			try:
+				self.server = make_server(listen_address, port=listen_port, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
+				self.thread = Thread(target=lambda: self.server.serve_forever())
+				self.thread.daemon = True
+				self.thread.start()
+				self.logger.debug("Server is running.")
+			except SystemExit:
+				self.logger.error("Server failed to start.")
 
 KHPlayer()
 

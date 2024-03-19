@@ -280,6 +280,12 @@ DIV.thumbnail > DIV.caption {
 .bordered-box > A {				/* without this a <a><button></button></a> has no margin */
 	display: inline-block;
 	}
+.bordered-box.popup {
+	background-color: #f0f0f0;
+	}
+.bordered-box.popup:hover {
+	background-color: #e8e8e8;
+	}
 
 /* Labeled form field */
 .form-field {

@@ -35,7 +35,7 @@ def page_scenes():
 
 	return render_template(
 		"khplayer/scenes.html",
-		cameras = list_cameras() if request.args.get("action") == "add-live" else None,
+		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
 		scenes = response["scenes"],
 		program_scene_uuid = response.get("currentProgramSceneUuid"),
 		preview_scene_uuid = response.get("currentPreviewSceneUuid"),
@@ -107,8 +107,8 @@ def page_scenes_submit():
 				except ObsError as e:
 					async_flash(str(e))
 
-			case "add-live":
-				return redirect(".?action=add-live")
+			case "add-scene":
+				return redirect(".?action=add-scene")
 
 			case "add-camera":
 				camera_dev = request.form.get("camera")
@@ -126,6 +126,13 @@ def page_scenes_submit():
 					capture_window = find_second_window()
 					if capture_window is not None:
 						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
+
+			case "add-empty":
+				print("Empty scene", obs.create_scene(_("* New Scene"), make_unique=True))
+
+			case _:
+				flash("Internal error: missing case")
+				return redirect(".")
 
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))

@@ -35,7 +35,7 @@
 </section>
 
 {% if form is not none %}
-<section class="bordered-box">
+<section class="bordered-box popup">
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
 {{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", form["urls"], class="urls")}}

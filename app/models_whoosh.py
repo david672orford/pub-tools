@@ -1,6 +1,7 @@
 # Whoosh search engine integration
 
 from flask import current_app
+import warnings
 import os
 
 # https://whoosh.readthedocs.io/en/latest/
@@ -67,7 +68,11 @@ class VideoIndex(BaseWhooshIndex):
 		deduped_results = []
 		suggestion = []
 
-		index = open_dir(self.whoosh_path, indexname=self.indexname)
+		with warnings.catch_warnings():
+			# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
+			warnings.simplefilter("ignore", category=SyntaxWarning)
+			index = open_dir(self.whoosh_path, indexname=self.indexname)
+
 		with index.searcher() as searcher:
 
 			dedup = set()
