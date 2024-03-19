@@ -66,12 +66,12 @@ directory of this project:
   * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
   * **khplayer-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
   * **khplayer-startup.py** -- Set initial state of OBS
+  * **khplayer-automate.py** -- Simplify startup and playing of vidoes
     * Start the virtual camera
     * Start a fullscreen output on the monitor you select
     * Switch to the initial scene you have selected
-    * Mute the system microphone whenever the initial scene is displayed
-  * **khplayer-vidoes.py** -- Simplify playing vidoes
-    * Mute the system default input device (the microphone) when videos are playing. This improves sound quality for participant in Zoom considerably.
+    * Mute the microphone whenever the mute scene is displayed
+    * Mute the microphone when videos are playing. This improves sound quality for participant in Zoom considerably.
     * Switch to the scene you specify whenever a video finishes playing. Set this to the scene with the camera which shows the stage.
     * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
 

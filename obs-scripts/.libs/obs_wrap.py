@@ -318,11 +318,11 @@ class ObsScript:
 # This mixin simplifies listening for media source events. To use it, include
 # it as a parent class and override one or more of the on_* methods.
 #
-# Media event sequences:
-# * Uninterrupted from start to finish: media_started, source_activate, media_ended, source_deactivate
+# Media event sequences as observed in OBS 3.1:
+# * Uninterrupted from start to finish: source_activate, media_started, media_ended
 # * Pause button: media_pause
 # * Play button: media_started, media_play
-# * Stop button: media_stopped, media_ended
+# * Stop button: media_stopped
 # * Switch to other scene: source_deactivate, media_ended
 #=============================================================================
 
