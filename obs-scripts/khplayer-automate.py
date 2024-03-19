@@ -36,15 +36,26 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			li {
 				margin: .2em 0 .2em -1.5em;	/* see https://bugreports.qt.io/browse/QTBUG-1429 */
 				}
+			ul {
+				margin: 0;
+				padding: 0;
+				}
 		</style>
 		<h2>KH Player—Automated Actions</h2>
 		<ul>
-		<li>Switch to the indicated scene at startup
-		<li>Start the virtual camera at startup
-		<li>Start a fullscreen projector on indicated screen at startup
-	    <li>Mute microphone while videos play
-	    <li>Stop videos from JW.ORG a few seconds before the end
-	    <li>Switch to scene selected below when any video ends
+		<li>At OBS Startup:
+			<ul>
+			<li>Start a fullscreen projector on <b>Projector Screen</b>
+			<li>Start the virtual camera
+			<li>Switch to the <b>Yeartext Scene</a>
+			</ul></li>
+        <li>Mute the microphone whenever the <b>Yeartext Scene</b> is displayed.
+        <li>Playing Videos:
+            <ul>
+    	    <li>Mute microphone at start and unmute afterwards
+    	    <li>Stop the video a few seconds from the end, if it is from JW.ORG
+    	    <li>Return to <b>Stage Scene</b> when the video ends
+			</ul></li>
 		</ul>
 		"""
 
@@ -52,10 +63,9 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		super().__init__(*args, **kwargs)
 
 		self.stopper = MediaStopper(self)
-		self.init_scene = None
-		self.mute_scene = None
-		self.home_scene = None
-		self.stop_at = None
+		self.yeartext_scene = None
+		self.stage_scene = None
+		self.end_trim = None
 		self.playing_sources = set()
 
 		# Define script configuration GUI
@@ -66,10 +76,9 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 						["2", "Screen 3"],
 					]
 				),
-			ObsWidget("select", "init_scene", "Initial Scene", options=self.get_scene_options),
-			ObsWidget("select", "mute_scene", "Mute Scene", options=self.get_scene_options),
-			ObsWidget("select", "home_scene", "Home Scene", options=self.get_scene_options),
-			ObsWidget("float", "stop_at", "JW.ORG Videos Trim", min=0, max=10, step=0.5, default_value=5.0),
+			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
+			ObsWidget("select", "stage_scene", "Stage Scene", options=self.get_scene_options),
+			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.0),
 			]
 
 	# Provides the list of scenes for the select box
@@ -79,28 +88,26 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	# Accept settings from the script configuration GUI
 	def on_gui_change(self, settings):
-		self.init_scene = settings.init_scene
-		self.mute_scene = settings.mute_scene
-		self.home_scene = settings.home_scene
-		self.stop_at = settings.stop_at
-		print("changed:", self.mute_scene, self.home_scene, self.stop_at)
-		obs.obs_frontend_start_virtualcam()
+		self.yeartext_scene = settings.yeartext_scene
+		self.stage_scene = settings.stage_scene
+		self.end_trim = settings.end_trim
 		obs.obs_frontend_open_projector("StudioProgram", int(settings.screen), "", "")
 
 	def on_finished_loading(self):
-		self.set_scene(self.init_scene)
+		self.set_scene(self.yeartext_scene)
+		obs.obs_frontend_start_virtualcam()
 
 	# Only seems to fire if user initiated the switch
 	def on_scene_activate(self, scene_name):
 		if self.debug:
 			print("Scene:", scene_name)
-		if scene_name == self.mute_scene:
+		if scene_name == self.yeartext_scene:
 			self.video_add(DummySource())
 
 	def on_scene_deactivate(self, scene_name):
 		if self.debug:
 			print("Scene deactivated:", scene_name)
-		if scene_name == self.mute_scene:
+		if scene_name == self.yeartext_scene:
 			self.video_remove(DummySource(), return_to_home=False)
 
 	def on_media_started(self, source):
@@ -155,7 +162,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 			remaining = (source.duration - source.time)
 			print("remaining:", remaining/1000.0)
-			remaining -= int(self.stop_at * 1000)
+			remaining -= int(self.end_trim * 1000)
 			print("stop after:", remaining/1000.0)
 			if remaining > 0:
 				self.stopper.set(remaining)
@@ -181,7 +188,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		if self.debug:
 			print("act(mute=%s, return_to_home=%s)" % (mute, return_to_home))
 		if return_to_home:
-			self.set_scene(self.home_scene)
+			self.set_scene(self.stage_scene)
 		run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
 
 ObsAutomate(debug=True)
