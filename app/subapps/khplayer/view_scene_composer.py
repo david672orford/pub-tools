@@ -10,26 +10,26 @@ logger = logging.getLogger(__name__)
 
 @blueprint.route("/scenes/composer/")
 def page_scene_composer():
-	scene_uuid = None
+	scene = None
 	scene_items = []
 	try:
-		scene_uuid = obs.get_current_program_scene()["sceneUuid"]
-		for scene_item in obs.get_scene_item_list(scene_uuid):
+		scene = obs.get_current_program_scene()
+		for scene_item in obs.get_scene_item_list(scene["sceneUuid"]):
 			# FIXME: An ffmpeg_source which is not playing will have no width and will
 			# cause a ZeroDivisionError exception, so we skip it for now.
 			if scene_item["sceneItemTransform"]["sourceWidth"] == 0:
 				continue
 			if scene_item["sceneItemTransform"]["boundsType"] == "OBS_BOUNDS_NONE":
-				obs.set_scene_item_transform(scene_uuid, scene_item["sceneItemId"], {
+				obs.set_scene_item_transform(scene["sceneUuid"], scene_item["sceneItemId"], {
 					"boundsType": "OBS_BOUNDS_SCALE_INNER",
 					"boundsWidth": 1280,
 					"boundsHeight": 720,
 					})
-			scene_items.append(SceneItem(scene_uuid, scene_item))
+			scene_items.append(SceneItem(scene["sceneUuid"], scene_item))
 		scene_items = reversed(scene_items)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-	return render_template("khplayer/scene_composer.html", scene_uuid=scene_uuid, scene_items=scene_items, top="../..")
+	return render_template("khplayer/scene_composer.html", scene=scene, scene_items=scene_items, top="../..")
 
 class SceneItem: 
 	def __init__(self, scene_uuid, scene_item):
@@ -54,6 +54,14 @@ class SceneItem:
 		y_zoom = self.height / float(self.height - y_total_crop)
 		print("recovered zooms:", x_zoom, y_zoom)
 		self.zoom = max(x_zoom, y_zoom)
+
+@blueprint.route("/scenes/composer/rename-scene", methods=["POST"])
+def page_scene_composer_rename_scene():
+	try:
+		obs.set_scene_name(request.form["scene_uuid"], request.form["scene_name"])
+	except ObsError as e:
+		flash(_("OBS: %s") % str(e))
+	return redirect(".")
 
 @blueprint.route("/scenes/composer/ptz", methods=["POST"])
 def page_scene_composer_ptz():

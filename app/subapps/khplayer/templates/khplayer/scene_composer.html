@@ -11,6 +11,16 @@
 {% endblock %}
 
 {% block main %}
+<section class="bordered-box">
+<form action="rename-scene" method="POST">
+	<div class="hbox">
+		<input type="hidden" name="scene_uuid" value="{{scene['sceneUuid']}}">
+		<input type="text" name="scene_name" value="{{scene['sceneName']}}">
+		<button type="submit">{{_("Rename")}}</button>
+	</div>
+</form>
+</section>
+
 {% for scene_item in scene_items %}
 <section class="bordered-box">
 <h2>{{scene_item.index+1}} {{scene_item.name}}</h2>

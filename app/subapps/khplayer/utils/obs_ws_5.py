@@ -352,6 +352,12 @@ class ObsControlBase:
 					raise
 			i += 1
 
+	def set_scene_name(self, scene_uuid, scene_name):
+		self.request("SetSceneName", {
+			"sceneUuid": scene_uuid,
+			"newSceneName": scene_name,
+			})
+
 	def remove_scene(self, scene_uuid):
 		self.request("RemoveScene", {"sceneUuid": scene_uuid})
 
