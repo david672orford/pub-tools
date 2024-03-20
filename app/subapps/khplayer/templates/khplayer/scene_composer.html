@@ -1,5 +1,6 @@
 {% set title = gettext("Scene Composer") %}
 {% extends "khplayer/base.html" %}
+{% from "khplayer/scenes_lib.html" import render_cameras -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scene_composer.js')}}"></script>
@@ -19,6 +20,20 @@
 		<button type="submit">{{_("Rename")}}</button>
 	</div>
 </form>
+</section>
+
+<section class="bordered-box popup">
+{% if cameras %}
+<form action="add-source" method="POST">
+	<input type="hidden" name="scene_uuid" value="{{scene['sceneUuid']}}">
+	{{render_cameras(cameras)}}
+	<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera")}}</button>
+	<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom")}}</button>
+	<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
+</form>
+{% else %}
+<a href=".?action=add-source"><button class="new">{{_("Add Source")}}</button></a>
+{% endif %}
 </section>
 
 {% for scene_item in scene_items %}

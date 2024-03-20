@@ -1,7 +1,9 @@
 # Pub-Tools TODO
 
+* Attain proper Studio Mode behavior in new Scenes tab and Scene Composer
+* "Add Main Hall" button in Scenes and Scene Composer
 * Progress bar when loading weeks
-* "Add Main Hall" button in composer
-* Add cameras, Zoom, etc. to scenes in the composer
-* Auto-assign F-keys to scenes and show then in the scenes view
+* Auto-assign F-keys to scenes and show then in the Scenes tab
+* Scene Composer: show/hide buttons
+* Scene Composer: thumbnails
 

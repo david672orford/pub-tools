@@ -1,6 +1,6 @@
 {% set title = _("Scene List") %}
 {% extends "khplayer/base.html" %}
-{% from "khplayer/scenes_lib.html" import render_scene -%}
+{% from "khplayer/scenes_lib.html" import render_scene, render_cameras -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
@@ -31,11 +31,7 @@
 
 		{% if cameras %}
 		<section class="bordered-box popup">
-			<select name="camera">
-				{% for camera_dev, camera_name in cameras %}
-				<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
-				{% endfor %}
-			</select>
+			{{render_cameras(cameras)}}
 			<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
 			<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
 			<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>

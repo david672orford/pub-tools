@@ -16,3 +16,11 @@
 		</td>
 	</tr>
 {% endmacro %}
+
+{% macro render_cameras(cameras) %}
+	<select name="camera">
+		{% for camera_dev, camera_name in cameras %}
+		<option value="{{camera_dev}} {{camera_name}}">{{camera_name}}</option>
+		{% endfor %}
+	</select>
+{% endmacro %}

@@ -5,6 +5,8 @@ from .views import blueprint
 from ...utils.babel import gettext as _
 from ...utils.background import flash
 from .utils.controllers import obs, ObsError
+from .utils.cameras import list_cameras
+from .utils.zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,12 @@ def page_scene_composer():
 		scene_items = reversed(scene_items)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-	return render_template("khplayer/scene_composer.html", scene=scene, scene_items=scene_items, top="../..")
+	return render_template("khplayer/scene_composer.html",
+		scene=scene,
+		scene_items=scene_items,
+		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
+		top="../..",
+		)
 
 class SceneItem: 
 	def __init__(self, scene_uuid, scene_item):
@@ -61,6 +68,28 @@ def page_scene_composer_rename_scene():
 		obs.set_scene_name(request.form["scene_uuid"], request.form["scene_name"])
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
+	return redirect(".")
+
+@blueprint.route("/scenes/composer/add-source", methods=["POST"])
+def page_scene_composer_add_source():
+	scene_uuid = request.form.get("scene_uuid")
+
+	try:
+		match request.form.get("action"):
+			case "add-camera":
+				camera_dev = request.form.get("camera")
+				if camera_dev is not None:
+					scene_item_id = obs.add_camera_input(scene_uuid, camera_dev)
+	
+			case "add-zoom":
+				capture_window = find_second_window()
+				if capture_window is not None:
+					scene_item_id = obs.add_zoom_input(scene_uuid, capture_window)
+					obs.scale_scene_item(scene_uuid, scene_item_id)
+
+	except ObsError as e:
+		async_flash(_("OBS: %s") % str(e))
+
 	return redirect(".")
 
 @blueprint.route("/scenes/composer/ptz", methods=["POST"])
