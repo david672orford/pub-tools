@@ -8,6 +8,7 @@ cli_obs = AppGroup("obs", help="Control OBS Studio")
 
 def print_json(data):
 	json.dump(data, sys.stdout, indent=4, ensure_ascii=False)
+	print()
 
 # Pretty print the JSON file which contains the scene list.
 # This is useful for getting the parameters to construct scenes programatically.
@@ -41,6 +42,12 @@ def cmd_obs_get_scene_item_list(scene_uuid):
 @click.argument("scene_item_id", type=click.IntRange(min=1), default=1)
 def cmd_obs_get_scene_item_transform(scene_uuid, scene_item_id):
 	print_json(obs.get_scene_item_transform(scene_uuid, scene_item_id))
+
+@cli_obs.command("get-scene-item-private-settings", help="Show the private settings of scene item")
+@click.argument("scene_uuid")
+@click.argument("scene_item_id", type=click.IntRange(min=1), default=1)
+def cmd_obs_get_scene_item_private_settings(scene_uuid, scene_item_id):
+	print_json(obs.get_scene_item_private_settings(scene_uuid, scene_item_id))
 
 @cli_obs.command("get-input-list", help="List inputs by name")
 def cmd_obs_get_input_list():
@@ -81,4 +88,9 @@ def cmd_obs_save_source_screenshot(source_name):
 @cli_obs.command("get-output-list", help="Get list of available outputs")
 def cmd_obs_get_output_list():
 	print_json(obs.request("GetOutputList"))
+
+@cli_obs.command("get-hotkey-list", help="List defined hotkeys")
+def cmd_obs_get_hotkey_list():
+	response = obs.request("GetHotkeyList", {})
+	print_json(response)
 

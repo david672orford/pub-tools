@@ -30,7 +30,10 @@
 			<button class="add" type="submit" name="id" value="{{video.id}}">+</button>
 		</td>
 		<td>
-			<div class="thumbnail"><img src="{{video.thumbnail}}"></td>
+			<div class="thumbnail">
+				<img src="{{video.thumbnail}}">
+				<div class="caption">{{video.duration|runningtime}}</div>
+			</td>
 		</td>
 		<td>
 			<a href="{{video.href}}" target="_blank">{{video.title}}</a>

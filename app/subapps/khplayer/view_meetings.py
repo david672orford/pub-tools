@@ -35,6 +35,7 @@ def page_meetings():
 # User has pressed the "Load More Weeks" button.
 @blueprint.route("/meetings/update", methods=["POST"])
 def page_meetings_update():
+	progress_callback(_("Fetching meeting schedules..."), cssclass="heading")
 	update_meetings(callback=progress_callback)
 	return redirect(".")
 

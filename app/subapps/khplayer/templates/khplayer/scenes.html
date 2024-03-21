@@ -26,7 +26,7 @@
 			{% if not cameras %}
 			<button type="submit" class="new" name="action" value="add-scene">{{_("Add Scene")}}</button>
 			{% endif %}
-			<a href="composer/"><button>{{_("Composer")}}</button></a>
+			<button type="submit" name="action" value="composer">{{_("Composer")}}</button>
 		</div>
 
 		{% if cameras %}

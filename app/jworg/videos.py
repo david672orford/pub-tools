@@ -49,8 +49,9 @@ class Video:
 	finder_url = 'https://www.jw.org/finder'
 	def __init__(self, language, media):
 		self.title = media['title']
-		self.lank = media['languageAgnosticNaturalKey']
 		self.date = datetime.fromisoformat(media['firstPublished'][:-1])	# cut off Z
+		self.duration = int(media["duration"] + 0.5)
+		self.lank = media['languageAgnosticNaturalKey']
 
 		try:
 			self.thumbnail = media['images']['wss']['sm']		# 16:9 aspect ratio, occassionally missing

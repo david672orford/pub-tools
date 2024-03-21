@@ -3,45 +3,44 @@
 {% from "khplayer/scenes_lib.html" import render_cameras -%}
 
 {% block head_add %}
-<script src="{{ url_for('.static', filename='scene_composer.js')}}"></script>
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='scene_composer.css')}}">
+<script src="{{ url_for('.static', filename='scenes.js')}}"></script>
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt; {{title}}</a></h1>
+<h1><a href="../..">&lt; {{title}}</a></h1>
 {% endblock %}
 
 {% block main %}
-<section class="bordered-box">
 <form action="rename-scene" method="POST">
-	<div class="hbox">
-		<input type="hidden" name="scene_uuid" value="{{scene['sceneUuid']}}">
-		<input type="text" name="scene_name" value="{{scene['sceneName']}}">
-		<button type="submit">{{_("Rename")}}</button>
-	</div>
+	<section class="bordered-box">
+		<div class="hbox">
+			<input type="text" name="scene_name" value="{{scene_name}}">
+			<button type="submit">{{_("Rename")}}</button>
+		</div>
+	</section>
 </form>
-</section>
 
-<section class="bordered-box popup">
-{% if cameras %}
-<form action="add-source" method="POST">
-	<input type="hidden" name="scene_uuid" value="{{scene['sceneUuid']}}">
-	{{render_cameras(cameras)}}
-	<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera")}}</button>
-	<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom")}}</button>
-	<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
-</form>
-{% else %}
-<a href=".?action=add-source"><button class="new">{{_("Add Source")}}</button></a>
-{% endif %}
+{% if not cameras %}
+<section class="bordered-box">
+	<a href=".?action=add-source"><button class="new">{{_("Add Source")}}</button></a>
 </section>
+{% else %}
+<form action="add-source" method="POST">
+	<section class="bordered-box popup">
+		{{render_cameras(cameras)}}
+		<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom")}}</button>
+		<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
+	</section>
+</form>
+{% endif %}
 
 {% for scene_item in scene_items %}
+<form id="scene_item{{scene_item.id}}">
 <section class="bordered-box">
 <h2>{{scene_item.index+1}} {{scene_item.name}}</h2>
-<form id="scene_item{{scene_item.id}}">
+	<img src="{{scene_item.thumbnail_url}}">
 
-	<input type="hidden" name="scene_uuid" value="{{scene_item.scene_uuid}}">
 	<input type="hidden" id="bounds" value="{{scene_item.bounds_width}} {{scene_item.bounds_height}} {{scene_item.position_x}} {{scene_item.position_y}}">
 	<input type="hidden" id="dimensions" value="{{scene_item.width}} {{scene_item.height}}">
 
@@ -72,8 +71,8 @@
 		<button type="button" value="240 360 0 0">Portrait</button>
 	</div>
 
-</form>
 </section>
+</form>
 {% endfor %}
 
 <script>

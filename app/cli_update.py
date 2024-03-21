@@ -26,8 +26,11 @@ cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 def init_app(app):
 	app.cli.add_command(cli_update)
 
-def default_callback(message, last_message=False):
-	print(message)
+def default_callback(message, **kwargs):
+	if "{" in message:
+		print(message.format(**kwargs))
+	else:
+		print(message)
 
 #=============================================================================
 # Load the weekly schedule from Watchtower Online Library
@@ -40,20 +43,29 @@ def cmd_update_meetings():
 
 def update_meetings(callback=default_callback):
 	meeting_loader = MeetingLoader()
+
 	current_day = date.today()
+	to_fetch = []
 	for i in range(8):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
 		if week_obj is None:
-			callback(_("Fetching week %s %s") % (year, week))
-			week_data = meeting_loader.get_week(year, week)
-			week_obj = Weeks()
-			week_obj.year = year
-			week_obj.week = week
-			for name, value in week_data.items():
-				setattr(week_obj, name, value)
-			db.session.add(week_obj)
+			to_fetch.append((year, week))
 		current_day += timedelta(weeks=1)
+
+	count = 0
+	for year, week in to_fetch:
+		callback(_("Fetching week %s %s") % (year, week))
+		week_data = meeting_loader.get_week(year, week)
+		count += 1
+		callback("{total_recv} of {total_expected}", total_recv=count, total_expected=len(to_fetch))
+		week_obj = Weeks()
+		week_obj.year = year
+		week_obj.week = week
+		for name, value in week_data.items():
+			setattr(week_obj, name, value)
+		db.session.add(week_obj)
+
 	db.session.commit()
 	callback(_("Meetings loaded"), last_message=True)
 
@@ -237,9 +249,10 @@ def update_video_subcategory(category_db_obj, category=None, callback=default_ca
 		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
 		if video_obj is None:
 			video_obj = Videos()
-		video_obj.lank = video.lank
 		video_obj.title = video.title
 		video_obj.date = video.date
+		video_obj.duration = video.duration
+		video_obj.lank = video.lank
 		video_obj.thumbnail = video.thumbnail
 		video_obj.href = video.href
 		category_db_obj.videos.append(video_obj)

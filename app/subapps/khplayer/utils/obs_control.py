@@ -24,6 +24,7 @@ class ObsControl(ObsControlBase):
 		self._scene_list = None
 		self.scene_pos = {}
 		self.subscribe("Scenes", lambda event: self.event(event))
+		self.subscribe("Ui", lambda event: self.event(event))
 
 	def init_app(self, app):
 		self.app = app
@@ -37,6 +38,21 @@ class ObsControl(ObsControlBase):
 	def get_scene_list(self):
 		return self.scene_list
 
+	def get_studio_mode_enabled(self):
+		return self.scene_list["currentPreviewSceneUuid"] is not None
+
+	def get_current_preview_scene(self):
+		return {
+			"sceneName": self.scene_list["currentPreviewSceneName"],
+			"sceneUuid": self.scene_list["currentPreviewSceneUuid"],
+			}
+
+	def get_current_program_scene(self):
+		return {
+			"sceneName": self.scene_list["currentProgramSceneName"],
+			"sceneUuid": self.scene_list["currentProgramSceneUuid"],
+			}
+
 	@property
 	def scene_list(self):
 		if self._scene_list is None:
@@ -48,7 +64,7 @@ class ObsControl(ObsControlBase):
 			scenes = []
 			for scene_uuid in get_config("SCENE_ORDER", []):
 				try:
-					scenes.append(self.scene_list["scenes"].pop(self.scene_index(scene_uuid)))
+					scenes.append(self.scene_list["scenes"].pop(self.get_scene_index(scene_uuid)))
 				except KeyError:
 					pass
 
@@ -65,6 +81,16 @@ class ObsControl(ObsControlBase):
 			return
 		data = event["eventData"]
 		match event["eventType"]:
+			case "StudioModeStateChanged":
+				print("Studio mode:", data)
+				scenes = self.scene_list
+				if data["studioModeEnabled"]:
+					scenes["currentPreviewSceneUuid"] = scenes["currentProgramSceneUuid"]
+					scenes["currentPreviewSceneName"] = scenes["currentProgramSceneName"]
+				else:
+					scenes["currentPreviewSceneUuid"] = None
+					scenes["currentPreviewSceneName"] = None
+				print(self.scene_list)
 			case "SceneCreated":
 				scene_name = re.sub(r" \(\d+\)$", "", data["sceneName"])
 				pos = self.scene_pos.pop(scene_name, None)
@@ -76,11 +102,11 @@ class ObsControl(ObsControlBase):
 				with self.app.app_context():
 					self.save_scene_order()
 			case "SceneRemoved":
-				self.scene_list["scenes"].pop(self.scene_index(data["sceneUuid"]))
+				self.scene_list["scenes"].pop(self.get_scene_index(data["sceneUuid"]))
 				with self.app.app_context():
 					self.save_scene_order()
 			case "SceneNameChanged":
-				self.scene_list["scenes"][self.scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
+				self.scene_list["scenes"][self.get_scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
 			case "CurrentProgramSceneChanged":
 				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
 				self.scene_list["currentProgramSceneName"] = data["sceneName"]
@@ -106,11 +132,18 @@ class ObsControl(ObsControlBase):
 			pos += 1
 		return pos
 
-	def scene_index(self, uuid):
+	def get_scene_index(self, uuid):
 		scenes = self.get_scene_list()["scenes"]
 		for i in range(len(scenes)):
 			if scenes[i]["sceneUuid"] == uuid:
 				return i
+		raise KeyError()
+
+	def get_scene_name(self, uuid):
+		scenes = self.get_scene_list()["scenes"]
+		for i in range(len(scenes)):
+			if scenes[i]["sceneUuid"] == uuid:
+				return scenes[i]["sceneName"]
 		raise KeyError()
 
 	def move_scene(self, uuid, new_index):
@@ -130,6 +163,7 @@ class ObsControl(ObsControlBase):
 	# Center it and scale to reach the edges.
 	# For videos enable audio monitoring.
 	#============================================================================
+
 	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str=None, subtitle_track:str=None, skiplist:str=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
@@ -192,7 +226,6 @@ class ObsControl(ObsControlBase):
 		logger.info(" Input: %s \"%s\"", input_kind, input_name)
 		logger.info(" Input settings: %s", input_setting)
 
-
 		# Add a new scene. (Naming naming conflicts will be resolved.)
 		scene_uuid = self.create_scene(
 			scene_name,
@@ -208,6 +241,10 @@ class ObsControl(ObsControlBase):
 				input_kind = "image_source",
 				input_settings = {"file": thumbnail},
 				)
+			self.set_scene_item_private_settings(scene_uuid, thumbnail_source["sceneItemId"], {
+				"color":"",
+				"color-preset": 8,		# grey
+				})
 			self.scale_scene_item(scene_uuid, thumbnail_source["sceneItemId"])
 
 		# Create an input (a kind of source) to play our file.
@@ -217,6 +254,10 @@ class ObsControl(ObsControlBase):
 			input_kind = input_kind,
 			input_settings = input_setting,
 			)
+		self.set_scene_item_private_settings(scene_uuid, source["sceneItemId"], {
+			"color":"",
+			"color-preset": 6,			# purple
+			})
 
 		if media_type != "audio":
 			self.scale_scene_item(scene_uuid, source["sceneItemId"])

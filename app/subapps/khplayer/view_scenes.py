@@ -91,15 +91,18 @@ def page_scenes_move_scene():
 
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
-	logger.debug("scenes form: %s", request.form)
+	logger.debug("scenes submit: %s", request.form)
 	try:
 		# Button press
 		match request.form.get("action", "scene"):
 
 			case "scene":
 				scene = request.form.get("scene")
-				obs.set_current_program_scene(scene)
-	
+				if obs.get_current_preview_scene()["sceneUuid"] is not None:
+					obs.set_current_preview_scene(scene)
+				else:
+					obs.set_current_program_scene(scene)
+
 			case "delete":
 				scenes = request.form.getlist("del")
 				try:
@@ -128,7 +131,14 @@ def page_scenes_submit():
 						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
 
 			case "add-empty":
-				print("Empty scene", obs.create_scene(_("* New Scene"), make_unique=True))
+				obs.create_scene(_("* New Scene"), make_unique=True)
+
+			case "composer":
+				scene = obs.get_current_preview_scene()
+				if scene["sceneUuid"] is None:
+					scene = obs.get_current_program_scene()
+				print("composer scene:", scene)
+				return redirect(f"composer/{scene['sceneUuid']}/")
 
 			case _:
 				flash("Internal error: missing case")

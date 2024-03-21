@@ -39,10 +39,12 @@ class ObsControlBase:
 		self.event_intents = {
 			"Scenes": 4,
 			"SceneItems": 128,
+			"Ui": 1024,
 			}
 		self.subscribers = {
 			4: [],
 			128: [],
+			1024: [],
 			}
 		self.ws = None
 		self.next_reqid = 0
@@ -107,7 +109,7 @@ class ObsControlBase:
 			"op": 1,
 			"d": {
 				"rpcVersion": 1,
-				"eventSubscriptions": 4 | 128,
+				#"eventSubscriptions": 4 | 128 | 1024,
 				}
 			}
 
@@ -184,7 +186,8 @@ class ObsControlBase:
 					event = self.event_queue.get_nowait()
 				except queue.Empty:
 					break
-				for subscriber in self.subscribers[event["eventIntent"]]:
+				logger.debug("Event: %s", event)
+				for subscriber in self.subscribers.get(event["eventIntent"], []):
 					subscriber(event)
 
 		logger.debug("Receive thread exiting!")
@@ -325,6 +328,20 @@ class ObsControlBase:
 		result["scenes"] = list(reversed(result["scenes"]))			# OBS-Websocket returns a backwards list
 		return result
 
+	def get_current_preview_scene(self):
+		response = self.request("GetCurrentPreviewScene", {})
+		return response["responseData"]
+
+	def set_current_preview_scene(self, scene_uuid):
+		self.request("SetCurrentPreviewScene", {"sceneUuid": scene_uuid})
+
+	def get_current_program_scene(self):
+		response = self.request("GetCurrentProgramScene", {})
+		return response["responseData"]
+
+	def set_current_program_scene(self, scene_uuid):
+		self.request("SetCurrentProgramScene", {"sceneUuid": scene_uuid})
+
 	def get_scene_uuid(self, scene_name):
 		for scene in self.get_scene_list()["scenes"]:
 			if scene["sceneName"] == scene_name:
@@ -370,13 +387,6 @@ class ObsControlBase:
 				})
 		self.request_batch(requests)
 
-	def get_current_program_scene(self):
-		response = self.request("GetCurrentProgramScene", {})
-		return response["responseData"]
-
-	def set_current_program_scene(self, scene_uuid):
-		self.request("SetCurrentProgramScene", {"sceneUuid": scene_uuid})
-
 	#=========================================================================
 	# Scene items
 	#=========================================================================
@@ -410,6 +420,20 @@ class ObsControlBase:
 			"sceneUuid": scene_uuid,
 			"sceneItemId": scene_item_id,
 			"sceneItemTransform": transform,
+			})
+
+	def get_scene_item_private_settings(self, scene_uuid, scene_item_id):
+		response = self.request("GetSceneItemPrivateSettings", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			})
+		return response["responseData"]["sceneItemSettings"]
+
+	def set_scene_item_private_settings(self, scene_uuid:str, scene_item_id:int, settings:dict):
+		response = self.request("SetSceneItemPrivateSettings", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			"sceneItemSettings": settings,
 			})
 
 	#=========================================================================

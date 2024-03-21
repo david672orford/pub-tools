@@ -1,10 +1,12 @@
 import os
+from .utils.runningtime import time_to_str
 
 menu = []
 
 def init_app(app, url_prefix):
 
 	app.jinja_env.globals["menu"] = menu
+	app.jinja_env.filters["runningtime"] = time_to_str
 
 	from .views import blueprint
 	blueprint.cache.init_app(app, {
