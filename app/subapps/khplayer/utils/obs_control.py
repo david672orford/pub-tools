@@ -1,14 +1,14 @@
 import os, re
 from time import sleep
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote, urlencode
 import logging
 
 logger = logging.getLogger(__name__)
 
 #try:
-#	from .obs_api import ObsControl, ObsError
+#	from .obs_api import ObsControlBase, ObsError
 #except ModuleNotFoundError:
-#	from .obs_ws_5 import ObsControl, ObsError
+#	from .obs_ws_5 import ObsControlBase, ObsError
 
 from .obs_ws_5 import ObsControlBase, ObsError
 from ....utils.config import get_config, put_config
@@ -356,6 +356,21 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
+	def add_remote_input(self, scene_uuid, settings):
+		scene_item_id = self.create_input_with_reuse(
+			scene_uuid = scene_uuid,
+			input_name = "VDO.Ninja %s" % settings.get("view"),
+			input_kind = "browser_source",
+			input_settings = {
+				"url": "https://vdo.ninja?%s" % urlencode(settings),
+				"width": 1280,
+				"height": 720,
+				"reroute_audio": True,
+				"webpage_control_level": 0,
+				}
+			)
+		return scene_item_id
+
 	#============================================================================
 	# Create standard scenes
 	#============================================================================
@@ -406,4 +421,10 @@ class ObsControl(ObsControlBase):
 			"positionX": 640.0,
 			"positionY": 160.0,
 			})
+
+	def create_remote_scene(self, scene_name, settings):
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
+		scene_item_id = self.add_remote_input(scene_uuid, settings)
+		#self.scale_scene_item(scene_uuid, scene_item_id)
 

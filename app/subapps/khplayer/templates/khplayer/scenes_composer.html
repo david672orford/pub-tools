@@ -1,6 +1,6 @@
 {% set title = gettext("Scene Composer") %}
 {% extends "khplayer/base.html" %}
-{% from "khplayer/scenes_lib.html" import render_cameras -%}
+{% from "khplayer/scenes_lib.html" import render_cameras, render_remotes -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
@@ -28,8 +28,9 @@
 <form action="add-source" method="POST">
 	<section class="bordered-box popup">
 		{{render_cameras(cameras)}}
-		<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera")}}</button>
-		<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom")}}</button>
+		<button class="new" type="submit" name="action" value="add-camera">{{_("Camera")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom">{{_("Zoom")}}</button>
+		{{render_remotes(remotes)}}
 		<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
 	</section>
 </form>

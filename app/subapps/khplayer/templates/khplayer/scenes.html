@@ -1,6 +1,6 @@
 {% set title = _("Scene List") %}
 {% extends "khplayer/base.html" %}
-{% from "khplayer/scenes_lib.html" import render_scene, render_cameras -%}
+{% from "khplayer/scenes_lib.html" import render_scene, render_cameras, render_remotes -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
@@ -22,7 +22,7 @@
 	<section id="scenes-controls">
 		<div class="borderless-box">
 			<input id="check-all" type="checkbox">
-			<button type="submit" class="delete" name="action" value="delete">{{_("Delete Selected")}}</button>
+			<button type="submit" class="delete" name="action" value="delete">{{_("Delete")}}</button>
 			{% if not cameras %}
 			<button type="submit" class="new" name="action" value="add-scene">{{_("Add Scene")}}</button>
 			{% endif %}
@@ -32,10 +32,11 @@
 		{% if cameras %}
 		<section class="bordered-box popup">
 			{{render_cameras(cameras)}}
-			<button class="new" type="submit" name="action" value="add-camera">{{_("Add Camera Scene")}}</button>
-			<button class="new" type="submit" name="action" value="add-zoom">{{_("Add Zoom Scene")}}</button>
-			<button class="new" type="submit" name="action" value="add-split">{{_("Add Split Screen Scene")}}</button>
-			<button class="new" type="submit" name="action" value="add-empty">{{_("Add Empty Scene")}}</button>
+			<button class="new" type="submit" name="action" value="add-camera">{{_("Camera")}}</button>
+			<button class="new" type="submit" name="action" value="add-zoom">{{_("Zoom")}}</button>
+			<button class="new" type="submit" name="action" value="add-split">{{_("Camera+Zoom")}}</button>
+			{{render_remotes(remotes)}}
+			<button class="new" type="submit" name="action" value="add-empty">{{_("Empty Scene")}}</button>
 			<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
 		</section>
 		{% endif %}

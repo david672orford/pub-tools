@@ -24,3 +24,9 @@
 		{% endfor %}
 	</select>
 {% endmacro %}
+
+{% macro render_remotes(remotes) %}
+{% for name in remotes.keys() %}
+<button class="new" type="submit" name="action" value="add-remote:{{name}}">{{name}}</button>
+{% endfor %}
+{% endmacro %}

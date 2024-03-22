@@ -16,6 +16,10 @@ class ObsError(Exception):
 class ObsControl:
 	def __init__(self, config=None):
 		pass
+
+# Obsolete code kept as examples in case we ever come back to revive this
+# module and adapt it to work under obs_control.py.
+#
 #   def add_media_scene(self, scene_name, media_type, media_file):
 #       logger.info("Add media scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 #

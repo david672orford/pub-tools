@@ -1,4 +1,4 @@
-from flask import request, session, render_template, redirect
+from flask import current_app, request, session, render_template, redirect
 import logging
 
 from .views import blueprint
@@ -11,7 +11,7 @@ from .utils.zoom import find_second_window
 logger = logging.getLogger(__name__)
 
 @blueprint.route("/scenes/composer/<scene_uuid>/")
-def page_scene_composer(scene_uuid):
+def page_scenes_composer(scene_uuid):
 	scene_name = None
 	scene_items = []
 	try:
@@ -31,11 +31,12 @@ def page_scene_composer(scene_uuid):
 		scene_items = reversed(scene_items)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-	return render_template("khplayer/scene_composer.html",
+	return render_template("khplayer/scenes_composer.html",
 		scene_uuid = scene_uuid,
 		scene_name = scene_name,
 		scene_items = scene_items,
 		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
+		remotes = current_app.config.get("REMOTES"),
 		top = "../../../",
 		)
 
@@ -65,7 +66,7 @@ class SceneItem:
 		self.thumbnail_url = obs.get_source_screenshot(scene_item["sourceUuid"])
 
 @blueprint.route("/scenes/composer/<scene_uuid>/rename-scene", methods=["POST"])
-def page_scene_composer_rename_scene(scene_uuid):
+def page_scenes_composer_rename_scene(scene_uuid):
 	try:
 		obs.set_scene_name(request.form["scene_name"])
 	except ObsError as e:
@@ -73,9 +74,11 @@ def page_scene_composer_rename_scene(scene_uuid):
 	return redirect(".")
 
 @blueprint.route("/scenes/composer/<scene_uuid>/add-source", methods=["POST"])
-def page_scene_composer_add_source(scene_uuid):
+def page_scenes_composer_add_source(scene_uuid):
 	try:
-		match request.form.get("action"):
+		action = request.form.get("action", "scene").split(":",1)
+		match action[0]:
+
 			case "add-camera":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
@@ -87,13 +90,21 @@ def page_scene_composer_add_source(scene_uuid):
 					scene_item_id = obs.add_zoom_input(scene_uuid, capture_window)
 					obs.scale_scene_item(scene_uuid, scene_item_id)
 
+			case "add-remote":
+				settings = current_app.config["REMOTES"][action[1]]
+				scene_item_id = obs.add_remote_input(scene_uuid, settings)
+				#obs.scale_scene_item(scene_uuid, scene_item_id)
+
+			case _:
+				flash("Internal error: missing case: %s" % action[0])
+
 	except ObsError as e:
 		async_flash(_("OBS: %s") % str(e))
 
 	return redirect(".")
 
 @blueprint.route("/scenes/composer/<scene_uuid>/ptz", methods=["POST"])
-def page_scene_composer_ptz(scene_uuid):
+def page_scenes_composer_ptz(scene_uuid):
 	logger.debug("PTZ: %s", request.json)
 	ptz(scene_uuid=scene_uuid, **request.json)
 	return "OK"

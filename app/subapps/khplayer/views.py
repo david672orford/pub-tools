@@ -27,7 +27,7 @@ def handle_500(error):
 	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
 
 from . import view_scenes
-from . import view_scene_composer
+from . import view_scenes_composer
 from . import view_meetings
 from . import view_jwstream
 from . import view_songbook

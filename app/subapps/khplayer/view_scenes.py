@@ -35,10 +35,11 @@ def page_scenes():
 
 	return render_template(
 		"khplayer/scenes.html",
-		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
 		scenes = response["scenes"],
 		program_scene_uuid = response.get("currentProgramSceneUuid"),
 		preview_scene_uuid = response.get("currentPreviewSceneUuid"),
+		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
+		remotes = current_app.config.get("REMOTES"),
 		top = ".."
 		)
 
@@ -94,7 +95,8 @@ def page_scenes_submit():
 	logger.debug("scenes submit: %s", request.form)
 	try:
 		# Button press
-		match request.form.get("action", "scene"):
+		action = request.form.get("action", "scene").split(":",1)
+		match action[0]:
 
 			case "scene":
 				scene = request.form.get("scene")
@@ -130,6 +132,10 @@ def page_scenes_submit():
 					if capture_window is not None:
 						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
 
+			case "add-remote":
+				settings = current_app.config["REMOTES"][action[1]]
+				obs.create_remote_scene("* %s" % action[1], settings)
+
 			case "add-empty":
 				obs.create_scene(_("* New Scene"), make_unique=True)
 
@@ -141,7 +147,7 @@ def page_scenes_submit():
 				return redirect(f"composer/{scene['sceneUuid']}/")
 
 			case _:
-				flash("Internal error: missing case")
+				flash("Internal error: missing case: %s" % action[0])
 				return redirect(".")
 
 	except ObsError as e:
