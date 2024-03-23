@@ -71,15 +71,7 @@ class SceneItem:
 		self.x = (xform["cropLeft"] * 100.0 / x_total_crop) if x_total_crop >= 1.0 else 50
 		self.y = (xform["cropBottom"] * 100.0 / y_total_crop) if y_total_crop >= 1.0 else 50
 
-		# The position of our Zoom slider
-		#x_zoom = self.width / float(self.width - x_total_crop)
-		#y_zoom = self.height / float(self.height - y_total_crop)
-		#logger.debug("Recovered Zooms: %s %s", x_zoom, y_zoom)
-		#self.zoom = max(x_zoom, y_zoom)
-
-		#pad = Padding(self.width, self.height, self.bounds_width, self.bounds_height)
 		self.zoom = self.height / float(self.height - y_total_crop)
-		#self.zoom = (pad.padded_height / self.height) / normalized_zoom
 
 		self.thumbnail_url = obs.get_source_screenshot(scene_item["sourceUuid"])
 
@@ -149,12 +141,9 @@ def ptz(scene_uuid, id, bounds, new_bounds, dimensions, x, y, zoom, face_source_
 
 	pad = Padded(width, height, bounds_width, bounds_height)
 
-	# Scale the zoom so that a zoom of 1.0 will always just fill
-	# the bounding box height.
-	normalized_zoom = zoom * (pad.padded_height / height)
-
 	# How many pixels must be cut off in each dimension?
 	# If zoom is 1.0, the answer will be zero.
+	normalized_zoom = zoom * (pad.padded_height / height)
 	x_total_crop = max(0, pad.padded_width - (pad.padded_width / normalized_zoom) - pad.width_padding)
 	y_total_crop = max(0, pad.padded_height - (pad.padded_height / normalized_zoom) - pad.height_padding)
 	logger.debug("total crops: %s %s", x_total_crop, y_total_crop)
@@ -208,8 +197,10 @@ class Padded:
 		self.padded_height = height + self.height_padding
 
 def find_face(scene_uuid, id, source_uuid):
+	backoff = 2.2
+
+	# https://github.com/ageitgey/face_recognition
 	from face_recognition import load_image_file, face_locations
-	backoff = 2.0
 
 	tempfile = obs.save_source_screenshot(source_uuid)
 	image = load_image_file(tempfile)
@@ -219,6 +210,8 @@ def find_face(scene_uuid, id, source_uuid):
 	if len(faces) > 0:
 		print("faces:", faces)
 		top, right, bottom, left = faces[0]
+		print("horizontal: %s -- %s" % (left, right))
+		print("vertical: %s -- %s" % (top, bottom))
 
 		face_width = right - left
 		face_height = bottom - top
@@ -228,10 +221,21 @@ def find_face(scene_uuid, id, source_uuid):
 		face_y = (top + bottom) / 2
 		print("face pos:", face_x, face_y)
 
+		#x = face_x / image_width
+		free_left = left
+		free_right = image_width - right
+		print("horizontal margins:", free_left, free_right)
+		x = free_left / (free_left + free_right)
+
+		#y = face_y / image_height
+		free_top = top
+		free_bottom = image_height - bottom
+		y = free_top / (free_top + free_bottom)
+
 		return (
-			int(face_x / image_width * 100),						# X
-			int((image_height - face_y) / image_height * 100),		# Y
-			image_height / face_height / backoff,					# Zoom
+			int(x * 100),									# X
+			int((1.0 - y) * 100),							# Y (inverted)
+			max(image_height / face_height / backoff, 1.0)	# Zoom
 			)
 	return None
 
