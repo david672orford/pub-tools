@@ -7,6 +7,7 @@
 
 import websocket, json, base64, hashlib
 from threading import Thread, current_thread, Lock, Condition
+from time import sleep
 import queue
 import logging
 
@@ -324,9 +325,16 @@ class ObsControlBase:
 	#=========================================================================
 
 	def get_scene_list(self):
-		result = self.request("GetSceneList", {})["responseData"]
-		result["scenes"] = list(reversed(result["scenes"]))			# OBS-Websocket returns a backwards list
-		return result
+		while True:
+			try:
+				result = self.request("GetSceneList", {})["responseData"]
+				# OBS-Websocket returns a backwards list
+				result["scenes"] = list(reversed(result["scenes"]))
+				return result
+			except ObsError as e:
+				if e.code != 207:		# 207 OBS Not ready
+					raise
+			sleep(.1)
 
 	def get_current_preview_scene(self):
 		response = self.request("GetCurrentPreviewScene", {})
@@ -391,6 +399,18 @@ class ObsControlBase:
 	# Scene items
 	#=========================================================================
 
+	def get_scene_item_list(self, scene_uuid):
+		response = self.request("GetSceneItemList", {
+			"sceneUuid": scene_uuid,
+			})
+		return response["responseData"]["sceneItems"]
+
+	def remove_scene_item(self, scene_uuid, scene_item_id):
+		self.request("RemoveSceneItem", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			})
+
 	def create_scene_item(self, *, scene_uuid:str, source_uuid:str=None, source_name:str=None):
 		req = {
 			"sceneUuid": scene_uuid,
@@ -401,12 +421,6 @@ class ObsControlBase:
 			req["sourceName"] = source_name
 		response = self.request("CreateSceneItem", req)
 		return response["responseData"]["sceneItemId"]
-
-	def get_scene_item_list(self, uuid):
-		response = self.request("GetSceneItemList", {
-			"sceneUuid": uuid,
-			})
-		return response["responseData"]["sceneItems"]
 
 	def get_scene_item_transform(self, scene_uuid, scene_item_id):
 		response = self.request("GetSceneItemTransform", {
@@ -434,6 +448,20 @@ class ObsControlBase:
 			"sceneUuid": scene_uuid,
 			"sceneItemId": scene_item_id,
 			"sceneItemSettings": settings,
+			})
+
+	def set_scene_item_index(self, scene_uuid:str, scene_item_id:int, index:int):
+		response = self.request("SetSceneItemIndex", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			"sceneItemIndex": index,
+			})
+
+	def set_scene_item_enabled(self, scene_uuid:str, scene_item_id:int, enabled:bool):
+		response = self.request("SetSceneItemEnabled", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			"sceneItemEnabled": enabled,
 			})
 
 	#=========================================================================
@@ -516,4 +544,13 @@ class ObsControlBase:
 		data = response["responseData"]["imageData"]
 		assert data.startswith("data:")
 		return data
+
+	def save_source_screenshot(self, source_uuid:str):
+		tempfile = "/tmp/face.jpg"
+		self.request("SaveSourceScreenshot", {
+			"sourceUuid": source_uuid,
+			"imageFormat": "jpeg",
+			"imageFilePath": tempfile,
+			})
+		return tempfile
 

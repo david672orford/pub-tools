@@ -1,4 +1,5 @@
 from flask import current_app, request, session, render_template, redirect
+from time import sleep
 import logging
 
 from .views import blueprint
@@ -14,27 +15,34 @@ logger = logging.getLogger(__name__)
 def page_scenes_composer(scene_uuid):
 	scene_name = None
 	scene_items = []
+
 	try:
 		scene_name = obs.get_scene_name(scene_uuid)
+
 		for scene_item in obs.get_scene_item_list(scene_uuid):
+
 			# FIXME: An ffmpeg_source which is not playing will have zero width
 			# so we skip it to avoid a ZeroDivisionError exception in SceneItem
 			if scene_item["sceneItemTransform"]["sourceWidth"] == 0:
 				continue
-			if scene_item["sceneItemTransform"]["boundsType"] == "OBS_BOUNDS_NONE":
-				obs.set_scene_item_transform(scene_uuid, scene_item["sceneItemId"], {
-					"boundsType": "OBS_BOUNDS_SCALE_INNER",
-					"boundsWidth": 1280,
-					"boundsHeight": 720,
-					})
+
+			# We need each item scaled to bounds to do PTZ
+			xform = scene_item["sceneItemTransform"]
+			if xform["boundsType"] == "OBS_BOUNDS_NONE":
+				xform["boundsType"] = "OBS_BOUNDS_SCALE_INNER"
+				xform["boundsWidth"] = 1280
+				xform["boundsHeight"] = 720
+				obs.set_scene_item_transform(scene_uuid, scene_item["sceneItemId"], xform)
+
 			scene_items.append(SceneItem(scene_item))
-		scene_items = reversed(scene_items)
+
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
+
 	return render_template("khplayer/scenes_composer.html",
 		scene_uuid = scene_uuid,
 		scene_name = scene_name,
-		scene_items = scene_items,
+		scene_items = reversed(scene_items),
 		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
 		remotes = current_app.config.get("REMOTES"),
 		top = "../../../",
@@ -46,6 +54,8 @@ class SceneItem:
 		self.id = scene_item["sceneItemId"]
 		self.index = scene_item["sceneItemIndex"]
 		self.name = scene_item["sourceName"]
+		self.enabled = scene_item["sceneItemEnabled"]
+		self.source_uuid = scene_item["sourceUuid"]
 		xform = scene_item["sceneItemTransform"]
 		self.width = xform["sourceWidth"]
 		self.height = xform["sourceHeight"]
@@ -56,12 +66,20 @@ class SceneItem:
 
 		x_total_crop = xform["cropLeft"] + xform["cropRight"]
 		y_total_crop = xform["cropTop"] + xform["cropBottom"]
+
+		# This positions of our X and Y sliders
 		self.x = (xform["cropLeft"] * 100.0 / x_total_crop) if x_total_crop >= 1.0 else 50
 		self.y = (xform["cropBottom"] * 100.0 / y_total_crop) if y_total_crop >= 1.0 else 50
-		x_zoom = self.width / float(self.width - x_total_crop)
-		y_zoom = self.height / float(self.height - y_total_crop)
-		logger.debug("Recovered Zooms: %s %s", x_zoom, y_zoom)
-		self.zoom = max(x_zoom, y_zoom)
+
+		# The position of our Zoom slider
+		#x_zoom = self.width / float(self.width - x_total_crop)
+		#y_zoom = self.height / float(self.height - y_total_crop)
+		#logger.debug("Recovered Zooms: %s %s", x_zoom, y_zoom)
+		#self.zoom = max(x_zoom, y_zoom)
+
+		#pad = Padding(self.width, self.height, self.bounds_width, self.bounds_height)
+		self.zoom = self.height / float(self.height - y_total_crop)
+		#self.zoom = (pad.padded_height / self.height) / normalized_zoom
 
 		self.thumbnail_url = obs.get_source_screenshot(scene_item["sourceUuid"])
 
@@ -73,7 +91,7 @@ def page_scenes_composer_rename_scene(scene_uuid):
 		flash(_("OBS: %s") % str(e))
 	return redirect(".")
 
-@blueprint.route("/scenes/composer/<scene_uuid>/add-source", methods=["POST"])
+@blueprint.route("/scenes/composer/<scene_uuid>/action", methods=["POST"])
 def page_scenes_composer_add_source(scene_uuid):
 	try:
 		action = request.form.get("action", "scene").split(":",1)
@@ -95,41 +113,50 @@ def page_scenes_composer_add_source(scene_uuid):
 				scene_item_id = obs.add_remote_input(scene_uuid, settings)
 				#obs.scale_scene_item(scene_uuid, scene_item_id)
 
+			case "delete":
+				obs.remove_scene_item(scene_uuid, int(request.form["scene_item_id"]))
+
+			case "set-index":
+				obs.set_scene_item_index(scene_uuid, int(request.form["scene_item_id"]), int(action[1]))
+
 			case _:
 				flash("Internal error: missing case: %s" % action[0])
 
 	except ObsError as e:
-		async_flash(_("OBS: %s") % str(e))
+		flash(_("OBS: %s") % str(e))
 
+	sleep(1)
 	return redirect(".")
+
+@blueprint.route("/scenes/composer/<scene_uuid>/set-enabled", methods=["POST"])
+def page_scenes_composer_enabled(scene_uuid):
+	obs.set_scene_item_enabled(scene_uuid, request.json["id"], request.json["enabled"])
+	return "OK"
 
 @blueprint.route("/scenes/composer/<scene_uuid>/ptz", methods=["POST"])
 def page_scenes_composer_ptz(scene_uuid):
 	logger.debug("PTZ: %s", request.json)
-	ptz(scene_uuid=scene_uuid, **request.json)
-	return "OK"
+	return ptz(scene_uuid=scene_uuid, **request.json)
 
-def ptz(scene_uuid, id, bounds, new_bounds, dimensions, x, y, zoom):
-
+def ptz(scene_uuid, id, bounds, new_bounds, dimensions, x, y, zoom, face_source_uuid):
 	bounds_width, bounds_height, position_x, position_y = map(float, bounds.split(" "))
 	width, height = map(float, dimensions.split(" "))
 
-	# If we scale the image to (in OBS terminology) the inner bounds
-	# one side may have black bars at top and bottom. Get the total
-	# thickness of the top-bottom and left-right bars.
-	height_fill_scale = bounds_height / height
-	width_padding = max(0, (bounds_width - (width * height_fill_scale)) / height_fill_scale)
-	width_fill_scale = bounds_width / width
-	height_padding = max(0, (bounds_height - (height * width_fill_scale)) / width_fill_scale)
-	logger.debug("paddings: %s %s", width_padding, height_padding)
+	if face_source_uuid:
+		face = find_face(scene_uuid, id, face_source_uuid)
+		if face:
+			x, y, zoom = face
 
-	width += width_padding
-	height += height_padding
+	pad = Padded(width, height, bounds_width, bounds_height)
+
+	# Scale the zoom so that a zoom of 1.0 will always just fill
+	# the bounding box height.
+	normalized_zoom = zoom * (pad.padded_height / height)
 
 	# How many pixels must be cut off in each dimension?
 	# If zoom is 1.0, the answer will be zero.
-	x_total_crop = max(0, width - (width / zoom) - width_padding)
-	y_total_crop = max(0, height - (height / zoom) - height_padding)
+	x_total_crop = max(0, pad.padded_width - (pad.padded_width / normalized_zoom) - pad.width_padding)
+	y_total_crop = max(0, pad.padded_height - (pad.padded_height / normalized_zoom) - pad.height_padding)
 	logger.debug("total crops: %s %s", x_total_crop, y_total_crop)
 
 	# x and y specify the percent of the cut off pixels which should be
@@ -153,4 +180,58 @@ def ptz(scene_uuid, id, bounds, new_bounds, dimensions, x, y, zoom):
 			})
 
 	obs.set_scene_item_transform(scene_uuid, id, xform)
+
+	return {
+		"x": x,
+		"y": y,
+		"zoom": zoom,
+		}
+
+class Padded:
+	def __init__(self, width, height, bounds_width, bounds_height):
+
+		# If we were to scale this image to the inner bounds (in OBS terminology)
+		# one side may have black bars at top and bottom. Get the total
+		# thickness of the top-bottom and left-right bars in the coordinate
+		# space of the image.
+		height_fill_scale = bounds_height / height
+		self.width_padding = max(0, (bounds_width - (width * height_fill_scale)) / height_fill_scale)
+
+		width_fill_scale = bounds_width / width
+		self.height_padding = max(0, (bounds_height - (height * width_fill_scale)) / width_fill_scale)
+
+		logger.debug("fill scales: %s, %s", width_fill_scale, height_fill_scale)
+		logger.debug("paddings: %s, %s", self.width_padding, self.height_padding)
+
+		# Dimensions of image if it were padded to teh same aspect ration as the bounds
+		self.padded_width = width + self.width_padding
+		self.padded_height = height + self.height_padding
+
+def find_face(scene_uuid, id, source_uuid):
+	from face_recognition import load_image_file, face_locations
+	backoff = 2.0
+
+	tempfile = obs.save_source_screenshot(source_uuid)
+	image = load_image_file(tempfile)
+	image_height, image_width = image.shape[:2]
+
+	faces = face_locations(image)
+	if len(faces) > 0:
+		print("faces:", faces)
+		top, right, bottom, left = faces[0]
+
+		face_width = right - left
+		face_height = bottom - top
+		print("face size:", face_width, face_height)
+
+		face_x = (left + right) / 2
+		face_y = (top + bottom) / 2
+		print("face pos:", face_x, face_y)
+
+		return (
+			int(face_x / image_width * 100),						# X
+			int((image_height - face_y) / image_height * 100),		# Y
+			image_height / face_height / backoff,					# Zoom
+			)
+	return None
 

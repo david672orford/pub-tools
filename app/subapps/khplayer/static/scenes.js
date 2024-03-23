@@ -208,26 +208,67 @@ function set_current_scene(className, uuid) {
 function init_scene_composer() {
 
 Array.from(document.getElementsByTagName("form")).forEach(form_el => {
+
+	if(!form_el.elements.enabled)
+		return
+
+	/* Enable checkbox */
+	form_el.elements.enabled.addEventListener("change", (event) => {
+		post_set_enabled(form_el);
+		});
+
+	/* Face button */
+	form_el.getElementsByClassName("button-face")[0].addEventListener("click", (event) => {
+		post_ptz(form_el, false, event.target.value);
+		});
+
+	/* Reset button */
+	form_el.getElementsByClassName("button-reset")[0].addEventListener("click", (event) => {
+		form_el.x.value = "50";
+		form_el.y.value = "50";
+		form_el.zoom.value = "1";
+		post_ptz(form_el, false, null);
+		});
+
+	/* PTZ sliders */
 	Array.from(form_el.getElementsByClassName("slider")).forEach(slider => {
 		let input = slider.getElementsByTagName("input")[0];
 		let span = slider.getElementsByTagName("span")[0];
 		span.textContent = input.value;
 		input.addEventListener("input", (event) => {
 			span.textContent = event.target.value;
-			post_ptz(form_el, false);
+			post_ptz(form_el, false, null);
 			});
 		});
+
+	/* Bounds buttons */
 	Array.from(form_el.getElementsByClassName("position")).forEach(position => {
 		Array.from(position.getElementsByTagName("button")).forEach(button => {
 			button.addEventListener("click", (event) => {
 				form_el.bounds.value = event.target.value;
-				post_ptz(form_el, true);
+				post_ptz(form_el, true, null);
 				});
 			});
-		})
+		});
+
 	});
-function post_ptz(form_el, new_bounds) {
-	fetch("ptz", {
+
+function post_set_enabled(form_el) {
+	console.log(form_el, form_el.enabled);
+	fetch("set-enabled", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+			},
+		body: JSON.stringify({
+			id: parseInt(form_el.id.slice(10)), /* "sceneitem" */
+			enabled: form_el.enabled.checked,
+			})
+		});
+	}
+
+async function post_ptz(form_el, new_bounds, face_source_uuid) {
+	let response = await fetch("ptz", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
@@ -240,8 +281,14 @@ function post_ptz(form_el, new_bounds) {
 			x: parseInt(form_el.x.value),
 			y: parseInt(form_el.y.value),
 			zoom: parseFloat(form_el.zoom.value),
+			face_source_uuid: face_source_uuid,
 			})
 		});
+	let result = await response.json();
+	console.log("result:", result);
+	form_el.x.value = result["x"];
+	form_el.y.value = result["y"];
+	form_el.zoom.value = result["zoom"];
 	}
 
 }

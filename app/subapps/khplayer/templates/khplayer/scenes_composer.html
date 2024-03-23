@@ -25,7 +25,7 @@
 	<a href=".?action=add-source"><button class="new">{{_("Add Source")}}</button></a>
 </section>
 {% else %}
-<form action="add-source" method="POST">
+<form action="action" method="POST">
 	<section class="bordered-box popup">
 		{{render_cameras(cameras)}}
 		<button class="new" type="submit" name="action" value="add-camera">{{_("Camera")}}</button>
@@ -37,13 +37,31 @@
 {% endif %}
 
 {% for scene_item in scene_items %}
-<form id="scene_item{{scene_item.id}}">
+<form id="scene_item{{scene_item.id}}" action="action" method="POST">
 <section class="bordered-box">
-<h2>{{scene_item.index+1}} {{scene_item.name}}</h2>
-	<img src="{{scene_item.thumbnail_url}}">
-
 	<input type="hidden" id="bounds" value="{{scene_item.bounds_width}} {{scene_item.bounds_height}} {{scene_item.position_x}} {{scene_item.position_y}}">
 	<input type="hidden" id="dimensions" value="{{scene_item.width}} {{scene_item.height}}">
+	<input type="hidden" name="scene_item_id" value="{{scene_item.id}}">
+
+	<h2>
+		{{scene_item.index+1}} {{scene_item.name}}
+	</h2>
+
+	<div class="hbox">
+		<input type="checkbox" name="enabled" value="1"{% if scene_item.enabled %} checked{%endif%}>
+		<div class="thumbnail">
+			<img src="{{scene_item.thumbnail_url}}">
+		</div>
+		<button type="submit" name="action" value="delete">Delete</button>
+		{% if loop.index0 > 0 %}
+		<button type="submit" name="action" value="set-index:{{scene_item.index+1}}">Up</button>
+		{% endif %}
+		{% if scene_item.index > 0 %}
+		<button type="submit" name="action" value="set-index:{{scene_item.index-1}}">Down</button>
+		{% endif %}
+		<button type="button" class="button-face" value="{{scene_item.source_uuid}}">Face</button>
+		<button type="button" class="button-reset">Reset</button>
+	</div>
 
 	<div class="slider">
 		<input type="range" id="scene_item{{scene_item.id}}zoom" name="zoom" min="1" max="4" value="{{scene_item.zoom}}" step=".1">
@@ -69,6 +87,8 @@
 		<button type="button" value="638 720 642 0">Right Half</button>
 		<button type="button" value="640 360 0 180">Left Letterbox</button>
 		<button type="button" value="640 360 640 180">Right Letterbox</button>
+		<button type="button" value="640 640 0 40">Left Square</button>
+		<button type="button" value="640 640 640 40">Right Square</button>
 		<button type="button" value="240 360 0 0">Portrait</button>
 	</div>
 

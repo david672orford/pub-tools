@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="turbo-root" content="/khplayer">
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='base.css')}}">
-<link rel="stylesheet" text="text/css" href="{{ url_for('.static', filename='themes/' + config.THEME + '/theme.css')}}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='base.css')}}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='themes/' + config.THEME + '/theme.css')}}">
 {{ turbo() }}
 <script src="{{ url_for('.static', filename='base.js')}}"></script>
 {% block head_add %}
@@ -49,7 +49,10 @@
 {% endblock %}
 </main>
 
-<script>css_has_polyfill()</script>
+<script>
+	css_has_polyfill();
+	obsstudio_hacks();
+</script>
 
 </body>
 </html>

@@ -81,6 +81,12 @@ class ObsControl(ObsControlBase):
 			return
 		data = event["eventData"]
 		match event["eventType"]:
+			case "CurrentProgramSceneChanged":
+				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
+				self.scene_list["currentProgramSceneName"] = data["sceneName"]
+			case "CurrentPreviewSceneChanged":
+				self.scene_list["currentPreviewSceneUuid"] = data["sceneUuid"]
+				self.scene_list["currentPreviewSceneName"] = data["sceneName"]
 			case "StudioModeStateChanged":
 				print("Studio mode:", data)
 				scenes = self.scene_list
@@ -100,19 +106,13 @@ class ObsControl(ObsControlBase):
 				else:
 					self.scene_list["scenes"].append(data)
 				with self.app.app_context():
-					self.save_scene_order()
+					self._save_scene_order()
 			case "SceneRemoved":
 				self.scene_list["scenes"].pop(self.get_scene_index(data["sceneUuid"]))
 				with self.app.app_context():
-					self.save_scene_order()
+					self._save_scene_order()
 			case "SceneNameChanged":
 				self.scene_list["scenes"][self.get_scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
-			case "CurrentProgramSceneChanged":
-				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
-				self.scene_list["currentProgramSceneName"] = data["sceneName"]
-			case "CurrentPreviewSceneChanged":
-				self.scene_list["currentPreviewSceneUuid"] = data["sceneUuid"]
-				self.scene_list["currentPreviewSceneName"] = data["sceneName"]
 
 	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
 		if pos is not None:
@@ -150,9 +150,9 @@ class ObsControl(ObsControlBase):
 		i = self.scene_index(uuid)
 		scene = self.scene_list["scenes"].pop(i)
 		self.scene_list["scenes"].insert(new_index, scene)
-		self.save_scene_order()
+		self._save_scene_order()
 
-	def save_scene_order(self):
+	def _save_scene_order(self):
 		uuids = []
 		for scene in self.get_scene_list()["scenes"]:
 			uuids.append(scene["sceneUuid"])

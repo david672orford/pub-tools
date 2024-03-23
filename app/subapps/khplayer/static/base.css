@@ -11,7 +11,6 @@ HTML, BODY {
 	}
 BODY {
 	font-family: sans-serif;
-	/*font-size: 16pt;*/
 	display: flex;
 	flex-direction: column;
 	}
@@ -226,12 +225,12 @@ DIV.thumbnail {
 	flex-direction: column;
 	justify-content: center;
 	border: 1px solid #f0f0f0;
-	width: 98px;			/* 16:9 plus border */
+	width: 98px;			/* 16:9 x 6 = 96x54, plus border */
 	height: 56px;
 	}
 DIV.thumbnail.large {
-	width: 184px;
-	height: 105.250px;
+	width: 194px;			/* 16:9 x 12 = 192x108, plus border */
+	height: 110px;
 	}
 DIV.thumbnail > IMG {
 	width: 100%;
@@ -247,24 +246,14 @@ DIV.thumbnail > DIV.caption {
 	background-color: rgba(255, 255, 255, 0.5);
 	}
 
-/* A container to lay out a group of controls
-   To suppress the space between inline elements (such as between consecutive
-   buttons) we set the font size to zero and restore it within the elements.
-   While the font size is zeroed out we have to use "rem" instead of "em" for sizes.
-   We tried flexbox, but if you enable it, you lose the disction between
-   block and inline elements.
+/*
+   To suppress the space between inline elements or a bordered-box or
+   borderless box(such as between consecutive buttons) we set the font
+   size to zero and restore it within the elements. While the font size
+   is zeroed out we have to use "rem" instead of "em" for sizes. We tried
+   flexbox, but if you enable it, you lose the disction between block and
+   inline elements.
 */
-.borderless-box {
-	font-size: 0;
-	margin: 0;
-	}
-.borderless-box > * {
-	font-size: 1rem;
-	margin: 0 .25em .25em 0;
-	}
-.borderless-box:last-child {
-	margin-bottom: 0;
-	}
 
 /* Box to contain a group of controls, with border */
 .bordered-box {
@@ -285,6 +274,19 @@ DIV.thumbnail > DIV.caption {
 	}
 .bordered-box.popup:hover {
 	background-color: #e8e8e8;
+	}
+
+/* Box to contain a group of controls, without border */
+.borderless-box {
+	font-size: 0;
+	margin: 0;
+	}
+.borderless-box > * {
+	font-size: 1rem;
+	margin: 0 .25em .25em 0;
+	}
+.borderless-box:last-child {
+	margin-bottom: 0;
 	}
 
 /* Labeled form field */
