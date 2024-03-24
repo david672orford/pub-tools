@@ -33,6 +33,25 @@ class GzipResponseWrapper:
 	def headers(self):
 		return self.response.headers
 
+# Alter the whitespace in the element tree to indent the tabs
+# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
+def indent_html(elem, level=0):
+	i = "\n" + level*"  "
+	if elem.tag == "span":
+		pass
+	elif len(elem):
+		if not elem.text or not elem.text.strip():
+			elem.text = i + "  "
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+		for elem in elem:
+			indent_html(elem, level+1)
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+	else:
+		if level and (not elem.tail or not elem.tail.strip()):
+			elem.tail = i
+
 class Fetcher:
 	user_agent = "Mozilla/5.0"
 
@@ -131,7 +150,7 @@ class Fetcher:
 	# so we can't completely trust what we seen in the browser's debugger.
 	@staticmethod
 	def dump_html(el, filename=None):
-		Fetcher._indent(el)
+		indent_html(el)
 		text = lxml.html.tostring(el, encoding="UNICODE")
 		if filename:
 			with open(filename, "w") as fh:
@@ -143,24 +162,6 @@ class Fetcher:
 	def dump_json(data):
 		text = json.dumps(data, indent=4, ensure_ascii=False)
 		logger.debug("=======================================================\n%s", text)
-
-	# Alter the whitespace in the element tree to indent the tabs
-	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
-	@staticmethod
-	def _indent(elem, level=0):
-		i = "\n" + level*"  "
-		if len(elem):
-			if not elem.text or not elem.text.strip():
-				elem.text = i + "  "
-			if not elem.tail or not elem.tail.strip():
-				elem.tail = i
-			for elem in elem:
-				Fetcher._indent(elem, level+1)
-			if not elem.tail or not elem.tail.strip():
-				elem.tail = i
-		else:
-			if level and (not elem.tail or not elem.tail.strip()):
-				elem.tail = i
 
 	def get_title(self, url):
 		html = self.get_html(url)

@@ -52,7 +52,7 @@
 		<div class="thumbnail">
 			<img src="{{scene_item.thumbnail_url}}">
 		</div>
-		<button type="submit" name="action" value="delete">Delete</button>
+		<button type="submit" class="delete" name="action" value="delete">{{_("Delete")}}</button>
 		{% if loop.index0 > 0 %}
 		<button type="submit" name="action" value="set-index:{{scene_item.index+1}}">Up</button>
 		{% endif %}
@@ -81,15 +81,15 @@
 		<label for="scene_item{{scene_item.id}}y">Y</label>
 	</div>
 
-	<div class="position borderless-box">
-		<button type="button" value="1280 720 0 0">Fullscreen</button>
-		<button type="button" value="638 720 0 0">Left Half</button>
-		<button type="button" value="638 720 642 0">Right Half</button>
-		<button type="button" value="640 360 0 180">Left Letterbox</button>
-		<button type="button" value="640 360 640 180">Right Letterbox</button>
-		<button type="button" value="640 640 0 40">Left Square</button>
-		<button type="button" value="640 640 640 40">Right Square</button>
-		<button type="button" value="240 360 0 0">Portrait</button>
+	<div class="bounds borderless-box">
+		{% for width, height, x, y in bounds_options %}
+		<button type="button" value="{{width}} {{height}} {{x}} {{y}}">
+			<svg viewBox="0 0 1280 720">
+				<rect class="screen" width="1280" height="720"></rect>
+				<rect class="bounds" x="{{x}}" y="{{y}}" width="{{width}}" height={{height}}></rect>
+			</svg>
+		</button>
+		{% endfor %}
 	</div>
 
 </section>

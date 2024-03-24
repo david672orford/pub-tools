@@ -13,6 +13,7 @@ from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 from .utils.controllers import meeting_loader
+from .utils.html import HTML
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,7 @@ def page_scenes_upload():
 	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 	i = 1
 	for file in files:
-		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype))
+		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype), cssclass="heading")
 
 		major_mimetype = file.mimetype.split("/")[0]
 		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
@@ -195,7 +196,8 @@ def page_scenes_upload():
 			async_flash(_("OBS: %s") % str(e))
 
 		i += 1
-	return progress_response(_("Done."), last_message=True)
+
+	return progress_response(_("✔ File has been loaded."), last_message=True, cssclass="success")
 
 # When a URL is dropped onto the scene list
 @blueprint.route("/scenes/add-url", methods=["POST"])
@@ -212,8 +214,41 @@ def page_scenes_add_url():
 
 @blueprint.route("/scenes/add-html", methods=["POST"])
 def page_scenes_add_html():
-	html = request.form["add-html"]
-	# FIXME: code missing
-	print(html)
-	return progress_response(_("Not implemented"), last_message=True)
+	html_text = request.form["add-html"]
+	doc = HTML(html_text)
+	print("Before:", doc.pretty())
+	doc.cleanup()
+	print("After:", doc.pretty())
+	plain_text = doc.text_content()
+
+	scene_uuid = obs.create_scene("Text", make_unique=True)["sceneUuid"]
+	source = obs.create_unique_input(
+		scene_uuid = scene_uuid,
+		input_name = "Text Source",
+		input_kind = "text_ft2_source_v2",
+    	input_settings = {
+			"font": {
+				 "face": "Sans Serif",
+				 "flags": 0,
+				 "size": 72,
+				 "style": ""
+				},
+			"custom_width": 1200,
+			"drop_shadow": False,
+			"outline": False,
+			"text": plain_text,
+			"word_wrap": True
+			}
+		)
+	obs.scale_scene_item(scene_uuid, source["sceneItemId"], scene_item_transform={
+		"positionX": 40,
+		"positionY": 40,
+		"boundsWidth": 1200,
+		"boundsHeight": 640,
+        "alignment": 5,
+        "boundsAlignment": 4,
+        "boundsType": "OBS_BOUNDS_SCALE_TO_WIDTH",
+		})
+
+	return progress_response(_("✔ Text added."), last_message=True, cssclass="success")
 

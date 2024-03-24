@@ -242,7 +242,7 @@ Array.from(document.getElementsByTagName("form")).forEach(form_el => {
 		});
 
 	/* Bounds buttons */
-	Array.from(form_el.getElementsByClassName("position")).forEach(position => {
+	Array.from(form_el.getElementsByClassName("bounds")).forEach(position => {
 		Array.from(position.getElementsByTagName("button")).forEach(button => {
 			button.addEventListener("click", (event) => {
 				form_el.bounds.value = event.target.value;

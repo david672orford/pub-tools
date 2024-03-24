@@ -11,6 +11,18 @@ from .utils.zoom import find_second_window
 
 logger = logging.getLogger(__name__)
 
+bounds_options = (
+	(1280, 720, 0, 0),		# Fullscreen
+	(638, 720, 0, 0),		# Left, Half
+	(638, 720, 642, 0),		# Right, Half
+	(640, 640, 0, 40),		# Left, Square
+	(640, 640, 640, 40),	# Right, Square
+	(640, 360, 0, 180),		# Left, Letterbox
+	(640, 360, 640, 180),	# Right, Letterbox
+	(240, 360, 0, 0),		# Portrait
+	(240, 360, 1040, 360),	# Portrait
+	)
+
 @blueprint.route("/scenes/composer/<scene_uuid>/")
 def page_scenes_composer(scene_uuid):
 	scene_name = None
@@ -45,6 +57,7 @@ def page_scenes_composer(scene_uuid):
 		scene_items = reversed(scene_items),
 		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
 		remotes = current_app.config.get("REMOTES"),
+		bounds_options = bounds_options,
 		top = "../../../",
 		)
 

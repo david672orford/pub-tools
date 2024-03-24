@@ -46,6 +46,7 @@ function obsstudio_hacks() {
 
 		window.oncontextmenu = function(e) {
 			e.preventDefault();
+			alert("right click disabled");
 		};
 	}
 }

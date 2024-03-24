@@ -447,3 +447,24 @@ DIV.thumbnail > DIV.caption {
 .slider LABEL {
 	width: 5em;
 	}
+
+.bounds BUTTON {
+	padding: 5px;
+	}
+.bounds BUTTON svg {
+	display: block;
+	width: 48px;
+	height: 27px;
+	pointer-events: none;
+	}
+.bounds BUTTON svg rect {
+	stroke: black;
+	stroke-width: 10;
+	}
+.bounds BUTTON svg rect.screen {
+	fill: #e0e0e0;
+	}
+.bounds BUTTON svg rect.bounds {
+	fill: #8080c0;
+	}
+
