@@ -3,6 +3,7 @@
 ## Installation on Linux
 
 * [Download for Linux](https://zoom.us/download?os=linux)
+* [Other Installers](https://support.zoom.com/hc/ru/article?id=zm_kb&sysparm_article=KB0060410)
 * [Release Notes for Linux](https://support.zoom.us/hc/en-us/articles/205759689)
 * [Unoffical Apt Repository](https://www.matthewthom.as/mirrors/#zoom)
 

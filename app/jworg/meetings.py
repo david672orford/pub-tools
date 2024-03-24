@@ -322,9 +322,10 @@ class MeetingLoader(Fetcher):
 			thumbnail_url = metadata["thumbnail_url"],
 			)
 
-	# Find the illustrations (<figure> tags) from an article or chapter body.
-	# The Watchtower extractor runs this on the whole article
-	# The Meeting Workbook extractor runs this on some of the linked articles.
+	# Find the illustrations (<figure> tags) from an HTML container tag.
+	# The Watchtower extractor runs this on the whole article.
+	# The Meeting Workbook extractor runs this on sections of the Workbook
+	# and on the Bible Study material.
 	def extract_illustrations(self, pub_code, article_title, container):
 		logger.debug("=========================================================")
 		logger.debug(article_title)
