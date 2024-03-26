@@ -21,14 +21,20 @@ def create_app(instance_path=None):
 	# Set up default configuration
 	app.config.from_mapping(
 		APP_DISPLAY_NAME = "JW Pubs",
-		#ENABLED_SUBAPPS = ["khplayer", "toolbox", "epubs", "admin"],
-		ENABLED_SUBAPPS = ["khplayer", "epubs", "toolbox"],
 		THEME = "basic-light",
 		FLASK_ADMIN_FLUID_LAYOUT = True,
 
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
+
+		ENABLED_SUBAPPS = [
+			"khplayer",
+			"toolbox",
+			"epubs",
+			#"admin",
+			],
+
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		MEDIA_CACHEDIR = os.path.join(app.instance_path, "media-cache"),
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
@@ -36,6 +42,7 @@ def create_app(instance_path=None):
 		PUB_LANGUAGE = "ru",
 		SUB_LANGUAGE = None,
 		VIDEO_RESOLUTION = "480p",
+		OBS_BROWSER_DOCK_SCALE = 1.0,
 		)
 
 	# Overlay with configuration from instance/config.py

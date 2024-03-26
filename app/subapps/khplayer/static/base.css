@@ -1,3 +1,41 @@
+BODY {
+	/* Default color scene, override in themes */
+
+	--bg: white;
+	--fg: black;
+
+	--bg-header: #efefef;
+	--bg-tabs: #b0b0b0;
+	--bg-tab: #d0d0d0;
+	--bg-tab-current: #efefef;
+
+	--bg-progress-bar: #f8f8f8;
+	--fg-progress-bar: green;
+
+	--bg-buttons: #f8f8f8;
+	--fg-buttons: black;
+	--bg-input-text: white;
+	--fg-input-text: black;
+
+	--bg-flash: #C00000;
+	--fg-flash: white;
+
+	--bg-popup: white;
+
+	--bg-dnd: #f0f0ff;
+	--border-dnd: blue 2px solid;
+
+	--bg-scenes: #ffffffc0;
+	--fg-scenes: black;
+	--bg-scenes-preview: #ffff00c0;
+	--fg-scenes-preview: black;
+	--bg-scenes-program: #0080ffc0;
+	--fg-scenes-program: white;
+
+	display: flex;
+	flex-direction: column;
+	}
+
 HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAREA, BUTTON, IMG {
 	margin: 0;
 	padding: 0;
@@ -6,16 +44,19 @@ HTML, BODY, HEADER, MAIN, SECTION, H1, H2, P, PRE, UL, LI, INPUT, SELECT, TEXTAR
 	box-sizing: border-box;
 	}
 
+HTML {
+	font-family: sans-serif;
+	font-size: 12pt;
+	}
+BODY {
+	color: var(--fg);
+	background-color: var(--bg);
+}
 HTML, BODY {
 	height: 100%;
 	}
-BODY {
-	font-family: sans-serif;
-	display: flex;
-	flex-direction: column;
-	}
 HEADER {
-	background-color: #f0f0f0;
+	background-color: var(--bg-header);
 	border-bottom: 1px solid #a0a0a0;
 	}
 MAIN {
@@ -43,12 +84,17 @@ UL {
 LI {
 	margin: .2em 0;
 	}
+
 INPUT, SELECT, TEXTAREA, BUTTON {
 	font-size: inherit;								/* For some reason Pywebview makes these large */
 	}
 INPUT[type=checkbox] {
 	width: 1.2em;
 	height: 1.2em;
+	}
+INPUT[type=text], TEXTAREA {
+	background-color: var(--bg-input-text);
+	color: var(--fg-input-text);
 	}
 .borderless-box INPUT[type=checkbox] {				/* FIXME: Hack for bad alignment in Scenes tab toolbar */
 	vertical-align: bottom;
@@ -63,24 +109,77 @@ INPUT, TEXTAREA {
 BUTTON, SELECT, OPTION, INPUT[type='text'] {
 	padding: .5em;
 	border-width: 1px;
-	border-style: inset;
+	border-style: outset;
 	border-color: #808080;
-	border-radius: 2px;
+	border-radius: 3px;
 	}
 SELECT, BUTTON {
-	background-color: #f0f0f0;
+	background-color: var(--bg-buttons);
+	color: var(--fg-buttons);
 	white-space: nowrap;
 	border-width: 1px;
 	border-style: outset;
 	border-color: #808080;
-	border-radius: 2px;
 	}
 SELECT:hover, BUTTON:hover {
-	filter: brightness(85%);
+	filter: brightness(110%);
 	}
 BUTTON:active {
-	/*border-width: 2px;*/	/* causes button to grow despite border-box because we have not set a fixed size */
-	border-color: blue;
+	filter: brightness(50%);
+	}
+
+/* Button icons */
+BUTTON[class] {
+	position: relative;
+	padding-left: 1.5em;
+	}
+BUTTON[class]::before {
+	position: absolute; top: 0; left: 0;
+	width: 100%; height: 100%;
+	background-repeat: no-repeat;
+	background-size: 1em 1em;
+	background-position: .25em center;
+	content: "";
+	filter: invert(100%);
+	}
+BUTTON.back::before {
+	background-image: url(icon-back.svg);
+	}
+BUTTON.browse::before {
+	background-image: url(icon-browse.svg);
+	}
+BUTTON.cancel::before {
+	background-image: url(icon-cancel.svg);
+	}
+BUTTON.config::before {
+	background-image: url(icon-config.svg);
+	}
+BUTTON.connect::before {
+	background-image: url(icon-connect.svg);
+	}
+BUTTON.delete::before {
+	background-image: url(icon-cancel.svg);
+	}
+BUTTON.download::before {
+	background-image: url(icon-download.svg);
+	}
+BUTTON.new::before {
+	background-image: url(icon-new.svg);
+	}
+BUTTON.reload::before {
+	background-image: url(icon-reload.svg);
+	}
+BUTTON.save::before {
+	background-image: url(icon-save.svg);
+	}
+BUTTON.search::before {
+	background-image: url(icon-search.svg);
+	}
+BUTTON.upload::before {
+	background-image: url(icon-upload.svg);
+	}
+BUTTON.web::before {
+	background-image: url(icon-web.svg);
 	}
 
 /* Fancy file upload */
@@ -97,21 +196,21 @@ HEADER > NAV > UL {
 	display: flex;
 	list-style-type: none;
 	margin: 0;
-	background-color: #b0b0b0;
+	background-color: var(--bg-tabs);
 	padding-top: 1px;
 	}
 HEADER > NAV > UL > LI {
 	margin: 0 5px;
 	border-radius: 5px 5px 0 0;
-	background-color: #d0d0d0;
 	white-space: nowrap;
+	background-color: var(--bg-tab);
 	}
 HEADER > NAV > UL > LI:hover {
 	}
 HEADER > NAV > UL > LI.current {
 	position: relative;
 	top: 1px;
-	background-color: #f0f0f0;
+	background-color: var(--bg-tab-current);
 	}
 HEADER > NAV > UL > LI > A {
 	padding: .5em;
@@ -135,7 +234,7 @@ HEADER DIV#progress {
 	right: .5em;
 	width: 75%;
 	max-width: 60em;
-	background-color: #f0f0f0;
+	background-color: var(--bg-header);
 	z-index: 100;
 	border: 1px solid #808080;
 	visibility: hidden;
@@ -148,12 +247,13 @@ HEADER DIV#progress > * {
 	border: 1px solid #c0c0c0;
 	}
 HEADER DIV#progress-bar {
-	background-color: #f8f8f8;
+	background-color: var(--bg-progress-bar);
 	height: 1.4em;
 	}
 HEADER DIV#progress-bar > DIV {
 	height: 100%;
 	background-color: green;
+	background-color: var(--fg-progress-bar);
 	}
 HEADER DIV#progress-message {
 	min-height: 1.4em;
@@ -175,8 +275,8 @@ HEADER DIV#progress-message DIV.error {
 
 /* Error messages above content */
 DIV.flash {
-	background-color: #C00000;
-	color: white;
+	background-color: var(--bg-flash);
+	color: var(--fg-flash);
 	border-radius: 5px;
 	margin: .3rem .3rem 0 .3rem;
 	padding: .5em;
@@ -207,8 +307,8 @@ TABLE.borders.medium-width {
 	width: 40em;
 	}
 TABLE.borders BUTTON.add {
-	width: 25pt;
-	height: 25pt;
+	width: 1.5em;
+	height: 1.5em;
 	margin: 0;
 	padding: 0;
 	font-weight: bold;
@@ -270,10 +370,7 @@ DIV.thumbnail > DIV.caption {
 	display: inline-block;
 	}
 .bordered-box.popup {
-	background-color: #f0f0f0;
-	}
-.bordered-box.popup:hover {
-	background-color: #e8e8e8;
+	background-color: var(--bg-popup);
 	}
 
 /* Box to contain a group of controls, without border */
@@ -319,7 +416,8 @@ DIV.thumbnail > DIV.caption {
 /* For drag-and-drop */
 .highlight {
 	border: blue 2px solid;
-	background-color: #f0f0ff;
+	border: var(--border-dnd);
+	background-color: var(--bg-dnd);
 	}
 
 /* Scenes Tab */
@@ -342,17 +440,23 @@ DIV.thumbnail > DIV.caption {
 	text-align: left;
 	padding: .3em;
 	}
+#scenes TR {
+	background-color: var(--bg-scenes);
+	color: var(--fg-scenes);
+	}
 #scenes TR:hover {
-	background-color: #f0f0f0;
+	backdrop-filter: brightness(80%);
 	}
 #scenes TR.active {
-	background-color: #e0e0e0;
+	backdrop-filter: brightness(40%);
 	}
 #scenes TR.preview-scene {
-	background-color: #fffff0;
+	background-color: var(--bg-scenes-preview);
+	color: var(--fg-scenes-preview);
 	}
 #scenes TR.program-scene {
-	background-color: #f0fff0;
+	background-color: var(--bg-scenes-program);
+	color: var(--fg-scenes-program);
 	}
 #scenes TD:nth-child(2) {			/* thumbnail image */
 	width: 1px;
@@ -371,7 +475,7 @@ DIV.thumbnail > DIV.caption {
 	border-top: thin solid grey;
 	margin: 0;
 	padding: .3rem .3rem 0 .3rem;
-	background-color: #f8f8f8;
+	background-color: var(--bg-header);
 	}
 .scene-add-form {					/* hidden forms for drag-n-drop */
 	display: none;
@@ -404,7 +508,7 @@ DIV.thumbnail > DIV.caption {
 	padding: .5em;
 	}
 .filemanager .item:hover {
-	background-color: #f0f0f0;
+	backdrop-filter: brightness(80%);
 	}
 .filemanager .folder-preview {
 	position: absolute;

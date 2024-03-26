@@ -32,17 +32,19 @@ function css_has_polyfill() {
 	observer.observe(messages, {childList: true});
 	}
 
-function obsstudio_hacks() {
+function obsstudio_hacks(scale) {
 	if("obsstudio" in window) {
-		const style = document.createElement("style");
-		style.id = "obs-fixes";
-		style.type = "text/css"
-		style.appendChild(document.createTextNode(`
-			HTML { font-size: 18pt }
-			DIV.thumbnail { width: 130px; height: 74px; } 
-			DIV.thumbnail.large { width: 258px; height: 146px; }
-			`));
-		document.head.appendChild(style);
+		if(!document.getElementById("obs-fixes")) {
+			const style = document.createElement("style");
+			style.id = "obs-fixes";
+			style.type = "text/css"
+			style.appendChild(document.createTextNode(`
+				HTML { font-family: "Open Sans", sans-serif, sans-serif; font-size: ${12 * scale}pt; }
+				DIV.thumbnail { width: ${96 * scale + 2}px; height: ${54 * scale + 2}px; } 
+				DIV.thumbnail.large { width: ${192 * scale + 2}px; height: ${108 * scale + 2}px; }
+				`));
+			document.head.appendChild(style);
+		}
 
 		window.oncontextmenu = function(e) {
 			e.preventDefault();

@@ -1,14 +1,8 @@
-HEADER {
-	background-color: #f0f8f0;
-	}
-HEADER > NAV > UL {
-	background-color: #b0b8b0;
-	}
-HEADER > NAV > UL > LI {
-	background-color: #d0d8d0;
-	}
-HEADER > NAV > UL > LI.current {
-	background-color: #f0f8f0;
+BODY {
+	--bg-header: #f0f8f0;
+	--bg-tabs: #b0b8b0;
+	--bg-tab: #d0d8d0;
+	--bg-tab-current: #f0f8f0;
 	}
 
 .bordered-box {
@@ -27,76 +21,48 @@ SELECT {
 	color: white;
 	}
 
-BUTTON {
-	background-repeat: no-repeat;
-	background-size: 1em 1em;
-	background-position: .25em center;
-	}
 BUTTON.back {
-	background-image: url(icon-back.svg);
-	padding-left: 1.5em;
+
 	}
 BUTTON.browse {
-	background-image: url(icon-browse.svg);
-	padding-left: 1.5em;
+
 	}
 BUTTON.cancel {
-	background-image: url(icon-cancel.svg);
 	background-color: #ef2929;	/* red */
 	color: white;
-	padding-left: 1.5em;
 	}
 BUTTON.config {
-	background-image: url(icon-config.svg);
 	background-color: #FCE954; /* pale yellow */
-	padding-left: 1.5em;
 	}
 BUTTON.connect {
-	background-image: url(icon-connect.svg);
-	padding-left: 1.5em;
+
 	}
 BUTTON.delete {
-	background-image: url(icon-delete.svg);
 	background-color: #ef2929;	/* red */
 	color: white;
-	padding-left: 1.5em;
 	}
 BUTTON.download {
-	background-image: url(icon-download.svg);
 	background-color: #00c0ff;
-	padding-left: 1.5em;
 	}
 BUTTON.new {
-	background-image: url(icon-new.svg);
 	background-color: #729fcf; /* baby blue */
 	color: white;
-	padding-left: 1.5em;
 	}
 BUTTON.reload {
-	background-image: url(icon-reload.svg);
 	background-color: orange;
 	color: black;
-	padding-left: 1.5em;
 	}
 BUTTON.save {
-	background-image: url(icon-save.svg);
 	background-color: #4e9a06; /* green */
 	color: white;
-	padding-left: 1.5em;
 	}
 BUTTON.search {
-	background-image: url(icon-search.svg);
-	padding-left: 1.5em;
-	padding-left: 1.5em;
+
 	}
 BUTTON.upload {
-	background-image: url(icon-upload.svg);
-	padding-left: 1.5em;
-	padding-left: 1.5em;
+
 	}
 BUTTON.web {
-	background-image: url(icon-web.svg);
-	padding-left: 1.5em;
-	padding-left: 1.5em;
+
 	}
 
