@@ -17,13 +17,15 @@ scene_name_prefixes = {
 # url -- a link to the video containing an "lank" or "docid" parameter
 # thumbnail_url -- link to thumbnail image used to link to this video
 # prefix -- media-type marker to put in front of scene name
-# language -- optional language override, ISO code
 # close -- this is the last download in this group, close progress
-def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", language=None, close=True, skiplist=None):
+def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", close=True, skiplist=None):
 	if scene_name is not None:
 		progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 
-	video_metadata = meeting_loader.get_video_metadata(url, resolution=current_app.config["VIDEO_RESOLUTION"], language=language)
+	video_metadata = meeting_loader.get_video_metadata(
+		url,
+		resolution = current_app.config["VIDEO_RESOLUTION"],
+		)
 	assert video_metadata is not None, "Failed to get metadata for %s" % url
 
 	if scene_name is None:

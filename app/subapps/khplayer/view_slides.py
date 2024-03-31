@@ -102,13 +102,13 @@ def page_slides_folder_download(path):
 	return progress_response(None)	# so page doesn't reload
 
 def download_slides(client, selected):
-	progress_callback(_("Downloading selected slides..."))
+	progress_callback(_("Downloading selected slides..."), cssclass="heading")
 	try:
 		for file in client.list_image_files():
 			if file.id in selected:
 				scene_name = request.form.get("scenename-%s" % file.id)
 				if file.id.startswith("lank="):
-					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id, language=meeting_loader.language)
+					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id)
 				else:
 					progress_callback(_("Downloading \"%s\"..." % file.filename))
 					filename = client.get_file(file)
@@ -121,9 +121,9 @@ def download_slides(client, selected):
 						)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		progress_callback(_("Failed to add slide images to OBS."), last_message=True)
+		progress_callback(_("✘ Failed to add slide images."), cssclass="error", last_message=True)
 	else:
-		progress_callback(_("All selected slides added to OBS."), last_message=True)
+		progress_callback(_("✔ All selected slides added."), cssclass="success", last_message=True)
 
 @blueprint.route("/slides/--reload", defaults={"path":None}, methods=["GET","POST"])
 @blueprint.route("/slides/<path:path>/--reload", methods=["POST"])

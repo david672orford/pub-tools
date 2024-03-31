@@ -568,8 +568,8 @@ DIV.thumbnail > DIV.caption {
 	}
 .bounds BUTTON svg {
 	display: block;
-	width: 48px;
-	height: 27px;
+	width: 64px;
+	height: 36px;
 	pointer-events: none;
 	}
 .bounds BUTTON svg rect {

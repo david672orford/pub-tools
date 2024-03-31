@@ -34,6 +34,7 @@ function css_has_polyfill() {
 
 function obsstudio_hacks(scale) {
 	if("obsstudio" in window) {
+		/* TODO: provide the scale in a CSS variable instead and use calc() in base.css */
 		if(!document.getElementById("obs-fixes")) {
 			const style = document.createElement("style");
 			style.id = "obs-fixes";
@@ -42,6 +43,7 @@ function obsstudio_hacks(scale) {
 				HTML { font-family: "Open Sans", sans-serif, sans-serif; font-size: ${12 * scale}pt; }
 				DIV.thumbnail { width: ${96 * scale + 2}px; height: ${54 * scale + 2}px; } 
 				DIV.thumbnail.large { width: ${192 * scale + 2}px; height: ${108 * scale + 2}px; }
+				.bounds BUTTON svg { width: ${64 * scale}px; height: ${36 * scale}px; }
 				`));
 			document.head.appendChild(style);
 		}

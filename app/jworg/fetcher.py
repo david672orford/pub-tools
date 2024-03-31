@@ -90,11 +90,11 @@ class Fetcher:
 	# Query string parameters:
 	# detailed=1 -- list subcategories and videos in this category
 	# clientType=www -- Unknown
-	mediator_categories_url = 'https://data.jw-api.org/mediator/v1/categories/{language}/{category}?detailed=1&clientType=www'
+	mediator_categories_url = 'https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www'
 
 	# Used for getting the download link for a video from JW Broadcasting when
 	# we know the language we want and the video's Language Agnostic Natural Key (lank)
-	mediator_items_url = 'https://b.jw-cdn.org/apis/mediator/v1/media-items/{language}/{video}'
+	mediator_items_url = 'https://b.jw-cdn.org/apis/mediator/v1/media-items/{meps_language}/{video}'
 
 	# Page in Watchtower Online Library which gives the study articles for a given week
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
@@ -227,18 +227,11 @@ class Fetcher:
 			"thumbnail_url": mp4[0]["trackImage"]["url"],
 			}
 
-	# Given a link to a video from an article, extract the publication ID
-	# and language and go directly to the mediator endpoint to get the
-	# metadata bypassing the player page.
-	#
-	# url -- sharing URL for video
-	# resolution -- 
-	# language -- optional language override, ISO code
 	def parse_video_url(self, url):
 		url_obj = urlparse(url)
 		query = dict(parse_qsl(url_obj.query))
 		if url_obj.netloc == "www.jw.org":
-			if ("lank" in query or "docid" in query) and "wtlocale" in query:
+			if ("lank" in query or "docid" in query):
 				return query
 			elif url_obj.fragment:	# player page URL
 				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
@@ -249,21 +242,30 @@ class Fetcher:
 						}
 		return {}
 
+	# Given a link to a video from an article, extract the publication ID
+	# and language and go directly to the mediator endpoint to get the
+	# metadata bypassing the player page.
+	#
+	# url -- sharing URL for video
+	# resolution (optional) -- "240p", "360p", "480p", or "720p"
+	# language -- optional language override, ISO code
 	def get_video_metadata(self, url, resolution=None, language=None):
 		query = self.parse_video_url(url)
+
+		if language is not None:
+			meps_language = iso_language_code_to_meps(language)
+		elif "wtlocale" in query:
+			meps_language = query["wtlocale"]
+		else:
+			meps_language = self.meps_language
 
 		# Video is specified by its Language Agnostic Natural Key (LANK)
     	# https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
 		# https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
 		if "lank" in query:
 
-			if language is not None:
-				wtlocale = iso_language_code_to_meps(language)
-			else:
-				wtlocale = query["wtlocale"]
-
 			media = self.get_json(self.mediator_items_url.format(
-				language = wtlocale,
+				meps_language = meps_language,
 				video = query["lank"],
 				), query = { "clientType": "www" })
 			if len(media["media"]) < 1:
@@ -315,12 +317,12 @@ class Fetcher:
 				"output": "json",
 				"fileformat": "mp4,mp3",
 				"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
-				"langwritten": query["wtlocale"],
-				"txtCMSLang": query["wtlocale"],
+				"langwritten": meps_language,
+				"txtCMSLang": meps_language,
 				})
 
 			media = self.get_json(self.pub_media_url, query = params)
-			mp4 = media["files"][query["wtlocale"]]["MP4"]
+			mp4 = media["files"][meps_language]["MP4"]
 
 			# If the caller has specified a video resolution, look for a matching file.
 			mp4_url = None
@@ -342,6 +344,7 @@ class Fetcher:
 				"thumbnail_url": thumbnail_url,
 				}
 
+		logger.info("Not a video URL")
 		return None
 
 	# Find the EPUB download URL of a periodical

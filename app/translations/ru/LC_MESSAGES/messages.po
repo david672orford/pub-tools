@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-03-30 19:41-0400\n"
-"PO-Revision-Date: 2024-03-30 19:44-0400\n"
+"POT-Creation-Date: 2024-03-30 22:23-0400\n"
+"PO-Revision-Date: 2024-03-30 22:30-0400\n"
 "Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
@@ -153,28 +153,28 @@ msgstr "Встречи"
 msgid "Fetching meeting schedules..."
 msgstr "Загружается список материала встреч..."
 
-#: subapps/khplayer/view_meetings.py:61
+#: subapps/khplayer/view_meetings.py:68
 msgid "Loading meeting media list..."
 msgstr "Загружается список материала для встречи..."
 
-#: subapps/khplayer/view_meetings.py:86 utils/background.py:32
+#: subapps/khplayer/view_meetings.py:93 utils/background.py:32
 #, python-format
 msgid "Error: %s"
 msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:87
+#: subapps/khplayer/view_meetings.py:94
 msgid "✘ Unable to load meeting media list."
 msgstr "✘ Сбой загрузки списка материала для встречи."
 
-#: subapps/khplayer/view_meetings.py:89
+#: subapps/khplayer/view_meetings.py:96
 msgid "✔ Meeting media list has finished loading."
 msgstr "✔ Список материала для встречи загружён."
 
-#: subapps/khplayer/view_meetings.py:150
+#: subapps/khplayer/view_meetings.py:157
 msgid "Loading media for \"{title}\"..."
 msgstr "Идёт загрузка материала для «{title}»..."
 
-#: subapps/khplayer/view_meetings.py:163
+#: subapps/khplayer/view_meetings.py:170
 msgid "✔ All requested media have been loaded."
 msgstr "✔ Все выбранные записи и изображения загружены."
 
@@ -242,12 +242,12 @@ msgid "Downloading \"%s\"..."
 msgstr "Идёт загрузка «%s»..."
 
 #: subapps/khplayer/view_slides.py:124
-msgid "Failed to add slide images to OBS."
-msgstr "Сбой загрузки изображения в OBS."
+msgid "✘ Failed to add slide images."
+msgstr "✘ Сбой загрузки изображения."
 
 #: subapps/khplayer/view_slides.py:126
-msgid "All selected slides added to OBS."
-msgstr "Все выбранные слайды загружены в OBS."
+msgid "✔ All selected slides added."
+msgstr "✔ Все выбранные слайды загружены."
 
 #: subapps/khplayer/view_songbook.py:15
 msgid "Songbook"
