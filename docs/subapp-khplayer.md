@@ -42,7 +42,7 @@ Install the new audio subsystem called Pipewire following the instructions
 in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
 Be sure to follow the part about installing Wireplumber.
 
-## Set Up Audio and Video Loopback Devices
+## Set Up Video Loopback Device
 
     $ ./docs/setup-loopback.sh
 
