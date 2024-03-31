@@ -1,5 +1,8 @@
 # Notes on Pipewire Audio Server for Linux
 
+Pipewire is a new audio server which is set to place PulseAudio in popular
+Linux distributions.
+
 ## Documentation
 
 * [Pipewire Guide](https://github.com/mikeroyal/PipeWire-Guide) -- Setting up Pipeware and compatible utilities
@@ -14,27 +17,30 @@
 
 ## PulseAudio
 
-* [PulseAudio Under the Hood](https://gavv.net/articles/pulseaudio-under-the-hood/)
-* [Python Pulsectl](https://pypi.org/project/pulsectl/)
-* [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
+Pipewire supports the PuleAudio API for playing and recording sound.
 
-## Virtual Audio Cable
+* [PulseAudio Under the Hood](https://gavv.net/articles/pulseaudio-under-the-hood/)
+* [Python Pulsectl](https://pypi.org/project/pulsectl/) -- Blocking high-level interface and bindings to Libpulse
+* [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
+* [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
+
+## Virtual Audio Cables
 
 * [Virtual Devices in Wireplumber](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Virtual-devices)
 * [Pulseaudio Modules](https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/Modules/) -- Some of this carries over to Pipewire
 * [Virtual Audio Cable in Pulseaudio](https://unix.stackexchange.com/questions/576785/redirecting-pulseaudio-sink-to-a-virtual-source) -- See Christopher Donham's answer
 * [OBS to Zoom Virtual Audio Cable](https://luke.hsiao.dev/blog/pipewire-virtual-microphone/) -- This one successfully connects the null sync and the remapper
 
-## Tools
+## Pipewire Utilities
 
-* [Helvum GUI Patchbay for Pipewire](https://gitlab.freedesktop.org/pipewire/helvum) -- Very basic, overlap on HiDPI, repeat drawing of link to delete
+* [Helvum GUI Patchbay for Pipewire](https://gitlab.freedesktop.org/pipewire/helvum) -- Very basic, widgets overlap on HiDPI displays, user repeats drawing of a link to delete it
 * [QPWgraph](https://gitlab.freedesktop.org/rncbc/qpwgraph) -- GUI interface to Pipewire's graph, clutters with MIDI and video, one box for each OBS audio source
 * [QjackCtl](https://qjackctl.sourceforge.io/) -- GUI for the JACK audio server, compatible with Pipewire, clutters with MIDI, one box for all OBS sources
 * [Catia](https://kx.studio/Applications:Catia) -- Another GUI for JACK which can be used with Pipewire, clutters with MIDI, one box for all OBS sources
 
 ## Compatible Audio Filters
 
-* [NoiseTorch](https://github.com/noisetorch/NoiseTorch)
+* [NoiseTorch](https://github.com/noisetorch/NoiseTorch) -- Creates a filtered virtual microphone
 
 ## Recipies
 

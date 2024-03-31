@@ -49,26 +49,28 @@
 * [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
 * [Move Transition](https://github.com/exeldro/obs-move-transition)
 * [Transitions Table](https://github.com/exeldro/obs-transition-table)
-* [Source Dock](https://github.com/exeldro/obs-source-dock)
+* [Source Dock](https://github.com/exeldro/obs-source-dock) -- Always show a particular source in UI
 * [Downstream Keyer](https://github.com/exeldro/obs-downstream-keyer) -- Adds an overlay to all scenes
-* [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/)
-* [Background Removal](https://github.com/occ-ai/obs-backgroundremoval)
-* [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- crashes
+* [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/) -- Write video filters in shader language
+* [Background Removal](https://github.com/occ-ai/obs-backgroundremoval) -- Works, but not as well as Zoom's implementation
+* [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- Crashes
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
 * [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/)
+* [OBS Studio Portable](https://github.com/wimpysworld/obs-studio-portable) -- OBS Studio built with 50 additional plugins
 
 ## Bugs and Feature Requests we are Following
 
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
-* [PR: Sample Rate Conversion](https://github.com/obsproject/obs-studio/pull/6351) -- Could be blocking implementation of audio output
-* [PR: Virtual Camera Audio in Linux](https://github.com/obsproject/obs-studio/pull/8171)
+* [PR: Sample Rate Conversion](https://github.com/obsproject/obs-studio/pull/6351) -- May be blocking implementation of audio output
+* [PR: Virtual Camera Audio in Linux](https://github.com/obsproject/obs-studio/pull/8171) -- Uses ALSA loopback device
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
-* Bug: Browser dock resizing sometimes stops working
+* Bug: Browser dock resizing sometimes stops working under Linux
 * Bug: DND of file into browser dock does nothing, but URL works
+* Bug: Browser dock DND sometimes stops working
 
 ## Object Hierarcy
 
