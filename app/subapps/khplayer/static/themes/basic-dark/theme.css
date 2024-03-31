@@ -1,0 +1,71 @@
+BODY {
+	--fg: white;
+	--bg: #1f1e1f;
+
+	--bg-header: #464546;
+	--bg-tabs: #262526;
+	--bg-tab: #313031;
+	--bg-tab-current: #464546;
+
+	--bg-progress-bar: #f8f8f8;
+	--fg-progress-bar: green;
+
+	--bg-buttons: #4c4c4c;
+	--fg-buttons: white;
+	--bg-input-text: #1f1e1f;
+	--fg-input-text: white;
+
+	--bg-flash: #C00000;
+	--fg-flash: white;
+
+	--bg-popup: #1f1e1f;
+
+	--bg-dnd: #f0f0ff;
+	--border-dnd: blue 2px solid;
+
+	--bg-scenes: #1f1e1fc0;
+	--fg-scenes: white;
+	--bg-scenes-preview: #ffff00c0;
+	--fg-scenes-preview: black;
+	--bg-scenes-program: #0080ffc0;
+	--fg-scenes-program: white;
+	}
+
+BODY {
+	scrollbar-width: medium;
+	scrollbar-color: var(--bg) var(--bg-header);
+	}
+HEADER {
+	border-bottom: none;
+	}
+SECTION#scenes-controls {
+	border-top: none;
+	}
+INPUT, SELECT, BUTTON {
+	border: none;
+	}
+INPUT[type="checkbox"] {
+	appearance: none;
+	background-color: var(--bg);
+	color: var(--fg);
+	border: thin solid black;
+	position: relative;
+	}
+INPUT[type="checkbox"]:checked::after {
+	content: '\2714';
+	top: 0; left: 0;
+	}
+BUTTON[class]::before {
+	filter: invert(100%);
+	}
+.patchbay {
+	background-color: #808080;
+	color: black;
+	}
+A {
+	color: white;
+	}
+A:visited {
+	color: #a0a0a0;
+	}
+
