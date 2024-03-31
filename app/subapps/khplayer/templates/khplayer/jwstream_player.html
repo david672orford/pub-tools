@@ -1,4 +1,4 @@
-{% set title = gettext("JW Stream Clip Maker") %}
+{% set title = _("JW Stream Clip Maker") %}
 {% extends "khplayer/base.html" %}
 
 {% block head_add %}
@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block header %}
-<h1><a href="..">&lt; {{gettext(event.title)}} {{event.datetime.strftime("%Y-%m-%d")}} ({{gettext(channel.language)}}, {{gettext(channel.country)}})</a></h1>
+<h1><a href="..">&lt; {{_(event.title)}} {{event.datetime.strftime("%Y-%m-%d")}} ({{_(channel.language)}}, {{_(channel.country)}})</a></h1>
 {% endblock %}
 
 {% block main %}
@@ -27,8 +27,8 @@
 	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:05</span></button>
 	<button type="button"><img src="{{top}}/static/button-backward.svg"><span>0:01</span></button>
 
-	<button type="button">{{gettext("Set Start")}}</button>
-	<button type="button">{{gettext("Set End")}}</button>
+	<button type="button">{{_("Set Start")}}</button>
+	<button type="button">{{_("Set End")}}</button>
 
 	<button type="button"><span>0:01</span><img src="{{top}}/static/button-forward.svg"></button>
 	<button type="button"><span>0:05</span><img src="{{top}}/static/button-forward.svg"></button>
@@ -40,7 +40,7 @@
 
 {% if event.chapters %}
 <div id="chapter-controls" class="controls">
-<label>Chapters:</label>
+<label>{{_("Chapters:")}}</label>
 {% for chapter in event.chapters %}
 <button type="button" class="chapter-button" data-time="{{chapter['editedStartTime']}}">{{chapter['name']}}</button>
 {% endfor %}
@@ -48,10 +48,10 @@
 {% endif %}
 
 <div id="trim-controls" class="controls">
-	<label>{{gettext("Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
-	<label>{{gettext("End:")}} <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
-	<label class="grow"><span>{{gettext("Title:")}}</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
-	<button class="download" type="submit">{{gettext("Make Clip")}}</button>
+	<label>{{_("Start:")}} <input type="text" name="clip_start" value="{{clip_start}}" class="time"></label>
+	<label>{{_("End:")}} <input type="text" name="clip_end" value="{{clip_end}}" class="time"></label>
+	<label class="grow"><span>{{_("Title:")}}</span> <input type="text" name="clip_title" value="{{clip_title}}" class="grow" data-lpignore='true'></label>
+	<button class="download" type="submit">{{_("Make Clip")}}</button>
 </div>
 
 <script>

@@ -39,6 +39,7 @@ def create_app(instance_path=None):
 		MEDIA_CACHEDIR = os.path.join(app.instance_path, "media-cache"),
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
 
+		UI_LANGUAGE = "en",
 		PUB_LANGUAGE = "ru",
 		SUB_LANGUAGE = None,
 		VIDEO_RESOLUTION = "480p",

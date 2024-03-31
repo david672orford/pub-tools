@@ -140,7 +140,6 @@ BUTTON[class]::before {
 	background-size: 1em 1em;
 	background-position: .25em center;
 	content: "";
-	filter: invert(100%);
 	}
 BUTTON.back::before {
 	background-image: url(icon-back.svg);
@@ -160,8 +159,14 @@ BUTTON.connect::before {
 BUTTON.delete::before {
 	background-image: url(icon-cancel.svg);
 	}
+BUTTON.down::before {
+	background-image: url(icon-down.svg);
+	}
 BUTTON.download::before {
 	background-image: url(icon-download.svg);
+	}
+BUTTON.face::before {
+	background-image: url(icon-face.svg);
 	}
 BUTTON.new::before {
 	background-image: url(icon-new.svg);
@@ -169,11 +174,17 @@ BUTTON.new::before {
 BUTTON.reload::before {
 	background-image: url(icon-reload.svg);
 	}
+BUTTON.reset::before {
+	background-image: url(icon-reset.svg);
+	}
 BUTTON.save::before {
 	background-image: url(icon-save.svg);
 	}
 BUTTON.search::before {
 	background-image: url(icon-search.svg);
+	}
+BUTTON.up::before {
+	background-image: url(icon-up.svg);
 	}
 BUTTON.upload::before {
 	background-image: url(icon-upload.svg);

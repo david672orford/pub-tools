@@ -1,7 +1,8 @@
-from flask import render_template, request, redirect, abort
+from flask import current_app, render_template, request, redirect, abort
 from collections import defaultdict
 from urllib.parse import urlencode
 from markupsafe import escape
+from time import sleep
 import logging
 
 from ...models import db, VideoCategories, Videos
@@ -9,6 +10,7 @@ from ...models_whoosh import video_index
 from ...utils.background import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
 from .utils.scenes import load_video_url
+from .utils.controllers import meeting_loader
 from ...cli_update import update_videos, update_video_subcategory
 from . import menu
 from .views import blueprint
@@ -21,7 +23,7 @@ menu.append((_("Videos"), "/videos/"))
 @blueprint.route("/videos/")
 def page_videos():
 	categories = defaultdict(list)
-	for category in VideoCategories.query.order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
+	for category in VideoCategories.query.filter_by(lang=meeting_loader.language).order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
 		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
 	return render_template("khplayer/videos.html", categories=categories.items(), top="..")
 
@@ -43,7 +45,11 @@ def page_videos_search():
 # List all the videos in a category. Clicking on a video loads it into OBS.
 @blueprint.route("/videos/<category_key>/<subcategory_key>/")
 def page_videos_list(category_key, subcategory_key):
-	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
+	category = VideoCategories.query.filter_by(
+		lang = meeting_loader.language,
+		category_key = category_key,
+		subcategory_key = subcategory_key,
+		).one_or_none()
 	if category is None:
 		abort(404)
 	return render_template("khplayer/videos_category.html", category=category, top="../../..")
@@ -58,19 +64,18 @@ def page_videos_download():
 # When Update button is pressed on top index page
 @blueprint.route("/videos/update-all", methods=["POST"])
 def page_videos_update_all():
-	progress_callback(_("Updating video list..."))
-	update_videos(callback=progress_callback)
-	progress_callback(_("Video list updated"))
+	progress_callback(_("Updating video list..."), cssclass="heading")
+	update_videos(meeting_loader.language, callback=progress_callback)
+	progress_callback(_("✔ Video list updated."), cssclass="success", close=True)
+	sleep(1)
 	return redirect(".")
 
 # When Update button is pressed on a category page
 @blueprint.route("/videos/<category_key>/<subcategory_key>/update", methods=["POST"])
 def page_videos_category_subcategory_update(category_key, subcategory_key):
-	category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one_or_none()
-	if category is None:
-		abort(404)
-	progress_callback(_("Updating video list..."))
-	update_video_subcategory(category, callback=progress_callback)
-	progress_callback(_("Video list updated"))
+	progress_callback(_("Updating video list..."), cssclass="heading")
+	update_video_subcategory(meeting_loader.language, category_key, subcategory_key, callback=progress_callback)
+	progress_callback(_("✔ Video list updated."), cssclass="success", close=True)
+	sleep(1)
 	return redirect(".")
 

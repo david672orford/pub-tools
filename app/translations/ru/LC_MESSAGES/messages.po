@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-03-23 00:28-0400\n"
-"PO-Revision-Date: 2024-03-23 00:40-0400\n"
+"POT-Creation-Date: 2024-03-30 19:41-0400\n"
+"PO-Revision-Date: 2024-03-30 19:44-0400\n"
 "Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
@@ -25,15 +25,15 @@ msgstr ""
 msgid "Fetching week %s %s"
 msgstr "Идёт загрузка недели %s %s"
 
-#: cli_update.py:70
+#: cli_update.py:72
 msgid "Meetings loaded"
 msgstr "Список встреч обновлен"
 
-#: cli_update.py:216
+#: cli_update.py:223
 msgid "Scanning \"{category_name}\"..."
 msgstr "Обновляется «{category_name}»..."
 
-#: cli_update.py:242
+#: cli_update.py:260
 msgid "Scanning \"{category_name} — {subcategory_name}\"..."
 msgstr "Обновляется «{category_name} — {subcategory_name}»..."
 
@@ -53,7 +53,7 @@ msgstr "Название стати: «%s»"
 #: jworg/meetings.py:262
 #, python-format
 msgid "Getting media list from \"%s\"..."
-msgstr "Идёт загрузка списка материала для «%s»..."
+msgstr "Идёт загрузка списка материала из «%s»..."
 
 #: subapps/khplayer/view_jwstream.py:20
 msgid "JW Stream"
@@ -125,12 +125,12 @@ msgstr "✘ Сбой загрузки фрагмента!"
 
 #: subapps/khplayer/utils/scenes.py:74 subapps/khplayer/utils/scenes.py:94
 #: subapps/khplayer/utils/scenes.py:112 subapps/khplayer/utils/scenes.py:137
-#: subapps/khplayer/view_jwstream.py:230 subapps/khplayer/view_scenes.py:26
-#: subapps/khplayer/view_scenes.py:34 subapps/khplayer/view_scenes.py:154
-#: subapps/khplayer/view_scenes.py:195
-#: subapps/khplayer/view_scenes_composer.py:40
-#: subapps/khplayer/view_scenes_composer.py:83
-#: subapps/khplayer/view_scenes_composer.py:118
+#: subapps/khplayer/view_jwstream.py:230 subapps/khplayer/view_scenes.py:27
+#: subapps/khplayer/view_scenes.py:35 subapps/khplayer/view_scenes.py:155
+#: subapps/khplayer/view_scenes.py:196
+#: subapps/khplayer/view_scenes_composer.py:52
+#: subapps/khplayer/view_scenes_composer.py:96
+#: subapps/khplayer/view_scenes_composer.py:131
 #: subapps/khplayer/view_slides.py:123
 #, python-format
 msgid "OBS: %s"
@@ -170,11 +170,11 @@ msgstr "✘ Сбой загрузки списка материала для в�
 msgid "✔ Meeting media list has finished loading."
 msgstr "✔ Список материала для встречи загружён."
 
-#: subapps/khplayer/view_meetings.py:151
+#: subapps/khplayer/view_meetings.py:150
 msgid "Loading media for \"{title}\"..."
 msgstr "Идёт загрузка материала для «{title}»..."
 
-#: subapps/khplayer/view_meetings.py:164
+#: subapps/khplayer/view_meetings.py:163
 msgid "✔ All requested media have been loaded."
 msgstr "✔ Все выбранные записи и изображения загружены."
 
@@ -182,47 +182,47 @@ msgstr "✔ Все выбранные записи и изображения з�
 msgid "Audio"
 msgstr "Звук"
 
-#: subapps/khplayer/view_scenes.py:19
+#: subapps/khplayer/view_scenes.py:20
 msgid "Scenes"
 msgstr "Сцены"
 
-#: subapps/khplayer/view_scenes.py:121
+#: subapps/khplayer/view_scenes.py:122
 msgid "* Camera"
 msgstr "* Камера"
 
-#: subapps/khplayer/view_scenes.py:126
+#: subapps/khplayer/view_scenes.py:127
 msgid "* Zoom"
 msgstr "* Зум"
 
-#: subapps/khplayer/view_scenes.py:133
+#: subapps/khplayer/view_scenes.py:134
 msgid "* Split Screen"
 msgstr "* Разделенный экран"
 
-#: subapps/khplayer/view_scenes.py:140
+#: subapps/khplayer/view_scenes.py:141
 msgid "* New Scene"
 msgstr "* Новая сцена"
 
-#: subapps/khplayer/view_scenes.py:171
+#: subapps/khplayer/view_scenes.py:172
 #, python-format
 msgid "Loading local file \"%s\" (%s)..."
 msgstr "Идёт загрузка файла «%s» (%s)..."
 
-#: subapps/khplayer/view_scenes.py:176
+#: subapps/khplayer/view_scenes.py:177
 #, python-format
 msgid "Unsupported media type: %s"
 msgstr "Формат записи не поддерживается: %s"
 
-#: subapps/khplayer/view_scenes.py:198
-msgid "Done."
-msgstr "Операция завершена."
+#: subapps/khplayer/view_scenes.py:200
+msgid "✔ File has been loaded."
+msgstr "✔ Загрузка файла завершена."
 
-#: subapps/khplayer/view_scenes.py:211
+#: subapps/khplayer/view_scenes.py:213
 msgid "Loading dropped URL..."
 msgstr "Идёт загрузка перетасканного URL..."
 
-#: subapps/khplayer/view_scenes.py:218
-msgid "Not implemented"
-msgstr "Функция нереализованная"
+#: subapps/khplayer/view_scenes.py:253
+msgid "✔ Text added."
+msgstr "✔ Слайд с текстом создан."
 
 #: subapps/khplayer/view_slides.py:18
 msgid "Slides"
@@ -253,27 +253,27 @@ msgstr "Все выбранные слайды загружены в OBS."
 msgid "Songbook"
 msgstr "Песеник"
 
-#: subapps/khplayer/view_songbook.py:32
+#: subapps/khplayer/view_songbook.py:36
 #, python-format
 msgid "Not a valid number: %s"
 msgstr "Не является номером песни: %s"
 
-#: subapps/khplayer/view_songbook.py:36
+#: subapps/khplayer/view_songbook.py:40
 #, python-format
 msgid "No such song: %s"
 msgstr "Песня не существует: %s"
 
-#: subapps/khplayer/view_videos.py:18
+#: subapps/khplayer/view_videos.py:20
 msgid "Videos"
 msgstr "Видео"
 
-#: subapps/khplayer/view_videos.py:61 subapps/khplayer/view_videos.py:72
+#: subapps/khplayer/view_videos.py:67 subapps/khplayer/view_videos.py:76
 msgid "Updating video list..."
 msgstr "Обновляется список видеороликов..."
 
-#: subapps/khplayer/view_videos.py:63 subapps/khplayer/view_videos.py:74
-msgid "Video list updated"
-msgstr "Список видеороликов обновлён"
+#: subapps/khplayer/view_videos.py:69 subapps/khplayer/view_videos.py:78
+msgid "✔ Video list updated."
+msgstr "✔ Список видеороликов обновлён."
 
 #: subapps/khplayer/templates/khplayer/jwstream.html:1
 msgid "JW Stream Channels"
@@ -353,6 +353,10 @@ msgstr "Задать начало"
 msgid "Set End"
 msgstr "Задать конец"
 
+#: subapps/khplayer/templates/khplayer/jwstream_player.html:43
+msgid "Chapters:"
+msgstr "Главы:"
+
 #: subapps/khplayer/templates/khplayer/jwstream_player.html:51
 msgid "Start:"
 msgstr "Начало:"
@@ -408,8 +412,8 @@ msgid "Media Item"
 msgstr "Предмет"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:29
-msgid "Download Media and Create Scenes in OBS"
-msgstr "Загрузить материалы и создать сцены в OBS"
+msgid "Download Media and Create Scenes"
+msgstr "Загрузить материалы и создать сцены"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:33
 msgid "Delete existing unstarred scenes"
@@ -444,6 +448,7 @@ msgid "Scene List"
 msgstr "Список сцен"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:25
+#: subapps/khplayer/templates/khplayer/scenes_composer.html:55
 msgid "Delete"
 msgstr "Удалить"
 
@@ -453,7 +458,7 @@ msgstr "Добавить сцену"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:29
 msgid "Composer"
-msgstr ""
+msgstr "Верстка"
 
 #: subapps/khplayer/templates/khplayer/scenes.html:35
 #: subapps/khplayer/templates/khplayer/scenes_composer.html:31
@@ -502,7 +507,7 @@ msgstr "Дабавить HTML"
 
 #: subapps/khplayer/templates/khplayer/scenes_composer.html:1
 msgid "Scene Composer"
-msgstr ""
+msgstr "Верстка сцены"
 
 #: subapps/khplayer/templates/khplayer/scenes_composer.html:18
 msgid "Rename"
@@ -511,6 +516,22 @@ msgstr "Переименовать"
 #: subapps/khplayer/templates/khplayer/scenes_composer.html:25
 msgid "Add Source"
 msgstr "Добавить источник"
+
+#: subapps/khplayer/templates/khplayer/scenes_composer.html:57
+msgid "Up"
+msgstr "Вверх"
+
+#: subapps/khplayer/templates/khplayer/scenes_composer.html:60
+msgid "Down"
+msgstr "Вниз"
+
+#: subapps/khplayer/templates/khplayer/scenes_composer.html:62
+msgid "Face"
+msgstr "Лицо"
+
+#: subapps/khplayer/templates/khplayer/scenes_composer.html:63
+msgid "Reset"
+msgstr "Сброс"
 
 #: subapps/khplayer/templates/khplayer/slides.html:1
 msgid "Speaker's Slide Loader"
@@ -543,7 +564,7 @@ msgstr "Номер и название песни"
 #: subapps/khplayer/templates/khplayer/songbook.html:38
 msgid "Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here."
 msgstr ""
-"Нажмитье <b>Update</b> в вклядке <b>Видео</b> чтобы список песнь появился "
+"Нажмитье <b>Обновить</b> в вклядке <b>Видео</b> чтобы список песнь появился "
 "здесь."
 
 #: subapps/khplayer/templates/khplayer/videos.html:1
@@ -808,3 +829,9 @@ msgstr "Сбой в выполнении фоновой задачи."
 
 #~ msgid "Unable to load webpage into OBS."
 #~ msgstr "Сбой загрузки веб-страницы в OBS."
+
+#~ msgid "Done."
+#~ msgstr "Операция завершена."
+
+#~ msgid "Not implemented"
+#~ msgstr "Функция нереализованная"

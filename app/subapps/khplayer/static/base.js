@@ -46,9 +46,9 @@ function obsstudio_hacks(scale) {
 			document.head.appendChild(style);
 		}
 
-		window.oncontextmenu = function(e) {
+		/*window.oncontextmenu = function(e) {
 			e.preventDefault();
 			alert("right click disabled");
-		};
+		};*/
 	}
 }

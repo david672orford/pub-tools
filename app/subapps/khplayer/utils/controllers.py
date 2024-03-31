@@ -8,6 +8,7 @@ import json
 from ....jworg.meetings import MeetingLoader
 
 meeting_loader = MeetingLoader(
+	language = current_app.config["PUB_LANGUAGE"],
 	cachedir = current_app.config["MEDIA_CACHEDIR"],
 	debuglevel = 0,
 	)

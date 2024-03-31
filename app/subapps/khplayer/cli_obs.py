@@ -53,6 +53,10 @@ def cmd_obs_get_scene_item_private_settings(scene_uuid, scene_item_id):
 def cmd_obs_get_input_list():
 	print_json(obs.get_input_list())
 
+@cli_obs.command("get-input-kind-list", help="Get list of available input kinds")
+def cmd_obs_get_input_kind_list():
+	print_json(obs.request("GetInputKindList", {}))
+
 @cli_obs.command("get-input-uuid", help="Given name, get UUID")
 @click.argument("input_name")
 def cmd_obs_get_input_uuid(input_name):
@@ -87,7 +91,7 @@ def cmd_obs_save_source_screenshot(source_name):
 
 @cli_obs.command("get-output-list", help="Get list of available outputs")
 def cmd_obs_get_output_list():
-	print_json(obs.request("GetOutputList"))
+	print_json(obs.request("GetOutputList", {}))
 
 @cli_obs.command("get-hotkey-list", help="List defined hotkeys")
 def cmd_obs_get_hotkey_list():

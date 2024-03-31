@@ -218,15 +218,15 @@ Array.from(document.getElementsByTagName("form")).forEach(form_el => {
 		});
 
 	/* Face button */
-	form_el.getElementsByClassName("button-face")[0].addEventListener("click", (event) => {
+	form_el.getElementsByClassName("face")[0].addEventListener("click", (event) => {
 		post_ptz(form_el, false, event.target.value);
 		});
 
 	/* Reset button */
-	form_el.getElementsByClassName("button-reset")[0].addEventListener("click", (event) => {
+	form_el.getElementsByClassName("reset")[0].addEventListener("click", (event) => {
 		form_el.x.value = "50";
 		form_el.y.value = "50";
-		form_el.zoom.value = "1";
+		form_el.zoom.value = "1.0";
 		post_ptz(form_el, false, null);
 		});
 

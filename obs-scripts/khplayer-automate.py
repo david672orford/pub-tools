@@ -67,6 +67,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		self.stage_scene = None
 		self.end_trim = None
 		self.playing_sources = set()
+		self.output = None
 
 		# Define script configuration GUI
 		self.gui = [
@@ -79,6 +80,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
 			ObsWidget("select", "stage_scene", "Stage Scene", options=self.get_scene_options),
 			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.0),
+			ObsWidget("button", "output", "Start Output", callback=self.on_start_output),
 			]
 
 	# Provides the list of scenes for the select box
@@ -96,6 +98,20 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def on_finished_loading(self):
 		self.set_scene(self.yeartext_scene)
 		obs.obs_frontend_start_virtualcam()
+
+	def on_start_output(self):
+		print("Start output")
+		if self.output is None:
+			self.output = obs.obs_output_create("pulse_output", "pulse_output", None, None)
+		print("Output:", self.output)
+		print("Start:", obs.obs_output_start(self.output))
+		print("Start output: done")
+
+	def on_unload(self):
+		if self.output is not None:
+			obs.obs_output_stop(output)
+			obs.obs_output_destroy(output)
+			self.output = None
 
 	# Only seems to fire if user initiated the switch
 	def on_scene_activate(self, scene_name):
@@ -199,5 +215,5 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			self.set_scene(self.stage_scene)
 		run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
 
-ObsAutomate(debug=True)
+ObsAutomate(debug=False)
 

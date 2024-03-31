@@ -26,7 +26,7 @@ menu.append((_("Meetings"), "/meetings/"))
 # List upcoming meetings so user can click on the one he wants to load.
 @blueprint.route("/meetings/")
 def page_meetings():
-	weeks = Weeks.query
+	weeks = Weeks.query.filter_by(lang = meeting_loader.language)
 	if not request.args.get("all", False):
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
@@ -38,6 +38,13 @@ def page_meetings_update():
 	progress_callback(_("Fetching meeting schedules..."), cssclass="heading")
 	update_meetings(callback=progress_callback)
 	return redirect(".")
+
+# Construct the sharing URL for a meeting article. This will redirect to the article itself.
+def meeting_url(docid):
+	return "https://www.jw.org/finder?wtlocale={wtlocale}&docid={docid}&srcid=share".format(
+		docid = docid,
+		wtlocale = meeting_loader.meps_language,
+		)
 
 # User has clicked on a meeting from the list.
 @blueprint.route("/meetings/<int:docid>/")
@@ -123,10 +130,9 @@ def page_meetings_load(docid):
 # Download the meeting article (from the Watchtower or Workbook) and
 # extract a list of the videos and images. Implements caching.
 def get_meeting_media(docid):
-
 	# Look for this meeting's media in the DB cache table
 	# FIXME: Race condition can produce duplicate cache entries, so we use first().
-	meeting = MeetingCache.query.filter_by(docid=docid).first()
+	meeting = MeetingCache.query.filter_by(lang=meeting_loader.language, docid=docid).first()
 	if meeting is not None:
 		# Deserialize list from JSON back to objects
 		for item in meeting.media:
@@ -142,7 +148,7 @@ def get_meeting_media(docid):
 		media.append(item)
 
 	# Serialize list from objects to JSON and store in DB cache table
-	meeting = MeetingCache(docid=docid, media=list(map(lambda item: asdict(item), media)))
+	meeting = MeetingCache(lang=meeting_loader.language, docid=docid, media=list(map(lambda item: asdict(item), media)))
 	db.session.add(meeting)
 	db.session.commit()
 
@@ -162,8 +168,4 @@ def meeting_media_to_obs_scenes(title, items):
 		else:
 			raise AssertionError("Unhandled case")
 	progress_callback(_("✔ All requested media have been loaded."), last_message=True, cssclass="success")
-
-# Construct the sharing URL for a meeting article. This will redirect to the article itself.
-def meeting_url(docid):
-	return "https://www.jw.org/finder?wtlocale=U&docid={docid}&srcid=share".format(docid=docid)
 

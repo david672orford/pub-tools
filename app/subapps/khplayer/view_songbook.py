@@ -1,4 +1,4 @@
-from flask import request, session, render_template, redirect
+from flask import current_app, request, session, render_template, redirect
 import re
 import logging
 
@@ -17,7 +17,11 @@ menu.append((_("Songbook"), "/songbook/"))
 # List all the songs in the songbook. Clicking on a song loads it into OBS.
 @blueprint.route("/songbook/")
 def page_songbook():
-	category = VideoCategories.query.filter_by(category_key="VODMusicVideos").filter_by(subcategory_key="VODSJJMeetings").one_or_none()
+	category = VideoCategories.query.filter_by(
+		lang = meeting_loader.language,
+		category_key = "VODMusicVideos",
+		subcategory_key = "VODSJJMeetings",
+		).one_or_none()
 	return render_template("khplayer/songbook.html", videos=category.videos if category else None, top="..")
 
 @blueprint.route("/songbook/submit", methods=["POST"])
@@ -41,7 +45,7 @@ def page_songbook_submit():
 	lank = request.form.get("lank")
 	if lank:
 		lank, scene_name = lank.split(" ",1)
-		video = Videos.query.filter_by(lank=lank).one()
+		video = Videos.query.filter_by(lang=meeting_loader.language, lank=lank).one()
 		run_thread(lambda: load_video_url(scene_name, video.href, prefix="♫ Песня", skiplist="*♫"))
 
 	return progress_response(None)

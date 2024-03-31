@@ -48,7 +48,7 @@ def load_video_url(scene_name: str, url: str, thumbnail_url=None, prefix="▷", 
 	if sub_language and video_metadata.get("subtitles_url") is not None:
 
 		# Same language, enable the subtitles embedded in the MP4 file.
-		if sub_language == current_app.config["PUB_LANGUAGE"]:
+		if sub_language == meeting_loader.language:
 			subtitle_track = 1
 
 		# Different language. Download a VTT file, if one is available.

@@ -21,6 +21,7 @@ class Config(db.Model):
 # Workbook meeting outline and Watchtower Study article for each week
 class Weeks(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	year = db.Column(db.Integer)
 	week = db.Column(db.Integer)
 	mwb_docid = db.Column(db.Integer)
@@ -32,6 +33,7 @@ class Weeks(db.Model):
 
 class MeetingCache(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	docid = db.Column(db.Integer)
 	media = db.Column(db.JSON)
 
@@ -42,6 +44,7 @@ class MeetingCache(db.Model):
 # Books, brocures, tracts, invitations, etc. on JW.ORG
 class Books(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	name = db.Column(db.String)
 	pub_code = db.Column(db.String)
 	thumbnail = db.Column(db.String)
@@ -52,6 +55,7 @@ class Books(db.Model):
 # PeriodicalIssues of the Watchtower, Awake!, or Meeting Workbook
 class PeriodicalIssues(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	name = db.Column(db.String)
 	issue = db.Column(db.String)
 	pub_code = db.Column(db.String)
@@ -67,6 +71,7 @@ class PeriodicalIssues(db.Model):
 # Articles from the Watchtower or the Meeting Workbook
 class Articles(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	issue_id = db.Column(db.Integer, db.ForeignKey('periodical_issues.id'))
 	issue = db.relationship(PeriodicalIssues, back_populates="articles")
 	docid = db.Column(db.String)
@@ -86,6 +91,7 @@ videos_rel = db.Table("videos_rel", db.Model.metadata,
 
 class VideoCategories(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	category_key = db.Column(db.String)
 	category_name = db.Column(db.String)
 	subcategory_key = db.Column(db.String)
@@ -94,6 +100,7 @@ class VideoCategories(db.Model):
 
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	lang = db.Column(db.String)
 	title = db.Column(db.String)
 	date = db.Column(db.DateTime)
 	duration = db.Column(db.Integer)

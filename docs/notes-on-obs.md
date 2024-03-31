@@ -53,6 +53,7 @@
 * [Downstream Keyer](https://github.com/exeldro/obs-downstream-keyer) -- Adds an overlay to all scenes
 * [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/)
 * [Background Removal](https://github.com/occ-ai/obs-backgroundremoval)
+* [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- crashes
 * [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
 * [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/)
 

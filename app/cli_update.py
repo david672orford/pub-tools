@@ -42,13 +42,13 @@ def cmd_update_meetings():
 	update_meetings()
 
 def update_meetings(callback=default_callback):
-	meeting_loader = MeetingLoader()
+	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"])
 
 	current_day = date.today()
 	to_fetch = []
 	for i in range(8):
 		year, week = current_day.isocalendar()[:2]
-		week_obj = Weeks.query.filter_by(year=year).filter_by(week=week).one_or_none()
+		week_obj = Weeks.query.filter_by(lang=meeting_loader.language, year=year, week=week).one_or_none()
 		if week_obj is None:
 			to_fetch.append((year, week))
 		current_day += timedelta(weeks=1)
@@ -59,9 +59,11 @@ def update_meetings(callback=default_callback):
 		week_data = meeting_loader.get_week(year, week)
 		count += 1
 		callback("{total_recv} of {total_expected}", total_recv=count, total_expected=len(to_fetch))
-		week_obj = Weeks()
-		week_obj.year = year
-		week_obj.week = week
+		week_obj = Weeks(
+			lang = meeting_loader.language,
+			year = year,
+			week = week,
+			)
 		for name, value in week_data.items():
 			setattr(week_obj, name, value)
 		db.session.add(week_obj)
@@ -106,6 +108,8 @@ def cmd_update_periodicals(pub_code, year=None):
 # and extract the links to the publications listed. Save the information in our DB.
 def update_periodicals(pub_code, year=None, table=None):
 
+	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
+
 	if pub_code == "mwb":
 		search_path = "jw-meeting-workbook/"
 	else:
@@ -113,27 +117,26 @@ def update_periodicals(pub_code, year=None, table=None):
 
 	search_query = {
 		"pubFilter": pub_code,
-		"contentLanguageFilter": current_app.config["PUB_LANGUAGE"],
+		"contentLanguageFilter": pub_finder.language,
 		}
-
 	if year is not None:
 		search_query["yearFilter"] = str(year)
 
-	pubs = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"], debuglevel=0).search(search_path, search_query)
-
 	# Add these publications to the database or update info if they are already there
-	for pub in pubs:
+	for pub in pub_finder.search(search_path, search_query):
 		if not 'issue_code' in pub:		# Midweek Meeting instructions
 			continue
 		if table is not None:
 			table.add_row(pub['code'], pub.get('issue_code'), pub.get('issue'))
-		issue = PeriodicalIssues.query.filter_by(pub_code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
+		issue = PeriodicalIssues.query.filter_by(lang=pub_finder.language, pub_code=pub['code'], issue_code=pub.get('issue_code')).one_or_none()
 		if issue is None:
-			issue = PeriodicalIssues()
+			issue = PeriodicalIssues(
+				lang = pub_finder.language,
+				pub_code = pub['code'],
+				issue_code = pub['issue_code'],
+				)
 			db.session.add(issue)
 		issue.name = pub['name']
-		issue.pub_code = pub['code']
-		issue.issue_code = pub['issue_code']
 		issue.issue = pub['issue']
 		issue.thumbnail = pub['thumbnail']
 		issue.href = pub['href']
@@ -146,12 +149,13 @@ def update_periodicals(pub_code, year=None, table=None):
 
 @cli_update.command("articles", help="Load article titles from TOC of every periodical in the DB")
 def cmd_update_articles():
-	pub_finder = PubFinder()
-	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.pub_code.in_(("w", "mwb"))):
+	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
+	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.filter_by(lang=pub_finder.language).pub_code.in_(("w", "mwb"))):
 		print(issue, len(issue.articles))
 		if len(issue.articles) == 0:
 			for docid, title, href in pub_finder.get_toc(issue.href, docClass_filter=['40','106']):
 				issue.articles.append(Articles(
+					lang = pub_finder.language,
 					docid = docid,
 					title = title,
 					href = href,
@@ -168,16 +172,16 @@ def cmd_update_books():
 	update_books()
 
 def update_books():
-	pub_finder = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"])
-	language = current_app.config["PUB_LANGUAGE"]
-	pubs = pub_finder.search("books/", dict(contentLanguageFilter=language))
-	for pub in pubs:
-		book = Books.query.filter_by(pub_code=pub['code']).one_or_none()
+	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
+	for pub in pub_finder.search("books/", dict(contentLanguageFilter=pub_finder.language)):
+		book = Books.query.filter_by(lang=pub_finder.language, pub_code=pub['code']).one_or_none()
 		if book is None:
-			book = Books()
+			book = Books(
+				lang = pub_finder.language,
+				pub_code = pub['code'],
+				)
 			db.session.add(book)
 		book.name = pub['name']
-		book.pub_code = pub['code']
 		book.thumbnail = pub['thumbnail']
 		book.href = pub['href']
 		book.formats = pub['formats']
@@ -197,18 +201,21 @@ def update_books():
 @click.argument("subcategory_key", required=False)
 def cmd_update_videos(category_key=None, subcategory_key=None):
 	logging.basicConfig(level=logging.DEBUG)
-	if category_key is not None and subcategory_key is not None:
-		category = VideoCategories.query.filter_by(category_key=category_key).filter_by(subcategory_key=subcategory_key).one()
-		update_video_subcategory(category)
+	language = current_app.config["PUB_LANGUAGE"]
+	if category_key is None and subcategory_key is None:
+		update_videos(language)
+	elif category_key is not None and subcategory_key is not None:
+		update_video_subcategory(language, category_key, subcategory_key)
 	else:
-		update_videos()
+		print("Error: Use no arguments or two")
 
-def update_videos(callback=default_callback):
+def update_videos(language, callback=default_callback):
 	# Start with an empty index
 	video_index.create()
 
 	# The top-level video categories are in a root container called "VideoOnDemand"
-	root = VideoLister().get_category("VideoOnDemand")
+	lister = VideoLister(language=language)
+	root = lister.get_category("VideoOnDemand")
 
 	# Iterate over the top levels
 	top_level_count = 0
@@ -225,34 +232,45 @@ def update_videos(callback=default_callback):
 				total_recv = (top_level_count * 100 + int(subcategory_count * 100 / category.subcategories_count)),
 				total_expected = (root.subcategories_count * 100),
 				)
-			category_db_obj = VideoCategories.query.filter_by(category_key=category.key).filter_by(subcategory_key=subcategory.key).one_or_none()
+			category_db_obj = VideoCategories.query.filter_by(
+				lang = lister.language,
+				category_key = category.key,
+				subcategory_key = subcategory.key,
+				).one_or_none()
 			if category_db_obj is None:
 				category_db_obj = VideoCategories(
+					lang = subcategory.language,
 					category_key = category.key,
 					category_name = category.name,
 					subcategory_key = subcategory.key,
 					subcategory_name = subcategory.name,
 					)
 				db.session.add(category_db_obj)
-			update_video_subcategory(category_db_obj, category=subcategory, callback=callback, commit=False)
+			write_video_category_to_db(category_db_obj, subcategory, callback)
 			subcategory_count += 1
 		top_level_count += 1
 
-def update_video_subcategory(category_db_obj, category=None, callback=default_callback, commit=True):
+def update_video_subcategory(language, category_db_obj, category=None, callback=default_callback):
+	category_db_obj = VideoCategories.query.filter_by(lang=language, category_key=category_key, subcategory_key=subcategory_key).one()
+	lister = VideoLister(language=language)
+	category = lister.get_category(category_db_obj.subcategory_key)
+	write_video_category_to_db(category_db_obj, category, callback)
+
+def write_video_category_to_db(category_db_obj, category, callback):
 	callback(_("Scanning \"{category_name} — {subcategory_name}\"...".format(
 		category_name = category_db_obj.category_name,
 		subcategory_name = category_db_obj.subcategory_name
 		)))
-	if category is None:
-		category = VideoLister().get_category(category_db_obj.subcategory_key)
 	for video in category.videos:
-		video_obj = Videos.query.filter_by(lank=video.lank).one_or_none()
+		video_obj = Videos.query.filter_by(lang=category.language, lank=video.lank).one_or_none()
 		if video_obj is None:
-			video_obj = Videos()
+			video_obj = Videos(
+				lang = category.language,
+				lank = video.lank
+				)
 		video_obj.title = video.title
 		video_obj.date = video.date
 		video_obj.duration = video.duration
-		video_obj.lank = video.lank
 		video_obj.thumbnail = video.thumbnail
 		video_obj.href = video.href
 		category_db_obj.videos.append(video_obj)
@@ -260,7 +278,6 @@ def update_video_subcategory(category_db_obj, category=None, callback=default_ca
 	video_index.add_videos(category_db_obj.videos)
 	video_index.commit()
 
-# For testing
 @cli_update.command("video-search", help="Perform a test query on the video index")
 @click.argument("q")
 def cmd_update_video_query(q):

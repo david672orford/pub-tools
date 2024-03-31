@@ -108,7 +108,7 @@ def download_slides(client, selected):
 			if file.id in selected:
 				scene_name = request.form.get("scenename-%s" % file.id)
 				if file.id.startswith("lank="):
-					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id, language=current_app.config["PUB_LANGUAGE"])
+					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id, language=meeting_loader.language)
 				else:
 					progress_callback(_("Downloading \"%s\"..." % file.filename))
 					filename = client.get_file(file)

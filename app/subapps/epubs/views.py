@@ -18,10 +18,12 @@ blueprint = Blueprint('epubs', __name__, template_folder="templates", static_fol
 blueprint.display_name = 'Epub Viewer'
 blueprint.blurb = "Display ePub files from JW.ORG"
 
+lang = current_app.config["PUB_LANGUAGE"]
+
 @blueprint.route("/")
 def epub_index():
 	periodicals = defaultdict(list)
-	for periodical in PeriodicalIssues.query.order_by(PeriodicalIssues.pub_code, PeriodicalIssues.issue_code):
+	for periodical in PeriodicalIssues.query.filter_by(lang=lang).order_by(PeriodicalIssues.pub_code, PeriodicalIssues.issue_code):
 		periodicals[periodical.name].append(periodical)
 	return render_template(
 		"epubs/index.html",
@@ -92,15 +94,18 @@ def epub_viewer(pub_code, path):
 def open_epub(pub_code):
 	if "_" in pub_code:
 		pub_code, issue_code = pub_code.split("_",1)
-		pub = PeriodicalIssues.query.filter_by(pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
+		pub = PeriodicalIssues.query.filter_by(lang=lang, pub_code=pub_code).filter_by(issue_code=issue_code).one_or_none()
 	else:
 		issue_code = None
-		pub = Books.query.filter_by(pub_code=pub_code).one_or_none()
+		pub = Books.query.filter_by(lang=lang, pub_code=pub_code).one_or_none()
 	if pub is None:
 		logger.error("Publication %s not known", pub_code)
 		abort(404)
 	if pub.epub_filename is None:
-		pub_finder = PubFinder(cachedir=current_app.config["MEDIA_CACHEDIR"])
+		pub_finder = PubFinder(
+			language = lang,
+			cachedir=current_app.config["MEDIA_CACHEDIR"],
+			)
 		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
 		if epub_url is None:
 			return None

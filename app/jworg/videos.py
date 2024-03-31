@@ -44,6 +44,10 @@ class VideoCategory:
 			logger.debug("Subcategory name: %s", subcategory_dict['name'])
 			yield self.video_lister.get_category(subcategory_dict['key'], category_dict=subcategory_dict)
 
+	@property
+	def language(self):
+		return self.video_lister.language
+
 # A single video from JW.ORG
 class Video:
 	finder_url = 'https://www.jw.org/finder'

@@ -54,13 +54,13 @@
 		</div>
 		<button type="submit" class="delete" name="action" value="delete">{{_("Delete")}}</button>
 		{% if loop.index0 > 0 %}
-		<button type="submit" name="action" value="set-index:{{scene_item.index+1}}">Up</button>
+		<button type="submit" class="up" name="action" value="set-index:{{scene_item.index+1}}">{{_("Up")}}</button>
 		{% endif %}
 		{% if scene_item.index > 0 %}
-		<button type="submit" name="action" value="set-index:{{scene_item.index-1}}">Down</button>
+		<button type="submit" class="down" name="action" value="set-index:{{scene_item.index-1}}">{{_("Down")}}</button>
 		{% endif %}
-		<button type="button" class="button-face" value="{{scene_item.source_uuid}}">Face</button>
-		<button type="button" class="button-reset">Reset</button>
+		<button type="button" class="face" value="{{scene_item.source_uuid}}">{{_("Face")}}</button>
+		<button type="button" class="reset">{{_("Reset")}}</button>
 	</div>
 
 	<div class="slider">

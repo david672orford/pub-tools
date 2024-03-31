@@ -100,7 +100,10 @@ class Fetcher:
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
 	week_url = "https://wol.jw.org/en/wol/meetings/r1/lp-e/{year}/{week}"
 
-	def __init__(self, language="ru", cachedir="cache", debuglevel=0):
+	def __init__(self, language=None, cachedir=None, debuglevel=0):
+		if language is None:
+			raise FetcherError("Language must be set")
+		self.language = language
 		self.meps_language = iso_language_code_to_meps(language)
 		self.cachedir = cachedir
 		self.last_request_time = 0
@@ -173,6 +176,8 @@ class Fetcher:
 
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url: str, callback=None):
+		if self.cachedir is None:
+			raise FetcherError("Cachedir is not set")
 		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if not os.path.exists(cachefile):
 			response = self.get(url)
