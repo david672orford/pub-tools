@@ -2,8 +2,6 @@
 Version=1.0
 Type=Application
 Terminal=false
-Name[ru]=KH Player
+Name=KH Player
 Exec=/home/kh/pub-tools/pub-tools khplayer
 Icon=/home/kh/pub-tools/launchers/khplayer.svg
-Icon[ru]=chromium-browser
-Name=KH Player

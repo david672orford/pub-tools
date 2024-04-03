@@ -1,6 +1,6 @@
-# Programming Notes
+# Notes on Web Programming
 
-These are notes on the libraries, API's and frameworks used in this project.
+There are notes about web standards and frameworks used in this project.
 
 ## Flask and Friends
 
@@ -31,33 +31,4 @@ These are notes on the libraries, API's and frameworks used in this project.
 * [PyWebview](https://github.com/r0x0r/pywebview)
 * [UTF-8 Mode](https://peps.python.org/pep-0540/)
 * [ZipApp](https://docs.python.org/3/library/zipapp.html)
-
-## FFmpeg
-
-* [FFmpeg](https://ffmpeg.org/)
-* [How to Trim and Reencode Video Files](http://tech-for-teaching.nuhub.net/howto/trim-video/)
-* [How to extract 1 screenshot for a video with ffmpeg at a given time?](https://stackoverflow.com/questions/27568254/how-to-extract-1-screenshot-for-a-video-with-ffmpeg-at-a-given-time)
-
-Black detection using FFmpeg:
-
-    $ ffmpeg -i clip.mp4 -vf blackdetect=d=0.1:pix_th=.1 -f rawvideo -y /dev/null
-
-## Face Detection
-
-* [Build Your Own Face Recognition Tool With Python](https://realpython.com/face-recognition-with-python/)
-* [Face-Recognition](https://pypi.org/project/face-recognition/)
-
-## Bible
-
-* [Linkture](https://github.com/erykjj/linkture) -- parse Scripture references in multiple languages
-
-## Epub
-
-* [HTML to Epub](https://github.com/macgregor/html_to_epub)
-
-## Sqlite3
-
-* [The SQLite OS Interface or "VFS"](https://www.sqlite.org/vfs.html)
-* [sqlite-s3vfs](https://github.com/uktrade/sqlite-s3vfs/)
-* [s3vfs.py](https://gist.github.com/simonwo/b98dc75feb4b53ada46f224a3b26274c)
 

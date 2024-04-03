@@ -1,9 +1,9 @@
-# Notes on Pipewire Audio Server for Linux
+# Notes on Audio for Linux
 
 Pipewire is a new audio server which is set to place PulseAudio in popular
 Linux distributions.
 
-## Documentation
+## Pipewire and Wireplumber
 
 * [Pipewire Guide](https://github.com/mikeroyal/PipeWire-Guide) -- Setting up Pipeware and compatible utilities
 * [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/) -- Covers Wireplumber installation too, works on Ubuntu too
@@ -13,15 +13,19 @@ Linux distributions.
 * [Migrate PulseAudio](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
-* [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/)
+* [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- A virtual audio source from an audio file
 
 ## PulseAudio
 
-Pipewire supports the PuleAudio API for playing and recording sound.
+Pipewire has partial backwards compatibility with PulseAudio. This includes support for
+the API for playing and recording sound and the **pactl** command.
 
+* [PulseAudio Docs at Freedesktop.org](https://www.freedesktop.org/wiki/Software/PulseAudio/)
+* [PulseAudio in Arch Linux Wiki](https://wiki.archlinux.org/title/PulseAudio)
 * [PulseAudio Under the Hood](https://gavv.net/articles/pulseaudio-under-the-hood/)
 * [Python Pulsectl](https://pypi.org/project/pulsectl/) -- Blocking high-level interface and bindings to Libpulse
 * [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
+* [Example of Playing and Recording Audio in Python](https://askubuntu.com/questions/1398632/how-can-i-fit-python-pyaudio-to-to-virtual-microphone-that-i-created)
 * [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
 
 ## Virtual Audio Cables
@@ -31,7 +35,7 @@ Pipewire supports the PuleAudio API for playing and recording sound.
 * [Virtual Audio Cable in Pulseaudio](https://unix.stackexchange.com/questions/576785/redirecting-pulseaudio-sink-to-a-virtual-source) -- See Christopher Donham's answer
 * [OBS to Zoom Virtual Audio Cable](https://luke.hsiao.dev/blog/pipewire-virtual-microphone/) -- This one successfully connects the null sync and the remapper
 
-## Pipewire Utilities
+## Utilities Compatible with Pipewire
 
 * [Helvum GUI Patchbay for Pipewire](https://gitlab.freedesktop.org/pipewire/helvum) -- Very basic, widgets overlap on HiDPI displays, user repeats drawing of a link to delete it
 * [QPWgraph](https://gitlab.freedesktop.org/rncbc/qpwgraph) -- GUI interface to Pipewire's graph, clutters with MIDI and video, one box for each OBS audio source

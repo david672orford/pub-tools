@@ -147,7 +147,7 @@ class ObsControl(ObsControlBase):
 		raise KeyError()
 
 	def move_scene(self, uuid, new_index):
-		i = self.scene_index(uuid)
+		i = self.get_scene_index(uuid)
 		scene = self.scene_list["scenes"].pop(i)
 		self.scene_list["scenes"].insert(new_index, scene)
 		self._save_scene_order()

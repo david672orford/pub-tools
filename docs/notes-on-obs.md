@@ -11,9 +11,12 @@
 
 ## Integration of OBS Studio with other Programs
 
+Video and audio can be fed into and out of OBS using the virtual camera,
+streaming protocols, and players embeded in browser sources.
+
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
-* [VDO.Ninja](https://docs.vdo.ninja/)
-* [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL)
+* [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
+* [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 
 ## OBS-Websocket
 
@@ -22,18 +25,22 @@
 
 ## OBS Script Development
 
+OBS embeds Lua and Python interpreters. Scripts written in these language can automate
+tasks, be sources and sinks of video and audio, and perform filtering. Python scripts
+do not generally run fast enough to process video, but Lua scripts do.
+
 * [Python/Lua Scripting](https://docs.obsproject.com/scripting)
 * [API Reference](https://docs.obsproject.com/reference-core-objects)
 * [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API)
-* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Interesting LUA examples
 * [Tips and Tricks for Lua Scripts](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/) -- OBS Forum thread
 * [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/)
-* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake)
-* [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
 * [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua)
 
-## Useful-Looking Scripts
+## Example Scripts
 
+* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Interesting LUA examples
+* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake)
+* [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in text source
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/)
 * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
@@ -68,9 +75,8 @@
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
-* Bug: Browser dock resizing sometimes stops working under Linux
+* [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * Bug: DND of file into browser dock does nothing, but URL works
-* Bug: Browser dock DND sometimes stops working
 
 ## Object Hierarcy
 

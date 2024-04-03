@@ -209,10 +209,11 @@ class Padded:
 		self.padded_width = width + self.width_padding
 		self.padded_height = height + self.height_padding
 
+# Face Detection
+# See https://pypi.org/project/face-recognition/
 def find_face(scene_uuid, id, source_uuid):
 	backoff = 2.2
 
-	# https://github.com/ageitgey/face_recognition
 	from face_recognition import load_image_file, face_locations
 
 	tempfile = obs.save_source_screenshot(source_uuid)
