@@ -2,6 +2,11 @@
 {% extends "khplayer/base.html" %}
 {% import "khplayer/lib.html" as lib -%}
 
+{% block head_add %}
+<!-- Turbo sometimes fails to load this in the player page -->
+<script src="{{ url_for('.static', filename='jwstream_player.js')}}"></script>
+{% endblock %}
+
 {% block main %}
 <section>
 <table class="borders medium-width">

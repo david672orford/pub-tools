@@ -1,6 +1,11 @@
 {% set title = gettext("JW Stream Event Recordings") %}
 {% extends "khplayer/base.html" %}
 
+{% block head_add %}
+<!-- Turbo sometimes fails to load this in the player page -->
+<script src="{{ url_for('.static', filename='jwstream_player.js')}}"></script>
+{% endblock %}
+
 {% block header %}
 <h1><a href="..">&lt; {{gettext(channel.name)}} ({{gettext(channel.language)}}, {{gettext(channel.country)}})</a></h1>
 {% endblock %}
@@ -17,7 +22,7 @@
 <tbody>
 {% for event in events %}
 <tr>
-	<td><a href="{{event.id}}">{{gettext(event.title)}}</a></td>
+	<td><a href="{{event.id}}/">{{gettext(event.title)}}</a></td>
 	<td>{{event.datetime.strftime("%Y-%m-%d")}}</td>	
 </tr>
 {% endfor %}
