@@ -20,7 +20,8 @@ Linux distributions.
 Pipewire has partial backwards compatibility with PulseAudio. This includes support for
 the API for playing and recording sound and the **pactl** command.
 
-* [PulseAudio Docs at Freedesktop.org](https://www.freedesktop.org/wiki/Software/PulseAudio/)
+* [PulseAudio Documentation](https://www.freedesktop.org/software/pulseaudio/doxygen/index.html)
+* [PulseAudio Wiki](https://www.freedesktop.org/wiki/Software/PulseAudio/)
 * [PulseAudio in Arch Linux Wiki](https://wiki.archlinux.org/title/PulseAudio)
 * [PulseAudio Under the Hood](https://gavv.net/articles/pulseaudio-under-the-hood/)
 * [Python Pulsectl](https://pypi.org/project/pulsectl/) -- Blocking high-level interface and bindings to Libpulse
