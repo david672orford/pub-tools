@@ -40,10 +40,11 @@ def create_app(instance_path=None):
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
 
 		UI_LANGUAGE = "en",
-		PUB_LANGUAGE = "ru",
+		PUB_LANGUAGE = "en",
 		SUB_LANGUAGE = None,
 		VIDEO_RESOLUTION = "480p",
 		OBS_BROWSER_DOCK_SCALE = 1.0,
+		REMOTES = {},
 		)
 
 	# Overlay with configuration from instance/config.py
