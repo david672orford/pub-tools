@@ -303,6 +303,7 @@ class MeetingLoader(Fetcher):
 
 		yield self.make_song(songs[1])
 
+	# Handle a link to a song from the songbook
 	def make_song(self, a):
 		song_text = a.text_content().strip()
 		song_number = re.search(r'(\d+)$', song_text)

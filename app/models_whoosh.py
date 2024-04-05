@@ -35,6 +35,13 @@ class BaseWhooshIndex:
 		# Create the index or clear it if it already exists
 		create_in(self.whoosh_path, self.schema, indexname=self.indexname)
 
+	def open(self):
+		with warnings.catch_warnings():
+			# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
+			warnings.simplefilter("ignore", category=SyntaxWarning)
+			index = open_dir(self.whoosh_path, indexname=self.indexname)
+		return index
+
 	@property
 	def writer(self):
 		if self._writer is None:
@@ -54,25 +61,23 @@ class VideoIndex(BaseWhooshIndex):
 		)
 
 	def add_videos(self, videos):
-		for video in videos:
-			#print(video.title)
-			assert video.id is not None		# can happen if record is not commited yet
-			for category in video.categories:
-				self.writer.update_document(
-					video_id = str(int(video.id)),
-					category_id = str(category.id),
-					content = " ".join((category.category_name, category.subcategory_name, video.title)),
-					)
+		with warnings.catch_warnings():
+			warnings.simplefilter("ignore", category=SyntaxWarning)
+			for video in videos:
+				#print(video.title)
+				assert video.id is not None		# can happen if record is not commited yet
+				for category in video.categories:
+					self.writer.update_document(
+						video_id = str(int(video.id)),
+						category_id = str(category.id),
+						content = " ".join((category.category_name, category.subcategory_name, video.title)),
+						)
 
 	def search(self, q):
 		deduped_results = []
 		suggestion = []
 
-		with warnings.catch_warnings():
-			# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
-			warnings.simplefilter("ignore", category=SyntaxWarning)
-			index = open_dir(self.whoosh_path, indexname=self.indexname)
-
+		index = self.open()
 		with index.searcher() as searcher:
 
 			dedup = set()
@@ -124,7 +129,7 @@ class IllustrationIndex(BaseWhooshIndex):
 			)
 
 	def search(self, q):
-		index = open_dir(self.whoosh_path, indexname=self.indexname)
+		index = self.open()
 		with index.searcher() as searcher:
 			query_obj = QueryParser("content", index.schema).parse(q)
 			for hit in searcher.search(query_obj, limit=None):

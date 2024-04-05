@@ -126,12 +126,12 @@ def page_scenes_submit():
 				if capture_window is not None:
 					obs.create_zoom_scene(_("* Zoom"), capture_window)
 
-			case "add-split":
+			case "add-camera+zoom":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
 					capture_window = find_second_window()
 					if capture_window is not None:
-						obs.create_split_scene(_("* Split Screen"), camera_dev, capture_window)
+						obs.create_split_scene(_("* Camera+Zoom"), camera_dev, capture_window)
 
 			case "add-remote":
 				settings = current_app.config["REMOTES"][action[1]]

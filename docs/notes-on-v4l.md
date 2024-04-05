@@ -1,6 +1,6 @@
 # Notes on Video for Linux
 
-## List Devices:
+## List Cameras
 
     $ v4l2-ctl --list-devices
 
@@ -9,13 +9,27 @@
     $ apt install qv4l2
     $ qv4l2
 
-## Stable Device Nodes for Cameras
+## Udev Rules for Cameras
 
-    $ udevadm info -a /dev/video1
+Find the attributes of the device:
+
+    $ udevadm info -a /dev/video0
+
+Write a Udev rule:
+
     $ sudo vi /etc/udev/rules.d/99-local.rules
+
+Test the rule:
+
+    $ udevadm test $(udevadm info -q path -n /dev/video0)
+
+Reload the rules:
+
     $ sudo udevadm control --reload-rules && sudo udevadm trigger
 
-Sample rule:
+## Stable Symlink
+
+Add a Udev rule like this:
 
     SUBSYSTEM=="video4linux", ATTR{name}=="CREALITY CAM: HD 4MP WEBCAM", SYMLINK+="video-webcam"
 

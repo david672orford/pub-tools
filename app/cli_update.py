@@ -26,7 +26,7 @@ cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
 def init_app(app):
 	app.cli.add_command(cli_update)
 
-def default_callback(message, **kwargs):
+def basic_callback(message, **kwargs):
 	if "{" in message:
 		print(message.format(**kwargs))
 	else:
@@ -39,9 +39,9 @@ def default_callback(message, **kwargs):
 @cli_update.command("meetings", help="Load weekly meeting schedule")
 def cmd_update_meetings():
 	logging.basicConfig(level=logging.DEBUG)
-	update_meetings()
+	update_meetings(basic_callback)
 
-def update_meetings(callback=default_callback):
+def update_meetings(callback):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"])
 
 	current_day = date.today()
@@ -203,13 +203,13 @@ def cmd_update_videos(category_key=None, subcategory_key=None):
 	logging.basicConfig(level=logging.DEBUG)
 	language = current_app.config["PUB_LANGUAGE"]
 	if category_key is None and subcategory_key is None:
-		update_videos(language)
+		update_videos(language, basic_callback)
 	elif category_key is not None and subcategory_key is not None:
-		update_video_subcategory(language, category_key, subcategory_key)
+		update_video_subcategory(language, category_key, subcategory_key, basic_callback)
 	else:
 		print("Error: Use no arguments or two")
 
-def update_videos(language, callback=default_callback):
+def update_videos(language, callback):
 	# Start with an empty index
 	video_index.create()
 
@@ -250,7 +250,7 @@ def update_videos(language, callback=default_callback):
 			subcategory_count += 1
 		top_level_count += 1
 
-def update_video_subcategory(language, category_db_obj, category=None, callback=default_callback):
+def update_video_subcategory(language, category_key, subcategory_key, callback):
 	category_db_obj = VideoCategories.query.filter_by(lang=language, category_key=category_key, subcategory_key=subcategory_key).one()
 	lister = VideoLister(language=language)
 	category = lister.get_category(category_db_obj.subcategory_key)

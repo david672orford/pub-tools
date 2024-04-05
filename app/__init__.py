@@ -45,6 +45,7 @@ def create_app(instance_path=None):
 		VIDEO_RESOLUTION = "480p",
 		OBS_BROWSER_DOCK_SCALE = 1.0,
 		REMOTES = {},
+		CAMERA_NAME_OVERRIDES = {},
 		)
 
 	# Overlay with configuration from instance/config.py

@@ -225,7 +225,14 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 
 
 		try:
-			obs.add_media_scene("▷" + " " + clip_title, "video", media_file, thumbnail=thumbnail, skiplist="*♫▷")
+			obs.add_media_scene("▷" + " " + clip_title,
+				"video", media_file, thumbnail=thumbnail,
+				# Put this after:
+				# * Cameras, Zoom
+				# * Opening song
+				# * Previous video (so if you load first part and demos the will come out in order)
+				skiplist="*♫▷",
+				)
 		except ObsError as e:
 			flash(_("OBS: %s") % str(e))
 			progress_callback(_("✘ Unable to load clip into OBS."), last_message=True, cssclass="error")

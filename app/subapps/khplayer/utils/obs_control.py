@@ -347,7 +347,7 @@ class ObsControl(ObsControlBase):
 	def add_zoom_input(self, scene_uuid, capture_window):
 		scene_item_id = self.create_input_with_reuse(
 			scene_uuid = scene_uuid,
-			input_name = "%s Capture" % capture_window,
+			input_name = "Second Zoom Window",
 			input_kind = "xcomposite_input",
 			input_settings = {
 				"show_cursor": False,
@@ -407,6 +407,7 @@ class ObsControl(ObsControlBase):
 			"positionY": 160.0,
 			})
 
+	# Create a scene with a browser source in a VDO.Ninja video conference
 	def create_remote_scene(self, scene_name, settings):
 		pos = self.select_scene_pos(skiplist="*")
 		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]

@@ -118,6 +118,7 @@ def download_slides(client, selected):
 						scene_name_prefix + " " + request.form.get("scenename-%s" % file.id),
 						major_mimetype,
 						filename,
+						skiplist="*♫",		# After cameras and opening song
 						)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))

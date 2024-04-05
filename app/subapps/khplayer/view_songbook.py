@@ -7,7 +7,7 @@ from .views import blueprint
 from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...utils.babel import gettext as _
 from .utils.controllers import meeting_loader, obs, ObsError
-from .utils.scenes import load_video_url, load_song
+from .utils.scenes import load_video_url
 from ...models import VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
@@ -26,27 +26,33 @@ def page_songbook():
 
 @blueprint.route("/songbook/submit", methods=["POST"])
 def page_songbook_submit():
+	video = None
 
 	# If user entered a song number into the form,
 	song = request.form.get("song")
 	if song:
-		song = song.strip()
-		m = re.match(r"^(\d+)$", song)
+		m = re.match(r"^\s*(\d+)\s*$", song)
 		if not m:
-			flash(_("Not a valid number: %s") % song)
+			flash(_("Not a number: {song}").format(song=song))
 			return redirect(".")
 		song = int(m.group(1))
-		if not (0 < song <= 151):
-			flash(_("No such song: %s") % song)
-			return redirect(".")
-		run_thread(lambda: load_song(song))
+		video = Videos.query.filter_by(lang=meeting_loader.language, lank=f"pub-sjjm_{song}_VIDEO").one_or_none()
+		if video is None:
+			flash(_("No such song: {song}").format(song=song))
 
 	# If the user clicked on a link to a song,
 	lank = request.form.get("lank")
 	if lank:
-		lank, scene_name = lank.split(" ",1)
 		video = Videos.query.filter_by(lang=meeting_loader.language, lank=lank).one()
-		run_thread(lambda: load_video_url(scene_name, video.href, prefix="♫ Песня", skiplist="*♫"))
+
+	if video:
+		run_thread(lambda: load_video_url(
+			video.title,
+			video.href,
+			prefix = "♫",
+			# Load after cameras as opening song or after opening song
+			skiplist = "*♫",
+			))
 
 	return progress_response(None)
 
