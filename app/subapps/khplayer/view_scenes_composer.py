@@ -15,8 +15,8 @@ bounds_options = (
 	(1280, 720, 0, 0),		# Fullscreen
 	(638, 720, 0, 0),		# Left, Half
 	(638, 720, 642, 0),		# Right, Half
-	(640, 640, 0, 40),		# Left, Square
-	(640, 640, 640, 40),	# Right, Square
+	#(640, 640, 0, 40),		# Left, Square
+	#(640, 640, 640, 40),	# Right, Square
 	(640, 360, 0, 180),		# Left, Letterbox
 	(640, 360, 640, 180),	# Right, Letterbox
 	(240, 360, 0, 0),		# Portrait
@@ -210,7 +210,16 @@ class Padded:
 		self.padded_height = height + self.height_padding
 
 # Face Detection
-# See https://pypi.org/project/face-recognition/
+# This uses:
+#   https://pypi.org/project/face-recognition/
+# We also tried this and it worked:
+#   https://github.com/elliottzheng/batch-face
+# The initial experimental may be of interest:
+#   https://github.com/david672orford/pub-tools/blob/v0.8/app/subapps/khplayer/cli_obs.py
+# There you can find:
+#  * Support for both libraries above
+#  * Attempts to infer a head-and-shoulders box from the face bbox
+#  * Smooth panning and zooming of the OBS transform to the selected crop box
 def find_face(scene_uuid, id, source_uuid):
 	backoff = 2.2
 
