@@ -29,7 +29,7 @@ class Positioner:
 			"Right": PositionerColumn(750, 110),
 			}
 
-	def get_column(self, node):
+	def get_node_column(self, node):
 		cl = node.media_class.split("/")
 		if node.name == "ZOOM VoiceEngine":
 			column_name = {
@@ -44,7 +44,7 @@ class Positioner:
 			column_name = {
 				"Source": "Left",		# Audio/Source (microphone)
 				"Sink": "Right",		# Audio/Sink (speakers)
-				}.get(cl[1])
+				}.get(cl[1], "Center")
 		else:
 			column_name = "Center"
 
@@ -52,12 +52,12 @@ class Positioner:
 		return self.columns[column_name]
 
 	def record_node(self, node, position):
-		column = self.get_column(node)
+		column = self.get_node_column(node)
 		x, y = position
 		column.y = y + column.step
 
 	def place_node(self, node):
-		column = self.get_column(node)
+		column = self.get_node_column(node)
 		reservation = column.reservations.get(node.name)
 		#print("reservtion:", reservation)
 		if reservation is not None:
