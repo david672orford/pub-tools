@@ -30,9 +30,11 @@
 
 <form action="save-config" method="POST">
 <section class="bordered-box">
-{{lib.render_select(_("Microphone"), "microphone", peripherals.get("microphone"), microphones)}}
-{{lib.render_select(_("Speakers"), "speakers", peripherals.get("speakers"), speakers)}}
+{% if vcable %}
+{{lib.render_select(_("Microphone"), "microphone", vcable.peripherals.get("microphone"), vcable.microphones)}}
+{{lib.render_select(_("Speakers"), "speakers", vcable.peripherals.get("speakers"), vcable.speakers)}}
 <button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
+{% endif %}
 <a href=".?action=reset"><button class="reload">{{_("Arange Nodes")}}</button></a>
 </section>
 </form>

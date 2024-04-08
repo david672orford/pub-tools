@@ -36,7 +36,7 @@ OBS_WEBSOCKET = {
 # Set to "240p", "360p", "480p", or "720p"
 #VIDEO_RESOLUTION="480p"
 
-REMOTES = {
+VIDEO_REMOTES = {
 #	"Main Hall": {
 #		"view": "my-channel-123",
 #	},

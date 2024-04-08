@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import current_app, Blueprint, render_template, request, redirect
 import logging
 
 from ...utils.background import flash
@@ -11,6 +11,17 @@ from .utils.virtual_cable import patchbay, connect_all
 logger = logging.getLogger(__name__)
 
 menu.append((_("Audio"), "/patchbay/"))
+
+class VirtualCableControls:
+	def __init__(self, patchbay):
+		self.peripherals = get_config("PERIPHERALS")
+		self.microphones = []
+		self.speakers = []
+		for node in patchbay.nodes:
+			if node.media_class == "Audio/Source":
+				self.microphones.append((node.name, node.nick if node.nick else node.name))
+			elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
+				self.speakers.append((node.name, node.nick if node.nick else node.name))
 
 class Positioner:
 	def __init__(self):
@@ -72,17 +83,10 @@ def page_patchbay():
 	patchbay.load()
 	#patchbay.print()
 
-	# Selected microphone and speakers
-	peripherals = get_config("PERIPHERALS")
-
-	# Load the microphone and speaker selector options
-	microphones = []
-	speakers = []
-	for node in patchbay.nodes:
-		if node.media_class == "Audio/Source":
-			microphones.append((node.name, node.nick if node.nick else node.name))
-		elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
-			speakers.append((node.name, node.nick if node.nick else node.name))
+	if current_app.config["PATCHBAY"] == "virtual-cable":
+		vcable = VirtualCableControls(patchbay)
+	else:
+		vcable = None
 
 	if request.args.get("action") == "reset":
 		node_positions = {}
@@ -101,10 +105,8 @@ def page_patchbay():
 			node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
 
 	return render_template("khplayer/patchbay.html",
-		peripherals = peripherals,
-		microphones = microphones,
-		speakers = speakers,
 		patchbay = patchbay,
+		vcable = vcable,
 		node_positions = node_positions,
 		top = ".."
 		)

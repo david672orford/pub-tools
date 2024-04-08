@@ -3,8 +3,14 @@
 Pipewire is a new audio server which is set to place PulseAudio in popular
 Linux distributions.
 
+## Audio in General
+
+* [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
+
 ## Pipewire and Wireplumber
 
+* [Pipewire](https://www.pipewire.org/)
+* [Pipewire Wiki](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/home)
 * [Pipewire Guide](https://github.com/mikeroyal/PipeWire-Guide) -- Setting up Pipeware and compatible utilities
 * [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/) -- Covers Wireplumber installation too, works on Ubuntu too
 * [Pipewire Wiki](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/home)
@@ -14,6 +20,7 @@ Linux distributions.
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
 * [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- A virtual audio source from an audio file
+* [Controlling PulseAudio from the Command Line](https://www.shallowsky.com/linux/pulseaudio-command-line.html)
 
 ## PulseAudio
 
@@ -27,7 +34,6 @@ the API for playing and recording sound and the **pactl** command.
 * [Python Pulsectl](https://pypi.org/project/pulsectl/) -- Blocking high-level interface and bindings to Libpulse
 * [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
 * [Example of Playing and Recording Audio in Python](https://askubuntu.com/questions/1398632/how-can-i-fit-python-pyaudio-to-to-virtual-microphone-that-i-created)
-* [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
 
 ## Virtual Audio Cables
 

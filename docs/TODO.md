@@ -12,4 +12,5 @@
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 * Auto-create yeartext slide (need to find online source)
 * https://basilchackomathew.medium.com/face-recognition-in-python-a-comprehensive-guide-960a48436d0f
+* https://medium.com/@siddheshdeshpande/audio-visual-active-speaker-detection-on-video-for-ai-tools-dc297443f0be
 
