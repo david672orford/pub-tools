@@ -1,6 +1,6 @@
 {% set title = _("Scene List") %}
 {% extends "khplayer/base.html" %}
-{% from "khplayer/scenes_lib.html" import render_scene, render_cameras, render_remotes -%}
+{% from "khplayer/scenes_lib.html" import render_scenes, render_cameras, render_remotes -%}
 
 {% block head_add %}
 <script src="{{ url_for('.static', filename='scenes.js')}}"></script>
@@ -12,9 +12,7 @@
 	<div id="scenes-scroller">
 		<table id="scenes">
 			<tbody id="scenes-list">
-				{% for scene in scenes %}
-				{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
-				{% endfor %}
+				{{render_scenes(scenes, program_scene_uuid, preview_scene_uuid)}}
 			</tbody>
 		</table>
 	</div>

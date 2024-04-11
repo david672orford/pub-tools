@@ -1,3 +1,9 @@
+{% macro render_scenes(scenes, program_scene_uuid, preview_scene_uuid) %}
+	{% for scene in scenes %}
+	{{render_scene(scene, program_scene_uuid, preview_scene_uuid)}}
+	{% endfor %}
+{% endmacro %}
+
 {% macro render_scene(scene, program_scene_uuid, preview_scene_uuid) %}
 	<tr draggable="true" id="scene-{{scene['sceneUuid']}}"{%
 			if scene['sceneUuid'] == program_scene_uuid %} class="program-scene"{%

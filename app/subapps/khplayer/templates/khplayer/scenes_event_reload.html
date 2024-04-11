@@ -1,0 +1,6 @@
+{% from "khplayer/scenes_lib.html" import render_scenes -%}
+<turbo-stream action="update" target="scenes-list">
+	<template>
+		{{render_scenes(scenes, program_scene_uuid, preview_scene_uuid)}}
+	</template>
+</turbo-stream>

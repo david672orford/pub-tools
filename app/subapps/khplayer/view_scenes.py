@@ -13,37 +13,46 @@ from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 from .utils.controllers import meeting_loader
-from .utils.html import HTML
+from .utils.html_extractor import HTML
 
 logger = logging.getLogger(__name__)
 
 menu.append((_("Scenes"), "/scenes/"))
 
-@blueprint.route("/scenes/")
-def page_scenes():
+def get_scenes_with_thumbnails():
 	try:
-		response = obs.get_scene_list()
+		scenes = obs.get_scene_list()
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
-		response = {"scenes": []}
+		scenes = {"scenes": []}
 
 	try:
-		for scene in response["scenes"]:
+		for scene in scenes["scenes"]:
 			if not "thumbnail_url" in scene:
 				scene["thumbnail_url"] = get_scene_thumbnail(scene)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 
+	return scenes
+
+def get_scene_thumbnail(scene):
+	return obs.get_source_screenshot(scene["sceneUuid"])
+
+@blueprint.route("/scenes/")
+def page_scenes():
+
+	scenes = get_scenes_with_thumbnails()
 	return render_template(
 		"khplayer/scenes.html",
-		scenes = response["scenes"],
-		program_scene_uuid = response.get("currentProgramSceneUuid"),
-		preview_scene_uuid = response.get("currentPreviewSceneUuid"),
+		scenes = scenes["scenes"],
+		program_scene_uuid = scenes.get("currentProgramSceneUuid"),
+		preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
 		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
-		remotes = current_app.config.get("REMOTES"),
+		remotes = current_app.config.get("VIDEO_REMOTES"),
 		top = ".."
 		)
 
+# Update the scenes list when scenes are added, removed, renamed
 def scenes_event_handler(event):
 	if event["eventType"] == "SceneListChanged":
 		return
@@ -52,8 +61,14 @@ def scenes_event_handler(event):
 	scene = event["eventData"]
 	with blueprint.app.app_context():
 		match event["eventType"]:
+			case "CurrentSceneCollectionChanged":
+				scenes = get_scenes_with_thumbnails()
+				turbo.push(render_template("khplayer/scenes_event_reload.html",
+					scenes = scenes["scenes"],
+					program_scene_uuid = scenes.get("currentProgramSceneUuid"),
+					preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
+					))
 			case "SceneCreated":
-				print("view_scenes:", scene)
 				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
 			case "SceneRemoved":
 				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=scene))
@@ -70,8 +85,10 @@ def scenes_event_handler(event):
 					uuid = scene["sceneUuid"],
 					))
 
+obs.subscribe("Config", scenes_event_handler)
 obs.subscribe("Scenes", scenes_event_handler)
 
+# Reload thumbnail when scene items are added, removed, hidden, revealed
 def scene_items_event_handler(event):
 	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 	scene = event["eventData"]
@@ -81,14 +98,24 @@ def scene_items_event_handler(event):
 
 obs.subscribe("SceneItems", scene_items_event_handler)
 
-def get_scene_thumbnail(scene):
-	return obs.get_source_screenshot(scene["sceneUuid"])
+@blueprint.route("/scenes/refresh-thumbnail", methods=["POST"])
+def page_scenes_refresh_thumbnail():
+	uuid = request.json["uuid"]
+	for scene in get_scenes_with_thumbnails()["scenes"]:
+		if scene["sceneUuid"] == uuid:
+			scene["thumbnail_url"] = get_scene_thumbnail(scene)
+			turbo.push(render_template("khplayer/scenes_event_thumbnail.html", scene=scene))
+			break
+	return ""
 
 @blueprint.route("/scenes/move-scene", methods=["POST"])
 def page_scenes_move_scene():
-	print(request.json)
+	logger.debug("Move scene: %s", request.json)
 	data = request.json
-	obs.move_scene(data["uuid"], data["new_pos"])
+	try:
+		obs.move_scene(data["uuid"], data["new_pos"])
+	except KeyError:
+		logger.error("Attempt to move non-existent scene: %s", data["uuid"])
 	return ""
 
 @blueprint.route("/scenes/submit", methods=["POST"])
@@ -134,7 +161,7 @@ def page_scenes_submit():
 						obs.create_split_scene(_("* Camera+Zoom"), camera_dev, capture_window)
 
 			case "add-remote":
-				settings = current_app.config["REMOTES"][action[1]]
+				settings = current_app.config["VIDEO_REMOTES"][action[1]]
 				obs.create_remote_scene("* %s" % action[1], settings)
 
 			case "add-empty":
@@ -144,7 +171,6 @@ def page_scenes_submit():
 				scene = obs.get_current_preview_scene()
 				if scene["sceneUuid"] is None:
 					scene = obs.get_current_program_scene()
-				print("composer scene:", scene)
 				return redirect(f"composer/{scene['sceneUuid']}/")
 
 			case _:

@@ -28,7 +28,7 @@ websocket-client==1.4.2
 #pywebview==4.4
 
 # For printing tables in the CLI
-rich==13.6.0
+rich==13.7.1
 
 # Gettext
 flask-babel==4.0.0

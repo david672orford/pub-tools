@@ -57,6 +57,8 @@ function stop_output()
 		obs.obs_output_release(output)
 		output = nil
 		output_device = nil
+	else
+		print("Already closed")
 	end
 end
 

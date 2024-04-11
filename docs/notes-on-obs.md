@@ -31,6 +31,7 @@ do not generally run fast enough to process video, but Lua scripts do.
 
 * [Python/Lua Scripting](https://docs.obsproject.com/scripting)
 * [API Reference](https://docs.obsproject.com/reference-core-objects)
+* [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting)
 * [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API)
 * [Tips and Tricks for Lua Scripts](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/) -- OBS Forum thread
 * [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/)

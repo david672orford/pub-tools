@@ -38,11 +38,13 @@ class ObsControlBase:
 	def __init__(self, config):
 		self.config = config
 		self.event_intents = {
+			"Config": 2,
 			"Scenes": 4,
 			"SceneItems": 128,
 			"Ui": 1024,
 			}
 		self.subscribers = {
+			2: [],
 			4: [],
 			128: [],
 			1024: [],
@@ -110,7 +112,8 @@ class ObsControlBase:
 			"op": 1,
 			"d": {
 				"rpcVersion": 1,
-				#"eventSubscriptions": 4 | 128 | 1024,
+				# FIXME
+				#"eventSubscriptions": 2 | 4 | 128 | 1024,
 				}
 			}
 

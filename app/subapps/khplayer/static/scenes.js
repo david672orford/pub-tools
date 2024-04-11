@@ -20,8 +20,8 @@ function init_scenes()
 		fetch("submit", {
 			body: data,
 			method: "POST",
-			});
 		});
+	});
 
 	/* ===============================================================
 	   Checkbox for selecting all scenes except those which begin with a star
@@ -60,7 +60,6 @@ function init_scenes()
 		let over = e.target;
 		while(over.tagName != "TR")
 			over = over.parentElement;
-		/*console.log(moving_scene, over);*/
 		if (isBefore(moving_scene, over))
 			scenes_list.insertBefore(moving_scene, over);
 		else
@@ -90,15 +89,46 @@ function init_scenes()
 
 	scenes_list.addEventListener("dragstart", (e) => {
 		console.log("reorder dragstart:", e.target);
+		let target = e.target;
+		while(target.tagName != "TR")
+			target = target.parentElement;
 		//e.stopPropagation();
 		e.dataTransfer.effectAllowed = "move";
 		e.dataTransfer.setData("text/plain", null);
 		e.dataTransfer.setDragImage(dummy_image, 0, 0);
-		moving_scene = e.target;
+		moving_scene = target;
 		moving_scene.classList.add("highlight");
 		scenes_list.addEventListener("dragenter", on_scene_dragenter);
 		scenes_list.addEventListener("drop", on_scene_drop);
 		});
+
+	/* ===============================================================
+	   Reload previews on hover
+    */
+	function on_row_mouseover(e) {
+		let row = e.target;
+		fetch("refresh-thumbnail", {
+			headers: {
+				"Content-Type": "application/json"
+				},
+			body: JSON.stringify({
+				uuid: row.id.slice(6),
+				}),
+			method: "POST",
+		});
+	}
+	function init_rows(rows) {
+		for(let i = 0; i < rows.length; i++) {
+			let row = rows[i];
+			row.addEventListener("mouseenter", on_row_mouseover);
+		}
+	}
+	init_rows(scenes_list.children);
+	let observer = new MutationObserver((mutationList) => {
+		if(mutationList.addedNodes)
+			init_rows(mutationList.addedNodes);
+		});
+	observer.observe(scenes_list, {childList: true});
 
 	/* ===============================================================
        Drag-and-drop dropzone for adding scenes

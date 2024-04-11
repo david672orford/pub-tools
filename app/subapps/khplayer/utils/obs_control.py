@@ -22,7 +22,8 @@ class ObsControl(ObsControlBase):
 		# immediately, since it needs to come before the one
 		# in view_scenes.py so we can pass "before" to it.
 		self._scene_list = None
-		self.scene_pos = {}
+		self._scene_pos = {}
+		self.subscribe("Config", lambda event: self.event(event))
 		self.subscribe("Scenes", lambda event: self.event(event))
 		self.subscribe("Ui", lambda event: self.event(event))
 
@@ -81,6 +82,9 @@ class ObsControl(ObsControlBase):
 			return
 		data = event["eventData"]
 		match event["eventType"]:
+			case "CurrentSceneCollectionChanged":
+				self._scene_list = None
+				self._scene_pos = {}
 			case "CurrentProgramSceneChanged":
 				self.scene_list["currentProgramSceneUuid"] = data["sceneUuid"]
 				self.scene_list["currentProgramSceneName"] = data["sceneName"]
@@ -88,7 +92,6 @@ class ObsControl(ObsControlBase):
 				self.scene_list["currentPreviewSceneUuid"] = data["sceneUuid"]
 				self.scene_list["currentPreviewSceneName"] = data["sceneName"]
 			case "StudioModeStateChanged":
-				print("Studio mode:", data)
 				scenes = self.scene_list
 				if data["studioModeEnabled"]:
 					scenes["currentPreviewSceneUuid"] = scenes["currentProgramSceneUuid"]
@@ -96,10 +99,9 @@ class ObsControl(ObsControlBase):
 				else:
 					scenes["currentPreviewSceneUuid"] = None
 					scenes["currentPreviewSceneName"] = None
-				print(self.scene_list)
 			case "SceneCreated":
 				scene_name = re.sub(r" \(\d+\)$", "", data["sceneName"])
-				pos = self.scene_pos.pop(scene_name, None)
+				pos = self._scene_pos.pop(scene_name, None)
 				if pos is not None and pos < len(self.scene_list["scenes"]):
 					data["before"] = self.scene_list["scenes"][pos]["sceneUuid"]	# for handler in view_scenes.py
 					self.scene_list["scenes"].insert(pos, data)
@@ -116,9 +118,11 @@ class ObsControl(ObsControlBase):
 
 	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
 		if pos is not None:
-			self.scene_pos[scene_name] = pos
+			self._scene_pos[scene_name] = pos
 		return super().create_scene(scene_name, make_unique=make_unique)
 
+	# Return the index of the first scene the name of which does not
+	# begin with any of the characters in skiplist.
 	def select_scene_pos(self, skiplist:str=None):
 		if skiplist is None:
 			return None
@@ -146,6 +150,7 @@ class ObsControl(ObsControlBase):
 				return scenes[i]["sceneName"]
 		raise KeyError()
 
+	# Change the position of a scene in the scene list
 	def move_scene(self, uuid, new_index):
 		i = self.get_scene_index(uuid)
 		scene = self.scene_list["scenes"].pop(i)
