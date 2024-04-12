@@ -91,7 +91,7 @@ class SceneItem:
 @blueprint.route("/scenes/composer/<scene_uuid>/rename-scene", methods=["POST"])
 def page_scenes_composer_rename_scene(scene_uuid):
 	try:
-		obs.set_scene_name(request.form["scene_name"])
+		obs.set_scene_name(scene_uuid, request.form["scene_name"])
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 	return redirect(".")
