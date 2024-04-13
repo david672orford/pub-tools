@@ -40,7 +40,6 @@ def get_scene_thumbnail(scene):
 
 @blueprint.route("/scenes/")
 def page_scenes():
-
 	scenes = get_scenes_with_thumbnails()
 	return render_template(
 		"khplayer/scenes.html",
@@ -252,7 +251,7 @@ def page_scenes_add_html():
 		scene_uuid = scene_uuid,
 		input_name = "Text Source",
 		input_kind = "text_ft2_source_v2",
-    	input_settings = {
+		input_settings = {
 			"font": {
 				 "face": "Sans Serif",
 				 "flags": 0,
@@ -271,9 +270,9 @@ def page_scenes_add_html():
 		"positionY": 40,
 		"boundsWidth": 1200,
 		"boundsHeight": 640,
-        "alignment": 5,
-        "boundsAlignment": 4,
-        "boundsType": "OBS_BOUNDS_SCALE_TO_WIDTH",
+		"alignment": 5,
+		"boundsAlignment": 4,
+		"boundsType": "OBS_BOUNDS_SCALE_TO_WIDTH",
 		})
 
 	return progress_response(_("✔ Text added."), last_message=True, cssclass="success")

@@ -75,9 +75,11 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
-* [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
-* [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * Bug: DND of file into browser dock does nothing, but URL works
+* [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
+* [PR: linux-pulseaudio: Implement audio output](https://github.com/obsproject/obs-studio/pull/10495)
+* [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
+* [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
 
 ## Object Hierarcy
 
