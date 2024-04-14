@@ -56,7 +56,7 @@ def page_scenes_composer(scene_uuid):
 		scene_name = scene_name,
 		scene_items = reversed(scene_items),
 		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
-		remotes = current_app.config.get("REMOTES"),
+		remotes = current_app.config.get("VIDEO_REMOTES"),
 		bounds_options = bounds_options,
 		top = "../../../",
 		)

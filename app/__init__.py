@@ -59,6 +59,16 @@ def create_app(instance_path=None):
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
+	# FIXME: there must be a better way to do this
+	assert type(app.config["UI_LANGUAGE"]) is str
+	assert type(app.config["PUB_LANGUAGE"]) is str
+	assert type(app.config["SUB_LANGUAGE"]) in (str, type(None))
+	assert app.config["VIDEO_RESOLUTION"] in ("240p", "360p", "480p", "720p")
+	assert type(app.config["OBS_BROWSER_DOCK_SCALE"]) is float
+	assert type(app.config["CAMERA_NAME_OVERRIDES"]) is dict
+	assert type(app.config["VIDEO_REMOTES"]) is dict
+	assert app.config["PATCHBAY"] in (False, True, "virtual-cable")
+
 	# Init DB
 	with app.app_context():
 		from .models import init_app as models_init_app
