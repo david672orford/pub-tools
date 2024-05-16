@@ -2,15 +2,15 @@
 # the same apps as ../start.py does.
 
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from obs_wrap import ObsScript, ObsWidget
-import obspython as obs
 from threading import Thread
-from werkzeug.serving import make_server
 import logging
 
+import obspython as obs
+from werkzeug.serving import make_server
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from obs_wrap import ObsScript, ObsWidget
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
 from app import create_app
 
@@ -28,6 +28,8 @@ logger = logging.getLogger()
 logger.removeHandler(logger.handlers[0])
 
 class KHPlayer(ObsScript):
+	"""Run KH Player inside OBS"""
+
 	description = """
 		<h2>KH Player—Server</h2>
 		<p>KH Player loads videos and illustrations from JW.ORG. Enable it and
@@ -46,6 +48,7 @@ class KHPlayer(ObsScript):
 		# Instantiante the KH Player app and prepare to serve it.
 		self.app = create_app()
 		self.enable = False		# should the HTTP server be running?
+		self.debug = False
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
 		self.logger = logging.getLogger("app")
@@ -90,8 +93,13 @@ class KHPlayer(ObsScript):
 			listen_address = "0.0.0.0"
 			listen_port = 5000
 			try:
-				self.server = make_server(listen_address, port=listen_port, app=self.app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
-				self.thread = Thread(target=lambda: self.server.serve_forever())
+				self.server = make_server(
+					listen_address, port = listen_port,
+					app = self.app,
+					request_handler = CleanlogWSGIRequestHandler,
+					threaded = True
+					)
+				self.thread = Thread(target=self.server.serve_forever)
 				self.thread.daemon = True
 				self.thread.start()
 				self.logger.debug("Server is running.")
@@ -99,4 +107,3 @@ class KHPlayer(ObsScript):
 				self.logger.error("Server failed to start.")
 
 KHPlayer()
-
