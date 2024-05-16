@@ -119,15 +119,14 @@ class MeetingLoader(Fetcher):
 			else:
 				sections[-1][1].append(el)
 
-		# In the inner for loop we add what we want to keep to this list
-		scenes = []
-
+		# Loop through the sections of the Workbook page yielding the media items as we go
 		section_number = 0
 		for section_title, section_els in sections:
 			section_number += 1
 			part_title = None
 			logger.info("Top-level section: %d %s", section_number, section_title)
 
+			# Loop through the HTML elements in this section
 			part_number = 0
 			for el in section_els:
 				article_href_dedup = set()
@@ -164,17 +163,17 @@ class MeetingLoader(Fetcher):
 						part_title = h3[0].text_content().strip()
 				logger.info("Part: %d %s", part_number, part_title)
 
-				# Illustrations
+				# Illustrations in this HTML element
 				for illustration in self.extract_illustrations("mwb", "Тетрядь", el):
 					illustration.section_title = section_title
 					illustration.part_title = part_title
 					yield illustration
 
-				# Go through all of the hyperlinks in this section
+				# Go through all of the hyperlinks in this HTML element
 				for a in el.xpath(".//a"):
 					logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
 
-					# Not an actual loop. We always break out on the first iteration.
+					# Not an actual loop. We always break out during the first iteration.
 					while True:
 
 						# This is for the log message which is printed after we break out of this 'loop'
@@ -208,15 +207,26 @@ class MeetingLoader(Fetcher):
 							is_a = "verse"
 							break
 
-						# Extract publication code and document ID. We will use these below
-						# to figure out what we've got.
-						try:
-							pub_code = re.match(r"^pub-(\S+)$", a.attrib['class']).group(1)
-							docid = re.match(r"^mid(\d+)$", a.attrib['data-page-id']).group(1)
-						except AttributeError:
-							raise AssertionError("Not as expected: <%s %s>%s" % (a.tag, str(a.attrib), a.text))
+						# Footnote marker
+						if a.attrib.get("class") == "footnoteLink":
+							is_a = "footnote"
+							break
 
-						# Song from our songbook
+						# Extract publication code and Meps document ID.
+						# We will use these below to figure out what we've got.
+						pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class"))
+						if pub_code is None:
+							is_a = "not-a-pub"
+							break
+						pub_code = pub_code.group(1)
+
+						docid = re.match(r"^mid(\d+)$", a.attrib["data-page-id"])
+						if docid is None:
+							is_a = "no-docid"
+							break
+						docid = docid.group(1)
+
+						# Publication: Song from Sink Out Joyfully to Jehovah
 						if pub_code == "sjj":
 							song = self.make_song(a)
 							song.section_title = section_title
@@ -224,7 +234,7 @@ class MeetingLoader(Fetcher):
 							is_a = "song"
 							break
 
-						# Counsel point
+						# Publication: Apply Yourself to Reading and Teaching
 						if pub_code == "th":
 							text = a.text_content().strip()
 							chapter = int(re.search(r"(\d+)$", text).group(1))
@@ -247,14 +257,15 @@ class MeetingLoader(Fetcher):
 						# ijwfg -- Teaching toolbox videos?
 						#
 						# FIXME: Do we need to handle this? Or is this just for links to videos
-						# to be used in demonstrations?
+						#		to be used in demonstrations?
 						if pub_code.startswith("ijw"):
 							docid = a.attrib.get('data-page-id')
 							is_a = "video"
 							break
 
-						# Get videos and illustrations from articles linked to in the last section
-						# (Христианская жизнь)
+						# Only in the last section (Христианская жизнь)
+						# Get videos and illustrations from articles linked to.
+						# This gets us the illustrations for the Bible Study
 						if section_number == 4:
 
 							# Take the text inside the <a> tag as the article title
@@ -279,9 +290,11 @@ class MeetingLoader(Fetcher):
 							is_a = "article"
 							break
 
-						is_a = "unknown"
+						is_a = "fallthru"
 						break
 
+					# If the <a> elemement linked to a media item, we already yielded it above.
+					# No need to do anything here.
 					logger.info(" Item: %s \"%s\" (%s)" % (str(a.attrib.get('class')).strip(), a.text_content().strip(), is_a))
 
 	# Handler for a Watchtower study article
@@ -339,9 +352,9 @@ class MeetingLoader(Fetcher):
 		#
 		# <figure class="article-top-related-image jwac textSizeIncrement">
 		#   <span class="jsRespImg" data-img-type="lsr" data-img-att-alt="..." ...>
-		#     <noscript>
-		#       <img src="..." alt="...">
-		#     </noscript>
+		#    <noscript>
+		#     <img src="..." alt="...">
+		#    </noscript>
 		#   </span>
 		# </figure>
 		#
@@ -349,9 +362,9 @@ class MeetingLoader(Fetcher):
 		#
 		# <figure>
 		#   <span class="jsRespImg" data-img-type="cnt" data-img-att-class="south_center" data-img-att-alt="..." ...>
-		#     <noscript>
-		#       <img src="..." alt="...">
-		#     </noscript>
+		#    <noscript>
+		#     <img src="..." alt="...">
+		#    </noscript>
 		#   </span>
 		# </figure>
 		#
@@ -359,12 +372,12 @@ class MeetingLoader(Fetcher):
 		#
 		# <figure>
 		#  <span class="jsRespImg" data-img-type="cnt" data-img-att-class="south_center" data-img-att-alt="..." ...>
-		#    <noscript>
-		#      <img src="..." alt="...">
-		#    </noscript>
+		#   <noscript>
+		#    <img src="..." alt="...">
+		#   </noscript>
 		#  </span>
 		#  <figcaption>
-		#    <p id="pN" data-pid="N" class="pN">...</p>
+		#   <p id="pN" data-pid="N" class="pN">...</p>
 		#  </figcaption>
 		# </figure>
 		#
@@ -374,34 +387,34 @@ class MeetingLoader(Fetcher):
 		#
 		# <figure>
 		#  <a href="..." data-video="..." ...>
-		#    <span class="jsRespImg" data-img-type="cnt" data-img-att-class="suppressZoom" ...>
-		#      <noscript>
-		#         <img src="..." alt="" class="suppressZoom">
-		#      </noscript>
-		#    </span>
+		#   <span class="jsRespImg" data-img-type="cnt" data-img-att-class="suppressZoom" ...>
+		#    <noscript>
+		#     <img src="..." alt="" class="suppressZoom">
+		#    </noscript>
+		#   </span>
 		#  </a>
 		# </figure>
 		#
 		# Image link to article with context:
 		#
 		# <div>
-		#   <div>
-		#     <figure>
-		#       <a class="pub-XX" data-page-id="..." href="...">
-		#         <span class="jsRespImg" data-img-att-alt="..." ...>
-		#           <noscript>
-		#             <img src="..." alt="...">
-		#           </noscript>
-		#         </span>
-		#       </a>
-		#     </figure>
-		#   </div>
-		#   <div>
-		#     <p>...</p>
-		#     <p>
-		#       <a class="pub-XX" ...>...</a>
-		#     </p>
-		#   </div>
+		#  <div>
+		#   <figure>
+		#    <a class="pub-XX" data-page-id="..." href="...">
+		#     <span class="jsRespImg" data-img-att-alt="..." ...>
+		#      <noscript>
+		#       <img src="..." alt="...">
+		#      </noscript>
+		#     </span>
+		#    </a>
+		#   </figure>
+		#  </div>
+		#  <div>
+		#   <p>...</p>
+		#   <p>
+		#    <a class="pub-XX" ...>...</a>
+		#   </p>
+		#  </div>
 		# </div>
 		#
 		n = 0
