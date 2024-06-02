@@ -10,7 +10,8 @@ function init_scenes()
     */
 	$("#scenes-list").addEventListener("click", (e) => {
 		let target = e.target;
-		if(target.tagName == "INPUT")
+		console.log("Click:", target);
+		if(target.tagName == "INPUT")	/* checkbox */
 			return;
 		while(target.tagName != "TR")
 			target = target.parentElement;
