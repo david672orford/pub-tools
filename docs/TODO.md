@@ -7,6 +7,12 @@
   * https://docs.python-cerberus.org/
   * https://github.com/python-jsonschema/jsonschema
   * https://json-schema.org/learn/getting-started-step-by-step
+* Is there a scenario in which /patchbay/create-link fails to post values?
+
+    KeyError: 'output_port_id'
+* D-n-D filename is lost
+* Click on thumbnail in scenes list does nothing
+* DND of song from Workbook loads web page rather than MP4
 
 ## Hard Stuff
 

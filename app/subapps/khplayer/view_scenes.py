@@ -9,7 +9,7 @@ from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
-from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage
+from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage, load_text, load_meeting_media_item
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 from .utils.controllers import meeting_loader
@@ -224,10 +224,38 @@ def page_scenes_upload():
 
 	return progress_response(_("✔ File has been loaded."), last_message=True, cssclass="success")
 
+@blueprint.route("/scenes/add-html", methods=["POST"])
+def page_scenes_add_html():
+	html_text = request.form["add-html"]
+	doc = HTML(html_text)
+
+	if doc.doc.tag == "a":
+		href = doc.doc.attrib.get("href")
+		if href:
+			pub = meeting_loader.get_pub_from_a_tag(doc.doc)
+			print("pub:", pub)
+			if pub is not None:
+				def background_loader():
+					sleep(1)
+					load_meeting_media_item(pub)
+					progress_callback(_("✔ Publication has been loaded."), last_message=True, cssclass="success")
+				run_thread(background_loader)
+				return progress_response(_("Loading dropped publication..."), cssclass="heading")
+			return add_url(href)
+
+	# If we get here, presume the intent was to create a text slide.
+	print("Before:", doc.pretty())
+	doc.cleanup()
+	print("After:", doc.pretty())
+	plain_text = doc.text_content()
+	return load_text("Text", plain_text)
+
 # When a URL is dropped onto the scene list
 @blueprint.route("/scenes/add-url", methods=["POST"])
 def page_scenes_add_url():
-	url = request.form["add-url"]
+	return add_url(request.form["add-url"])
+
+def add_url(url):
 	def background_loader():
 		sleep(1)
 		if meeting_loader.parse_video_url(url):
@@ -236,44 +264,4 @@ def page_scenes_add_url():
 			load_webpage(None, url)
 	run_thread(background_loader)
 	return progress_response(_("Loading dropped URL..."), cssclass="heading")
-
-@blueprint.route("/scenes/add-html", methods=["POST"])
-def page_scenes_add_html():
-	html_text = request.form["add-html"]
-	doc = HTML(html_text)
-	print("Before:", doc.pretty())
-	doc.cleanup()
-	print("After:", doc.pretty())
-	plain_text = doc.text_content()
-
-	scene_uuid = obs.create_scene("Text", make_unique=True)["sceneUuid"]
-	source = obs.create_unique_input(
-		scene_uuid = scene_uuid,
-		input_name = "Text Source",
-		input_kind = "text_ft2_source_v2",
-		input_settings = {
-			"font": {
-				 "face": "Sans Serif",
-				 "flags": 0,
-				 "size": 72,
-				 "style": ""
-				},
-			"custom_width": 1200,
-			"drop_shadow": False,
-			"outline": False,
-			"text": plain_text,
-			"word_wrap": True
-			}
-		)
-	obs.scale_scene_item(scene_uuid, source["sceneItemId"], scene_item_transform={
-		"positionX": 40,
-		"positionY": 40,
-		"boundsWidth": 1200,
-		"boundsHeight": 640,
-		"alignment": 5,
-		"boundsAlignment": 4,
-		"boundsType": "OBS_BOUNDS_SCALE_TO_WIDTH",
-		})
-
-	return progress_response(_("✔ Text added."), last_message=True, cssclass="success")
 

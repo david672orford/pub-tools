@@ -1,9 +1,12 @@
 from flask import current_app
 import os.path
+import logging
 
 from ....utils.babel import gettext as _
-from ....utils.background import flash, progress_callback
+from ....utils.background import flash, progress_callback, progress_response
 from .controllers import meeting_loader, obs, ObsError
+
+logger = logging.getLogger(__name__)
 
 scene_name_prefixes = {
 	"audio": "▷",
@@ -139,4 +142,53 @@ def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None,
 		progress_callback(_("✘ Loading of webpage failed."), last_message=close, cssclass="error")
 	else:
 		progress_callback(_("✔ Webpage has been loaded."), last_message=close, cssclass="success")
+
+# Add a scene which displays text
+# scene_name -- name of scene to create in OBS
+# text -- the text to display
+def load_text(scene_name, text):
+	scene_uuid = obs.create_scene(scene_name, make_unique=True)["sceneUuid"]
+	source = obs.create_unique_input(
+		scene_uuid = scene_uuid,
+		input_name = "Text Source",
+		input_kind = "text_ft2_source_v2",
+		input_settings = {
+			"font": {
+				 "face": "Sans Serif",
+				 "flags": 0,
+				 "size": 72,
+				 "style": ""
+				},
+			"custom_width": 1200,
+			"drop_shadow": False,
+			"outline": False,
+			"text": text,
+			"word_wrap": True
+			}
+		)
+	obs.scale_scene_item(scene_uuid, source["sceneItemId"], scene_item_transform={
+		"positionX": 40,
+		"positionY": 40,
+		"boundsWidth": 1200,
+		"boundsHeight": 640,
+		"alignment": 5,
+		"boundsAlignment": 4,
+		"boundsType": "OBS_BOUNDS_SCALE_TO_WIDTH",
+		})
+
+	return progress_response(_("✔ Text has been added."), last_message=True, cssclass="success")
+
+def load_meeting_media_item(item):
+	logger.info("Loading media item: %s", repr(item))
+	if item.media_type == "web":		# HTML page
+		load_webpage(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
+	elif item.pub_code is not None and item.pub_code.startswith("sjj"):
+		load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, prefix="♫ ", close=False)
+	elif item.media_type == "video":
+		load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
+	elif item.media_type == "image":
+		load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
+	else:
+		raise AssertionError("Unhandled case")
+
 

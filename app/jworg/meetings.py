@@ -16,13 +16,27 @@ logger = logging.getLogger(__name__)
 # A single media item, such as a video, for use at a meeting
 @dataclass
 class MeetingMedia:
+
+	# Abbreviation for this publication
 	pub_code: str
+
+	# Name of this video, caption of image, name of article
 	title: str
+
+	# "video", "image", "web" (we will know how to display it)
 	media_type: str
+
+	# The media file or web page
 	media_url: str
-	section_title: str = None
-	part_title: str = None
+
+	# Small image to represent it (optional)
 	thumbnail_url: str = None
+
+	# Section of Workbook (optional)
+	section_title: str = None
+
+	# Name of meeting part which links to this item (optional)
+	part_title: str = None
 
 # Scan a Meeting Workbook week or Watchtower study article and return
 # a list of the vidoes and pictures therein.
@@ -53,8 +67,8 @@ class MeetingLoader(Fetcher):
 			result["mwb_docid"] = int(re.search(r" docId-(\d+) ", mwb_div.attrib["class"]).group(1))
 
 		else:
-			result["mwb_url" ] = None
-			result["mwb_docid" ] = None
+			result["mwb_url"] = None
+			result["mwb_docid"] = None
 
 		#------------------------------------------
 		# Watchtower
@@ -71,8 +85,8 @@ class MeetingLoader(Fetcher):
 			result["watchtower_docid"] = response.geturl().split('/')[-1]
 
 		else:
-			result["watchtower_url" ] = None
-			result["watchtower_docid" ] = None
+			result["watchtower_url"] = None
+			result["watchtower_docid"] = None
 
 		return result
 
@@ -80,12 +94,11 @@ class MeetingLoader(Fetcher):
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
 	def extract_media(self, url, callback=None):
-		#callback(_("Downloading article for meeting..."))
 		container = self.get_article_html(url)
 		callback(_("Article title: \"%s\"") % container.xpath(".//h1")[0].text_content().strip())
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
-		m = re.search(r" pub-(\S+) ", container.attrib['class'])
+		m = re.search(r" pub-(\S+) ", container.attrib["class"])
 		assert m
 		return getattr(self, "extract_media_%s" % m.group(1))(url, container, callback)
 
@@ -161,7 +174,7 @@ class MeetingLoader(Fetcher):
 					if h3:
 						part_number += 1
 						part_title = h3[0].text_content().strip()
-				logger.info("Part: %d %s", part_number, part_title)
+				logger.info("Section %d, part %d \"%s\"", section_number, part_number, part_title)
 
 				# Illustrations in this HTML element
 				for illustration in self.extract_illustrations("mwb", "Тетрядь", el):
@@ -171,131 +184,104 @@ class MeetingLoader(Fetcher):
 
 				# Go through all of the hyperlinks in this HTML element
 				for a in el.xpath(".//a"):
-					logger.info(" href: %s %s", unquote(a.attrib['href']), str(a.attrib))
+					pub = self.get_pub_from_a_tag(a)
+					if pub is not None:
+						if pub.media_type != "web":
+							pub.section_title = section_title
+							pub.part_title = part_title
+							yield pub
 
-					# Not an actual loop. We always break out during the first iteration.
-					while True:
+						elif section_number == 4:
+							callback(_("Getting media list from \"%s\"...") % pub.title)
 
-						# This is for the log message which is printed after we break out of this 'loop'
-						is_a = None
-
-						# Meeting Workbook sample presentation video
-						# (Other videos occasionally use this link format too.)
-						# Sample <a> tag attributes:
-						# data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
-						# href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
-						if a.attrib.get("data-video") is not None:
-							video_metadata = self.get_video_metadata(a.attrib["href"])
-							assert video_metadata is not None, a.attrib["href"]
-							query = dict(parse_qsl(urlparse(a.attrib["href"]).query))
-							yield MeetingMedia(
-								section_title = section_title,
-								part_title = part_title,
-								#pub_code = None,
-								pub_code = pub_code if "docid" in query else re.sub(r"^pub-([^_]+)_.+$", lambda m: m.group(1), query["lank"]),
-								#title = a.text_content(),
-								title = video_metadata["title"],
-								media_type = "video",
-								media_url = a.attrib["href"],
-								thumbnail_url = video_metadata["thumbnail_url"],
-								)
-							is_a = "video"
-							break
-
-						# Link to Bible passage
-						if "jsBibleLink" in a.attrib.get("class","").split(" "):
-							is_a = "verse"
-							break
-
-						# Footnote marker
-						if a.attrib.get("class") == "footnoteLink":
-							is_a = "footnote"
-							break
-
-						# Extract publication code and Meps document ID.
-						# We will use these below to figure out what we've got.
-						pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class"))
-						if pub_code is None:
-							is_a = "not-a-pub"
-							break
-						pub_code = pub_code.group(1)
-
-						docid = re.match(r"^mid(\d+)$", a.attrib["data-page-id"])
-						if docid is None:
-							is_a = "no-docid"
-							break
-						docid = docid.group(1)
-
-						# Publication: Song from Sink Out Joyfully to Jehovah
-						if pub_code == "sjj":
-							song = self.make_song(a)
-							song.section_title = section_title
-							yield song
-							is_a = "song"
-							break
-
-						# Publication: Apply Yourself to Reading and Teaching
-						if pub_code == "th":
-							text = a.text_content().strip()
-							chapter = int(re.search(r"(\d+)$", text).group(1))
-							#yield MeetingMedia(
-							#	section_title = section_title,
-							#	part_title = part_title,
-							#	pub_code = "th %d" % chapter,
-							#	title = text,
-							#	media_type = "web",
-							#	#media_url = urljoin(url, a.attrib['href']),
-							#	media_url = "http://localhost:5000/epubs/th/?id=chapter%d" % (chapter + 4),
-							#	)
-							is_a = "counsel point"
-							break
-
-						# Video from JW Broadcasting?
-						# Examples
-						# ijwwb -- Whiteboard animation
-						# ijwpk -- Become Jehovah's friend
-						# ijwfg -- Teaching toolbox videos?
-						#
-						# FIXME: Do we need to handle this? Or is this just for links to videos
-						#		to be used in demonstrations?
-						if pub_code.startswith("ijw"):
-							docid = a.attrib.get('data-page-id')
-							is_a = "video"
-							break
-
-						# Only in the last section (Христианская жизнь)
-						# Get videos and illustrations from articles linked to.
-						# This gets us the illustrations for the Bible Study
-						if section_number == 4:
-
-							# Take the text inside the <a> tag as the article title
-							article_title = a.text_content().strip()
-							callback(_("Getting media list from \"%s\"...") % article_title)
-
-							# If we have not scripted this article for illustrations yet, do so now.
+							# If we have not scraped this article for illustrations yet, do so now.
 							# TODO: interpret the paragraph ranges in the URL fragment
-							article_href = urljoin(url, a.attrib['href'])
+							article_href = urljoin(url, a.attrib["href"])
 							article_href_nofragment = article_href.split("#")[0]
 							if not article_href_nofragment in article_href_dedup:
 
 								# Get the content of the article's <main> tag and extract illustrations
 								article_main = self.get_article_html(article_href, main=True)
-								for illustration in self.extract_illustrations(pub_code, article_title, article_main):
+								for illustration in self.extract_illustrations(pub.pub_code, pub.title, article_main):
 									illustration.section_title = section_title
 									illustration.part_title = part_title
 									yield illustration
 
 								article_href_dedup.add(article_href_nofragment)
 
-							is_a = "article"
-							break
+	# Figure out to what publication an <a> tag points
+	def get_pub_from_a_tag(self, a):
+		assert a.tag == "a"
+		logger.info("Pub <a> tag: href=\"%s\" %s", unquote(a.attrib["href"]), str(a.attrib))
+		pub = None
 
-						is_a = "fallthru"
-						break
+		# This is for the log message which is printed after we break out of this 'loop'
+		is_a = None
 
-					# If the <a> elemement linked to a media item, we already yielded it above.
-					# No need to do anything here.
-					logger.info(" Item: %s \"%s\" (%s)" % (str(a.attrib.get('class')).strip(), a.text_content().strip(), is_a))
+		# Not an actual loop. We always break out during the first iteration.
+		while True:
+
+			# Link to Bible passage, ignore
+			if "jsBibleLink" in a.attrib.get("class","").split(" "):
+				is_a = "verse"
+				break
+
+			# Footnote marker, ignore
+			if a.attrib.get("class") == "footnoteLink":
+				is_a = "footnote"
+				break
+
+			# Video
+			# Sample <a> tag attributes:
+			#  data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
+			#  href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
+			if a.attrib.get("data-video") is not None:
+				video_metadata = self.get_video_metadata(a.attrib["href"])
+				assert video_metadata is not None, a.attrib["href"]
+				query = dict(parse_qsl(urlparse(a.attrib["href"]).query))
+				pub = MeetingMedia(
+					pub_code = pub_code if "docid" in query else re.sub(r"^pub-([^_]+)_.+$", lambda m: m.group(1), query["lank"]),
+					title = video_metadata["title"],
+					media_type = "video",
+					media_url = a.attrib["href"],
+					thumbnail_url = video_metadata["thumbnail_url"],
+					)
+				is_a = "video"
+				break
+
+			# Extract publication code and MEPS document ID.
+			# We will use these below to figure out what we've got.
+			pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class",""))
+			if pub_code is None:
+				is_a = "not-a-pub"
+				break
+			pub_code = pub_code.group(1)
+
+			#docid = re.match(r"^mid(\d+)$", a.attrib.get("data-page-id",""))
+			#if docid is None:
+			#	is_a = "no-docid"
+			#	break
+			#docid = docid.group(1)
+
+			# Publication: Song from Sing Out Joyfully to Jehovah
+			if pub_code == "sjj":
+				pub = self.make_song(a)
+				is_a = "song"
+				break
+
+			# If we get here, we assume this is an article from which the caller
+			# might wish to extract illustrations.
+			pub = MeetingMedia(
+				pub_code = pub_code,
+				title = a.text_content().strip(),
+				media_type = "web",
+				media_url = a.attrib["href"],
+				)
+			is_a = "article"
+			break
+
+		logger.info("Extracted item: %s \"%s\" (%s)" % (str(a.attrib.get("class")).strip(), a.text_content().strip(), is_a))
+		return pub
 
 	# Handler for a Watchtower study article
 	# Called from .extract_media()
@@ -341,8 +327,6 @@ class MeetingLoader(Fetcher):
 	# The Meeting Workbook extractor runs this on sections of the Workbook
 	# and on the Bible Study material.
 	def extract_illustrations(self, pub_code, article_title, container):
-		logger.debug("=========================================================")
-		logger.debug(article_title)
 		#self.dump_html(container)
 
 		#

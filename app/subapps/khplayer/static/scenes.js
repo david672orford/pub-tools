@@ -157,7 +157,7 @@ function init_scenes()
 		});
 
 	/* File actually dropped onto the drop zone */
-	dropArea.addEventListener('drop', (e) => {
+	dropArea.addEventListener("drop", (e) => {
 		e.preventDefault();
 		console.log(e.dataTransfer);
 		console.log("Types:", e.dataTransfer.types);
@@ -168,20 +168,20 @@ function init_scenes()
 		   form using .click() because .submit() does not trigger
 		   Turbo Stream handling. */
 		let i;
-		if((i = e.dataTransfer.types.indexOf("text/uri-list")) != -1)
-			{
-			e.dataTransfer.items[i].getAsString(function(url) {
-				console.log("url:", url);
-				$("#add-url").value = url;
-				$("#add-url-form BUTTON").click();
-				});
-			}
-		else if((i = e.dataTransfer.types.indexOf("text/html")) != -1)
+		if((i = e.dataTransfer.types.indexOf("text/html")) != -1)
 			{
 			e.dataTransfer.items[i].getAsString(function(html) {
 				console.log("html:", html);
 				$("#add-html").value = html;
 				$("#add-html-form BUTTON").click();
+				});
+			}
+		else if((i = e.dataTransfer.types.indexOf("text/uri-list")) != -1)
+			{
+			e.dataTransfer.items[i].getAsString(function(url) {
+				console.log("url:", url);
+				$("#add-url").value = url;
+				$("#add-url-form BUTTON").click();
 				});
 			}
 		else if(e.dataTransfer.files.length > 0)			/* local files */

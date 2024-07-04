@@ -15,12 +15,12 @@ bounds_options = (
 	(1280, 720, 0, 0),		# Fullscreen
 	(638, 720, 0, 0),		# Left, Half
 	(638, 720, 642, 0),		# Right, Half
-	#(640, 640, 0, 40),		# Left, Square
-	#(640, 640, 640, 40),	# Right, Square
 	(640, 360, 0, 180),		# Left, Letterbox
 	(640, 360, 640, 180),	# Right, Letterbox
-	(240, 360, 0, 0),		# Portrait
-	(240, 360, 1040, 360),	# Portrait
+	#(240, 360, 0, 0),		# Portrait
+	#(240, 360, 1040, 360),	# Portrait
+	(320, 360, 0, 0),		# Portrait top-left
+	(320, 360, 960, 360),	# Portrait bottom-right
 	)
 
 @blueprint.route("/scenes/composer/<scene_uuid>/")

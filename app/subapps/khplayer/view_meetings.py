@@ -16,14 +16,22 @@ from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import meeting_loader, obs
-from .utils.scenes import load_video_url, load_image_url, load_webpage
+from .utils.scenes import load_meeting_media_item
 from ...jworg.meetings import MeetingMedia
 
 logger = logging.getLogger(__name__)
 
 menu.append((_("Meetings"), "/meetings/"))
 
-# List upcoming meetings so user can click on the one he wants to load.
+# Construct a sharing URL for a meeting article. Sharing URL's redirect
+# to the actual webpage of the article.
+def meeting_url(docid):
+	return "https://www.jw.org/finder?wtlocale={wtlocale}&docid={docid}&srcid=share".format(
+		docid = docid,
+		wtlocale = meeting_loader.meps_language,
+		)
+
+# List upcoming meetings
 @blueprint.route("/meetings/")
 def page_meetings():
 	weeks = Weeks.query.filter_by(lang = meeting_loader.language)
@@ -32,21 +40,14 @@ def page_meetings():
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 	return render_template("khplayer/meetings.html", weeks=weeks.all(), top="..")
 
-# User has pressed the "Load More Weeks" button.
+# Target for "Load More Weeks" button at bottom of upcoming meetings list
 @blueprint.route("/meetings/update", methods=["POST"])
 def page_meetings_update():
 	progress_callback(_("Fetching meeting schedules..."), cssclass="heading")
 	update_meetings(callback=progress_callback)
 	return redirect(".")
 
-# Construct the sharing URL for a meeting article. This will redirect to the article itself.
-def meeting_url(docid):
-	return "https://www.jw.org/finder?wtlocale={wtlocale}&docid={docid}&srcid=share".format(
-		docid = docid,
-		wtlocale = meeting_loader.meps_language,
-		)
-
-# User has clicked on a meeting from the list.
+# Show a particular upcoming meeting
 @blueprint.route("/meetings/<int:docid>/")
 def page_meetings_view(docid):
 	title = request.args.get("title")
@@ -100,8 +101,8 @@ def page_meetings_view_stream(docid):
 
 # User has pressed the "Download Media and Create Scenes in OBS"
 # button on a meeting's media page.
-@blueprint.route("/meetings/<int:docid>/download", methods=['POST'])
-def page_meetings_load(docid):
+@blueprint.route("/meetings/<int:docid>/download", methods=["POST"])
+def page_meetings_download(docid):
 
 	# Remove all scenes except those with names beginning with an asterisk.
 	# Such scenes are for stage cameras, Zoom, etc.
@@ -123,17 +124,19 @@ def page_meetings_load(docid):
 		index += 1
 
 	# Download in the background.
-	run_thread(lambda: meeting_media_to_obs_scenes(request.form.get("title"), media))
+	run_thread(lambda: load_meeting_media(request.form.get("title"), media))
 
 	return progress_response(None)
 
 # Download the meeting article (from the Watchtower or Workbook) and
 # extract a list of the videos and images. Implements caching.
 def get_meeting_media(docid):
+
 	# Look for this meeting's media in the DB cache table
 	# FIXME: Race condition can produce duplicate cache entries, so we use first().
 	meeting = MeetingCache.query.filter_by(lang=meeting_loader.language, docid=docid).first()
 	if meeting is not None:
+		progress_callback("Meeting is already in cache.")
 		# Deserialize list from JSON back to objects
 		for item in meeting.media:
 			yield MeetingMedia(**item)
@@ -147,25 +150,16 @@ def get_meeting_media(docid):
 		yield item
 		media.append(item)
 
-	# Serialize list from objects to JSON and store in DB cache table
+	# Serialize the meeting's media list to JSON and store in DB cache table
 	meeting = MeetingCache(lang=meeting_loader.language, docid=docid, media=list(map(lambda item: asdict(item), media)))
 	db.session.add(meeting)
 	db.session.commit()
 
-# This function is run in a background thread to download the media and add a scene in OBS for each item.
-def meeting_media_to_obs_scenes(title, items):
+# This function is run in a background thread to download
+# the media and add a scene in OBS for each item.
+def load_meeting_media(title, items):
 	progress_callback(_("Loading media for \"{title}\"...").format(title=title), cssclass="heading")
 	for item in items:
-		logger.info("Loading scene: %s", repr(item))
-		if item.media_type == "web":		# HTML page
-			load_webpage(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
-		elif item.pub_code is not None and item.pub_code.startswith("sjj"):
-			load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, prefix="♫ ", close=False)
-		elif item.media_type == "video":
-			load_video_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
-		elif item.media_type == "image":
-			load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
-		else:
-			raise AssertionError("Unhandled case")
+		load_meeting_media_item(item)
 	progress_callback(_("✔ All requested media have been loaded."), last_message=True, cssclass="success")
 
