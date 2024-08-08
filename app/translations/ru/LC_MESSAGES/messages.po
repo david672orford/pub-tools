@@ -7,18 +7,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-04-12 16:27-0400\n"
-"PO-Revision-Date: 2024-04-12 16:28-0400\n"
+"POT-Creation-Date: 2024-08-07 23:30-0400\n"
+"PO-Revision-Date: 2024-08-07 23:28-0400\n"
 "Last-Translator: \n"
-"Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "Generated-By: Babel 2.14.0\n"
-"X-Generator: Poedit 3.0.1\n"
 
 #: cli_update.py:58
 #, python-format
@@ -45,12 +44,12 @@ msgstr "изображение"
 msgid "video"
 msgstr "видео"
 
-#: jworg/meetings.py:85
+#: jworg/meetings.py:98
 #, python-format
 msgid "Article title: \"%s\""
 msgstr "Название стати: «%s»"
 
-#: jworg/meetings.py:262
+#: jworg/meetings.py:195
 #, python-format
 msgid "Getting media list from \"%s\"..."
 msgstr "Идёт загрузка списка материала из «%s»..."
@@ -123,10 +122,10 @@ msgstr "Идёт загрузка фрагмента..."
 msgid "✘ Extraction of clip failed!"
 msgstr "✘ Сбой загрузки фрагмента!"
 
-#: subapps/khplayer/utils/scenes.py:75 subapps/khplayer/utils/scenes.py:113
-#: subapps/khplayer/utils/scenes.py:138 subapps/khplayer/view_jwstream.py:237
+#: subapps/khplayer/utils/scenes.py:78 subapps/khplayer/utils/scenes.py:116
+#: subapps/khplayer/utils/scenes.py:141 subapps/khplayer/view_jwstream.py:237
 #: subapps/khplayer/view_scenes.py:26 subapps/khplayer/view_scenes.py:34
-#: subapps/khplayer/view_scenes.py:181 subapps/khplayer/view_scenes.py:222
+#: subapps/khplayer/view_scenes.py:180 subapps/khplayer/view_scenes.py:221
 #: subapps/khplayer/view_scenes_composer.py:52
 #: subapps/khplayer/view_scenes_composer.py:96
 #: subapps/khplayer/view_scenes_composer.py:131
@@ -148,32 +147,32 @@ msgstr "✔ Фрагмент успешно загружен."
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:38
+#: subapps/khplayer/view_meetings.py:46
 msgid "Fetching meeting schedules..."
 msgstr "Загружается список материала встреч..."
 
-#: subapps/khplayer/view_meetings.py:68
+#: subapps/khplayer/view_meetings.py:69
 msgid "Loading meeting media list..."
 msgstr "Загружается список материала для встречи..."
 
-#: subapps/khplayer/view_meetings.py:93 utils/background.py:32
+#: subapps/khplayer/view_meetings.py:94 utils/background.py:32
 #, python-format
 msgid "Error: %s"
 msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:94
+#: subapps/khplayer/view_meetings.py:95
 msgid "✘ Unable to load meeting media list."
 msgstr "✘ Сбой загрузки списка материала для встречи."
 
-#: subapps/khplayer/view_meetings.py:96
+#: subapps/khplayer/view_meetings.py:97
 msgid "✔ Meeting media list has finished loading."
 msgstr "✔ Список материала для встречи загружён."
 
-#: subapps/khplayer/view_meetings.py:157
+#: subapps/khplayer/view_meetings.py:161
 msgid "Loading media for \"{title}\"..."
 msgstr "Идёт загрузка материала для «{title}»..."
 
-#: subapps/khplayer/view_meetings.py:170
+#: subapps/khplayer/view_meetings.py:164
 msgid "✔ All requested media have been loaded."
 msgstr "✔ Все выбранные записи и изображения загружены."
 
@@ -185,43 +184,47 @@ msgstr "Звук"
 msgid "Scenes"
 msgstr "Сцены"
 
-#: subapps/khplayer/view_scenes.py:149
+#: subapps/khplayer/view_scenes.py:148
 msgid "* Camera"
 msgstr "* Камера"
 
-#: subapps/khplayer/view_scenes.py:154
+#: subapps/khplayer/view_scenes.py:153
 msgid "* Zoom"
 msgstr "* Zoom"
 
-#: subapps/khplayer/view_scenes.py:161
+#: subapps/khplayer/view_scenes.py:160
 msgid "* Camera+Zoom"
 msgstr "* Камера+Zoom"
 
-#: subapps/khplayer/view_scenes.py:168
+#: subapps/khplayer/view_scenes.py:167
 msgid "* New Scene"
 msgstr "* Новая сцена"
 
-#: subapps/khplayer/view_scenes.py:198
+#: subapps/khplayer/view_scenes.py:197
 #, python-format
 msgid "Loading local file \"%s\" (%s)..."
 msgstr "Идёт загрузка файла «%s» (%s)..."
 
-#: subapps/khplayer/view_scenes.py:203
+#: subapps/khplayer/view_scenes.py:202
 #, python-format
 msgid "Unsupported media type: %s"
 msgstr "Формат записи не поддерживается: %s"
 
-#: subapps/khplayer/view_scenes.py:226
+#: subapps/khplayer/view_scenes.py:225
 msgid "✔ File has been loaded."
 msgstr "✔ Загрузка файла завершена."
 
-#: subapps/khplayer/view_scenes.py:239
+#: subapps/khplayer/view_scenes.py:241
+msgid "✔ Publication has been loaded."
+msgstr "✔ Публикация успешно загружена."
+
+#: subapps/khplayer/view_scenes.py:243
+msgid "Loading dropped publication..."
+msgstr "Идёт загрузка перетасканной публикации..."
+
+#: subapps/khplayer/view_scenes.py:266
 msgid "Loading dropped URL..."
 msgstr "Идёт загрузка перетасканного URL..."
-
-#: subapps/khplayer/view_scenes.py:279
-msgid "✔ Text added."
-msgstr "✔ Слайд с текстом создан."
 
 #: subapps/khplayer/view_slides.py:18
 msgid "Slides"
@@ -253,12 +256,10 @@ msgid "Songbook"
 msgstr "Песеник"
 
 #: subapps/khplayer/view_songbook.py:36
-#, python-format
 msgid "Not a number: {song}"
 msgstr "Не является номером песни: {song}"
 
 #: subapps/khplayer/view_songbook.py:41
-#, python-format
 msgid "No such song: {song}"
 msgstr "Песня не существует: {song}"
 
@@ -563,8 +564,8 @@ msgstr "Номер и название песни"
 #: subapps/khplayer/templates/khplayer/songbook.html:38
 msgid "Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here."
 msgstr ""
-"Нажмитье <b>Обновить</b> в вклядке <b>Видео</b> чтобы список песнь появился "
-"здесь."
+"Нажмитье <b>Обновить</b> в вклядке <b>Видео</b> чтобы список песнь "
+"появился здесь."
 
 #: subapps/khplayer/templates/khplayer/videos.html:1
 msgid "Video Categories from JW.ORG"
@@ -618,58 +619,62 @@ msgstr "Ролики соответствующих терменам отсут�
 msgid "Consider searching for %(search_suggestion)s instead."
 msgstr "Предлагается заменить поисковые термины на %(search_suggestion)s."
 
-#: subapps/khplayer/utils/scenes.py:23
+#: subapps/khplayer/utils/scenes.py:26
 msgid "Loading video \"{scene_name}\"..."
 msgstr "Идёт загрузка ролика «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:33
+#: subapps/khplayer/utils/scenes.py:36
 msgid "Video title is \"{scene_name}\"."
 msgstr "Название ролика: «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:35 subapps/khplayer/utils/scenes.py:41
-#: subapps/khplayer/utils/scenes.py:129
+#: subapps/khplayer/utils/scenes.py:38 subapps/khplayer/utils/scenes.py:44
+#: subapps/khplayer/utils/scenes.py:132
 msgid "Downloading \"{url}\"..."
 msgstr "Идёт загрузка «{url}»..."
 
-#: subapps/khplayer/utils/scenes.py:57
+#: subapps/khplayer/utils/scenes.py:60
 msgid "Requesting subtitles download url for \"{scene_name}\"..."
 msgstr "Подаётся запрос на URL для загрузки субтитров к записи «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:60
+#: subapps/khplayer/utils/scenes.py:63
 msgid "Downloading subtitles from \"{subtitles_url}\"..."
 msgstr "Идёт загрузка субтитров по адресу «{subtitles_url}»..."
 
-#: subapps/khplayer/utils/scenes.py:76
+#: subapps/khplayer/utils/scenes.py:79
 msgid "✘ Loading of video failed."
 msgstr "✘ Сбой загрузки ролика."
 
-#: subapps/khplayer/utils/scenes.py:78
+#: subapps/khplayer/utils/scenes.py:81
 msgid "✔ Video has been loaded."
 msgstr "✔ Загрузка ролика завершена."
 
-#: subapps/khplayer/utils/scenes.py:108
+#: subapps/khplayer/utils/scenes.py:111
 msgid "Loading image \"{scene_name}\"..."
 msgstr "Идёт загрузка изображения «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:114
+#: subapps/khplayer/utils/scenes.py:117
 msgid "✘ Loading of image failed."
 msgstr "✘ Сбой загрузки изображения."
 
-#: subapps/khplayer/utils/scenes.py:116
+#: subapps/khplayer/utils/scenes.py:119
 msgid "✔ Image has been loaded."
 msgstr "✔ Загрузка изображения завершена."
 
-#: subapps/khplayer/utils/scenes.py:126 subapps/khplayer/utils/scenes.py:134
+#: subapps/khplayer/utils/scenes.py:129 subapps/khplayer/utils/scenes.py:137
 msgid "Loading webpage \"{scene_name}\"..."
 msgstr "Идёт загрузка веб-страницы «{scene_name}»..."
 
-#: subapps/khplayer/utils/scenes.py:139
+#: subapps/khplayer/utils/scenes.py:142
 msgid "✘ Loading of webpage failed."
 msgstr "✘ Сбой загрузки веб-страницы."
 
-#: subapps/khplayer/utils/scenes.py:141
+#: subapps/khplayer/utils/scenes.py:144
 msgid "✔ Webpage has been loaded."
 msgstr "✔ Загрузка веб-страницы завершена."
+
+#: subapps/khplayer/utils/scenes.py:179
+msgid "✔ Text has been added."
+msgstr "✔ Текст добавлен."
 
 #: subapps/khplayer/utils/zoom.py:18
 msgid "Second Zoom window not found."
@@ -832,3 +837,7 @@ msgstr "Сбой в выполнении фоновой задачи."
 
 #~ msgid "✔ Song {song} has been loaded."
 #~ msgstr "✔ Загрузка песни {song} завершена."
+
+#~ msgid "✔ Text added."
+#~ msgstr "✔ Слайд с текстом создан."
+

@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 class FetcherError(Exception):
 	pass
 
+class FetcherNoMediaError(FetcherError):
+	pass
+
 class NoRedirects(HTTPErrorProcessor):
 	def http_response(self, request, response):
 		if response.code in (301, 302, 303, 307):
@@ -269,7 +272,7 @@ class Fetcher:
 				video = query["lank"],
 				), query = { "clientType": "www" })
 			if len(media["media"]) < 1:
-				raise FetcherError("Video metadata has empty media section: %s %s" % (url, media))
+				raise FetcherNoMediaError("Video not yet available: %s" % url)
 			media = media["media"][0]
 
 			# If the caller has specified a video resolution, find a suitable file.
@@ -302,10 +305,15 @@ class Fetcher:
 		elif "docid" in query:
 
 			docid = int(query["docid"])
-			if 1102016801 <= docid <= 1102016951:
+			if 1102016801 <= docid <= 1102016952:		# Songbook songs 1 through 152
 				params = {
 					"pub": "sjjm",
 					"track": str(docid - 1102016800),
+					}
+			if 1102022953 <= docid <= 1102022958:		# Songbook songs 152 through 158
+				params = {
+					"pub": "sjjm",
+					"track": str(docid - 1102022800),
 					}
 			else:
 				params = {

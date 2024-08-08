@@ -9,7 +9,7 @@ from markupsafe import escape
 import traceback
 import logging
 
-from ...utils.background import turbo, progress_callback, progress_response, run_thread, flash
+from ...utils.background import turbo, progress_callback, progress_response, run_thread, async_flash
 from ...models import db, Weeks, MeetingCache
 from ...cli_update import update_meetings
 from ...utils.babel import gettext as _
@@ -91,7 +91,7 @@ def page_meetings_view_stream(docid):
 				index += 1
 		except Exception as e:
 			logger.error(traceback.format_exc())
-			flash(_("Error: %s" % e))
+			async_flash(_("Error: %s")% e)		# Not in background, must choose async_flash() explicitly
 			progress_callback(_("✘ Unable to load meeting media list."), last_message=True, cssclass="error")
 		else:
 			progress_callback(_("✔ Meeting media list has finished loading."), last_message=True, cssclass="success")

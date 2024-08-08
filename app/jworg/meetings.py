@@ -123,7 +123,7 @@ class MeetingLoader(Fetcher):
 	def extract_media_mwb(self, url, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
-		# Extract the top-level sections from the flat HTML
+		# Convert the flat HTML structure to a list of the top-level sections
 		sections = [[None, []]]
 		for el in container:
 			h2 = el.xpath("./h2")
@@ -191,7 +191,7 @@ class MeetingLoader(Fetcher):
 							pub.part_title = part_title
 							yield pub
 
-						elif section_number == 4:
+						elif section_number == 4:	# Христианская жизнь
 							callback(_("Getting media list from \"%s\"...") % pub.title)
 
 							# If we have not scraped this article for illustrations yet, do so now.
