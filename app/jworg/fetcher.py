@@ -310,7 +310,7 @@ class Fetcher:
 					"pub": "sjjm",
 					"track": str(docid - 1102016800),
 					}
-			if 1102022953 <= docid <= 1102022958:		# Songbook songs 152 through 158
+			elif 1102022953 <= docid <= 1102022958:		# Songbook songs 152 through 158
 				params = {
 					"pub": "sjjm",
 					"track": str(docid - 1102022800),
