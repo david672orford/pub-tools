@@ -9,7 +9,7 @@ from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
-from .utils.scenes import scene_name_prefixes, load_video_url, load_webpage, load_text, load_meeting_media_item
+from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, load_webpage, load_text, load_meeting_media_item
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 from .utils.controllers import meeting_loader
@@ -224,6 +224,7 @@ def page_scenes_upload():
 
 	return progress_response(_("✔ File has been loaded."), last_message=True, cssclass="success")
 
+# When an HTML element from a web browser is dropped onto the scene list
 @blueprint.route("/scenes/add-html", methods=["POST"])
 def page_scenes_add_html():
 	html_text = request.form["add-html"]
@@ -242,6 +243,15 @@ def page_scenes_add_html():
 				run_thread(background_loader)
 				return progress_response(_("Loading dropped publication..."), cssclass="heading")
 			return add_url(href)
+
+	elif doc.doc.tag == "img":
+		title = doc.doc.attrib.get("alt", "Image")
+		url = doc.doc.attrib.get("src")
+		def background_loader():
+			sleep(1)
+			load_image_url(title, url)
+		run_thread(background_loader)
+		return progress_response(_("Loading image..."))
 
 	# If we get here, presume the intent was to create a text slide.
 	print("Before:", doc.pretty())
