@@ -30,32 +30,7 @@ class ConfigForm(dict):
 			return False
 		return True
 
-@blueprint.route("/slides/--save-config", methods=["POST"])
-def page_slides_save_config():
-	form = ConfigForm(None, request.form)
-	if not form.validate():
-		return redirect(".?action=configuration&" + urlencode(form))
-	put_config("GDRIVE", form)
-	return redirect(".")
-
-@blueprint.route("/slides/", defaults={"path":None})
-@blueprint.route("/slides/<path:path>/")
-@blueprint.cache.cached(timeout=900, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
-def page_slides(path):
-	client, top = get_client(path)
-
-	if request.args.get("action") == "configuration" or client is None:
-		form = ConfigForm(get_config("GDRIVE"), request.args)
-	else:
-		form = None
-
-	return render_template(
-		"khplayer/slides.html",
-		client = client,
-		form = form,
-		top = top,
-		)
-
+# Create a Google Drive client for the indicated path within the configured sharing link
 def get_client(path):
 	client = id = None
 	top = ".."
@@ -76,7 +51,7 @@ def get_client(path):
 		else:
 			id = path[-1]
 
-	if id is not None: 
+	if id is not None:
 		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
 		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
 		if id.endswith(".zip"):
@@ -90,17 +65,7 @@ def get_client(path):
 
 	return client, top
 
-# NOTE: We originally used .download here, but when we did 
-# Turbo failed to enable processing of Turbo-Stream responses.
-@blueprint.route("/slides/--download", defaults={"path":None}, methods=["POST"])
-@blueprint.route("/slides/<path:path>/--download", methods=["POST"])
-def page_slides_folder_download(path):
-	client, top = get_client(path)
-	assert client is not None
-	selected = set(request.form.getlist("selected"))
-	run_thread(lambda: download_slides(client, selected))
-	return progress_response(None)	# so page doesn't reload
-
+# Use the supplied Gdrive client to download the items with the indicated ID numbers
 def download_slides(client, selected):
 	progress_callback(_("Downloading selected slides..."), cssclass="heading")
 	try:
@@ -126,6 +91,34 @@ def download_slides(client, selected):
 	else:
 		progress_callback(_("✔ All selected slides added."), cssclass="success", last_message=True)
 
+# Target of configuration form
+@blueprint.route("/slides/--save-config", methods=["POST"])
+def page_slides_save_config():
+	form = ConfigForm(None, request.form)
+	if not form.validate():
+		return redirect(".?action=configuration&" + urlencode(form))
+	put_config("GDRIVE", form)
+	return redirect(".")
+
+# List files
+@blueprint.route("/slides/", defaults={"path":None})
+@blueprint.route("/slides/<path:path>/")
+@blueprint.cache.cached(timeout=900, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
+def page_slides(path):
+	client, top = get_client(path)
+
+	if request.args.get("action") == "configuration" or client is None:
+		form = ConfigForm(get_config("GDRIVE"), request.args)
+	else:
+		form = None
+
+	return render_template(
+		"khplayer/slides.html",
+		client = client,
+		form = form,
+		top = top,
+		)
+
 @blueprint.route("/slides/--reload", defaults={"path":None}, methods=["GET","POST"])
 @blueprint.route("/slides/<path:path>/--reload", methods=["POST"])
 def page_slides_reload(path):
@@ -133,4 +126,16 @@ def page_slides_reload(path):
 	#print("path:", path)
 	blueprint.cache.delete("slides-%s" % path)
 	return redirect(".")
+
+# Download button target
+# NOTE: We originally used .download as the filename here, but when we did
+# Turbo failed to enable processing of Turbo-Stream responses.
+@blueprint.route("/slides/--download", defaults={"path":None}, methods=["POST"])
+@blueprint.route("/slides/<path:path>/--download", methods=["POST"])
+def page_slides_folder_download(path):
+	client, top = get_client(path)
+	assert client is not None
+	selected = set(request.form.getlist("selected"))
+	run_thread(lambda: download_slides(client, selected))
+	return progress_response(None)	# so page doesn't reload
 

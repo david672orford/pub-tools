@@ -87,17 +87,17 @@ class Fetcher:
 	#
 	# Note that this API does not provide a thumbnail image.
 	#
-	pub_media_url = 'https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS'
+	pub_media_url = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
 
 	# Used for listing videos from JW Broadcasting by category
 	# Query string parameters:
 	# detailed=1 -- list subcategories and videos in this category
-	# clientType=www -- Unknown
-	mediator_categories_url = 'https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www'
+	# clientType=www -- Unknown purpose
+	mediator_categories_url = "https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
 
 	# Used for getting the download link for a video from JW Broadcasting when
 	# we know the language we want and the video's Language Agnostic Natural Key (lank)
-	mediator_items_url = 'https://b.jw-cdn.org/apis/mediator/v1/media-items/{meps_language}/{video}'
+	mediator_items_url = "https://b.jw-cdn.org/apis/mediator/v1/media-items/{meps_language}/{video}"
 
 	# Page in Watchtower Online Library which gives the study articles for a given week
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
@@ -284,9 +284,9 @@ class Fetcher:
 						break
 
 			try:
-				thumbnail_url = media['images']['wss']['sm']		# 16:9 aspect ratio, occassionally missing
+				thumbnail_url = media["images"]["wss"]["sm"]		# 16:9 aspect ratio, occassionally missing
 			except KeyError:
-				thumbnail_url = media['images']['lss']['lg']		# 2:1 aspect ratio
+				thumbnail_url = media["images"]["lss"]["lg"]		# 2:1 aspect ratio
 
 			subtitles_url = None
 			for variant in media["files"]:

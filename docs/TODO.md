@@ -1,18 +1,18 @@
 # Pub-Tools TODO
 
-## Easy Stuff
+## Bugs
+
+* Is there a scenario in which /patchbay/create-link fails to post values? We have seen:
+    KeyError: 'output_port_id'
+* Click on thumbnail in scenes list (sometimes) does nothing
+
+## Easy Improvements
 
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
 * Validate configuration
   * https://docs.python-cerberus.org/
   * https://github.com/python-jsonschema/jsonschema
   * https://json-schema.org/learn/getting-started-step-by-step
-* Is there a scenario in which /patchbay/create-link fails to post values?
-
-    KeyError: 'output_port_id'
-* D-n-D filename is lost
-* Click on thumbnail in scenes list does nothing
-* DND of song from Workbook loads web page rather than MP4
 
 ## Hard Stuff
 
@@ -29,7 +29,7 @@ with the illustration if it is at the beginning (or perhaps the end).
 * https://towardsdatascience.com/lightning-fast-video-reading-in-python-c1438771c4e6
 * [FFmpeg Scene selection : extracting iframes and detecting scene change](https://www.bogotobogo.com/FFMpeg/ffmpeg_thumbnails_select_scene_iframe.php)
 
-## OBS Stuff
+## OBS Docs to Improve
 
 * [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
 * [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting)

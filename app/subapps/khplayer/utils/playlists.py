@@ -44,6 +44,7 @@ class ZippedPlaylist:
 	# TODO: Skip directories without image files.
 	#       Show first image file as thumbnail.
 	def load_generic_zip(self):
+		# FIXME: should show the name stored in Gdrive
 		self.folder_name = " - ".join(["Zipfile"] + self.path)
 		image_count = 0
 		path = "/".join(self.path)

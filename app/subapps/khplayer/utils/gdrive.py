@@ -100,11 +100,13 @@ class GDriveClient:
 						response = self.session.get("https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1".format(id=file[0]))
 						thumbnail_url = "data:{mimetype};base64,{data}".format(
 							mimetype = response.headers.get("Content-Type","").split(";")[0],
-							data = base64.b64encode(response.content).decode('utf-8'),
+							data = base64.b64encode(response.content).decode("utf-8"),
 							)
 					else:
 						thumbnail_url = None
 					self.image_files.append(GFile(file, thumbnail_url))
+				elif file[3].startswith("video/"):
+					self.image_files.append(GFile(file, None))
 				else:		# other files
 					pass
 

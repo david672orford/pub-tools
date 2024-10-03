@@ -34,8 +34,8 @@ class Weeks(db.Model):
 class MeetingCache(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	lang = db.Column(db.String)
-	docid = db.Column(db.Integer)
-	media = db.Column(db.JSON)
+	docid = db.Column(db.Integer)		# Watchtower or Workbook article
+	media = db.Column(db.JSON)			# Extracted media list
 
 #=============================================================================
 # Lists of Publications and links to them on JW.ORG
@@ -100,10 +100,10 @@ class VideoCategories(db.Model):
 
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	lang = db.Column(db.String)
-	title = db.Column(db.String)
+	lang = db.Column(db.String)				# ISO language code
+	title = db.Column(db.String)			# name of video
 	date = db.Column(db.DateTime)
-	duration = db.Column(db.Integer)
+	duration = db.Column(db.Integer)		# running time in seconds
 	lank = db.Column(db.String)				# language agnostic natural key
 	docid = db.Column(db.String)			# MEPS document ID
 	thumbnail = db.Column(db.String)		# URL of JPEG file

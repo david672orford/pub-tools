@@ -38,6 +38,10 @@ class MeetingMedia:
 	# Name of meeting part which links to this item (optional)
 	part_title: str = None
 
+# An article from which we may want to extract MeetingMedia items
+class MeetingMediaArticle(MeetingMedia):
+	pass
+
 # Scan a Meeting Workbook week or Watchtower study article and return
 # a list of the vidoes and pictures therein.
 class MeetingLoader(Fetcher):
@@ -93,13 +97,13 @@ class MeetingLoader(Fetcher):
 	# Fetch the web version of a Meeting Workbook lesson or Watchtower study
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
-	def extract_media(self, url, callback=None):
+	def extract_media(self, url:str, callback=None):
 		container = self.get_article_html(url)
 		callback(_("Article title: \"%s\"") % container.xpath(".//h1")[0].text_content().strip())
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib["class"])
-		assert m
+		assert m, "No pub code"
 		return getattr(self, "extract_media_%s" % m.group(1))(url, container, callback)
 
 	# Fetch the indicated article from WWW.JW.ORG, parse the HTML, and return
@@ -120,7 +124,7 @@ class MeetingLoader(Fetcher):
 
 	# Handler for a lesson page from the Meeting Workbook
 	# Called by .extract_media()
-	def extract_media_mwb(self, url, container, callback):
+	def extract_media_mwb(self, baseurl:str, container, callback):
 		container = container.xpath(".//div[@class='bodyTxt']")[0]
 
 		# Convert the flat HTML structure to a list of the top-level sections
@@ -184,9 +188,9 @@ class MeetingLoader(Fetcher):
 
 				# Go through all of the hyperlinks in this HTML element
 				for a in el.xpath(".//a"):
-					pub = self.get_pub_from_a_tag(a)
+					pub = self.get_pub_from_a_tag(a, baseurl)
 					if pub is not None:
-						if pub.media_type != "web":
+						if type(pub) is not MeetingMediaArticle:
 							pub.section_title = section_title
 							pub.part_title = part_title
 							yield pub
@@ -196,7 +200,7 @@ class MeetingLoader(Fetcher):
 
 							# If we have not scraped this article for illustrations yet, do so now.
 							# TODO: interpret the paragraph ranges in the URL fragment
-							article_href = urljoin(url, a.attrib["href"])
+							article_href = urljoin(baseurl, a.attrib["href"])
 							article_href_nofragment = article_href.split("#")[0]
 							if not article_href_nofragment in article_href_dedup:
 
@@ -210,7 +214,7 @@ class MeetingLoader(Fetcher):
 								article_href_dedup.add(article_href_nofragment)
 
 	# Figure out to what publication an <a> tag points
-	def get_pub_from_a_tag(self, a):
+	def get_pub_from_a_tag(self, a, baseurl:str):
 		assert a.tag == "a"
 		logger.info("Pub <a> tag: href=\"%s\" %s", unquote(a.attrib["href"]), str(a.attrib))
 		pub = None
@@ -231,7 +235,7 @@ class MeetingLoader(Fetcher):
 				is_a = "footnote"
 				break
 
-			# Video
+			# A Video (but not all videos)
 			# Sample <a> tag attributes:
 			#  data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
 			#  href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
@@ -249,14 +253,16 @@ class MeetingLoader(Fetcher):
 				is_a = "video"
 				break
 
-			# Extract publication code and MEPS document ID.
-			# We will use these below to figure out what we've got.
+			# Extract publication code
+			# We will use it below to figure out what we've got.
 			pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class",""))
 			if pub_code is None:
 				is_a = "not-a-pub"
 				break
 			pub_code = pub_code.group(1)
 
+			# Extract MEPS document ID
+			# So far this has not proved useful
 			#docid = re.match(r"^mid(\d+)$", a.attrib.get("data-page-id",""))
 			#if docid is None:
 			#	is_a = "no-docid"
@@ -265,13 +271,28 @@ class MeetingLoader(Fetcher):
 
 			# Publication: Song from Sing Out Joyfully to Jehovah
 			if pub_code == "sjj":
-				pub = self.make_song(a)
+				pub = self.make_song_item(a)
 				is_a = "song"
+				break
+
+			# Publication: Link to special player page for video series
+			if "ВИДЕО" in a.text_content():
+				try:
+					pub = self.make_video_episode_item(a, baseurl)
+					is_a = "video"
+				except Exception as e:
+					pub = MeetingMedia(
+						pub_code = pub_code,
+						title = a.text_content().strip(),
+						media_type = "web",
+						media_url = urljoin(baseurl, a.attrib["href"]),
+						)
+					is_a = "video"
 				break
 
 			# If we get here, we assume this is an article from which the caller
 			# might wish to extract illustrations.
-			pub = MeetingMedia(
+			pub = MeetingMediaArticle(
 				pub_code = pub_code,
 				title = a.text_content().strip(),
 				media_type = "web",
@@ -285,7 +306,7 @@ class MeetingLoader(Fetcher):
 
 	# Handler for a Watchtower study article
 	# Called from .extract_media()
-	def extract_media_w(self, url, container, callback):
+	def extract_media_w(self, baseurl, container, callback):
 
 		# <a class='pub-sjj' is a song.
 		# FIXME: There should always be two, opening and closing, however, the study
@@ -295,15 +316,15 @@ class MeetingLoader(Fetcher):
 		if len(songs) != 2:
 			logger.warning("Found %d songs when two expected" % len(songs))
 
-		yield self.make_song(songs[0])
+		yield self.make_song_item(songs[0])
 
 		for illustration in self.extract_illustrations("w", "СБ", container):
 			yield illustration
 
-		yield self.make_song(songs[1])
+		yield self.make_song_item(songs[1])
 
-	# Handle a link to a song from the songbook
-	def make_song(self, a):
+	# Handle a link to a song from Sing Out Joyfully to Jehovah
+	def make_song_item(self, a):
 		song_text = a.text_content().strip()
 		song_number = re.search(r'(\d+)$', song_text)
 		assert song_number is not None, "Song number: %s" % repr(song_number)
@@ -320,6 +341,32 @@ class MeetingLoader(Fetcher):
 				"srcid": "share",
 				}),
 			thumbnail_url = metadata["thumbnail_url"],
+			)
+
+	# When the Workbook links to certain videos from a series such as
+	# Become Jehovah's Friend, it may use the URL of an alternative player
+	# page rathan than the sharing URL. The player page may also lack a
+	# sharing link. This function fetches the player page, finds the
+	# embedded player, and extracts the publication code and track number,
+	# and builds the sharing URL.
+	def make_video_episode_item(self, a, baseurl:str):
+		container = self.get_article_html(urljoin(baseurl, a.attrib["href"]))
+		title = container.xpath(".//h1")[0].text_content().strip()
+		thumbnail = container.xpath(".//div[contains(@class,'jsVideoPoster')]")[0].attrib["data-src"]
+		player = container.xpath(".//div[@class='jsIncludeVideo']")[0]
+		m = re.match(r"^(.+)-(\d+)-video$", player.attrib.get("id"))
+		pub_code = m.group(1)
+		track = int(m.group(2))
+		return MeetingMedia(
+			pub_code = "%s %d" % (pub_code, track),
+			title = title,
+			media_type = "video",
+			media_url = "https://www.jw.org/finder?" + urlencode({
+				"wtlocale": self.meps_language,
+				"lank": "pub-%s_%d_VIDEO" % (pub_code, track),
+				"srcid": "share",
+				}),
+			thumbnail_url = thumbnail,
 			)
 
 	# Find the illustrations (<figure> tags) from an HTML container tag.

@@ -2,6 +2,9 @@
 {% extends "khplayer/base.html" %}
 
 {% block header %}
+	<form style="float: right; margin: .5em" action="update" method="POST">
+		<button class="reload" type="submit">{{gettext("Update Category")}}</button>
+	</form>
 	<h1>
 		<a href="../..">
 		<div style="float: left; font-size: 200%; margin-right: 10px;">&lt;</div>
@@ -42,12 +45,6 @@
 {% endfor %}
 </tbody>
 </table>
-</section>
-</form>
-
-<form action="update" method="POST">
-<section class="bordered-box">
-	<button class="reload" type="submit">{{gettext("Update Category")}}</button>
 </section>
 </form>
 {% endblock %}
