@@ -1,11 +1,16 @@
 # Load lists of publications
 
-from flask import current_app
-import sys, os, re, json
+import os
 from datetime import date, timedelta
+import logging
+
+from flask import current_app
 from flask.cli import AppGroup
 import click
-import logging
+
+from rich.console import Console
+from rich.table import Table
+from rich import print as rich_print
 
 from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategories, Videos
 from .models_whoosh import video_index, illustration_index
@@ -14,10 +19,6 @@ from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
 from .jworg.epub import EpubLoader
 from .utils.babel import gettext as _
-
-from rich.console import Console
-from rich.table import Table
-from rich import print as rich_print
 
 logger = logging.getLogger(__name__)
 

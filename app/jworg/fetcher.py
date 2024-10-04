@@ -174,8 +174,7 @@ class Fetcher:
 		title = html.xpath("./head/title")
 		if len(title) > 0:
 			return title[0].text
-		else:
-			return "No Title"
+		return "No Title"
 
 	# Download a video or picture, store it in the cache directory, and return its path.
 	def download_media(self, url: str, callback=None):
@@ -230,19 +229,26 @@ class Fetcher:
 			"thumbnail_url": mp4[0]["trackImage"]["url"],
 			}
 
+	# This is broken out for flow-control reasons
 	def parse_video_url(self, url):
 		url_obj = urlparse(url)
 		query = dict(parse_qsl(url_obj.query))
+
 		if url_obj.netloc == "www.jw.org":
-			if ("lank" in query or "docid" in query):
+
+			# Sharing URL
+			if "lank" in query or "docid" in query:
 				return query
-			elif url_obj.fragment:	# player page URL
+
+			# Player page URL
+			if url_obj.fragment:
 				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
 				if m:
 					return {
 						"wtlocale": iso_language_code_to_meps(m.group(1)),
 						"lank": m.group(2),
 						}
+
 		return {}
 
 	# Given a link to a video from an article, extract the publication ID

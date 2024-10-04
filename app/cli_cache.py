@@ -37,7 +37,7 @@ class Total:
 			str(self.deletable_files),
 			str(int(self.deletable_size/ 1048576)),
 			)
-	
+
 def scan_cache(clean=False):
 	totals = defaultdict(Total)
 	time_now = int(time())
@@ -66,8 +66,8 @@ def scan_cache(clean=False):
 			lifetime = 30
 
 		s = entry.stat()
-		age = (time_now - max(s.st_atime, s.st_mtime, s.st_ctime))
-		deletable = (age > (lifetime * 86400))
+		age = time_now - max(s.st_atime, s.st_mtime, s.st_ctime)
+		deletable = age > (lifetime * 86400)
 
 		total = totals[category]
 		total.files += 1
@@ -91,4 +91,3 @@ def scan_cache(clean=False):
 	for category, total in sorted(totals.items(), key=lambda item: item[1].size):
 		table.add_row(*total.row(category))
 	Console().print(table)
-
