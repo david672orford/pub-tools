@@ -2,8 +2,6 @@
 
 ## Bugs
 
-* Is there a scenario in which /patchbay/create-link fails to post values? We have seen:
-    KeyError: 'output_port_id'
 * Click on thumbnail in scenes list (sometimes) does nothing
 
 ## Easy Improvements

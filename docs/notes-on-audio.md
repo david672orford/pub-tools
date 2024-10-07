@@ -16,7 +16,7 @@ Linux distributions.
 * [Pipewire Wiki](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/home)
 * [Wireplumber Documentation](https://pipewire.pages.freedesktop.org/wireplumber/)
 * [Pipewire Under the Hood](https://venam.nixers.net/blog/unix/2021/06/23/pipewire-under-the-hood.html) -- Decent overview from somebody frustrated by the poor documentation
-* [Migrate PulseAudio](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
+* [Migrating from PulseAudio to Pipewire](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
 * [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- A virtual audio source from an audio file
@@ -34,6 +34,8 @@ the API for playing and recording sound and the **pactl** command.
 * [Python Pulsectl](https://pypi.org/project/pulsectl/) -- Blocking high-level interface and bindings to Libpulse
 * [PulseAudio client in pure JavaScript](https://github.com/mscdex/paclient)
 * [Example of Playing and Recording Audio in Python](https://askubuntu.com/questions/1398632/how-can-i-fit-python-pyaudio-to-to-virtual-microphone-that-i-created)
+* [Example of Sink Event Monitoring](https://gist.github.com/sound-logic/00cf28f83993a2f7199538d281f831ad)
+* [Example of Volume Control](https://github.com/andornaut/pavolume/blob/master/pavolume.c)
 
 ## Virtual Audio Cables
 
