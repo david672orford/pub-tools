@@ -168,8 +168,11 @@ class MeetingLoader(Fetcher):
 				#
 				if el.tag == "h3":
 					part_number += 1
-					if el.xpath(".//a"):		# song
-						part_title = "Song"
+					# If this is a song, we process pub links within the <h3>.
+					song_link = el.xpath(".//a[@class='pub-sjj']")
+					if song_link:
+						part_title = song_link[0].text_content().strip()
+					# If not, the title applies to the <div>'s which follow.
 					else:
 						part_title = el.text_content().strip()
 						continue
@@ -326,9 +329,9 @@ class MeetingLoader(Fetcher):
 	# Handle a link to a song from Sing Out Joyfully to Jehovah
 	def make_song_item(self, a):
 		song_text = a.text_content().strip()
-		song_number = re.search(r'(\d+)$', song_text)
+		song_number = re.search(r"(\d+)$", song_text)
 		assert song_number is not None, "Song number: %s" % repr(song_number)
-		song_number = song_number.group(1)
+		song_number = int(song_number.group(1))
 		metadata = self.get_song_metadata(song_number)
 		return MeetingMedia(
 			pub_code = "sjj %s" % song_number,

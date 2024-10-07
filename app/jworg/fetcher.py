@@ -204,19 +204,25 @@ class Fetcher:
 		return os.path.abspath(cachefile)
 
 	# Get the URL of the video file for a song identified by number
-	def get_song_metadata(self, song_number: int, resolution=None):
+	# We stopped using this because as of October 2024:
+	# * The thumbnail images are square rather than 16x9
+	# * Thumbnail URL's recently become empty for all but the newest songs
+	def get_song_metadata_old(self, song_number: int, resolution=None):
 		media = self.get_json(self.pub_media_url, query = {
-			'output': 'json',
-			'pub': 'sjjm',
-			'fileformat': 'm4v,mp4,3gp,mp3',
-			'alllangs': '0',
-			'track': str(song_number),
-			'langwritten': self.meps_language,
-			'txtCMSLang': self.meps_language,
+			"output": "json",
+			"pub": "sjjm",
+			"fileformat": "m4v,mp4,3gp,mp3",
+			"alllangs": "0",
+			"track": str(song_number),
+			"langwritten": self.meps_language,
+			"txtCMSLang": self.meps_language,
 			})
 		#self.dump_json(media)
 
+		# Song video in various resolutions
 		mp4 = media["files"][self.meps_language]["MP4"]
+
+		# If a resulution was specified, find the download URL
 		mp4_url = None
 		if resolution is not None:
 			for variant in mp4:
@@ -228,6 +234,12 @@ class Fetcher:
 			"url": mp4_url,
 			"thumbnail_url": mp4[0]["trackImage"]["url"],
 			}
+
+	def get_song_metadata(self, song_number: int, resolution=None):
+		return self.get_video_metadata(
+			"https://www.jw.org/finder?lank=pub-sjjm_%d_VIDEO" % song_number,
+			resolution = resolution
+			)
 
 	# This is broken out for flow-control reasons
 	def parse_video_url(self, url):
