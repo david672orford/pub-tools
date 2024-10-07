@@ -228,7 +228,7 @@ function set_current_scene(className, uuid) {
 	console.log("set_current_scene:", className, uuid);
 	document.currentScript.remove();
 	Array.from(document.getElementById("scenes-list").children).forEach(row => {
-		if(row.id == "scene-" + uuid)
+		if(uuid && row.id == "scene-" + uuid)
 			row.classList.add(className);
 		else
 			row.classList.remove(className);

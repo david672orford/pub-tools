@@ -57,7 +57,7 @@ def scenes_event_handler(event):
 		return
 	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 
-	scene = event["eventData"]
+	data = event["eventData"]
 	with blueprint.app.app_context():
 		match event["eventType"]:
 			case "CurrentSceneCollectionChanged":
@@ -68,24 +68,31 @@ def scenes_event_handler(event):
 					preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
 					))
 			case "SceneCreated":
-				turbo.push(render_template("khplayer/scenes_event_created.html", scene=scene))
+				turbo.push(render_template("khplayer/scenes_event_created.html", scene=data))
 			case "SceneRemoved":
-				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=scene))
+				turbo.push(render_template("khplayer/scenes_event_removed.html", scene=data))
 			case "SceneNameChanged":
-				turbo.push(render_template("khplayer/scenes_event_rename.html", scene=scene))
+				turbo.push(render_template("khplayer/scenes_event_rename.html", scene=data))
 			case "CurrentProgramSceneChanged":
 				turbo.push(render_template("khplayer/scenes_event_changed.html",
 					class_name = "program-scene",
-					uuid = scene["sceneUuid"],
+					uuid = data["sceneUuid"],
 					))
 			case "CurrentPreviewSceneChanged":
 				turbo.push(render_template("khplayer/scenes_event_changed.html",
 					class_name = "preview-scene",
-					uuid = scene["sceneUuid"],
+					uuid = data["sceneUuid"],
 					))
+			case "StudioModeStateChanged":
+				if not data["studioModeEnabled"]:
+					turbo.push(render_template("khplayer/scenes_event_changed.html",
+						class_name = "preview-scene",
+						uuid = None,
+						))
 
-obs.subscribe("Config", scenes_event_handler)
+obs.subscribe("Config", scenes_event_handler)		# scene collection?
 obs.subscribe("Scenes", scenes_event_handler)
+obs.subscribe("Ui", scenes_event_handler)			# studio mode
 
 # Reload thumbnail when scene items are added, removed, hidden, revealed
 def scene_items_event_handler(event):

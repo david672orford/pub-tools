@@ -1,6 +1,6 @@
 <turbo-stream action="append" target="scenes-list">
 	<template>
-		<script>set_current_scene("{{class_name}}", "{{uuid}}")</script>
+		<script>set_current_scene("{{class_name}}", {% if uuid %}"{{uuid}}"{% else %}null{%endif%})</script>
 	</template>
 </turbo-stream>
 
