@@ -5,6 +5,7 @@ from flask_admin.contrib.sqla.view import ModelView as InsecureModelView
 from flask_admin.form import SecureForm
 
 from ...models import db, Weeks, MeetingCache, PeriodicalIssues, Articles, Books, VideoCategories, Videos, Config
+from .custom_formatters import format_json
 
 admin = Admin()
 
@@ -17,7 +18,9 @@ class WeeksView(ModelView):
 	pass
 
 class MeetingCacheView(ModelView):
-	pass
+	column_formatters = {
+		"media": format_json,
+		}
 
 class PeriodicalIssuesView(ModelView):
 	pass
