@@ -61,6 +61,7 @@ class VolumePanel(Gtk.Window):
 	def add(self, box):
 		self.box.pack_start(box, expand=False, fill=False, padding=10)
 
+# Widget with volumn control, mute button, and VU meter
 class VolumeControl(Gtk.Frame):
 	def __init__(self, pulse_wrapper, audio_device):
 		self.pulse_wrapper = pulse_wrapper
@@ -145,6 +146,7 @@ class VolumeControl(Gtk.Frame):
 		else:
 			pulse_wrapper.stream(audio_device.monitor_source_name, vu_callback)
 
+# Interface to the pulsectl library
 class PulseWrapper:
 	def __init__(self, pulse):
 		self.pulse = pulse
@@ -165,7 +167,7 @@ class PulseWrapper:
 
 	def stream(self, audio_device_name, callback):
 		print("stream:", audio_device_name)
-		proplist = _pulsectl.pa.proplist_from_string('application.id=org.PulseAudio.pavucontrol')
+		proplist = _pulsectl.pa.proplist_from_string("application.id=org.PulseAudio.pavucontrol")
 		stream = _pulsectl.pa.stream_new_with_proplist(
 			self.pulse._ctx,
 			app_name,

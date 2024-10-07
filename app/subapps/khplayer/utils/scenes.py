@@ -80,26 +80,6 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 	else:
 		progress_callback(_("✔ Video has been loaded."), last_message=close, cssclass="success")
 
-## Add a scene which plays a song from the songbook with onscreen lyrics
-## The video will be downloaded, if it is not already in the cache.
-## scene_name -- name of scene to create in OBS
-## song -- song number
-## close -- this is the last download in this group, close progress
-#def load_song(song: int, close=True):
-#	progress_callback(_("Loading song {song}...").format(song=song), cssclass="heading")
-#	metadata = meeting_loader.get_song_metadata(song, resolution=current_app.config["VIDEO_RESOLUTION"])
-#	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["thumbnail_url"]))
-#	thumbnail = meeting_loader.download_media(metadata["thumbnail_url"], callback=progress_callback)
-#	progress_callback(_("Downloading \"{url}\"...").format(url=metadata["url"]))
-#	media_file = meeting_loader.download_media(metadata["url"], callback=progress_callback)
-#	try:
-#		obs.add_media_scene(_("♫ Song") + " " + metadata["title"], "video", media_file, thumbnail=thumbnail, skiplist="*♫")
-#	except ObsError as e:
-#		flash(_("OBS: %s") % str(e))
-#		progress_callback(_("✘ Loading of song failed."), last_message=close, cssclass="error")
-#	else:
-#		progress_callback(_("✔ Song {song} has been loaded.").format(song=song), last_message=close, cssclass="success")
-
 # Add a scene which displays an image downloaded from the URL provided.
 # Images from JW.ORG have unique names. Take care to assign non-colliding
 # names to user-supplied images.
