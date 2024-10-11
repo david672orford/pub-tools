@@ -332,7 +332,10 @@ class MeetingLoader(Fetcher):
 		song_number = re.search(r"(\d+)$", song_text)
 		assert song_number is not None, "Song number: %s" % repr(song_number)
 		song_number = int(song_number.group(1))
-		metadata = self.get_song_metadata(song_number)
+		# NOTE: We switched from the Pub Media API to the Mediator API in October
+		# of 2024 because 1) we wanted 16:9 thumbnails, and 2) the thumbnails for
+		# all but the new songs had empty URL's.
+		metadata = self.get_video_metadata(query={"lank": f"pub-sjjm_{song_number}_VIDEO"})
 		return MeetingMedia(
 			pub_code = "sjj %s" % song_number,
 			part_title = song_text,

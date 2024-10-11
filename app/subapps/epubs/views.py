@@ -70,7 +70,10 @@ def search_illustrations():
 def epub_toc(pub_code):
 	epub = open_epub(pub_code)
 	if epub is None:
-		return "Not available as an EPUB"
+		return render_template("epubs/error.html",
+			title = pub_code,
+			error = f"Publication {pub_code} is not available as an EPUB",
+			)
 
 	# Jump to chapter identified by ID
 	id = request.args.get("id")
@@ -104,10 +107,11 @@ def open_epub(pub_code):
 	if pub.epub_filename is None:
 		pub_finder = PubFinder(
 			language = lang,
-			cachedir=current_app.config["MEDIA_CACHEDIR"],
+			cachedir = current_app.config["MEDIA_CACHEDIR"],
 			)
 		epub_url = pub_finder.get_epub_url(pub_code, issue_code)
 		if epub_url is None:
+			logger.error("Failed to get EPUB URL")
 			return None
 		progress_callback("Downloading %s" % epub_url)
 		epub_filename = pub_finder.download_media(epub_url, callback=progress_callback)

@@ -17,7 +17,7 @@ def cmd_epubs_download_all():
 		download_epub(pub_finder, issue, epub_url)
 	for book in Books.query.filter(Books.epub_filename==None).filter(Books.formats.contains("epub")):
 		rich_print(f"book: {book.pub_code} [italic]{book.name}[/italic]")
-		epub_url = pub_finder.get_epub_url(book.pub_code, None)
+		epub_url = pub_finder.get_epub_url(book.pub_code)
 		download_epub(pub_finder, book, epub_url)
 
 def download_epub(pub_finder, pub, epub_url):

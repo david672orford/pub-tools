@@ -36,25 +36,6 @@ class GzipResponseWrapper:
 	def headers(self):
 		return self.response.headers
 
-# Alter the whitespace in the element tree to indent the tabs
-# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
-def indent_html(elem, level=0):
-	i = "\n" + level*"  "
-	if elem.tag == "span":
-		pass
-	elif len(elem):
-		if not elem.text or not elem.text.strip():
-			elem.text = i + "  "
-		if not elem.tail or not elem.tail.strip():
-			elem.tail = i
-		for elem in elem:
-			indent_html(elem, level+1)
-		if not elem.tail or not elem.tail.strip():
-			elem.tail = i
-	else:
-		if level and (not elem.tail or not elem.tail.strip()):
-			elem.tail = i
-
 class Fetcher:
 	user_agent = "Mozilla/5.0"
 
@@ -89,7 +70,7 @@ class Fetcher:
 	#
 	pub_media_url = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
 
-	# Used for listing videos from JW Broadcasting by category
+	# The Mediator API endpoint is Used for listing videos from JW Broadcasting by category
 	# Query string parameters:
 	# detailed=1 -- list subcategories and videos in this category
 	# clientType=www -- Unknown purpose
@@ -151,24 +132,7 @@ class Fetcher:
 		response = self.get(url, query, accept="application/json")
 		return json.load(response)
 
-	# Pretty print a parsed HTML element and its children. We need this because
-	# in a browser JavaScript code transforms the page a bit after it is loaded,
-	# so we can't completely trust what we seen in the browser's debugger.
-	@staticmethod
-	def dump_html(el, filename=None):
-		indent_html(el)
-		text = lxml.html.tostring(el, encoding="UNICODE")
-		if filename:
-			with open(filename, "w") as fh:
-				fh.write(text)
-		else:
-			logger.debug("=======================================================\n%s", text)
-
-	@staticmethod
-	def dump_json(data):
-		text = json.dumps(data, indent=4, ensure_ascii=False)
-		logger.debug("=======================================================\n%s", text)
-
+	# Fetch a web page and return its title
 	def get_title(self, url):
 		html = self.get_html(url)
 		title = html.xpath("./head/title")
@@ -176,7 +140,8 @@ class Fetcher:
 			return title[0].text
 		return "No Title"
 
-	# Download a video or picture, store it in the cache directory, and return its path.
+	# Download a video or picture from a URL, store it in the cache
+	# directory, and return its path.
 	def download_media(self, url: str, callback=None):
 		if self.cachedir is None:
 			raise FetcherError("Cachedir is not set")
@@ -203,21 +168,74 @@ class Fetcher:
 			logger.debug("Media file downloaded, %d bytes received", total_recv)
 		return os.path.abspath(cachefile)
 
-	# Get the URL of the video file for a song identified by number
-	# We stopped using this because as of October 2024:
-	# * The thumbnail images are square rather than 16x9
-	# * Thumbnail URL's recently become empty for all but the newest songs
-	def get_song_metadata_old(self, song_number: int, resolution=None):
-		media = self.get_json(self.pub_media_url, query = {
+	#======================================================================
+	# For debugging
+	#======================================================================
+
+	# Pretty print a parsed HTML element and its children. We need this because
+	# in a browser JavaScript code transforms the page a bit after it is loaded,
+	# so we can't completely trust what we seen in the browser's debugger.
+	def dump_html(self, el, filename=None):
+		self.indent_html(el)
+		text = lxml.html.tostring(el, encoding="UNICODE")
+		if filename:
+			with open(filename, "w") as fh:
+				fh.write(text)
+		else:
+			logger.debug("=======================================================\n%s", text)
+
+	# Alter the whitespace in the element tree to indent the tabs
+	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
+	def indent_html(self, elem, level=0):
+		i = "\n" + level*"  "
+		if elem.tag == "span":
+			pass
+		elif len(elem):
+			if not elem.text or not elem.text.strip():
+				elem.text = i + "  "
+			if not elem.tail or not elem.tail.strip():
+				elem.tail = i
+			for elem in elem:
+				self.indent_html(elem, level+1)
+			if not elem.tail or not elem.tail.strip():
+				elem.tail = i
+		else:
+			if level and (not elem.tail or not elem.tail.strip()):
+				elem.tail = i
+
+	@staticmethod
+	def dump_json(data):
+		text = json.dumps(data, indent=4, ensure_ascii=False)
+		logger.debug("=======================================================\n%s", text)
+
+	#======================================================================
+	# The Pub Media API is used to find:
+	# 1) Alternative versions of a publication
+	# 2) Supplements such as recorded music for a songbook
+	#======================================================================
+
+	# Get the URL of the video file which accompanies a publication
+	def get_pub_media(self, query:dict):
+		logger.debug(f"get_pub_media(query=%s)", query)
+		final_query = {
 			"output": "json",
-			"pub": "sjjm",
-			"fileformat": "m4v,mp4,3gp,mp3",
+			"pub": query["pub"],
+			"fileformat": query.get("fileformat", "m4v,mp4,3gp,mp3"),
 			"alllangs": "0",
-			"track": str(song_number),
 			"langwritten": self.meps_language,
 			"txtCMSLang": self.meps_language,
-			})
+			}
+		if query.get("issue") is not None:
+			final_query["issue"] = query["issue"]
+		if query.get("track") is not None:
+			final_query["track"] = str(query["track"])
+		print("pub media query:", final_query)
+		media = self.get_json(self.pub_media_url, query = final_query)
 		#self.dump_json(media)
+		return media
+
+	def get_pub_media_mp4(self, query:dict, resolution:int=None):
+		media = self.get_pub_media(query)
 
 		# Song video in various resolutions
 		mp4 = media["files"][self.meps_language]["MP4"]
@@ -235,43 +253,38 @@ class Fetcher:
 			"thumbnail_url": mp4[0]["trackImage"]["url"],
 			}
 
-	def get_song_metadata(self, song_number: int, resolution=None):
-		return self.get_video_metadata(
-			"https://www.jw.org/finder?lank=pub-sjjm_%d_VIDEO" % song_number,
-			resolution = resolution
-			)
+	# Find the EPUB download URL of a publication
+	def get_epub_url(self, pub:str, issue:str=None):
+		try:
+			media = self.get_pub_media({
+				"pub": pub,
+				"issue": issue,
+				"fileformat": "EPUB",
+				})
+		except HTTPError as e:
+			logger.error("Failed to fetch EPUB url for %s %s: %s", pub, issue, str(e))
+			return None
+		return media["files"][self.meps_language]["EPUB"][0]["file"]["url"]
 
-	# This is broken out for flow-control reasons
-	def parse_video_url(self, url):
-		url_obj = urlparse(url)
-		query = dict(parse_qsl(url_obj.query))
-
-		if url_obj.netloc == "www.jw.org":
-
-			# Sharing URL
-			if "lank" in query or "docid" in query:
-				return query
-
-			# Player page URL
-			if url_obj.fragment:
-				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
-				if m:
-					return {
-						"wtlocale": iso_language_code_to_meps(m.group(1)),
-						"lank": m.group(2),
-						}
-
-		return {}
-
+	#======================================================================
+	# The mediator API endpoint is used to get the metadata for videos
+	# and audio recordings, especially when they are not viewed as an
+	# addendum to another publication.
+	#======================================================================
+	#
 	# Given a link to a video from an article, extract the publication ID
 	# and language and go directly to the mediator endpoint to get the
 	# metadata bypassing the player page.
 	#
-	# url -- sharing URL for video
-	# resolution (optional) -- "240p", "360p", "480p", or "720p"
-	# language -- optional language override, ISO code
-	def get_video_metadata(self, url, resolution=None, language=None):
-		query = self.parse_video_url(url)
+	# * url -- sharing URL for video
+	# * resolution (optional) -- "240p", "360p", "480p", or "720p"
+	# * language -- optional language override, ISO code
+	#
+	# Return None if this does not appear to be a link to a video on JW.ORG.
+	#
+	def get_video_metadata(self, url:str=None, query:dict=None, resolution:int=None, language:str=None):
+		if query is None:
+			query = self.parse_video_url(url)
 
 		if language is not None:
 			meps_language = iso_language_code_to_meps(language)
@@ -373,24 +386,23 @@ class Fetcher:
 		logger.info("Not a video URL")
 		return None
 
-	# Find the EPUB download URL of a periodical
-	# FIXME: is this really just for periodicals? Note that issue_code is optional
-	def get_epub_url(self, pub_code, issue_code=None):
-		logger.debug("get_epub_url(%s, %s)", pub_code, issue_code)
-		query = {
-			'output': 'json',
-			'pub': pub_code,
-			'fileformat': 'EPUB',
-			'alllangs': '0',
-			'langwritten': self.meps_language,
-			'txtCMSLang': self.meps_language,
-			}
-		if issue_code is not None:
-			query['issue'] = issue_code
-		try:
-			media = self.get_json(self.pub_media_url, query=query)
-		except HTTPError as e:
-			logger.error("Failed to fetch EPUB url for %s %s: %s", pub_code, issue_code, str(e))
-			return None
-		return media['files'][self.meps_language]['EPUB'][0]['file']['url']
+	def parse_video_url(self, url):
+		url_obj = urlparse(url)
+		query = dict(parse_qsl(url_obj.query))
 
+		if url_obj.netloc == "www.jw.org":
+
+			# Sharing URL
+			if "lank" in query or "docid" in query:
+				return query
+
+			# Player page URL
+			if url_obj.fragment:
+				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
+				if m:
+					return {
+						"wtlocale": iso_language_code_to_meps(m.group(1)),
+						"lank": m.group(2),
+						}
+
+		return {}
