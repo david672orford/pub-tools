@@ -1,6 +1,7 @@
 from flask import current_app
 import os.path
 import logging
+from urllib.parse import urlparse, parse_qsl
 
 from ....utils.babel import gettext as _
 from ....utils.background import flash, progress_callback, progress_response
@@ -25,10 +26,17 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 	if scene_name is not None:
 		progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 
-	video_metadata = meeting_loader.get_video_metadata(
-		url,
-		resolution = current_app.config["VIDEO_RESOLUTION"],
-		)
+	if "?pub=" in url:
+		video_metadata = meeting_loader.get_pub_media_mp4(
+			dict(parse_qsl(urlparse(url).query)),
+			resolution = current_app.config["VIDEO_RESOLUTION"],
+			)
+		print("VIDEO metadata:", video_metadata)
+	else:
+		video_metadata = meeting_loader.get_video_metadata(
+			url,
+			resolution = current_app.config["VIDEO_RESOLUTION"],
+			)
 	assert video_metadata is not None, "Failed to get metadata for %s" % url
 
 	if scene_name is None:

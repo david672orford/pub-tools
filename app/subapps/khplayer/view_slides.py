@@ -72,8 +72,8 @@ def download_slides(client, selected):
 		for file in client.list_image_files():
 			if file.id in selected:
 				scene_name = request.form.get("scenename-%s" % file.id)
-				if file.id.startswith("lank="):
-					load_video_url(scene_name, "https://www.jw.org/finder?" + file.id)
+				if file.id.startswith("https://"):
+					load_video_url(None, file.id)
 				else:
 					progress_callback(_("Downloading \"%s\"..." % file.filename))
 					filename = client.get_file(file)
