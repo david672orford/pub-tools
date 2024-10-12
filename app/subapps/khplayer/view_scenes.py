@@ -1,11 +1,11 @@
 from flask import current_app, Blueprint, render_template, request, redirect
 from time import sleep
-from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 import os, re, json, logging
 
 from ...utils.background import turbo, progress_callback, progress_response, run_thread, flash, async_flash
 from ...utils.babel import gettext as _
+from ...utils.media_cache import make_media_cachefile_name
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
@@ -198,7 +198,6 @@ def page_scenes_submit():
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
 	files = request.files.getlist("files")				# Get the Werkzeug FileStorage object
-	datestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 	i = 1
 	for file in files:
 		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype), cssclass="heading")
@@ -209,13 +208,7 @@ def page_scenes_upload():
 			progress_callback(_("Unsupported media type: %s") % file.mimetype, cssclass="error")
 			continue
 
-		# Save to file with name in format user-YYYYMMDDHHMMSS-X.ext
-		m = re.search(r"(\.[a-zA-Z0-9]+)$", file.filename)
-		ext = m.group(1) if m else ""
-		save_as = os.path.join(
-			current_app.config["MEDIA_CACHEDIR"],
-			"user-%s-%d%s" % (datestamp, i, ext),
-			)
+		save_as = make_media_cachefile_name(file.filename)
 		file.save(save_as)
 
 		try:

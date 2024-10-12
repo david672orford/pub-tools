@@ -31,7 +31,7 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 			dict(parse_qsl(urlparse(url).query)),
 			resolution = current_app.config["VIDEO_RESOLUTION"],
 			)
-		print("VIDEO metadata:", video_metadata)
+		print("video metadata:", video_metadata)
 	else:
 		video_metadata = meeting_loader.get_video_metadata(
 			url,

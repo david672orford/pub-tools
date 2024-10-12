@@ -21,6 +21,7 @@ Linux distributions.
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
 * [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- A virtual audio source from an audio file
 * [Controlling PulseAudio from the Command Line](https://www.shallowsky.com/linux/pulseaudio-command-line.html)
+* [Pipewire Equalizer](https://askubuntu.com/questions/1420560/can-anyone-recommend-a-good-audio-equalizer-for-ubuntu)
 
 ## PulseAudio
 

@@ -11,6 +11,9 @@
   * https://docs.python-cerberus.org/
   * https://github.com/python-jsonschema/jsonschema
   * https://json-schema.org/learn/getting-started-step-by-step
+* Verify cache cleaning policy and file categorization
+* CLI support for enabling debugging by module
+* Progress bar for Gdrive downloads. This will require knowing the file size
 
 ## Hard Stuff
 
@@ -18,7 +21,7 @@
 be difficult because it seems the Workbook sometimes excludes the paragraph
 with the illustration if it is at the beginning (or perhaps the end).
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
-* Auto-create yeartext slide (need to find online source)
+* Auto-create yeartext slide (need to find online source for yeartext)
 
 ## For the future
 

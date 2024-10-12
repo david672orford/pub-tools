@@ -1,10 +1,13 @@
-from flask import current_app, Blueprint, render_template, request, redirect, make_response
+import os
 from urllib.parse import urlparse, urlencode
 import logging
+
+from flask import current_app, Blueprint, render_template, request, redirect, make_response
 
 from ...utils.background import progress_callback, progress_response, flash, run_thread
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
+from ...utils.media_cache import make_media_cachefile_name
 from . import menu
 from .views import blueprint
 from .utils.scenes import scene_name_prefixes, load_video_url
@@ -17,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("Slides"), "/slides/"))
 
+# Form for entering the Google Drive sharing URL
 class ConfigForm(dict):
 	def __init__(self, config, data):
 		if config is not None:
@@ -30,67 +34,6 @@ class ConfigForm(dict):
 			return False
 		return True
 
-# Create a Google Drive client for the indicated path within the configured sharing link
-def get_client(path):
-	client = id = None
-	top = ".."
-
-	if path is None:
-		config = get_config("GDRIVE")
-		url = config.get("url")
-		if url is not None:
-			id = urlparse(url).path.split("/")[-1]
-	else:
-		path = path.split("/")
-		top = "/".join([".."] * (len(path)+1))
-		for i in range(len(path)):
-			if path[i].endswith(".zip"):
-				id = path[i]
-				path = path[i+1:]
-				break
-		else:
-			id = path[-1]
-
-	if id is not None:
-		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
-		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
-		if id.endswith(".zip"):
-			id = id[:-4]
-			url = f"https://drive.google.com/uc?id={id}"
-			#url = f"https://lh3.googleusercontent.com/{id}"
-			print("Zip URL:", url)
-			client = ZippedPlaylist(RemoteZip(url, cachedir=gdrive_cachedir, cachekey=id), path=path, cachedir=media_cachedir)
-		else:
-			client = GDriveClient(id, thumbnails=True, cachedir=media_cachedir)
-
-	return client, top
-
-# Use the supplied Gdrive client to download the items with the indicated ID numbers
-def download_slides(client, selected):
-	progress_callback(_("Downloading selected slides..."), cssclass="heading")
-	try:
-		for file in client.list_image_files():
-			if file.id in selected:
-				scene_name = request.form.get("scenename-%s" % file.id)
-				if file.id.startswith("https://"):
-					load_video_url(None, file.id)
-				else:
-					progress_callback(_("Downloading \"%s\"..." % file.filename))
-					filename = client.get_file(file)
-					major_mimetype = file.mimetype.split("/")[0]
-					scene_name_prefix = scene_name_prefixes.get(major_mimetype)
-					obs.add_media_scene(
-						scene_name_prefix + " " + request.form.get("scenename-%s" % file.id),
-						major_mimetype,
-						filename,
-						skiplist="*♫",		# After cameras and opening song
-						)
-	except ObsError as e:
-		flash(_("OBS: %s") % str(e))
-		progress_callback(_("✘ Failed to add slide images."), cssclass="error", last_message=True)
-	else:
-		progress_callback(_("✔ All selected slides added."), cssclass="success", last_message=True)
-
 # Target of configuration form
 @blueprint.route("/slides/--save-config", methods=["POST"])
 def page_slides_save_config():
@@ -100,7 +43,7 @@ def page_slides_save_config():
 	put_config("GDRIVE", form)
 	return redirect(".")
 
-# List files
+# List files in a folder
 @blueprint.route("/slides/", defaults={"path":None})
 @blueprint.route("/slides/<path:path>/")
 @blueprint.cache.cached(timeout=900, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
@@ -119,6 +62,7 @@ def page_slides(path):
 		top = top,
 		)
 
+# Refresh a folder's file list
 @blueprint.route("/slides/--reload", defaults={"path":None}, methods=["GET","POST"])
 @blueprint.route("/slides/<path:path>/--reload", methods=["POST"])
 def page_slides_reload(path):
@@ -138,4 +82,100 @@ def page_slides_folder_download(path):
 	selected = set(request.form.getlist("selected"))
 	run_thread(lambda: download_slides(client, selected))
 	return progress_response(None)	# so page doesn't reload
+
+# Get the Gdrive ID number of the root from the configured Gdrive sharing URL
+def get_root_gdrive_id():
+	config = get_config("GDRIVE")
+	url = config.get("url")
+	if url is not None:
+		return urlparse(url).path.split("/")[-1]
+	return None
+
+# Create a Google Drive client for the indicated path within the configured sharing link
+def get_client(path:str):
+	client = id = parent_id = zip_filename = None
+
+	# If the path is not empty, take ID from first element with a filename
+	# (which will be a zip file) or failing that, from the last element.
+	if path is not None:
+		path = path.split("/")
+		top = "/".join([".."] * (len(path)+1))
+		for i in range(len(path)):
+			print(f"path[{i}] = '{path[i]}'")
+			parts = path[i].split("=",1)
+			if len(parts) == 2:
+				id, zip_filename = parts
+				path = path[i+1:]
+				if parent_id is None:
+					parent_id = get_root_gdrive_id()
+					assert parent_id is not None
+				break
+			else:
+				parent_id = path[i]
+		else:
+			id = path[-1]
+
+	# If the path is empty, get the Gdrive ID of the root from the configuration.
+	else:
+		id = get_root_gdrive_id()
+		top = ".."
+
+	print(f"parent_id={parent_id}, id={id}, zip_filename={zip_filename}, path={path}")
+
+	if id is not None:
+		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
+		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
+
+		# If the ID has a .zip extension, build the Gdrive download URL and open it as a remote playlist
+		if zip_filename is not None:
+			url = f"https://drive.google.com/uc?id={id}"
+			#url = f"https://lh3.googleusercontent.com/{id}"
+			print("Zip URL:", url)
+
+
+			client = ZippedPlaylist(
+				parent_id = parent_id,
+				zip_reader = RemoteZip(url, cachekey=id, cachedir=gdrive_cachedir),
+				zip_filename = zip_filename,
+				path = path,
+				cachedir = media_cachedir,
+				)
+
+		# Otherwise it is a Gdrive folder
+		else:
+			client = GDriveClient(
+				id,
+				thumbnails = True,
+				cachedir = media_cachedir,
+				)
+
+	return client, top
+
+# Use the supplied Gdrive client to download the items with the indicated Gdrive ID numbers
+def download_slides(client, selected):
+	progress_callback(_("Downloading selected slides..."), cssclass="heading")
+	try:
+		for file in client.list_image_files():
+			if file.id in selected:
+				scene_name = request.form.get("scenename-%s" % file.id)
+				if file.id.startswith("https://"):
+					load_video_url(None, file.id)
+				else:
+					save_as = make_media_cachefile_name(file.filename)
+					if not os.path.exists(save_as):
+						progress_callback(_("Downloading \"%s\"..." % file.filename))
+						client.download_file(file, save_as)
+					major_mimetype = file.mimetype.split("/")[0]
+					scene_name_prefix = scene_name_prefixes.get(major_mimetype)
+					obs.add_media_scene(
+						scene_name_prefix + " " + request.form.get("scenename-%s" % file.id),
+						major_mimetype,
+						save_as,
+						skiplist="*♫",		# After cameras and opening song
+						)
+	except ObsError as e:
+		flash(_("OBS: %s") % str(e))
+		progress_callback(_("✘ Failed to add slide images."), cssclass="error", last_message=True)
+	else:
+		progress_callback(_("✔ All selected slides added."), cssclass="success", last_message=True)
 

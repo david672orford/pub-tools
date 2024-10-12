@@ -5,7 +5,7 @@
 #
 # Common Google Drive URL patterns:
 #
-# When you get when you share a folder:
+# What you get when you share a folder:
 #  https://drive.google.com/drive/folders/{id}?usp=sharing
 # What the browser retrieves when you download a file:
 #  https://drive.google.com/uc?export=download&id={id}
@@ -43,19 +43,22 @@ class GDriveClient:
 		self.cachedir = cachedir
 		self.debug = debug
 
+		# Put the ID into a sharing URL and retrieve the HTML page
 		url = "https://drive.google.com/drive/folders/{id}?usp=sharing".format(id=id)
 		self.session = requests.Session()
 		response = self.session.get(url, stream=True)
 		root = lxml.etree.parse(IterAsFile(response.iter_content()), parser=lxml.etree.HTMLParser(encoding=response.encoding)).getroot()
 
+		# If debugging mode is on, save the HTML page to a file in the current directory
 		if self.debug:
 			text = lxml.html.tostring(root, encoding="UNICODE")
 			with open("gdrive.html", "w") as fh:
 				fh.write(text)
 
+		# The name of the folder is in the <title> tag
 		self.folder_name = root.find(".//title").text
 
-		# Find the JSON object which contains the list of files.
+		# Find the JSON object which contains the list of files in this folder.
 		#
 		# Extraction approach from:
 		#   https://github.com/wkentaro/gdown/
@@ -72,17 +75,19 @@ class GDriveClient:
 				item = next(js_iter).group(1)
 				decoded = codecs.escape_decode(item)[0].decode("utf-8")
 				data = json.loads(decoded)
-				if self.debug:
-					with open("gdrive.json", "w") as fh:
-						json.dump(data, fh, indent=4, ensure_ascii=False)
 				break
 		assert data is not None, "_DRIVE_ivd not found"
+
+		# Save the JSON blob pretty printed alongside the HTML
+		if self.debug:
+			with open("gdrive.json", "w") as fh:
+				json.dump(data, fh, indent=4, ensure_ascii=False)
 
 		# * If the folder is empty, data[0] will be null
 		# * If the folder is not empty, data[0] will contain a list of files
 		# * Each file entry:
 		#   * 0 -- GDrive ID of this file
-		#   * 1 -- One-element array containing what looks like another Gdrive ID
+		#   * 1 -- One-element array containing something that looks like another Gdrive ID
 		#   * 2 -- The filename
 		#   * 3 -- The MIME type
 		#   * The rest of the array is mainly nulls and numbers like 0 and 1 with a few
@@ -93,8 +98,12 @@ class GDriveClient:
 			for file in data[0]:
 				if self.debug:
 					print("gdrive file:", file[0], file[2], file[3])
+
+				# Subfolder
 				if file[3] in ("application/vnd.google-apps.folder", "application/zip", "application/x-zip"):
 					self.folders.append(GFile(file, None))
+
+				# Image file
 				elif file[3].startswith("image/"):
 					if thumbnails:
 						response = self.session.get("https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1".format(id=file[0]))
@@ -105,24 +114,31 @@ class GDriveClient:
 					else:
 						thumbnail_url = None
 					self.image_files.append(GFile(file, thumbnail_url))
+
+				# Video file
 				elif file[3].startswith("video/"):
 					self.image_files.append(GFile(file, None))
-				else:		# other files
+
+				# Other file types (which we skip)
+				else:
 					pass
 
-	# Get the list of objects representing the subfolders.
 	def list_folders(self):
+		"""Get the list of objects representing the subfolders"""
 		return self.folders
 		
-	# Get the list of objects representing the images files.
 	def list_image_files(self):
+		"""Get the list of objects representing the images files"""
 		return self.image_files
 
-	def get_file(self, file):
-		cachefile = os.path.join(self.cachedir, "user-" + file.filename)
-		url = "https://drive.google.com/uc?export=download&id={id}".format(id=file.id)
-		response = self.session.get(url)
-		with open(cachefile, "wb") as fh:
-			fh.write(response.content)
-		return cachefile
+	def download_file(self, file, save_as):
+		"""Download file identified by GFile obj to cachedir"""
+		url = f"https://drive.google.com/uc?export=download&id={file.id}"
+		response = self.session.get(url, stream=True)
+		with open(save_as + ".tmp", "wb") as fh:
+			for block in response.iter_content(chunk_size=0x10000):
+				print(f"read {len(block)} bytes")
+				fh.write(block)
+		os.rename(save_as + ".tmp", save_as)
+		return save_as
 

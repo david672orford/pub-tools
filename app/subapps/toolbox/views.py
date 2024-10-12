@@ -1,13 +1,14 @@
 # Views for showing links to the Teaching Toolbox publications on JW.ORG
 
-from flask import Blueprint, render_template, redirect
+from flask import current_app, Blueprint, render_template, redirect
 import logging
+
 from ...models import PeriodicalIssues, Books, VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('toolbox', __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = 'Toolbox'
+blueprint = Blueprint("toolbox", __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = "Toolbox"
 blueprint.blurb = "Get lists of publications from the Teaching Toolbox"
 
 books = (
@@ -39,7 +40,7 @@ def toolbox(pub_category):
 			classes = "pubs img-crop"
 		case "video":
 			title = "Видео"
-			videos = VideoCategories.query.filter_by(subcategory_key="VODMinistryTools").one_or_none()
+			videos = VideoCategories.query.filter_by(lang=current_app.config["PUB_LANGUAGE"], subcategory_key="VODMinistryTools").one_or_none()
 			items = videos.videos if videos is not None else []
 			share = lambda item: "https://www.jw.org/finder?srcid=share&wtlocale=U&lank=%s" % item.lank
 			classes = "pubs"

@@ -29,7 +29,7 @@ table.insert(alsa_monitor.rules, {
 			{ "device.name", "equals", "alsa_card.usb-Creality_3D_Technology_CREALITY_CAM_20220121-02" },
 		},
 		{
-			-- Monitor has no speakers, so HDMI audio output is useless
+			-- The monitor (screen) has no speakers, so HDMI audio output is useless
 			{ "device.name", "equals", "alsa_card.pci-0000_08_00.1" },
 		},
 	},
@@ -42,7 +42,7 @@ table.insert(alsa_monitor.rules, {
 table.insert(alsa_monitor.rules, {
 	matches = {
 		{
-			-- Nothing connected to line in
+			-- We never use the analog line in
 			{ "node.name", "equals", "alsa_input.pci-0000_08_00.6.analog-stereo" },
 		},
 	},

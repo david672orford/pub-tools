@@ -247,10 +247,12 @@ class Fetcher:
 				if variant["label"] == resolution:
 					mp4_url = variant["file"]["url"]
 
+
 		return {
 			"title": mp4[0]["title"],
 			"url": mp4_url,
-			"thumbnail_url": mp4[0]["trackImage"]["url"],
+			# As of October 2024 the URL is sometimes an empty string
+			"thumbnail_url": mp4[0]["trackImage"]["url"] or None,
 			}
 
 	# Find the EPUB download URL of a publication
