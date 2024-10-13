@@ -19,7 +19,9 @@ scene_name_prefixes = {
 # The video will be downloaded using the URL provided, if necessary.
 # scene_name -- name of scene to create in OBS
 # url -- a link to the video containing an "lank" or "docid" parameter
+#        (or a sharing URL pointing to publication and track)
 # thumbnail_url -- link to thumbnail image used to link to this video
+#        (or a local file path starting with "/")
 # prefix -- media-type marker to put in front of scene name
 # close -- this is the last download in this group, close progress
 def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
@@ -31,7 +33,6 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 			dict(parse_qsl(urlparse(url).query)),
 			resolution = current_app.config["VIDEO_RESOLUTION"],
 			)
-		print("video metadata:", video_metadata)
 	else:
 		video_metadata = meeting_loader.get_video_metadata(
 			url,
@@ -48,11 +49,14 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 
 	if thumbnail_url is None:
 		thumbnail_url = video_metadata.get("thumbnail_url")
-	if thumbnail_url is not None:
+
+	if thumbnail_url is None:				# Still no thumbnail
+		thumbnail = None
+	elif thumbnail_url.startswith("/"):		# Thumbnail is in local file
+		thumbnail = thumbnail_url
+	else:									# Download thumbnail
 		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))
 		thumbnail = meeting_loader.download_media(thumbnail_url, callback=progress_callback)
-	else:
-		thumbnail = None
 
 	# If SUB_LANGUAGE is set and the video is subtitled, enable them.
 	subtitle_track = None

@@ -18,15 +18,22 @@
 #  https://drive.google.com/embeddedfolderview?id={id}#grid
 # 
 import os, json, re, base64, codecs
+from time import time
+import logging
+
 import requests
 import lxml.etree
 import lxml.html
 
+logger = logging.getLogger(__name__)
+
 class GFile:
 	def __init__(self, file, thumbnail_url):
 		self.id = file[0]
+		self.title = file[2]
 		self.filename = file[2]
 		self.mimetype = file[3]
+		self.file_size = file[13]
 		self.thumbnail_url = thumbnail_url
 
 class IterAsFile:
@@ -40,6 +47,7 @@ class IterAsFile:
 
 class GDriveClient:
 	def __init__(self, id, thumbnails=False, cachedir="cache", debug=False):
+		self.gdrive_folder_id = id
 		self.cachedir = cachedir
 		self.debug = debug
 
@@ -90,6 +98,7 @@ class GDriveClient:
 		#   * 1 -- One-element array containing something that looks like another Gdrive ID
 		#   * 2 -- The filename
 		#   * 3 -- The MIME type
+		#   * 13 -- The size in byte
 		#   * The rest of the array is mainly nulls and numbers like 0 and 1 with a few
 		#   * things that look like timestamps and a URL to view the file thrown in.
 		self.folders = []
@@ -97,27 +106,33 @@ class GDriveClient:
 		if data[0] is not None:
 			for file in data[0]:
 				if self.debug:
-					print("gdrive file:", file[0], file[2], file[3])
+					print("gdrive file:", file[0], file[2], file[3], file[13])
+				id = file[0]
+				thumbnail_url = None
 
 				# Subfolder
 				if file[3] in ("application/vnd.google-apps.folder", "application/zip", "application/x-zip"):
-					self.folders.append(GFile(file, None))
+					self.folders.append(GFile(file, thumbnail_url))
 
 				# Image file
 				elif file[3].startswith("image/"):
 					if thumbnails:
-						response = self.session.get("https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1".format(id=file[0]))
-						thumbnail_url = "data:{mimetype};base64,{data}".format(
-							mimetype = response.headers.get("Content-Type","").split(";")[0],
-							data = base64.b64encode(response.content).decode("utf-8"),
+						thumbnail_url = self._make_thumbnail_data_url(
+							# This is what the web interface uses
+							#f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
+							# This gives natural shape
+							f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
 							)
-					else:
-						thumbnail_url = None
 					self.image_files.append(GFile(file, thumbnail_url))
 
 				# Video file
 				elif file[3].startswith("video/"):
-					self.image_files.append(GFile(file, None))
+					# Disabled because the thumbnail is the first frame of the video which tends to be all black.
+					#if thumbnails:
+					#	thumbnail_url = self._make_thumbnail_data_url(
+					#		f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
+					#		)
+					self.image_files.append(GFile(file, thumbnail_url))
 
 				# Other file types (which we skip)
 				else:
@@ -131,14 +146,33 @@ class GDriveClient:
 		"""Get the list of objects representing the images files"""
 		return self.image_files
 
-	def download_file(self, file, save_as):
+	def make_uuid(self, file):
+		return file.id
+
+	def download_file(self, file, save_as, callback=None):
 		"""Download file identified by GFile obj to cachedir"""
 		url = f"https://drive.google.com/uc?export=download&id={file.id}"
 		response = self.session.get(url, stream=True)
 		with open(save_as + ".tmp", "wb") as fh:
-			for block in response.iter_content(chunk_size=0x10000):
-				print(f"read {len(block)} bytes")
-				fh.write(block)
+			total_recv = 0
+			last_callback = 0
+			for chunk in response.iter_content(chunk_size=0x10000):
+				fh.write(chunk)
+				total_recv += len(chunk)
+				logger.debug("%d byte chunk, %s of %s bytes received", len(chunk), total_recv, file.file_size)
+				if callback is not None:
+					now = time()
+					if (now - last_callback) >= 0.5 or total_recv == file.file_size:
+						callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=file.file_size)
+						last_callback = now
 		os.rename(save_as + ".tmp", save_as)
 		return save_as
+
+	def _make_thumbnail_data_url(self, url):
+		response = self.session.get(url)
+		thumbnail_url = "data:{mimetype};base64,{data}".format(
+			mimetype = response.headers.get("Content-Type","").split(";")[0],
+			data = base64.b64encode(response.content).decode("utf-8"),
+			)
+		return thumbnail_url
 

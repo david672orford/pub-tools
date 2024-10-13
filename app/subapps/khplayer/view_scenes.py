@@ -208,7 +208,7 @@ def page_scenes_upload():
 			progress_callback(_("Unsupported media type: %s") % file.mimetype, cssclass="error")
 			continue
 
-		save_as = make_media_cachefile_name(file.filename)
+		save_as = make_media_cachefile_name(file.filename, file.mimetype)
 		file.save(save_as)
 
 		try:

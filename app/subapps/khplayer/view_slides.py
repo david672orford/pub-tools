@@ -101,7 +101,7 @@ def get_client(path:str):
 		path = path.split("/")
 		top = "/".join([".."] * (len(path)+1))
 		for i in range(len(path)):
-			print(f"path[{i}] = '{path[i]}'")
+			#print(f"path[{i}] = '{path[i]}'")
 			parts = path[i].split("=",1)
 			if len(parts) == 2:
 				id, zip_filename = parts
@@ -120,7 +120,7 @@ def get_client(path:str):
 		id = get_root_gdrive_id()
 		top = ".."
 
-	print(f"parent_id={parent_id}, id={id}, zip_filename={zip_filename}, path={path}")
+	#print(f"parent_id={parent_id}, id={id}, zip_filename={zip_filename}, path={path}")
 
 	if id is not None:
 		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
@@ -134,7 +134,7 @@ def get_client(path:str):
 
 
 			client = ZippedPlaylist(
-				parent_id = parent_id,
+				gdrive_folder_id = parent_id,
 				zip_reader = RemoteZip(url, cachekey=id, cachedir=gdrive_cachedir),
 				zip_filename = zip_filename,
 				path = path,
@@ -151,24 +151,27 @@ def get_client(path:str):
 
 	return client, top
 
-# Use the supplied Gdrive client to download the items with the indicated Gdrive ID numbers
+# Background thread to download slides
+# Use the supplied Google Drive client instance to download the items with the indicated ID numbers.
 def download_slides(client, selected):
 	progress_callback(_("Downloading selected slides..."), cssclass="heading")
 	try:
 		for file in client.list_image_files():
 			if file.id in selected:
+				print("IDs:", file.id, client.gdrive_folder_id)
 				scene_name = request.form.get("scenename-%s" % file.id)
+				progress_callback(_("Loading slide \"%s\"...") % scene_name)
 				if file.id.startswith("https://"):
-					load_video_url(None, file.id)
+					load_video_url(None, file.id, thumbnail_url=file.thumbnail_url)
 				else:
-					save_as = make_media_cachefile_name(file.filename)
+					save_as = make_media_cachefile_name(file.filename, file.mimetype, client.make_uuid(file))
 					if not os.path.exists(save_as):
 						progress_callback(_("Downloading \"%s\"..." % file.filename))
-						client.download_file(file, save_as)
+						client.download_file(file, save_as, callback=progress_callback)
 					major_mimetype = file.mimetype.split("/")[0]
 					scene_name_prefix = scene_name_prefixes.get(major_mimetype)
 					obs.add_media_scene(
-						scene_name_prefix + " " + request.form.get("scenename-%s" % file.id),
+						scene_name_prefix + " " + scene_name,
 						major_mimetype,
 						save_as,
 						skiplist="*♫",		# After cameras and opening song

@@ -9,6 +9,8 @@ import os, re, logging
 from rich.console import Console
 from rich.table import Table
 
+from .jworg.filenames import jworg_filename_category
+
 logger = logging.getLogger(__name__)
 
 cli_cache = AppGroup("cache", help="Cache maintanance")
@@ -42,21 +44,24 @@ def scan_cache(clean=False):
 	totals = defaultdict(Total)
 	time_now = int(time())
 	for entry in os.scandir(current_app.config["MEDIA_CACHEDIR"]):
-		if entry.name.startswith("sjjm_") and entry.name.endswith(".mp4"):
-			category = "Songs from JW.ORG"
-			lifetime = 365
+		if category := jworg_filename_category(entry.name):
+			if category == "song":
+				category = "Songs from JW.ORG"
+				lifetime = 365
+			elif category == "image":
+				category = "Images from JW.ORG"
+				lifetime = 30
+			elif category == "video":
+				category = "Videos from JW.ORG"
+				lifetime = 90
+			else:
+				raise AssertionFailed()
 		elif entry.name.startswith("jwstream-"):
 			category = "Clips from JW Stream"
 			lifetime = 14
 		elif entry.name.startswith("user-"):
 			category = "User-Supplied Files"
 			lifetime = 14
-		elif re.match(r"^\d\d\d\d+_.+\.jpg$", entry.name):
-			category = "Images from JW.ORG"
-			lifetime = 30
-		elif re.match(r"^[a-zA-Z0-9]+[_-].+_r\d+P\.mp4$", entry.name):	# mwbv_U_202111_03_r480P.mp4
-			category = "Videos from JW.ORG"
-			lifetime = 90
 		elif entry.name.endswith(".epub"):
 			category = "EPUB Files"
 			lifetime = 365

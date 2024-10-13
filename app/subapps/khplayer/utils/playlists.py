@@ -1,12 +1,15 @@
 import os, json, base64, re, io, sqlite3
+import os.path
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
 from urllib.parse import urlencode
 import json
 from fnmatch import fnmatch
+from hashlib import md5
 from PIL import Image
 
 from .gdrive import GDriveClient
+from ....models import Videos
 
 # Reader for zip files which may contain one or more playlists
 # Supported formats:
@@ -15,18 +18,20 @@ from .gdrive import GDriveClient
 # * .jwpub file: each document (generally a talk) a folder containing its multimedia items
 class ZippedPlaylist:
 	class PlaylistItem:
-		def __init__(self, id, filename, mimetype=None, thumbnail_url=None):
+		def __init__(self, id, title, filename, mimetype=None, file_size=None, thumbnail_url=None):
 			self.id = id
+			self.title = title
 			self.filename = filename
 			self.mimetype = mimetype
+			self.file_size = file_size
 			self.thumbnail_url = thumbnail_url
 
-	def __init__(self, parent_id:str, zip_reader, zip_filename:str, path, cachedir="cache", debuglevel=10):
-		self.parent_id = parent_id			# Google Drive ID of folder containing this zip file
-		self.zip_reader = zip_reader		# Zipfile compatible object
-		self.path = path					# path to folder within zipfile
-		self.zip_filename = zip_filename	# filename of the .zip file
-		self.cachedir = cachedir			# directory into which to download media files
+	def __init__(self, gdrive_folder_id:str, zip_reader, zip_filename:str, path, cachedir="cache", debuglevel=10):
+		self.gdrive_folder_id = gdrive_folder_id	# Google Drive ID of folder containing this zip file
+		self.zip_reader = zip_reader				# Zipfile compatible object
+		self.path = path							# path to folder within zipfile
+		self.zip_filename = zip_filename			# filename of the .zip file
+		self.cachedir = cachedir					# directory into which to download media files
 		self.debuglevel = debuglevel
 
 		self.folder_name = None
@@ -59,7 +64,10 @@ class ZippedPlaylist:
 		"""Called from the Jinja2 template to get the list of files to display"""
 		return self.files
 
-	def download_file(self, file, save_as):
+	def make_uuid(self, file):
+		return self.gdrive_folder_id + "-" + md5(file.id.encode("utf-8")).hexdigest()
+
+	def download_file(self, file, save_as, callback=None):
 		"""Called from view_slides.py to extract a file from the archive"""
 		id = file.id
 
@@ -67,7 +75,7 @@ class ZippedPlaylist:
 			id = id[7:]
 			for gfile in self.parent_reader.list_image_files():
 				if gfile.id == id: 
-					return self.parent_reader.download_file(gfile, save_as)
+					return self.parent_reader.download_file(gfile, save_as, callback=callback)
 			else:
 				raise AssertionError("File not found in parent Gdrive folder")
 
@@ -123,33 +131,35 @@ class ZippedPlaylist:
 				if self.debuglevel > 0:
 					print("zip inside_path:", inside_path)
 
+				# If this is a subdirectory of the requested directory,
 				if file.is_dir():
 					inside_path = inside_path[:-1]
-					# If not the indicated directory itself,
 					if len(inside_path) > 0:
 						self.folders.append(self.PlaylistItem(
 							id = file.filename[:-1],
+							title = file.filename[:-1],
 							filename = inside_path,
-							#thumbnail_url = 
+							#thumbnail_url = 	# FIXME
 							))
 
-				elif not "/" in inside_path:
-					# Extract the filename extension
-					m = re.search(r"\.([a-zA-Z0-9]+)$", inside_path)
-					if m:
-						mimetype = extmap.get(m.group(1).lower())
-						if mimetype:
-							self.files.append(self.PlaylistItem(
-								id = file.filename,
-								filename = inside_path,
-								mimetype = mimetype,
-								thumbnail_url = self._make_thumbnail_dataurl(self.zip_reader, file.filename, mimetype),
-								))
+				# If this is a file within the requested directory (but not deaper, no slashes),
+				elif m := re.search(r"^[^/]+\.([a-zA-Z0-9]+)$", inside_path):
+					# If filename extension is in the list of supported image file formats,
+					if mimetype := extmap.get(m.group(1).lower()):
+						self.files.append(self.PlaylistItem(
+							id = file.filename,
+							title = inside_path,
+							filename = inside_path,
+							mimetype = mimetype,
+							file_size = file.file_size,
+							thumbnail_url = self._make_thumbnail_dataurl(self.zip_reader, file.filename, mimetype),
+							))
 
 	# Load image list from a playlist shared from JW Library (.jwlplaylist).
 	def _load_jwlplaylist(self, manifest):
-		#self.folder_name = manifest.get("name")
-		self.folder_name = self.zip_filename
+		self.folder_name = manifest.get("name")
+
+		# The playlist is in a Sqlite DB. We extract it to a temporary file and open it.
 		dbfile = self.zip_reader.read("userData.db")
 		with NamedTemporaryFile() as fh:
 			fh.write(dbfile)
@@ -157,6 +167,8 @@ class ZippedPlaylist:
 			conn = sqlite3.connect(fh.name)
 			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
+
+			# Run a query to loop through the files in the playlist
 			for row in cur.execute("""
 					select Label, FilePath, MimeType, DocumentId as MepsDocumentId, KeySymbol, Track, IssueTagNumber, ThumbnailFilePath
 						from PlaylistItem
@@ -168,19 +180,40 @@ class ZippedPlaylist:
 				row = dict(row)
 				print("jwlplaylist item:", json.dumps(row, indent=4, ensure_ascii=False))
 
-				filename = None
+				# Image files are packed inside the playlist zip file itself
+				# Label -- whatever user set in the app (default is the original filename)
+				# FilePath -- random ID basename + ".jpg"
+				# MimeType -- "image/jpeg"
+				# MepsDocumentId -- None
+				# KeySymbol -- None
+				# Track -- None
+				# IssueTagNumber -- None
 				if row["FilePath"] and row["MimeType"] == "image/jpeg":
-					id = row["FilePath"]		# some kind of UUID
-				else:
-					id, filename = self._make_video_id(row)
+					id = row["FilePath"]
+					filename = None
+					file_size = None
 
-				if filename is None:
-					filename = row["Label"]		# by default, the JW.ORG filename
+				# Videos must be downloaded from JW.ORG
+				# FilePath -- None
+				# MimeType -- None
+				# Video identified either by MepsDocumentId or KeySymbol and Track
+				# IssueTagNumber -- 0
+				elif gfile := self._find_neighbor_file(row):
+					id = "gdrive:" + gfile.id
+					filename = gfile.filename
+					file_size = gfile.size
+				else:
+					id = self._make_video_id(row)
+					filename = None
+					file_size = None
 
 				self.files.append(self.PlaylistItem(
 					id = id,
+					title = row["Label"],
 					filename = filename,
 					mimetype = row["MimeType"],
+					file_size = file_size,
+					# Both images and videos have thumbnails in the zip
 					thumbnail_url = self._make_thumbnail_dataurl(self.zip_reader, row["ThumbnailFilePath"], "image/jpeg"),
 					))
 
@@ -190,7 +223,11 @@ class ZippedPlaylist:
 	# Load image list from a JWPUB file such as the Public Talk Media Playlist (S-34mp_U.jwpub)
 	def _load_jwpub_playlist(self, manifest):
 		publication = manifest["publication"]
+
+		# For some reason JWPUB files are double zipped
 		contents = self.zip_reader.open_zipfile("contents")
+
+		# The playlist is in a Sqlite DB. We extract it to a temporary file and open it.
 		dbfile = contents.read(publication["fileName"])
 		with NamedTemporaryFile() as fh:
 			fh.write(dbfile)
@@ -199,7 +236,7 @@ class ZippedPlaylist:
 			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
 
-			# Table of contents (lists talks)
+			# Root level: Table of Contents (lists talks)
 			if len(self.path) == 0:
 				self.folder_name = publication["title"]
 				for row in cur.execute("""
@@ -214,16 +251,18 @@ class ZippedPlaylist:
 					print("jwpub document item:", json.dumps(row, indent=4, ensure_ascii=False))
 					self.folders.append(self.PlaylistItem(
 						id = row["DocumentId"],
-						filename = row["Title"],
+						title = row["Title"],
+						filename = row["Title"],	# FIXME
 						thumbnail_url = self._make_thumbnail_dataurl(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"]),
 						))
 
-			# Document (a particular talk and its media)
+			# Numberically-named subdirectories each contains the media for a talk
 			else:
 				docid = int(self.path[0])
 				cur.execute("select Title from Document where DocumentId = ?", (docid,))
 				self.folder_name = cur.fetchone()[0]
 
+				# Run a query to loop through the files in the selected talk's playlist
 				for row in cur.execute("""
 						select DocumentId,
 								Multimedia.MultimediaId,
@@ -238,26 +277,50 @@ class ZippedPlaylist:
 						""", (docid,)):
 					row = dict(row)
 					print("jwpub playlist item:", json.dumps(row, indent=4, ensure_ascii=False))
+					assert row["DocumentId"] == docid
 
+					# Image files are packed inside the playlist zip file itself
+					# Label -- empty string
+					# FilePath -- the original file name as used on JW.ORG
+					# MimeType -- "image/jpeg"
+					# Eveything else has None or 0 values
 					if row["MimeType"].startswith("image/"):
 						id = "contents:"+row["FilePath"]
-						filename = row["FilePath"]
-					else:
-						id, filename = self._make_video_id(row)
-						if filename is None:
-							filename = "%s %02d" % (row["KeySymbol"], row["Track"])
-
-					if row["ThumbnailFilePath"]:
-						thumbnail_url = self._make_thumbnail_dataurl(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"])
-					elif row["FilePath"] and row["MimeType"] == "image/jpeg":
+						title = filename = row["FilePath"]
+						file_size = None
 						thumbnail_url = self._make_thumbnail_dataurl(contents, row["FilePath"], row["MimeType"])
+
+					# Videos must be downloaded from JW.ORG
+					# Label -- empty string
+					# FilePath -- filename of the 720i version as downloaded from JW.ORG (or empty string)
+					# MimeType -- "video/mp4"
+					# Video identified either by MepsDocumentId or KeySymbol and Track
+					# IssueTagNumber -- 0
+					# ThumbnailFilePath -- filename in JW.ORG style
+					# ThumbnailMimeType -- "image/jpeg"
 					else:
-						thumbnail_url = None
+						if gfile := self._find_neighbor_file(row):
+							id = "gdrive:" + gfile.id
+							title = filename = gfile.filename
+							file_size = gfile.file_size
+						else:
+							id = self._make_video_id(row)
+							filename = row["FilePath"]
+							if not filename:
+								filename = "pub-%s-%d" % (row["KeySymbol"], row["Track"])
+							title = filename
+							file_size = None
+						if row["ThumbnailFilePath"]:
+							thumbnail_url = self._make_thumbnail_dataurl(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"])
+						else:
+							thumbnail_url = None
 
 					self.files.append(self.PlaylistItem(
 						id = id,
+						title = title,
 						filename = filename,
 						mimetype = row["MimeType"],
+						file_size = file_size,
 						thumbnail_url = thumbnail_url,
 						))
 
@@ -272,30 +335,45 @@ class ZippedPlaylist:
 	# not an actual JW.ORG sharing URL.
 	def _make_video_id(self, row):
 
+		# A video on a standalone player page identified by the MEPS ID of that page
+		if row["MepsDocumentId"] and row["Track"]:
+			return ("https://www.jw.org/finder?" + urlencode({
+				"lank": f"docid-{row['MepsDocumentId']}_{row['Track']}_VIDEO",
+				}), None)
+
 		# A video as a media item of a songbook or talk outline
 		if row["KeySymbol"] and row["Track"]:
 
-			if self.parent_reader is None:
-				self.parent_reader = GDriveClient(self.parent_id, cachedir=self.cachedir)
-			pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
-			print("pattern:", pattern)
-			for gfile in self.parent_reader.list_image_files():
-				print("file:", gfile.filename)
-				if fnmatch(gfile.filename, pattern):
-					return f"gdrive:{gfile.id}", gfile.filename
+			# Check our list of videos from JW Broadcasting
+			lank = f"pub-{row['KeySymbol']}-{row['Track']:03}"
+			if Videos.query.filter_by(lank=lank).first():
+				return ("https://www.jw.org/finder?" + urlencode({"lank": lank}), None)
 
-			return "https:///finder?" + urlencode({"pub": row["KeySymbol"], "track": row["Track"], "issue": row["IssueTagNumber"]}), None
-
-		# FIXME: not reached
-		# Link to a video in the JW Broadcasting player
-		if row["KeySymbol"]:
-			return "https://www.jw.org/finder?" + urlencode({"lank": "pub-{KeySymbol}_{Track}_VIDEO".format(**row)}), None
-
-		# A video on a standalone player page
-		if row["MepsDocumentId"] and row["Track"]:
-			return "https://www.jw.org/finder?" + urlencode({"lank": "docid-{MepsDocumentId}_{Track}_VIDEO".format(**row)}), None
+			# Make a sharing URL and hope for the best
+			query = {
+				"pub": row["KeySymbol"],
+				"track": row["Track"],
+				}
+			if row["IssueTagNumber"]:
+				query["issue"] = str(row["IssueTagNumber"])
+			return ("https://www.jw.org/finder?" + urlencode(query), None)
 
 		raise AssertionError("Can't make URL: %s" % row)
+
+	# Find a file in the Gdrive folder which contains the current zipped playlist
+	def _find_neighbor_file(self, row):
+		if self.parent_reader is None:
+			self.parent_reader = GDriveClient(self.gdrive_folder_id, cachedir=self.cachedir)
+		pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
+		print("media file search pattern:", pattern)
+		for gfile in self.parent_reader.list_image_files():
+			print("  candidate file:", gfile.filename)
+			if fnmatch(gfile.filename, pattern):
+				print(" Match!")
+				return gfile
+		else:
+			print(" No match")
+		return None
 
 	# For all playlist formats
 	# Read an image from the zip file and turn it into a data URL.
