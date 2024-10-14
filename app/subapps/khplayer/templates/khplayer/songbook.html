@@ -1,7 +1,15 @@
 {% set title = gettext("Load Songs from Songbook") %}
 {% extends "khplayer/base.html" %}
 
+{% block header %}
+	<form style="float: right; margin: .5em" action="update" method="POST">
+		<button class="reload" type="submit">{{gettext("Update Songs")}}</button>
+	</form>
+	{{ super() }}
+{% endblock %}
+
 {% block main %}
+{% if videos %}
 
 <section>
 <form action="submit" method="POST">
@@ -11,7 +19,6 @@
 </section>
 
 <section>
-{% if videos %}
 <form action="submit" method="POST">
 <table class="borders full-width selection">
 <thead>
@@ -34,9 +41,11 @@
 </tbody>
 </table>
 </form>
-{% else %}
-<p>{{_("Run <b>Update</b> in the <b>Videos</b> tab to see a list of songs here.")|safe}}</p>
-{% endif %}
 </section>
 
+{% else %}
+<section>
+<p>{{_("Click <b>Update Songs</b> to see a list of songs here.")|safe}}</p>
+</section>
+{% endif %}
 {% endblock %}

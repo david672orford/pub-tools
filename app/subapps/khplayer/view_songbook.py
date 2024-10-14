@@ -1,6 +1,8 @@
-from flask import current_app, request, session, render_template, redirect
 import re
+from time import sleep
 import logging
+
+from flask import current_app, request, session, render_template, redirect
 
 from . import menu
 from .views import blueprint
@@ -8,6 +10,7 @@ from ...utils.background import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
 from .utils.controllers import meeting_loader, obs, ObsError
 from .utils.scenes import load_video_url
+from ...cli_update import update_video_subcategory
 from ...models import VideoCategories, Videos
 
 logger = logging.getLogger(__name__)
@@ -23,6 +26,14 @@ def page_songbook():
 		subcategory_key = "VODSJJMeetings",
 		).one_or_none()
 	return render_template("khplayer/songbook.html", videos=category.videos if category else None, top="..")
+
+@blueprint.route("/songbook/update", methods=["POST"])
+def page_songbook_update():
+	progress_callback(_("Updating song list..."), cssclass="heading")
+	update_video_subcategory(meeting_loader.language, "VODMusicVideos", "VODSJJMeetings", callback=progress_callback)
+	progress_callback(_("✔ Song list updated."), cssclass="success", close=True)
+	sleep(2)
+	return redirect(".")
 
 @blueprint.route("/songbook/submit", methods=["POST"])
 def page_songbook_submit():
