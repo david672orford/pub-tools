@@ -8,9 +8,9 @@
 
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
 * Validate configuration
-  * https://docs.python-cerberus.org/
-  * https://github.com/python-jsonschema/jsonschema
-  * https://json-schema.org/learn/getting-started-step-by-step
+    * https://docs.python-cerberus.org/
+    * https://github.com/python-jsonschema/jsonschema
+    * https://json-schema.org/learn/getting-started-step-by-step
 * Verify cache cleaning policy and file categorization
 * CLI support for enabling debugging by module
 * Progress bar for Gdrive downloads. This will require knowing the file size
@@ -22,6 +22,11 @@ be difficult because it seems the Workbook sometimes excludes the paragraph
 with the illustration if it is at the beginning (or perhaps the end).
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 * Auto-create yeartext slide (need to find online source for yeartext)
+* Better Zoom capture. Options:
+    * Zoom App to control participant screen positions and report them
+    * OBS plugin for the Zoom Meeting SDK
+    * Find a way to make Web SDK display a particular participant
+    * Produces mulitiple automatic crops from screen capture of Zoom window
 
 ## For the future
 
