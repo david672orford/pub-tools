@@ -117,65 +117,72 @@ class ZippedPlaylist:
 
 		return save_as
 
-	# Any image files found in the zip file will be considered part of the playlist
-	# TODO: * Omit directories without image files
-	#       * Show first image file as (folder?) thumbnail
+	# Load image list from supported images files found in an generic zip archive
 	def _load_generic_zip(self):
 
 		# Table of file types to look for in the zip file
 		extmap = {
-			"jpg": "image/jpeg",
-			"png": "image/png",
-			"gif": "image/gif",
-			"svg": "image/svg+xml",
+			".jpg": "image/jpeg",
+			".png": "image/png",
+			".gif": "image/gif",
+			".svg": "image/svg+xml",
 			}
 
-		# Folder name is a breadcrumb-like path
 		if len(self.path) == 0:
 			self.folder_name = self.zip_filename
 		else:
 			self.folder_name = self.path[-1]
 
-		ls_path = "/".join(self.path)
-		if len(ls_path) > 0:
-			ls_path += "/"
+		# Set search_dir to a prefix ending in slash which we can use to filter
+		# the output of .infolist() down to the subdirectory we want. For the
+		# root, the prefix will be an empty string.
+		search_folder = "/".join(self.path)
+		if len(search_folder) > 0:
+			search_folder += "/"
 		if self.debuglevel > 0:
-			print("zip ls_path:", ls_path)
+			print("zip search_folder:", search_folder)
 
+		# Go through the tree of files and directories within the zip
+		folders_included = set()
 		for file in self.zip_reader.infolist():
-
-			# If file is within the indicated directory,
-			if file.filename.startswith(ls_path):
-
-				# File's relative path from that directory
-				inside_path = file.filename[len(ls_path):]
+			if file.filename.startswith(search_folder) and not file.is_dir():
+				path_elements = file.filename[len(search_folder):].split("/")
 				if self.debuglevel > 0:
-					print("zip inside_path:", inside_path)
+					print("zip path_elements:", path_elements)
 
-				# If this is a subdirectory of the requested directory,
-				if file.is_dir():
-					inside_path = inside_path[:-1]
-					if len(inside_path) > 0:
-						self.folders.append(self.PlaylistItem(
-							id = file.filename[:-1],
-							title = file.filename[:-1],
-							filename = inside_path,
-							#thumbnail_url = 	# FIXME
-							))
-
-				# If this is a file within the requested directory (but not deaper, no slashes),
-				elif m := re.search(r"^[^/]+\.([a-zA-Z0-9]+)$", inside_path):
-					# If filename extension is in the list of supported image file formats,
-					if mimetype := extmap.get(m.group(1).lower()):
+				# Is this a file which is a direct child of the searched folder?
+				# If it is a supported image, included it in the list of images.
+				if len(path_elements) == 1:
+					filename = path_elements[0]
+					if mimetype := extmap.get(os.path.splitext(filename)[1]):
 						self.files.append(self.PlaylistItem(
 							id = file.filename,
-							title = inside_path,
-							filename = inside_path,
+							title = filename,
+							filename = filename,
 							mimetype = mimetype,
 							file_size = file.file_size,
 							thumbnail = self._make_thumbnail(self.zip_reader, file.filename, mimetype),
 							))
 						print(self.files[-1])
+						print()
+
+				# Is this a file which is a grandchild of the search folder?
+				# If we have not yet included this folder in the list of subfolders
+				# of search_folder and this file is a supported image, include the
+				# folder using this image as the thumbnail.
+				elif len(path_elements) == 2:
+					dirname, filename = path_elements
+					if not dirname in folders_included:
+						if mimetype := extmap.get(os.path.splitext(filename)[1]):
+							self.folders.append(self.PlaylistItem(
+								id = search_folder + dirname,
+								title = dirname,
+								filename = dirname,
+								thumbnail = self._make_thumbnail(self.zip_reader, file.filename, mimetype),
+								))
+							print(self.folders[-1])
+							print()
+						folders_included.add(dirname)
 
 	# Load image list from a playlist shared from JW Library (.jwlplaylist).
 	def _load_jwlplaylist(self, manifest):
@@ -202,7 +209,8 @@ class ZippedPlaylist:
 				row = dict(row)
 				print("jwlplaylist item:", json.dumps(row, indent=4, ensure_ascii=False))
 
-				# Image files are packed inside the playlist zip file itself
+				# Image file inside the playlist zip
+				#
 				# Label -- whatever user set in the app (default is the original filename)
 				# FilePath -- random ID basename + ".jpg"
 				# MimeType -- "image/jpeg"
@@ -210,17 +218,23 @@ class ZippedPlaylist:
 				# KeySymbol -- None
 				# Track -- None
 				# IssueTagNumber -- None
+				#
+				# We don't bother testing that the file is actually present since playlists
+				# have no mechanism for linking to external image files.
 				if row["MimeType"] and row["MimeType"].startswith("image/"):
 					id = row["FilePath"]
 					filename = None
 					mimetype = row["MimeType"]
 					file_size = None
 
-				# Video file inside the zip
+				# Video file inside the playlist zip
 				# (Users can add their own images and videos when creating a playlist in the app.)
-				# We could just assume the file is in the zip if MimeType and FilePath are None,
-				# but it seems safer to make sure the file named is actually in the zip.
-				elif row["MimeType"] and row["MimeType"].startswith("video/") and row["FilePath"] and (info := self._find_embedded_file(self.zip_reader, row)):
+				#
+				# Make sure the file is actually in the zip since there is no guarantee that in future
+				# playlists could not have MimeType and FilePath set for external videos.
+				elif row["MimeType"] and row["MimeType"].startswith("video/") \
+						and row["FilePath"] \
+						and (info := self._find_embedded_file(self.zip_reader, row)):
 					id = row["FilePath"]
 					filename = row["FilePath"]
 					mimetype = row["MimeType"]
@@ -251,8 +265,6 @@ class ZippedPlaylist:
 					# Both images and videos have thumbnails in the zip
 					thumbnail = self._make_thumbnail(self.zip_reader, row["ThumbnailFilePath"], "image/jpeg"),
 					))
-
-				print("jwpub playlist item id:", id)
 				print(self.files[-1])
 				print()
 
@@ -291,6 +303,7 @@ class ZippedPlaylist:
 						filename = row["Title"],	# FIXME
 						thumbnail = self._make_thumbnail(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"]),
 						))
+					print(self.folders[-1])
 
 			# Numberically-named subdirectories each contains the media for a talk
 			else:
@@ -314,27 +327,38 @@ class ZippedPlaylist:
 					row = dict(row)
 					print("jwpub playlist item:", json.dumps(row, indent=4, ensure_ascii=False))
 					assert row["DocumentId"] == docid
+
+					# .jwpub files specify the mimetype for both images and video
 					assert row["MimeType"]
 
 					# Image files are packed inside the playlist zip file itself
 					# Label -- empty string in talk playlists
 					# FilePath -- the original file name as used on JW.ORG
 					# MimeType -- "image/jpeg"
-					# Eveything else has None or 0 values
+					# KeySymbol, Track, MepsDocumentId, and IssueTagNumber are all None or 0
+					# ThumbnailFilePath and ThumbnailMimeType are also None
+					# (In this respect .jwpub files are different from .jwlplaylist files.)
 					if row["MimeType"].startswith("image/"):
 						id = "contents:"+row["FilePath"]
 						filename = row["FilePath"]
 						file_size = None
-						thumbnail = self._make_thumbnail(contents, row["FilePath"], row["MimeType"])
+						if not row["ThumbnailFilePath"]:
+							row["ThumbnailFilePath"] = row["FilePath"]
+							row["ThumbnailMimeType"] = row["MimeType"]
 
 					# Videos must be downloaded from JW.ORG
+					#
 					# Label -- empty string
 					# FilePath -- filename of the 720i version as downloaded from JW.ORG (or empty string)
+					#             (File is NOT included in the zip)
 					# MimeType -- "video/mp4"
 					# Video identified either by MepsDocumentId or KeySymbol and Track
 					# IssueTagNumber -- 0
-					# ThumbnailFilePath -- filename in JW.ORG style
+					# ThumbnailFilePath -- filename in JW.ORG style (file IS included in zip)
 					# ThumbnailMimeType -- "image/jpeg"
+					#
+					# First we look in Google Drive to see if the user has downloaded it.
+					# If we don't find it, we generate a sharing link and hope for the best.
 					elif gfile := self._find_neighbor_file(row):
 						id = "gdrive:" + gfile.id
 						filename = gfile.filename
@@ -354,8 +378,6 @@ class ZippedPlaylist:
 						file_size = file_size,
 						thumbnail = self._make_thumbnail(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"])
 						))
-
-					print("jwpub playlist item id:", id)
 					print(self.files[-1])
 					print()
 

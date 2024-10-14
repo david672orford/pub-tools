@@ -67,7 +67,7 @@ def page_videos_update_all():
 	progress_callback(_("Updating video list..."), cssclass="heading")
 	update_videos(meeting_loader.language, callback=progress_callback)
 	progress_callback(_("✔ Video list updated."), cssclass="success", close=True)
-	sleep(1)
+	sleep(2)
 	return redirect(".")
 
 # When Update button is pressed on a category page
