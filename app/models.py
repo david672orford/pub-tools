@@ -72,7 +72,7 @@ class PeriodicalIssues(db.Model):
 class Articles(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	lang = db.Column(db.String)
-	issue_id = db.Column(db.Integer, db.ForeignKey('periodical_issues.id'))
+	issue_id = db.Column(db.Integer, db.ForeignKey("periodical_issues.id"))
 	issue = db.relationship(PeriodicalIssues, back_populates="articles")
 	docid = db.Column(db.String)
 	title = db.Column(db.String)
@@ -84,9 +84,10 @@ class Articles(db.Model):
 # Videos on JW.ORG
 #=============================================================================
 
+# A video can be in multiple categories, so we need a third table to connect them.
 videos_rel = db.Table("videos_rel", db.Model.metadata,
-    db.Column('category_id', db.Integer, db.ForeignKey('video_categories.id'), primary_key=True),
-    db.Column('video_id', db.Integer, db.ForeignKey('videos.id'), primary_key=True)
+    db.Column("category_id", db.Integer, db.ForeignKey("video_categories.id"), primary_key=True),
+    db.Column("video_id", db.Integer, db.ForeignKey("videos.id"), primary_key=True)
     )
 
 class VideoCategories(db.Model):
@@ -96,7 +97,7 @@ class VideoCategories(db.Model):
 	category_name = db.Column(db.String)
 	subcategory_key = db.Column(db.String)
 	subcategory_name = db.Column(db.String)
-	videos = db.relationship('Videos', secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
+	videos = db.relationship("Videos", secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
 
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)

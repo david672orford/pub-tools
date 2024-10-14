@@ -210,7 +210,9 @@ def cmd_update_videos(category_key=None, subcategory_key=None):
 	else:
 		print("Error: Use no arguments or two")
 
+# Update all video categories
 def update_videos(language, callback):
+
 	# Start with an empty index
 	video_index.create()
 
@@ -252,10 +254,24 @@ def update_videos(language, callback):
 		top_level_count += 1
 
 def update_video_subcategory(language, category_key, subcategory_key, callback):
-	category_db_obj = VideoCategories.query.filter_by(lang=language, category_key=category_key, subcategory_key=subcategory_key).one()
 	lister = VideoLister(language=language)
-	category = lister.get_category(category_db_obj.subcategory_key)
-	write_video_category_to_db(category_db_obj, category, callback)
+	subcategory = lister.get_category(subcategory_key)
+	category_db_obj = VideoCategories.query.filter_by(
+		lang = language,
+		category_key = category_key,
+		subcategory_key = subcategory_key,
+		).one_or_none()
+	if category_db_obj is None:
+		category = lister.get_category(category_key)
+		category_db_obj = VideoCategories(
+			lang = subcategory.language,
+			category_key = category.key,
+			category_name = category.name,
+			subcategory_key = subcategory.key,
+			subcategory_name = subcategory.name,
+			)
+		db.session.add(category_db_obj)
+	write_video_category_to_db(category_db_obj, subcategory, callback)
 
 def write_video_category_to_db(category_db_obj, category, callback):
 	callback(_("Scanning \"{category_name} — {subcategory_name}\"...".format(

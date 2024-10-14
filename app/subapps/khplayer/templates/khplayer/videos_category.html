@@ -2,7 +2,7 @@
 {% extends "khplayer/base.html" %}
 
 {% block header %}
-	<form style="float: right; margin: .5em" action="update" method="POST">
+	<form class="header-reload" action="update" method="POST">
 		<button class="reload" type="submit">{{gettext("Update Category")}}</button>
 	</form>
 	<h1>

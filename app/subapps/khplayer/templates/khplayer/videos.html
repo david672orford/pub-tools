@@ -1,6 +1,13 @@
 {% set title = gettext("Video Categories from JW.ORG") %}
 {% extends "khplayer/base.html" %}
 
+{% block header %}
+	<form class="header-reload" action="update-all" method="POST">
+		<button class="reload" type="submit">{{gettext("Update All Categories")}}</button>
+	</form>
+	{{ super() }}
+{% endblock %}
+
 {% block main %}
 <form action="search" method="GET">
 <section class="hbox">
@@ -24,11 +31,4 @@
 <p>{{gettext("Run <b>Update</b> to see video categories here.")|safe}}</p>
 {% endif %}
 </section>
-
-<form action="update-all" method="POST">
-<section>
-<button class="reload" type="submit">{{gettext("Update All Categories")}}</button>
-</section>
-</form>
-
 {% endblock %}

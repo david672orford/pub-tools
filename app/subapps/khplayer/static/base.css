@@ -283,6 +283,10 @@ HEADER DIV#progress-message DIV.success {
 HEADER DIV#progress-message DIV.error {
 	color: red;
 	}
+HEADER FORM.header-reload {
+	float: right;
+	margin: .2em;
+	}
 
 /* Error messages above content */
 DIV.flash {
