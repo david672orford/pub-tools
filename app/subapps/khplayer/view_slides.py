@@ -10,7 +10,7 @@ from ...utils.config import get_config, put_config
 from ...utils.media_cache import make_media_cachefile_name
 from . import menu
 from .views import blueprint
-from .utils.scenes import scene_name_prefixes, load_video_url
+from .utils.scenes import load_video_url, load_video_file, load_image_file
 from .utils.controllers import obs, ObsError
 from .utils.gdrive import GDriveClient
 from .utils.playlists import ZippedPlaylist
@@ -158,24 +158,35 @@ def download_slides(client, selected):
 	try:
 		for file in client.list_image_files():
 			if file.id in selected:
-				print("IDs:", file.id, client.gdrive_folder_id)
 				scene_name = request.form.get("scenename-%s" % file.id)
-				progress_callback(_("Loading slide \"%s\"...") % scene_name)
+
+				# A link to a video on JW.ORG
 				if file.id.startswith("https://"):
-					load_video_url(None, file.id, thumbnail_url=file.thumbnail_url)
+					save_as = make_media_cachefile_name(file.filename, file.mimetype, client.make_uuid(file))
+					thumbnail_url = client.download_thumbnail(file, save_as)
+					load_video_url(None, file.id, thumbnail_url=thumbnail_url, close=False)
+
+				# An image or video on Google Drive whether inside a zip file or not
 				else:
+					# FIXME: We have to keep these messages the same as those in utils/scenes.py.
+					if file.mimetype.startswith("image/"):
+						progress_callback(_("Loading image \"%s\"...") % scene_name, cssclass="heading")
+					elif file.mimetype.startswith("video/"):
+						progress_callback(_("Loading video \"%s\"...") % scene_name, cssclass="heading")
+					else:
+						progress_callback(_("Unsupported file type: \"%s\" (%s)") % (file.filename, file.mimetype))
+
 					save_as = make_media_cachefile_name(file.filename, file.mimetype, client.make_uuid(file))
 					if not os.path.exists(save_as):
-						progress_callback(_("Downloading \"%s\"..." % file.filename))
+						progress_callback(_("Downloading \"%s\" from Google Drive..." % (file.filename or file.title)))
 						client.download_file(file, save_as, callback=progress_callback)
-					major_mimetype = file.mimetype.split("/")[0]
-					scene_name_prefix = scene_name_prefixes.get(major_mimetype)
-					obs.add_media_scene(
-						scene_name_prefix + " " + scene_name,
-						major_mimetype,
-						save_as,
-						skiplist="*♫",		# After cameras and opening song
-						)
+
+					if file.mimetype.startswith("image/"):
+						load_image_file(scene_name, save_as)
+					else:
+						thumbnail_file = client.download_thumbnail(file, save_as)
+						load_video_file(scene_name, save_as, thumbnail_file=thumbnail_file)
+
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("✘ Failed to add slide images."), cssclass="error", last_message=True)

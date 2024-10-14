@@ -18,6 +18,7 @@
 #  https://drive.google.com/embeddedfolderview?id={id}#grid
 # 
 import os, json, re, base64, codecs
+import os.path
 from time import time
 import logging
 
@@ -148,6 +149,16 @@ class GDriveClient:
 
 	def make_uuid(self, file):
 		return file.id
+
+	def download_thumbnail(self, file, save_as):
+		if file.thumbnail_url is None:
+			return None
+		save_as = os.path.splitext(save_as)[0] + ".jpg"
+		response = self.session.get(file.thumbnail_url)
+		with open(save_as + ".tmp", "wb") as fh:
+			fh.write(response.read())
+		os.rename(save_as + ".tmp", save_as)
+		return save_as
 
 	def download_file(self, file, save_as, callback=None):
 		"""Download file identified by GFile obj to cachedir"""

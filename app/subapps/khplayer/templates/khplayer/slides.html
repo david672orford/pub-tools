@@ -20,7 +20,7 @@
 	{% if client %}
 	<div>
 		{% for folder in client.list_folders() %}
-		<a class="item" href="{{folder.id}}{% if folder.mimetype in ("application/zip","application/x-zip") %}={{folder.filename|urlencode}}{%endif%}/">
+		<a class="item" data-turbo-prefetch="false" href="{{folder.id}}{% if folder.mimetype in ("application/zip","application/x-zip") %}={{folder.filename|urlencode}}{%endif%}/">
 			<div class="thumbnail large">
 				<img src="/khplayer/static/icon-folder.svg">
 				{% if folder.thumbnail_url %}

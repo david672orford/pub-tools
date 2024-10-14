@@ -205,7 +205,7 @@ def page_scenes_upload():
 		major_mimetype = file.mimetype.split("/")[0]
 		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
 		if scene_name_prefix is None:
-			progress_callback(_("Unsupported media type: %s") % file.mimetype, cssclass="error")
+			progress_callback(_("Unsupported file type: \"%s\" (%s)") % (file.filename, file.mimetype), cssclass="error")
 			continue
 
 		save_as = make_media_cachefile_name(file.filename, file.mimetype)
@@ -222,7 +222,7 @@ def page_scenes_upload():
 
 		i += 1
 
-	return progress_response(_("✔ File has been loaded."), last_message=True, cssclass="success")
+	return progress_response(_("✔ All files have been loaded."), last_message=True, cssclass="success")
 
 # When an HTML element from a web browser is dropped onto the scene list
 @blueprint.route("/scenes/add-html", methods=["POST"])

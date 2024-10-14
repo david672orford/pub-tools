@@ -524,7 +524,8 @@ DIV.thumbnail > DIV.caption {
 .filemanager .folder-preview {
 	position: absolute;
 	width: 75%;
-	top: 4%;
+	max-height: 75%;
+	top: 17%;	/* was 4% before we set max-height */
 	left: 12.5%;
 	}
 .filemanager .folder-name {

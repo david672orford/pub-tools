@@ -20,43 +20,50 @@ scene_name_prefixes = {
 # scene_name -- name of scene to create in OBS
 # url -- a link to the video containing an "lank" or "docid" parameter
 #        (or a sharing URL pointing to publication and track)
-# thumbnail_url -- link to thumbnail image used to link to this video
+# thumbnail_url -- link to thumbnail image (used for fallback)
 #        (or a local file path starting with "/")
 # prefix -- media-type marker to put in front of scene name
 # close -- this is the last download in this group, close progress
 def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
+	loading_video_message = _("Loading video \"{scene_name}\"...")
 	if scene_name is not None:
-		progress_callback(_("Loading video \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
+		progress_callback(loading_video_message.format(scene_name=scene_name), cssclass="heading")
 
+	# Publication media interface
+	# Tends to produce square thumbnails or none at all
 	if "?pub=" in url:
 		video_metadata = meeting_loader.get_pub_media_mp4(
 			dict(parse_qsl(urlparse(url).query)),
 			resolution = current_app.config["VIDEO_RESOLUTION"],
 			)
+		if thumbnail_url is None:
+			thumbnail_url = video_metadata["thumbnail_url"]
+
+	# LANK interface
+	# Reliably produces 16:9 thumbnails
 	else:
 		video_metadata = meeting_loader.get_video_metadata(
 			url,
 			resolution = current_app.config["VIDEO_RESOLUTION"],
 			)
+		thumbnail_url = video_metadata["thumbnail_url"]
+
 	assert video_metadata is not None, "Failed to get metadata for %s" % url
 
 	if scene_name is None:
 		scene_name = video_metadata["title"]
-		progress_callback(_("Video title is \"{scene_name}\".").format(scene_name=scene_name))
+		progress_callback(loading_video_message.format(scene_name=scene_name), cssclass="heading")
 
 	progress_callback(_("Downloading \"{url}\"...").format(**video_metadata))
 	video_file = meeting_loader.download_media(video_metadata["url"], callback=progress_callback)
 
-	if thumbnail_url is None:
-		thumbnail_url = video_metadata.get("thumbnail_url")
-
 	if thumbnail_url is None:				# Still no thumbnail
-		thumbnail = None
-	elif thumbnail_url.startswith("/"):		# Thumbnail is in local file
-		thumbnail = thumbnail_url
-	else:									# Download thumbnail
+		thumbnail_file = None
+	if thumbnail_url.startswith("/"):		# Hack for playlists
+		thumbnail_file = thumbnail_url
+	else:									# Download thumbnail from JW.ORG
 		progress_callback(_("Downloading \"{url}\"...").format(url=thumbnail_url))
-		thumbnail = meeting_loader.download_media(thumbnail_url, callback=progress_callback)
+		thumbnail_file = meeting_loader.download_media(thumbnail_url, callback=progress_callback)
 
 	# If SUB_LANGUAGE is set and the video is subtitled, enable them.
 	subtitle_track = None
@@ -77,12 +84,15 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 				os.rename(subtitles_file, os.path.splitext(video_file)[0] + ".vtt")
 				subtitle_track = 2
 
+	load_video_file(scene_name, video_file, thumbnail_file, subtitle_track, prefix, close, skiplist)
+
+def load_video_file(scene_name:str, video_file:str, thumbnail_file:str=None, subtitle_track:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
 	try:
 		obs.add_media_scene(
 			prefix + " " + scene_name,
 			"video",
 			video_file,
-			thumbnail = thumbnail,
+			thumbnail = thumbnail_file,
 			subtitle_track = subtitle_track,
 			skiplist = skiplist,
 			)
@@ -100,9 +110,14 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 # thumbnail_url -- link to a smaller version of the image (unused at present)
 # close -- this is the last download in this group, close progress
 def load_image_url(scene_name:str, url:str, thumbnail_url:str=None, skiplist:str=None, close:bool=True):
+	assert thumbnail_url is None, "not supported yet"
 	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
+	image_file = meeting_loader.download_media(url, callback=progress_callback)
+	load_image_file(scene_name, image_file, None, skiplist, close)
+
+def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+	assert thumbnail_file is None, "not supported yet"
 	try:
-		image_file = meeting_loader.download_media(url, callback=progress_callback)
 		obs.add_media_scene("□ " + scene_name, "image", image_file, skiplist=skiplist)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
