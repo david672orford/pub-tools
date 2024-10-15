@@ -12,7 +12,7 @@ BODY {
 	--bg-progress-bar: #f8f8f8;
 	--fg-progress-bar: green;
 
-	--bg-buttons: #f8f8f8;
+	--bg-buttons: #f0f0f0;
 	--fg-buttons: black;
 	--bg-input-text: white;
 	--fg-input-text: black;
@@ -20,7 +20,7 @@ BODY {
 	--bg-flash: #C00000;
 	--fg-flash: white;
 
-	--bg-popup: white;
+	--bg-popup: #f8f8f8;
 
 	--bg-dnd: #f0f0ff;
 	--border-dnd: blue 2px solid;
@@ -384,9 +384,6 @@ DIV.thumbnail > DIV.caption {
 .bordered-box > A {				/* without this a <a><button></button></a> has no margin */
 	display: inline-block;
 	}
-.bordered-box.popup {
-	background-color: var(--bg-popup);
-	}
 
 /* Box to contain a group of controls, without border */
 .borderless-box {
@@ -401,12 +398,33 @@ DIV.thumbnail > DIV.caption {
 	margin-bottom: 0;
 	}
 
+/* Popup made from bordered box */
+MAIN {
+	position: relative;
+	}
+.popup-screen {
+	position: absolute;
+	top: 0; bottom: 0; left: 0; right: 0;
+	background-color: rgba(220, 220, 220, 0.75);
+	}
+.bordered-box.popup {
+	position: absolute;
+	left: 2vw;
+	top: 5vw;
+	width: 95vw;
+	background-color: var(--bg-popup);
+	border: thin solid #404040;
+	border-width: 2px;
+	box-shadow: 0 0 0.5rem 0.25rem gray;
+	}
+
 /* Labeled form field */
 .form-field {
 	display: inline-flex;
 	align-items: center;
 	margin: 0 .25em .25em 0;
 	flex-grow: 1;
+	max-width: calc(100% - .5em);
 	}
 .form-field > * {
 	margin: 0 .3em 0 0;

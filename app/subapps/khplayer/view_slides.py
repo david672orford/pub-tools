@@ -126,12 +126,11 @@ def get_client(path:str):
 		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
 		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
 
-		# If the ID has a .zip extension, build the Gdrive download URL and open it as a remote playlist
+		# If the ID has a .zip extension, build the Gdrive download URL and open it as a remote playlist.
 		if zip_filename is not None:
 			url = f"https://drive.google.com/uc?id={id}"
 			#url = f"https://lh3.googleusercontent.com/{id}"
 			print("Zip URL:", url)
-
 
 			client = ZippedPlaylist(
 				gdrive_folder_id = parent_id,
