@@ -6,10 +6,10 @@ to send links to interested persons.
 
 Before using this module, load the lists of publications:
 
-    $ flask update periodicals wp all
-    $ flask update periodicals g all
-    $ flask update books
-    $ flask update videos VODMinistry VODMinistryTools
+    $ flask jworg periodicals wp all
+    $ flask jworg periodicals g all
+    $ flask jworg books
+    $ flask jworg videos VODMinistry VODMinistryTools
 
 Start the Pub-Tools web server:
 
