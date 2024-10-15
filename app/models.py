@@ -98,6 +98,8 @@ class VideoCategories(db.Model):
 	subcategory_key = db.Column(db.String)
 	subcategory_name = db.Column(db.String)
 	videos = db.relationship("Videos", secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
+	def __str__(self):
+		return f"<VideoCategories id={self.id} {repr(self.category_key)} {repr(self.subcategory_name)}>"
 
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)

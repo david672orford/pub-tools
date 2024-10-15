@@ -87,7 +87,10 @@ class VideoIndex(BaseWhooshIndex):
 				video_id = int(hit["video_id"])
 				if not video_id in dedup:
 					dedup.add(video_id)
-					deduped_results.append((VideoCategories.query.filter_by(id=int(hit['category_id'])).one(), Videos.query.filter_by(id=video_id).one()))
+					deduped_results.append((
+						VideoCategories.query.filter_by(id=int(hit["category_id"])).one(),
+						Videos.query.filter_by(id=video_id).one()
+						))
 
 			if len(deduped_results) < 10:
 				corrector = searcher.corrector("content")
@@ -135,6 +138,7 @@ class IllustrationIndex(BaseWhooshIndex):
 			for hit in searcher.search(query_obj, limit=None):
 				yield hit
 
-video_index = VideoIndex(current_app.config["WHOOSH_PATH"])
-illustration_index = IllustrationIndex(current_app.config["WHOOSH_PATH"])
-
+config = current_app.config
+whoosh_path = config["WHOOSH_PATH"] + "-" + config["PUB_LANGUAGE"]
+video_index = VideoIndex(whoosh_path)
+illustration_index = IllustrationIndex(whoosh_path)
