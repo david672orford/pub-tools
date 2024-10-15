@@ -11,7 +11,7 @@ from ...utils.background import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
 from .utils.scenes import load_video_url
 from .utils.controllers import meeting_loader
-from ...cli_update import update_videos, update_video_subcategory
+from ...cli_jworg import update_videos, update_video_subcategory
 from . import menu
 from .views import blueprint
 

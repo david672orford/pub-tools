@@ -11,7 +11,7 @@ import logging
 
 from ...utils.background import turbo, progress_callback, progress_response, run_thread, async_flash
 from ...models import db, Weeks, MeetingCache
-from ...cli_update import update_meetings
+from ...cli_jworg import update_meetings
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint

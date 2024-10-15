@@ -10,7 +10,7 @@ from ...models_whoosh import illustration_index
 from ...utils.background import progress_callback
 from ...jworg.publications import PubFinder
 from ...jworg.epub import EpubLoader
-from ...cli_update import update_periodicals, update_books
+from ...cli_jworg import update_periodicals, update_books
 
 logger = logging.getLogger(__name__)
 

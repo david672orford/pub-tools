@@ -38,7 +38,7 @@ class VideoCategoriesView(ModelView):
 	column_filters = ("lang", "category_key", "subcategory_key")
 
 class VideosView(ModelView):
-	list_columns = (
+	column_list = (
 		"lang",
 		"categories",
 		"title",

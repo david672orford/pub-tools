@@ -10,7 +10,7 @@ from ...utils.background import progress_callback, progress_response, run_thread
 from ...utils.babel import gettext as _
 from .utils.controllers import meeting_loader, obs, ObsError
 from .utils.scenes import load_video_url
-from ...cli_update import update_video_subcategory
+from ...cli_jworg import update_video_subcategory
 from ...models import VideoCategories, Videos
 
 logger = logging.getLogger(__name__)

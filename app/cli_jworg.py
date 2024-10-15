@@ -22,10 +22,10 @@ from .utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
-cli_update = AppGroup("update", help="Update lists of publications from JW.ORG")
+cli_jworg = AppGroup("jworg", help="Download lists of publications and media from JW.ORG")
 
 def init_app(app):
-	app.cli.add_command(cli_update)
+	app.cli.add_command(cli_jworg)
 
 def basic_callback(message, **kwargs):
 	if "{" in message:
@@ -37,7 +37,7 @@ def basic_callback(message, **kwargs):
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
 
-@cli_update.command("meetings", help="Load weekly meeting schedule")
+@cli_jworg.command("meetings", help="Load weekly meeting schedule")
 def cmd_update_meetings():
 	logging.basicConfig(level=logging.DEBUG)
 	update_meetings(basic_callback)
@@ -91,7 +91,7 @@ class PeriodicalTable:
 	def print(self):
 		Console().print(self.table)
 
-@cli_update.command("periodicals", help="Get a list of the issues of indicated periodical  ")
+@cli_jworg.command("periodicals", help="Get a list of the issues of indicated periodical  ")
 @click.argument("pub_code")
 @click.argument("year", required=False)
 def cmd_update_periodicals(pub_code, year=None):
@@ -148,7 +148,7 @@ def update_periodicals(pub_code, year=None, table=None):
 	if table is not None:
 		table.print()
 
-@cli_update.command("articles", help="Load article titles from TOC of every periodical in the DB")
+@cli_jworg.command("articles", help="Load article titles from TOC of every periodical in the DB")
 def cmd_update_articles():
 	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.filter_by(lang=pub_finder.language).pub_code.in_(("w", "mwb"))):
@@ -167,7 +167,7 @@ def cmd_update_articles():
 # Books and brochures
 #=============================================================================
 
-@cli_update.command("books", help="Get a list of books and brochures")
+@cli_jworg.command("books", help="Get a list of books and brochures")
 def cmd_update_books():
 	logging.basicConfig(level=logging.DEBUG)
 	update_books()
@@ -197,7 +197,7 @@ def update_books():
 #        -> Video
 #=============================================================================
 
-@cli_update.command("videos", help="Update list of available videos")
+@cli_jworg.command("videos", help="Update list of available videos")
 @click.argument("category_key", required=False)
 @click.argument("subcategory_key", required=False)
 def cmd_update_videos(category_key=None, subcategory_key=None):
@@ -295,7 +295,7 @@ def write_video_category_to_db(category_db_obj, category, callback):
 	video_index.add_videos(category_db_obj.videos)
 	video_index.commit()
 
-@cli_update.command("video-search", help="Perform a test query on the video index")
+@cli_jworg.command("video-search", help="Perform a test query on the video index")
 @click.argument("q")
 def cmd_update_video_query(q):
 	for video in video_index.search(q):
@@ -305,7 +305,7 @@ def cmd_update_video_query(q):
 # Index illustrations
 #=============================================================================
 
-@cli_update.command("illustrations")
+@cli_jworg.command("illustrations", help="Index illustrations in periodicals and books")
 def cmd_update_illustrations():
 	illustration_index.create()
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.epub_filename!=None):
@@ -332,7 +332,7 @@ def index_illustrations(pub_code, publication):
 				illustration_index.add_illustration(pub_code, src, caption, alt)
 
 # For testing
-@cli_update.command("illustration-search")
+@cli_jworg.command("illustration-search", help="Search illustration captions")
 @click.argument("q")
 def cmd_update_illustration_search(q):
 	for illustration in illustration_index.search(q):

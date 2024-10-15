@@ -12,7 +12,7 @@ def print_json(data):
 
 # Pretty print the JSON file which contains the scene list.
 # This is useful for getting the parameters to construct scenes programatically.
-@cli_obs.command("dump-scenes", help="Pretty-print KH Player scene collection")
+@cli_obs.command("dump-scenes", help="Pretty-print scene collection \"KH Player\"")
 def cmd_obs_dump_scenes():
 	with open("%s/.config/obs-studio/basic/scenes/KH_Player.json" % os.environ["HOME"]) as f:
 		data = json.load(f)
