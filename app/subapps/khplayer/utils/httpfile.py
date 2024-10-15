@@ -87,6 +87,7 @@ class HttpFile(Seekable):
 			print(f"HttpFile close: {self._request_count} requests read {self._total_read} of {self._file_size} bytes ({percent}%)")
 		self.session = None
 
+# Disk cache which we can wrap around HttpFile
 class FileCache(Seekable):
 	blocksize = 256 * 1024
 	def __init__(self, fh, cachedir, cachekey, debug=False):
@@ -174,7 +175,7 @@ class FileCache(Seekable):
 			json.dump({"file-size": self._file_size}, fh)
 		self.fh.close()
 
-# A seekable range within another file-like object
+# A seekable file-like object which represents a byte range offset into another file-like object
 class FileRange(Seekable):
 	def __init__(self, fh, offset, size):
 		self._fh = fh
@@ -191,6 +192,8 @@ class FileRange(Seekable):
 		self._pos += size
 		return data	
 
+# Subclass ZipFile from the Python Standard Library so that we can 
+# read zip files over HTTP rather than from the file system.
 class RemoteZip(ZipFile):
 	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
 		self.fetcher = HttpFile(url, debug=debug)
@@ -202,6 +205,7 @@ class RemoteZip(ZipFile):
 		self.fetcher.close()
 
 	def open_zipfile(self, filename):
+		"""Open an embedded zip file"""
 		if self.debug:
 			print(f"Opening {filename}...")
 

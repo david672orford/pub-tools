@@ -18,7 +18,7 @@ streaming protocols, and players embeded in browser sources.
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 
-## OBS-Websocket
+## OBS-Websocket Documentation
 
 * [Github Site](https://github.com/obsproject/obs-websocket)
 * [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
@@ -51,6 +51,8 @@ do not generally run fast enough to process video, but Lua scripts do.
 
 * [Plugin API Docs](https://obsproject.com/docs/plugins.html)
 * [OBS-V4L2Sink](https://github.com/CatxFish/obs-v4l2sink) -- Useful as example of an output plugin
+* [OBS Source Record](https://github.com/exeldro/obs-source-record) -- Filter which reads frame data
+* [OBS Face Tracker](https://github.com/norihiro/obs-face-tracker) -- Another filter which reads frame data
 
 ## Interesting Plugins
 

@@ -65,7 +65,7 @@ class MeetingLoader(Fetcher):
 			mwb_div = mwb_div[0]
 
 			# URL of meeting workbook page on wol.jw.org
-			result["mwb_url"] = urljoin(url, mwb_div.find_class("itemData")[0].xpath('.//a')[0].attrib['href'])
+			result["mwb_url"] = urljoin(url, mwb_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
 
 			# The MEPS docId is one of the classes of the todayItem <div> tag.
 			result["mwb_docid"] = int(re.search(r" docId-(\d+) ", mwb_div.attrib["class"]).group(1))
@@ -183,38 +183,51 @@ class MeetingLoader(Fetcher):
 						part_title = h3[0].text_content().strip()
 				logger.info("Section %d, part %d \"%s\"", section_number, part_number, part_title)
 
-				# Illustrations in this HTML element
+				# Loop through all the illustrations in this HTML element
 				for illustration in self.extract_illustrations("mwb", "Тетрядь", el):
 					illustration.section_title = section_title
 					illustration.part_title = part_title
 					yield illustration
 
-				# Go through all of the hyperlinks in this HTML element
+				# Loop through all of the hyperlinks in this HTML element
 				for a in el.xpath(".//a"):
+
+					# If it is a link to a song, video, or article,
 					pub = self.get_pub_from_a_tag(a, baseurl)
 					if pub is not None:
+
+						# We always want songs and videos
 						if type(pub) is not MeetingMediaArticle:
 							pub.section_title = section_title
 							pub.part_title = part_title
 							yield pub
 
-						elif section_number == 4:	# Христианская жизнь
+						# If we are processing Христианская жизнь, pull illustrations from
+						# linked articles for the Congregation Bible Study.
+						elif section_number == 4:
 							callback(_("Getting media list from \"%s\"...") % pub.title)
-
-							# If we have not scraped this article for illustrations yet, do so now.
-							# TODO: interpret the paragraph ranges in the URL fragment
 							article_href = urljoin(baseurl, a.attrib["href"])
-							article_href_nofragment = article_href.split("#")[0]
-							if not article_href_nofragment in article_href_dedup:
 
-								# Get the content of the article's <main> tag and extract illustrations
-								article_main = self.get_article_html(article_href, main=True)
-								for illustration in self.extract_illustrations(pub.pub_code, pub.title, article_main):
-									illustration.section_title = section_title
-									illustration.part_title = part_title
-									yield illustration
+							# The MWB may link to different parts of the chapter. Don't
+							# process the same document more than once.
+							# TODO: interpret the paragraph ranges in the URL fragment
+							dedup_key = article_href.split("#")[0]
+							if dedup_key in article_href_dedup:
+								continue
+							article_href_dedup.add(dedup_key)
 
-								article_href_dedup.add(article_href_nofragment)
+							# Get the content of the article's <main> tag
+							article_main = self.get_article_html(article_href, main=True)
+
+							for el in article_main:
+								print("el:", el, el.attrib)
+
+							# extract illustrations
+							for illustration in self.extract_illustrations(pub.pub_code, pub.title, article_main):
+								illustration.section_title = section_title
+								illustration.part_title = part_title
+								yield illustration
+
 
 	# Figure out to what publication an <a> tag points
 	def get_pub_from_a_tag(self, a, baseurl:str):
@@ -293,8 +306,8 @@ class MeetingLoader(Fetcher):
 					is_a = "video"
 				break
 
-			# If we get here, we assume this is an article from which the caller
-			# might wish to extract illustrations.
+			# If we get here, we assume this is an article from which
+			# the caller may wish to extract illustrations.
 			pub = MeetingMediaArticle(
 				pub_code = pub_code,
 				title = a.text_content().strip(),
@@ -495,7 +508,7 @@ class MeetingLoader(Fetcher):
 						pub_code = None,
 						title = caption,
 						media_type = "web",
-						media_url = urljoin("https://www.jw.org", link.attrib['href']),
+						media_url = urljoin("https://www.jw.org", link.attrib["href"]),
 						thumbnail_url = span.attrib.get("data-img-size-xs"),
 						)
 					continue
