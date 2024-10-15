@@ -1,4 +1,6 @@
-# Cache cleaner
+#=============================================================================
+# CLI for managing the media cache
+#=============================================================================
 
 from flask import current_app
 from flask.cli import AppGroup
