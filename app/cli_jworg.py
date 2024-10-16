@@ -6,6 +6,8 @@ import os
 from datetime import date, timedelta
 from time import sleep
 import logging
+import json
+from dataclasses import asdict
 
 from flask import current_app
 from flask.cli import AppGroup
@@ -48,32 +50,33 @@ def print_query_result_table(result, title):
 
 def print_dict_result_table(result, title):
 	table = Table(show_header=True, title=title, show_lines=True)
-	i = 0
+	columns = None
 	for row in result:
-		if i == 0:
-			for column in row.keys():
+		if columns is None:
+			columns = row.keys()
+			for column in columns:
 				table.add_column(column)
-		table.add_row(*row.values())
-		i += 1	
+		table.add_row(*[row[column] for column in columns])
 	Console().print(table)
 
 #=============================================================================
 # Load the weekly schedule from Watchtower Online Library
 #=============================================================================
 
-@cli_jworg.command("update-meetings", help="Load weekly meeting schedule")
-def cmd_update_meetings():
+@cli_jworg.command("update-weeks", help="Load weekly meeting materials")
+def cmd_update_weeks():
 	logging.basicConfig(level=logging.DEBUG)
-	update_meetings(basic_callback)
+	update_weeks(basic_callback)
 
-def update_meetings(callback):
+def update_weeks(callback):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"])
 
 	current_day = date.today()
 	to_fetch = []
 	for i in range(8):
 		year, week = current_day.isocalendar()[:2]
-		week_obj = Weeks.query.filter_by(lang=meeting_loader.language, year=year, week=week).one_or_none()
+		#week_obj = Weeks.query.filter_by(lang=meeting_loader.language, year=year, week=week).one_or_none()
+		week_obj = Weeks.query.filter_by(year=year, week=week).one_or_none()
 		if week_obj is None:
 			to_fetch.append((year, week))
 		current_day += timedelta(weeks=1)
@@ -85,7 +88,7 @@ def update_meetings(callback):
 		count += 1
 		callback("{total_recv} of {total_expected}", total_recv=count, total_expected=len(to_fetch))
 		week_obj = Weeks(
-			lang = meeting_loader.language,
+			#lang = meeting_loader.language,
 			year = year,
 			week = week,
 			)
@@ -94,11 +97,19 @@ def update_meetings(callback):
 		db.session.add(week_obj)
 
 	db.session.commit()
-	callback(_("Meetings loaded"), last_message=True)
+	callback(_("Weeks loaded"), last_message=True)
 
-@cli_jworg.command("show-meetings", help="List meetings in DB")
-def cmd_show_meetings():
-	print_query_result_table(Weeks.query, "Meetings")
+@cli_jworg.command("show-weeks", help="List weekly meeting materials in DB")
+def cmd_show_weeks():
+	print_query_result_table(Weeks.query, "Weekly Meeting Materials")
+
+@cli_jworg.command("get-meeting-media", help="Scrape a meeting article to get the media")
+@click.argument("docid")
+def cmd_get_meeting_media(docid):
+	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
+	url = meeting_loader.meeting_url(docid)
+	media = meeting_loader.extract_media(url, callback=basic_callback)
+	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media")
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
@@ -119,7 +130,7 @@ class PeriodicalTable:
 	def print(self):
 		Console().print(self.table)
 
-@cli_jworg.command("update-periodicals", help="Load the list of the issues of indicated periodical  ")
+@cli_jworg.command("update-periodicals", help="Load the list of the issues of indicated periodical")
 @click.argument("pub_code")
 @click.argument("year", required=False)
 def cmd_update_periodicals(pub_code, year=None):
@@ -263,6 +274,8 @@ def update_videos(language, callback):
 	# Iterate over the top levels
 	top_level_count = 0
 	for category in root.subcategories:
+		if category.key == "VODAudioDescriptions":
+			continue	# Omit
 		callback(_("Scanning \"{category_name}\"...").format(category_name=category.name))
 		assert len(category.videos) == 0, "Top level categories are not expected to have videos"
 
@@ -270,7 +283,7 @@ def update_videos(language, callback):
 		subcategory_count = 0
 		for subcategory in category.subcategories:
 			if subcategory.key.endswith("Featured"):
-				continue
+				continue	# Omit
 			callback("{total_recv} of {total_expected}",
 				total_recv = (top_level_count * 100 + int(subcategory_count * 100 / category.subcategories_count)),
 				total_expected = (root.subcategories_count * 100),

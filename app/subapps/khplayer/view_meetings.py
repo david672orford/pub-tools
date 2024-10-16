@@ -11,7 +11,7 @@ import logging
 
 from ...utils.background import turbo, progress_callback, progress_response, run_thread, async_flash
 from ...models import db, Weeks, MeetingCache
-from ...cli_jworg import update_meetings
+from ...cli_jworg import update_weeks
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
@@ -23,18 +23,10 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("Meetings"), "/meetings/"))
 
-# Construct a sharing URL for a meeting article. Sharing URL's redirect
-# to the actual webpage of the article.
-def meeting_url(docid):
-	return "https://www.jw.org/finder?wtlocale={wtlocale}&docid={docid}&srcid=share".format(
-		docid = docid,
-		wtlocale = meeting_loader.meps_language,
-		)
-
 # List upcoming meetings
 @blueprint.route("/meetings/")
 def page_meetings():
-	weeks = Weeks.query.filter_by(lang = meeting_loader.language)
+	weeks = Weeks.query
 	if not request.args.get("all", False):
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
@@ -44,7 +36,7 @@ def page_meetings():
 @blueprint.route("/meetings/update", methods=["POST"])
 def page_meetings_update():
 	progress_callback(_("Fetching meeting schedules..."), cssclass="heading")
-	update_meetings(callback=progress_callback)
+	update_weeks(callback=progress_callback)
 	return redirect(".")
 
 # Show a particular upcoming meeting
@@ -54,7 +46,7 @@ def page_meetings_view(docid):
 	return render_template(
 		"khplayer/meetings_meeting.html",
 		meeting_title = title,
-		meeting_url = meeting_url(docid),
+		meeting_url = meeting_loader.meeting_url(docid),
 		top = "../.."
 		)
 
@@ -146,7 +138,7 @@ def get_meeting_media(docid):
 	# such as videos and illustrations. This is an iterator, so we can 
 	# yield items as they are obtained. Also save them in a list for the cache.
 	media = []
-	for item in meeting_loader.extract_media(meeting_url(docid), callback=progress_callback):
+	for item in meeting_loader.extract_media(meeting_loader.meeting_url(docid), callback=progress_callback):
 		yield item
 		media.append(item)
 

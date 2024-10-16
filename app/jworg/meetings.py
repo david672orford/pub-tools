@@ -63,15 +63,9 @@ class MeetingLoader(Fetcher):
 		mwb_div = today_items.find_class("pub-mwb")
 		if len(mwb_div) > 0:
 			mwb_div = mwb_div[0]
-
-			# URL of meeting workbook page on wol.jw.org
-			result["mwb_url"] = urljoin(url, mwb_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
-
 			# The MEPS docId is one of the classes of the todayItem <div> tag.
 			result["mwb_docid"] = int(re.search(r" docId-(\d+) ", mwb_div.attrib["class"]).group(1))
-
 		else:
-			result["mwb_url"] = None
 			result["mwb_docid"] = None
 
 		#------------------------------------------
@@ -80,26 +74,34 @@ class MeetingLoader(Fetcher):
 		watchtower_div = today_items.find_class("pub-w")
 		if len(watchtower_div) > 0:
 			watchtower_div = watchtower_div[0]
-
-			# URL of Watchtower article on wol.jw.org
-			result["watchtower_url"] = urljoin(url, watchtower_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
-
-			# Follow the link. The MEPS docId at the end of the URL to which we are redirected.
-			response = self.get(result["watchtower_url"], follow_redirects=False)
+			# Follow the link. The MEPS docId is at the end of the URL to which we are redirected.
+			watchtower_url = urljoin(url, watchtower_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
+			response = self.get(watchtower_url, follow_redirects=False)
 			result["watchtower_docid"] = response.geturl().split('/')[-1]
-
 		else:
-			result["watchtower_url"] = None
 			result["watchtower_docid"] = None
 
 		return result
+
+	# Construct a sharing URL for a meeting article. Sharing URL's redirect
+	# to the actual webpage of the article.
+	def meeting_url(self, docid):
+		return "https://www.jw.org/finder?wtlocale={wtlocale}&docid={docid}&srcid=share".format(
+			docid = docid,
+			wtlocale = self.meps_language,
+			)
 
 	# Fetch the web version of a Meeting Workbook lesson or Watchtower study
 	# article, figure out which it is, and invoke the appropriate media
 	# extractor function.
 	def extract_media(self, url:str, callback=None):
 		container = self.get_article_html(url)
-		callback(_("Article title: \"%s\"") % container.xpath(".//h1")[0].text_content().strip())
+		self.dump_html(container, "article.html")
+
+		h1 = container.xpath(".//h1")
+		assert len(h1) == 1
+		title = h1[0].text_content().strip()
+		callback(_("Article title: \"%s\"") % title)
 
 		# Invoke the extractor for this publication (w=Watchtower, mwb=Meeting Workbook)
 		m = re.search(r" pub-(\S+) ", container.attrib["class"])
@@ -324,7 +326,7 @@ class MeetingLoader(Fetcher):
 	# Called from .extract_media()
 	def extract_media_w(self, baseurl, container, callback):
 
-		# <a class='pub-sjj' is a song.
+		# <a class='pub-sjj'> is a song.
 		# FIXME: There should always be two, opening and closing, however, the study
 		# article for the week of June 12, 2023 has additional songs in a footnote
 		# which confuses things.
@@ -334,7 +336,8 @@ class MeetingLoader(Fetcher):
 
 		yield self.make_song_item(songs[0])
 
-		for illustration in self.extract_illustrations("w", "СБ", container):
+		for illustration in self.extract_illustrations("w", _("WT"), container):
+			illustration.part_title = _("Watchtower Study")
 			yield illustration
 
 		yield self.make_song_item(songs[1])

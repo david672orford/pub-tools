@@ -229,7 +229,7 @@ class Fetcher:
 			final_query["issue"] = query["issue"]
 		if query.get("track") is not None:
 			final_query["track"] = str(query["track"])
-		print("pub media query:", final_query)
+		#print("pub media query:", final_query)
 		media = self.get_json(self.pub_media_url, query = final_query)
 		#self.dump_json(media)
 		return media
