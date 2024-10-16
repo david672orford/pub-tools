@@ -24,7 +24,7 @@ menu.append((_("Videos"), "/videos/"))
 def page_videos():
 	categories = defaultdict(list)
 	for category in VideoCategories.query.filter_by(lang=meeting_loader.language).order_by(VideoCategories.category_name, VideoCategories.subcategory_name):
-		categories[category.category_name].append((category.subcategory_name, category.category_key, category.subcategory_key))					
+		categories[(category.category_key, category.category_name)].append(category)
 	return render_template("khplayer/videos.html", categories=categories.items(), top="..")
 
 # When Search button pressed

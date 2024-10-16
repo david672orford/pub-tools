@@ -534,6 +534,9 @@ MAIN {
 	padding: .5em;
 	min-height: 20em;
 	}
+.filemanager.short {
+	min-height: auto;
+	}
 .filemanager .item {				/* a file or folder */
 	display: inline-block;
 	position: relative;

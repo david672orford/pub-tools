@@ -16,19 +16,35 @@
 </section>
 </form>
 
-<section>
 {% if categories %}
-<ul>
 {% for category, subcategories in categories %}
-	<li>{{ category }}<ul>
-	{% for subcategory, category_key, subcategory_key in subcategories %}
-		<li><a href="{{category_key}}/{{subcategory_key}}/">{{subcategory}}</a></li>
+<section id="{{category[0]}}" class="filemanager short">
+<h2>{{ category[1] }}<h2>
+<div>
+	{% for subcategory in subcategories %}
+	<a class="item" href="{{subcategory.category_key}}/{{subcategory.subcategory_key}}/">
+		<div class="thumbnail large">
+			<img src="/khplayer/static/icon-folder.svg">
+			<img class="folder-preview" src="{{subcategory.videos[0].thumbnail}}">
+		</div>
+		<div class="folder-name">
+			{{subcategory.subcategory_name}}
+		</div>
+	</a>
 	{% endfor %}
-	</ul>
-{% endfor %}
-</ul>
-{% else %}
-<p>{{gettext("Run <b>Update</b> to see video categories here.")|safe}}</p>
-{% endif %}
+</div>
 </section>
+{% endfor %}
+<script>
+if(!document.documentElement.hasAttribute("data-turbo-preview")) {
+	let fragment = window.location.hash.substring(1);
+	if(fragment != "")
+		document.getElementById(fragment).scrollIntoView();
+}
+</script>
+{% else %}
+<section>
+<p>{{gettext("Run <b>Update</b> to see video categories here.")|safe}}</p>
+</section>
+{% endif %}
 {% endblock %}
