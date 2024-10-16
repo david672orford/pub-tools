@@ -6,14 +6,15 @@
 
 ## Easy Improvements
 
-* Incorporate [Linkture](https://github.com/erykjj/linkture)
+* Verify cache cleaning policy and file categorization
+* Add cleaners for gdrive-cache and flask-cache
+* CLI support for enabling debugging by module
+* Progress bar for Gdrive downloads. This will require knowing the file size
 * Validate configuration
     * https://docs.python-cerberus.org/
     * https://github.com/python-jsonschema/jsonschema
     * https://json-schema.org/learn/getting-started-step-by-step
-* Verify cache cleaning policy and file categorization
-* CLI support for enabling debugging by module
-* Progress bar for Gdrive downloads. This will require knowing the file size
+* Incorporate [Linkture](https://github.com/erykjj/linkture)
 
 ## Hard Stuff
 
@@ -28,7 +29,7 @@ with the illustration if it is at the beginning (or perhaps the end).
     * Find a way to make Web SDK display a particular participant
     * Produces mulitiple automatic crops from screen capture of Zoom window
 
-## For the future
+## For the Future
 
 * https://basilchackomathew.medium.com/face-recognition-in-python-a-comprehensive-guide-960a48436d0f
 * https://medium.com/@siddheshdeshpande/audio-visual-active-speaker-detection-on-video-for-ai-tools-dc297443f0be
