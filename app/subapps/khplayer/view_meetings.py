@@ -15,7 +15,7 @@ from ...cli_jworg import update_weeks
 from ...utils.babel import gettext as _
 from . import menu
 from .views import blueprint
-from .utils.controllers import meeting_loader, obs
+from .utils.controllers import meeting_loader, obs, ObsError
 from .utils.scenes import load_meeting_media_item
 from ...jworg.meetings import MeetingMedia
 
@@ -96,14 +96,18 @@ def page_meetings_view_stream(docid):
 @blueprint.route("/meetings/<int:docid>/download", methods=["POST"])
 def page_meetings_download(docid):
 
-	# Remove all scenes except those with names beginning with an asterisk.
+	# Remove all scenes from OBS except those with names beginning with an asterisk.
 	# Such scenes are for stage cameras, Zoom, etc.
 	if request.form.get("delete-existing","false") == "true":
-		to_remove = []
-		for scene in obs.get_scene_list()["scenes"]:
-			if not scene["sceneName"].startswith("*"):
-				to_remove.append(scene["sceneUuid"])
-		obs.remove_scenes(to_remove)
+		try:
+			to_remove = []
+			for scene in obs.get_scene_list()["scenes"]:
+				if not scene["sceneName"].startswith("*"):
+					to_remove.append(scene["sceneUuid"])
+			obs.remove_scenes(to_remove)
+		except ObsError as e:
+			async_flash(_("OBS: %s") % str(e))
+			return progress_response(None)
 
 	# The media list will already by in the cache. Loop over it collecting
 	# only those items which have a checkbox next to them in the table.
