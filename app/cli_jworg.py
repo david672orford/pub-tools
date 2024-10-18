@@ -23,6 +23,7 @@ from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
 from .jworg.epub import EpubLoader
+from .jworg.hrange import HighlightRange
 from .utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,15 @@ def cmd_get_meeting_media(docid):
 	url = meeting_loader.meeting_url(docid)
 	media = meeting_loader.extract_media(url, callback=basic_callback)
 	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media")
+
+@cli_jworg.command("get-article")
+@click.argument("url")
+def cmd_get_article(url):
+	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
+	root = meeting_loader.get_article_html(url, main=False)
+	meeting_loader.dump_html(root, "article.html")
+	hrange = HighlightRange(root)
+	hrange.print()
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
