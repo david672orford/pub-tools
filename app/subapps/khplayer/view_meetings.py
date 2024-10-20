@@ -17,7 +17,7 @@ from . import menu
 from .views import blueprint
 from .utils.controllers import meeting_loader, obs, ObsError
 from .utils.scenes import load_meeting_media_item
-from ...jworg.meetings import MeetingMedia
+from ...jworg.meetings import MeetingMediaItem
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ def get_meeting_media(docid):
 		progress_callback("Meeting is already in cache.")
 		# Deserialize list from JSON back to objects
 		for item in meeting.media:
-			yield MeetingMedia(**item)
+			yield MeetingMediaItem(**item)
 		return
 
 	# Use the meeting loader to download the article and scan it for media

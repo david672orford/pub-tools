@@ -28,18 +28,11 @@ class HighlightRange:
 		"dc-bleedToArticleEdge",
 		}
 	def __init__(self, root):
-		context = ET.iterwalk(root, events=("start", "end"))
+		context = ET.iterwalk(root, events={"start", "end"}, tag={"h1","h2","h3","h4","h5", "h6", "div", "p"})
 		last_pnum = None
-		in_figure = None
 		self.figures = []
 		for action, el in context:
 			#print(f"{action} {el}")
-
-			# Skip the contents of a figure since it may contain a paragraph for the caption
-			if in_figure is not None:
-				if action == "end" and el == in_figure:
-					in_figure = None
-				continue
 
 			if action == "start":
 				id = el.attrib.get("id", "")
@@ -61,15 +54,15 @@ class HighlightRange:
 					elif classes & self.float_figure_classes:		# connected to next paragraph
 						figure_pnum = None
 					else:
-						logger.warning("Unrecognized figure position: %s", str(classes))
-						figure_pnum = 0
+						logger.warning("Unrecognized figure position: %s %s", id, str(classes))
+						#figure_pnum = 0
+						figure_pnum = last_pnum
 					self.figures.append(RangeFigure(figure_pnum, el))
-					in_figure = el
+					context.skip_subtree()
 
 			# Only connect figures with paragraphs in the same container
 			if el.attrib.get("class") == "pGroup" or el.tag == "aside":
 				pnum = None
-				last_figure = None
 
 	def print(self):
 		for figure in self.figures:

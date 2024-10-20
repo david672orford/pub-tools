@@ -8,6 +8,7 @@ from time import sleep
 import logging
 import json
 from dataclasses import asdict
+import re
 
 from flask import current_app
 from flask.cli import AppGroup
@@ -89,7 +90,6 @@ def update_weeks(callback):
 		count += 1
 		callback("{total_recv} of {total_expected}", total_recv=count, total_expected=len(to_fetch))
 		week_obj = Weeks(
-			#lang = meeting_loader.language,
 			year = year,
 			week = week,
 			)
@@ -104,6 +104,10 @@ def update_weeks(callback):
 def cmd_show_weeks():
 	print_query_result_table(Weeks.query, "Weekly Meeting Materials")
 
+#=============================================================================
+# Media Extraction Tests
+#=============================================================================
+
 @cli_jworg.command("get-meeting-media", help="Scrape a meeting article to get the media")
 @click.argument("docid")
 def cmd_get_meeting_media(docid):
@@ -112,14 +116,30 @@ def cmd_get_meeting_media(docid):
 	media = meeting_loader.extract_media(url, callback=basic_callback)
 	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media")
 
-@cli_jworg.command("get-article")
+@cli_jworg.command("get-article-media")
 @click.argument("url")
 def cmd_get_article(url):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
-	root = meeting_loader.get_article_html(url, main=False)
+	root = meeting_loader.get_article_html(url)
 	meeting_loader.dump_html(root, "article.html")
+
 	hrange = HighlightRange(root)
 	hrange.print()
+
+	media_items = []
+	for figure in hrange.figures:
+		figure_tags = figure.el.xpath(".//figure")
+		assert len(figure_tags) == 1
+		for item in meeting_loader.get_figure_items(figure_tags[0], url):
+			media_items.append({
+				"figure": figure.el.attrib["id"],
+				"paragraph": str(figure.pnum),
+				"media_type": item.media_type,
+				"title": item.title,
+				"media_url": item.media_url,
+				"thumbnail_url": item.thumbnail_url,
+				})
+	print_dict_result_table(media_items, "Media Items")
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
