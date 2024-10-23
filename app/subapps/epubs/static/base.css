@@ -79,23 +79,25 @@ HEADER DIV#progress-message {
 
 SECTION.illustrations {
 	}
-SECTION.illustrations > DIV {
+SECTION.illustrations > A {
 	display: inline-block;
 	vertical-align: text-top;
-	width: 10.2em;
+	width: 10em;
 	margin: 0 .5em .5em 0;
 	border: thin solid grey;
 	}
 SECTION.illustrations IMG {
-	width: 10em;
+	display: block;
+	width: 100%;
 	}
-SECTION.illustrations > DIV > DIV {
-	margin: .5em;
+
+SECTION.illustration {
 	}
-SECTION.illustrations .caption {
-	font-weight: bold;
+SECTION.illustration IMG {
+	width: 80%;
 	}
-SECTION.illustrations .alt {
+SECTION.illustration DIV {
+	margin-bottom: .5em;
 	}
 
 IFRAME.epub {

@@ -1,9 +1,21 @@
-from .fetcher import Fetcher
 from urllib.parse import urljoin, quote
+from dataclasses import dataclass
 import re
 import logging
 
+from .fetcher import Fetcher
+
 logger = logging.getLogger(__name__)
+
+@dataclass
+class Publication:
+	name:str
+	code:str
+	href:str
+	thumbnail:str
+	formats:str
+	issue:str = None
+	issue_code:str = None
 
 # Search for publications on JW.ORG.
 class PubFinder(Fetcher):
@@ -70,7 +82,7 @@ class PubFinder(Fetcher):
 				if periodical_name is not None and " iss-" in pub.attrib['class']:
 					m = re.search(r" iss-(\S+) ", pub.attrib['class'])
 					issue_code = m.group(1)
-					pubs.append(dict(
+					pubs.append(Publication(
 						name = periodical_name,
 						issue = name,
 						code = code,
@@ -80,7 +92,7 @@ class PubFinder(Fetcher):
 						formats = formats,
 						))
 				else:
-					pubs.append(dict(
+					pubs.append(Publication(
 						name = name,
 						code = code,
 						href = href,

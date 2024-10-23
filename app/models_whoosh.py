@@ -73,7 +73,7 @@ class VideoIndex(BaseWhooshIndex):
 						content = " ".join((category.category_name, category.subcategory_name, video.title)),
 						)
 
-	def search(self, q):
+	def search(self, q:str):
 		deduped_results = []
 		suggestion = []
 
@@ -122,7 +122,7 @@ class IllustrationIndex(BaseWhooshIndex):
 		content = TEXT(analyzer=StemmingAnalyzer(stemfn=stemfn)),
 		)
 
-	def add_illustration(self, pub_code, src, caption, alt):
+	def add_illustration(self, pub_code:str, src:str, caption:str, alt:str):
 		self.writer.update_document(
 			pub_code = pub_code,
 			src = src,
@@ -131,12 +131,19 @@ class IllustrationIndex(BaseWhooshIndex):
 			content = " ".join((caption, alt)),
 			)
 
-	def search(self, q):
+	def search(self, q:str):
 		index = self.open()
 		with index.searcher() as searcher:
 			query_obj = QueryParser("content", index.schema).parse(q)
-			for hit in searcher.search(query_obj, limit=None):
+			hits = searcher.search(query_obj, limit=None)
+			for hit in hits:
+				hit.excerpt = hit.highlights("content", text=" ".join((hit["caption"], hit["alt"])), top=3)
 				yield hit
+
+	def get_document(self, docnum:int):
+		index = self.open()
+		with index.searcher() as searcher:
+			return searcher.stored_fields(docnum)
 
 config = current_app.config
 whoosh_path = config["WHOOSH_PATH"] + "-" + config["PUB_LANGUAGE"]

@@ -1,8 +1,12 @@
 {% set title = "Search Illustrations" %}
 {% extends "epubs/base.html" %}
 
+{% block header %}
+	<h1><a href="..">&lt;&nbsp;{{ title }}</a></h1>
+{% endblock %}
+
 {% block main %}
-<form action="illustrations" method="GET">
+<form action="." method="GET">
 <section>
 	<input type="text" name="q" value="{{q}}">
 	<button type="submit">Search Illustrations</button>
@@ -10,12 +14,10 @@
 </form>
 
 <section class="illustrations">
-{% for hit in results %}
-<div>
-	<img src="{{hit['pub_code']}}/{{hit['src']}}">
-	<div class="caption">{{hit['caption']}}</div>
-	<div class="alt">{{hit['alt']}}</div>
-</div>
+{% for result in results %}
+	<a href="{{result.docnum}}?q={{q}}">
+		<img src="../{{result.pub_code}}/{{result.src}}">
+	</a>
 {% endfor %}
 </section>
 {% endblock %}

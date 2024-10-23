@@ -1,4 +1,4 @@
-from urllib.parse import urlparse, urljoin, parse_qsl, unquote, urlencode
+from urllib.parse import urlparse, urljoin, parse_qsl, unquote, urlencode, urldefrag
 from dataclasses import dataclass
 import re, logging
 
@@ -188,7 +188,7 @@ class MeetingLoader(Fetcher):
 			for el in section_els:
 				#
 				# Examples of How Songs and Meeting Parts are Formatted
-				# 
+				#
 				# <h3>
 				#   <a><strong>Song N</strong></a>
 				# </h3>
@@ -266,11 +266,11 @@ class MeetingLoader(Fetcher):
 				if pub is None:
 					logger.warning("Unrecognized link: %s", item_tag.attrib)
 					continue
-	
+
 				# We always keep songs and videos
 				if pub.media_type in types:
 					yield pub
-	
+
 				if pub.media_type == "web" and scrape_articles:
 					callback(_("Getting media list from \"%s\"...") % pub.title)
 					for item in self.get_media_from_linked_article(pub, item_tag.attrib.get("data-highlightrange"), linked_articles, callback):
@@ -290,7 +290,7 @@ class MeetingLoader(Fetcher):
 
 		# If the URL has a fragment identifying a paragraph range,
 		if highlightrange is not None and (m := re.match(r"^p(\d+)-p(\d+)$", highlightrange)):
-			article_href = article_href.split("#",1)[0]
+			article_href = urldefrag(article_href).url
 			start = int(m.group(1))
 			end = int(m.group(2))
 			containers = article.range_figures(start, end)
@@ -314,17 +314,19 @@ class MeetingLoader(Fetcher):
 		assert isinstance(baseurl, str) or baseurl is None
 
 		logger.info("Pub <a> tag: href=\"%s\" %s", unquote(a.attrib["href"]), str(a.attrib))
-		pub = None
 
-		# This is for the log message which is printed after we break out of this 'loop'
-		is_a = None
+		href = a.attrib["href"]
+		if baseurl is not None:
+			href = urljoin(baseurl, href)
+		elif urlparse(href).scheme == "":
+			raise ExceptionError("If baseurl is None, all URLs must be absolute")
 
 		# In the Bible course links to videos and articles have thumbnail images
 		thumbnail = a.find(".//span[@class='jsRespImg']")
 		thumbnail_url = thumbnail.attrib.get("data-img-size-xs") if thumbnail is not None else None
 
-		# Not an actual loop. We always break out during the first iteration.
-		while True:
+		# We call this below. We are using it as a control structure.
+		def identify_pub():
 
 			# A Video (but not all videos)
 			# Sample <a> tag attributes:
@@ -332,71 +334,60 @@ class MeetingLoader(Fetcher):
 			#  href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 			# IMPORTANT: Keep this at the top since there may not be a pub code!
 			if a.attrib.get("data-video") is not None:
-				video_metadata = self.get_video_metadata(a.attrib["href"])
-				assert video_metadata is not None, a.attrib["href"]
-				query = dict(parse_qsl(urlparse(a.attrib["href"]).query))
+				video_metadata = self.get_video_metadata(href)
+				assert video_metadata is not None, f"No video_metadata: {href}"
+				query = dict(parse_qsl(urlparse(href).query))
 				pub = MeetingMediaItem(
 					# If there is no pub code, this is probably a special video cut for the
 					# publication in which it is embedded. Leave it None for now.
 					pub_code = None if "docid" in query else re.sub(r"^pub-([^_]+)_.+$", lambda m: m.group(1), query["lank"]),
 					title = video_metadata["title"],
 					media_type = "video",
-					media_url = a.attrib["href"],
+					media_url = href,
 					thumbnail_url = video_metadata["thumbnail_url"],
 					)
-				is_a = "video"
-				break
+				return pub, "video"
 
 			# Link to Bible passage, ignore
 			if "jsBibleLink" in a.attrib.get("class","").split(" "):
-				is_a = "verse"
-				break
+				return None, "verse"
 
 			# Footnote marker, ignore
 			if a.attrib.get("class") == "footnoteLink":
-				is_a = "footnote"
-				break
+				return None, "footnote"
 
 			# Extract publication code
 			# We will use it below to figure out what we've got.
 			pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class",""))
 			if pub_code is None:
-				is_a = "not-a-pub"
-				break
+				return None, "not-a-pub"
 			pub_code = pub_code.group(1)
 
 			# Extract MEPS document ID
 			# (Disabled because has not proved useful so far)
 			#docid = re.match(r"^mid(\d+)$", a.attrib.get("data-page-id",""))
 			#if docid is None:
-			#	is_a = "no-docid"
-			#	break
+			#	return None, "no-docid"
 			#docid = docid.group(1)
 
 			# Publication: Song from Sing Out Joyfully to Jehovah
 			if pub_code == "sjj":
 				pub = self.get_song_from_a_tag(a)
-				is_a = "song"
-				break
+				return pub, "song"
 
 			# Publication: Link to special player page for video series
 			# FIXME: language-specific hack
 			if "ВИДЕО" in a.text_content():
 				try:
 					pub = self.get_video_episode_item_from_a_tag(a, baseurl)
-					is_a = "video"
 				except Exception as e:				# Fallback to webpage viewer
-					media_url = a.attrib["href"]
-					if baseurl is not None:
-						media_url = urljoin(baseurl, media_url)
 					pub = MeetingMediaItem(
 						pub_code = pub_code,
 						title = a.text_content().strip(),
 						media_type = "web",
-						media_url = media_url,
+						media_url = href,
 						)
-					is_a = "video"
-				break
+				return pub, "video"
 
 			# If we get here, we assume this is an article from which
 			# the caller may wish to extract illustrations.
@@ -404,11 +395,12 @@ class MeetingLoader(Fetcher):
 				pub_code = pub_code,
 				title = title if title is not None else a.text_content().strip(),
 				media_type = "web",
-				media_url = urljoin(baseurl, a.attrib["href"]),
+				media_url = href,
 				thumbnail_url = thumbnail_url,
 				)
-			is_a = "article"
-			break
+			return pub, "article"
+
+		pub, is_a = identify_pub()
 
 		logger.info("Extracted item: %s \"%s\" (%s)" % (str(a.attrib.get("class")).strip(), a.text_content().strip(), is_a))
 		return pub
@@ -478,7 +470,7 @@ class MeetingLoader(Fetcher):
 	# * Each illustration in an image carousel
 	# * A link to a video with thumbnail image
 	# * A link to an article with thumbnail image
-	# 
+	#
 	def get_figure_items(self, figure, baseurl:str, types:set):
 		assert isinstance(figure, ET.ElementBase)
 		assert figure.tag == "figure"
@@ -550,7 +542,7 @@ class MeetingLoader(Fetcher):
 
 		# Get the figure caption
 		caption = None
-		if figcaption := figure.find("./figcaption"):
+		if (figcaption := figure.find("./figcaption")) is not None:
 			caption = figcaption.text_content()
 			# remove footnote marker from end of caption
 			caption = caption.strip().removesuffix("*").rstrip()
@@ -574,23 +566,24 @@ class MeetingLoader(Fetcher):
 				return
 
 		# Loop over the images in this figure
-		for span in figure.findall(".//span[@class='jsRespImg']"):
-			img = span.find("./noscript/img")
-			assert span is not None and img is not None
+		if "image" in types:
+			for span in figure.findall(".//span[@class='jsRespImg']"):
+				img = span.find("./noscript/img")
+				assert span is not None and img is not None
 
-			# Take the highest resolution version we can get
-			for variant in ("data-zoom", "data-img-size-lg", "data-img-size-md", "data-img-size-sm", "data-img-size-xs"):
-				src = span.attrib.get(variant)
-				if src is not None:
-					break
-			else:
-				raise AssertionError("No image source in jsRespImg: %s" % str(span.attrib))
+				# Take the highest resolution version we can get
+				for variant in ("data-zoom", "data-img-size-lg", "data-img-size-md", "data-img-size-sm", "data-img-size-xs"):
+					src = span.attrib.get(variant)
+					if src is not None:
+						break
+				else:
+					raise AssertionError("No image source in jsRespImg: %s" % str(span.attrib))
 
-			yield MeetingMediaItem(
-				pub_code = None,			# caller can fill in, if needed
-				title = caption or img.attrib.get("alt","").strip() or None,
-				media_type = "image",
-				media_url = src,
-				thumbnail_url = span.attrib.get("data-img-size-xs"),
-				)
+				yield MeetingMediaItem(
+					pub_code = None,			# caller can fill in, if needed
+					title = caption or img.attrib.get("alt","").strip() or None,
+					media_type = "image",
+					media_url = src,
+					thumbnail_url = span.attrib.get("data-img-size-xs"),
+					)
 

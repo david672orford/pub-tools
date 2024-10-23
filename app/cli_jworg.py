@@ -77,7 +77,6 @@ def update_weeks(callback):
 	to_fetch = []
 	for i in range(8):
 		year, week = current_day.isocalendar()[:2]
-		#week_obj = Weeks.query.filter_by(lang=meeting_loader.language, year=year, week=week).one_or_none()
 		week_obj = Weeks.query.filter_by(year=year, week=week).one_or_none()
 		if week_obj is None:
 			to_fetch.append((year, week))
@@ -116,7 +115,7 @@ def cmd_get_meeting_media(docid):
 	media = meeting_loader.extract_media(url, callback=basic_callback)
 	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media")
 
-@cli_jworg.command("get-article-media")
+@cli_jworg.command("get-article-media", help="Scrape an article to get the media")
 @click.argument("url")
 def cmd_get_article(url):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
@@ -126,11 +125,13 @@ def cmd_get_article(url):
 	hrange = HighlightRange(root)
 	hrange.print()
 
+	return
+
 	media_items = []
 	for figure in hrange.figures:
 		figure_tags = figure.el.xpath(".//figure")
 		assert len(figure_tags) == 1
-		for item in meeting_loader.get_figure_items(figure_tags[0], url):
+		for item in meeting_loader.get_figure_items(figure_tags[0], url, {"image", "video", "song", "web"}):
 			media_items.append({
 				"figure": figure.el.attrib["id"],
 				"paragraph": str(figure.pnum),
@@ -194,23 +195,23 @@ def update_periodicals(pub_code, year=None, table=None):
 
 	# Add these publications to the database or update info if they are already there
 	for pub in pub_finder.search(search_path, search_query):
-		if not "issue_code" in pub:		# Midweek Meeting instructions
+		if pub.issue_code is None:		# Midweek Meeting instructions
 			continue
 		if table is not None:
-			table.add_row(pub["code"], pub.get("issue_code"), pub.get("issue"))
-		issue = PeriodicalIssues.query.filter_by(lang=pub_finder.language, pub_code=pub["code"], issue_code=pub.get("issue_code")).one_or_none()
+			table.add_row(pub.code, pub.issue_code, pub.issue)
+		issue = PeriodicalIssues.query.filter_by(lang=pub_finder.language, pub_code=pub.code, issue_code=pub.issue_code).one_or_none()
 		if issue is None:
 			issue = PeriodicalIssues(
 				lang = pub_finder.language,
-				pub_code = pub["code"],
-				issue_code = pub["issue_code"],
+				pub_code = pub.code,
+				issue_code = pub.issue_code,
 				)
 			db.session.add(issue)
-		issue.name = pub["name"]
-		issue.issue = pub["issue"]
-		issue.thumbnail = pub["thumbnail"]
-		issue.href = pub["href"]
-		issue.formats = pub["formats"]
+		issue.name = pub.name
+		issue.issue = pub.issue
+		issue.thumbnail = pub.thumbnail
+		issue.href = pub.href
+		issue.formats = pub.formats
 
 	db.session.commit()
 
@@ -224,10 +225,10 @@ def cmd_show_periodicals():
 @cli_jworg.command("update-articles", help="Load article titles from TOC of every periodical in the DB")
 def cmd_update_articles():
 	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
-	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.filter_by(lang=pub_finder.language).pub_code.in_(("w", "mwb"))):
+	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.lang==pub_finder.language).filter(PeriodicalIssues.pub_code.in_(("w", "g", "mwb"))):
 		print(issue, len(issue.articles))
 		if len(issue.articles) == 0:
-			for docid, title, href in pub_finder.get_toc(issue.href, docClass_filter=['40','106']):
+			for docid, title, href in pub_finder.get_toc(issue.href, docClass_filter=["40","106"]):
 				issue.articles.append(Articles(
 					lang = pub_finder.language,
 					docid = docid,
@@ -238,7 +239,18 @@ def cmd_update_articles():
 
 @cli_jworg.command("show-articles", help="List articles in DB")
 def cmd_show_articles():
-	print_query_result_table(Articles.query, "Articles")
+	articles = []
+	for article in Articles.query:
+		articles.append(dict(
+			id = str(article.id),
+			lang = article.lang,
+			periodical_name = article.issue.name,
+			periodical_issue = article.issue.issue,
+			article_title = article.title,
+			docid = article.docid,
+			))
+
+	print_dict_result_table(articles, "Articles")
 
 #=============================================================================
 # Books and brochures
@@ -252,17 +264,17 @@ def cmd_update_books():
 def update_books():
 	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
 	for pub in pub_finder.search("books/", dict(contentLanguageFilter=pub_finder.language)):
-		book = Books.query.filter_by(lang=pub_finder.language, pub_code=pub['code']).one_or_none()
+		book = Books.query.filter_by(lang=pub_finder.language, pub_code=pub.code).one_or_none()
 		if book is None:
 			book = Books(
 				lang = pub_finder.language,
-				pub_code = pub['code'],
+				pub_code = pub.code,
 				)
 			db.session.add(book)
-		book.name = pub['name']
-		book.thumbnail = pub['thumbnail']
-		book.href = pub['href']
-		book.formats = pub['formats']
+		book.name = pub.name
+		book.thumbnail = pub.thumbnail
+		book.href = pub.href
+		book.formats = pub.formats
 	db.session.commit()
 
 @cli_jworg.command("show-books", help="List books in DB")

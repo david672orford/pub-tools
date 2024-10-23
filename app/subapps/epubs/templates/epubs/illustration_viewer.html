@@ -1,0 +1,14 @@
+{% set title = "Illustration" %}
+{% extends "epubs/base.html" %}
+
+{% block header %}
+	<h1><a href=".?q={{q}}">&lt;&nbsp;{{ title }}</a></h1>
+{% endblock %}
+
+{% block main %}
+<section class="illustration">
+	<img src="../{{result.pub_code}}/{{result.src}}">
+	<div class="caption"><b>Caption:</b> {{result.caption}}</div>
+	<div class="alt"><b>Alt:</b> {{result.alt}}</div>
+</section>
+{% endblock %}

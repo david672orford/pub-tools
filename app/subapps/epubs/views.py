@@ -55,7 +55,7 @@ def epub_load():
 	return redirect(".")
 
 # Search for illustrations
-@blueprint.route("/illustrations")
+@blueprint.route("/illustrations/")
 def search_illustrations():
 	q = request.args.get("q")	
 	print("q:", q)
@@ -64,6 +64,12 @@ def search_illustrations():
 	else:
 		results = []
 	return render_template("epubs/illustrations.html", q = q, results = results)
+
+@blueprint.route("/illustrations/<int:docnum>")
+def show_illustration(docnum):
+	q = request.args.get("q")	
+	result = illustration_index.get_document(docnum)
+	return render_template("epubs/illustration_viewer.html", q = q, result=result)
 
 # Display the Table of Contents from an Epub
 @blueprint.route("/<pub_code>/")

@@ -44,8 +44,8 @@ class Books(db.Model):
 	lang = db.Column(db.String)
 	name = db.Column(db.String)
 	pub_code = db.Column(db.String)
-	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	formats = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 
@@ -57,11 +57,11 @@ class PeriodicalIssues(db.Model):
 	issue = db.Column(db.String)
 	pub_code = db.Column(db.String)
 	issue_code = db.Column(db.String)
-	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	formats = db.Column(db.String)
 	epub_filename = db.Column(db.String)
-	articles = db.relationship('Articles', order_by=lambda: Articles.docid)
+	articles = db.relationship("Articles", order_by=lambda: Articles.docid)
 	def __str__(self):
 		return "<PeriodicalIssues id=%d pub_code=%s issue_code=%s issue=\"%s\" href=\"%s\" epub_filename=\"%s\">" % (self.id, self.pub_code, self.issue_code, self.issue, self.href, self.epub_filename)
 
@@ -73,8 +73,8 @@ class Articles(db.Model):
 	issue = db.relationship(PeriodicalIssues, back_populates="articles")
 	docid = db.Column(db.String)
 	title = db.Column(db.String)
-	thumbnail = db.Column(db.String)
 	href = db.Column(db.String)
+	thumbnail = db.Column(db.String)
 	epub_href = db.Column(db.String)
 
 #=============================================================================
