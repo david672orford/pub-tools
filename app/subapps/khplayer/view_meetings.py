@@ -83,7 +83,8 @@ def page_meetings_view_stream(docid):
 				index += 1
 		except Exception as e:
 			logger.error(traceback.format_exc())
-			async_flash(_("Error: %s")% e)		# Not in background, must choose async_flash() explicitly
+			message = f"{type(e).__name__}: {str(e)}"
+			async_flash(_("Error: %s") % message)	# Not in background, must choose async_flash() explicitly
 			progress_callback(_("✘ Unable to load meeting media list."), last_message=True, cssclass="error")
 		else:
 			progress_callback(_("✔ Meeting media list has finished loading."), last_message=True, cssclass="success")

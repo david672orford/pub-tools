@@ -66,16 +66,17 @@ def print_dict_result_table(result, title):
 #=============================================================================
 
 @cli_jworg.command("update-weeks", help="Load weekly meeting materials")
-def cmd_update_weeks():
+@click.option("-n", default=8)
+def cmd_update_weeks(n):
 	logging.basicConfig(level=logging.DEBUG)
-	update_weeks(basic_callback)
+	update_weeks(basic_callback, n=n)
 
-def update_weeks(callback):
+def update_weeks(callback, n=8):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"])
 
 	current_day = date.today()
 	to_fetch = []
-	for i in range(8):
+	for i in range(n):
 		year, week = current_day.isocalendar()[:2]
 		week_obj = Weeks.query.filter_by(year=year, week=week).one_or_none()
 		if week_obj is None:
@@ -119,7 +120,7 @@ def cmd_get_meeting_media(docid):
 @click.argument("url")
 def cmd_get_article(url):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
-	root = meeting_loader.get_article(url).article
+	root = meeting_loader.get_article(url).article_tag
 	meeting_loader.dump_html(root, "article.html")
 
 	hrange = HighlightRange(root)

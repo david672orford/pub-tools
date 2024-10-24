@@ -130,5 +130,5 @@ class HighlightRange:
 	def range_figures(self, start, end):
 		for figure in self.figures:
 			if start <= figure.pnum <= end:
-				yield figure.el
+				yield figure
 

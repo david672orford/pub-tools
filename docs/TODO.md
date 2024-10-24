@@ -6,6 +6,7 @@
 
 ## Easy Improvements
 
+* Fixed disabled style on download button on meeting page
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
 * CLI support for enabling debugging by module

@@ -44,10 +44,10 @@ class VideosView(ModelView):
 		"title",
 		"date",
 		"duration",
-		"lank"
 		"docid",
-		"thumbnail",
+		"lank",
 		"href",
+		"thumbnail",
 		)
 	column_searchable_list = ("title", "lank")
 
