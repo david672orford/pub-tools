@@ -4,7 +4,7 @@
 		<tr>
 		<td><input type="checkbox" name="selected", value="{{index}}" checked></td>
 		<td>{{item.part_title}}</td>
-	    <td>{{item.pub_code}}</td>
+	    <td>{{item.pub_code}}{% if item.issue_code %}-{{item.issue_code}}{% endif %}{% if item.track %} {{item.track}}{%endif%}</td>
 		<td>
 			<div class="thumbnail">
 				{% if item.thumbnail_url %}<img src="{{item.thumbnail_url}}">{% endif %}

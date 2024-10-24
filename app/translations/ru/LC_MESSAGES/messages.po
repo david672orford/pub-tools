@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-10-15 16:21-0400\n"
-"PO-Revision-Date: 2024-10-15 16:24-0400\n"
+"POT-Creation-Date: 2024-10-23 21:58-0400\n"
+"PO-Revision-Date: 2024-10-23 21:58-0400\n"
 "Last-Translator: \n"
 "Language-Team: ru <LL@li.org>\n"
 "Language: ru\n"
@@ -20,48 +20,44 @@ msgstr ""
 "Generated-By: Babel 2.14.0\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: cli_jworg.py:83
+#: cli_jworg.py:87
 #, python-format
 msgid "Fetching week %s %s"
 msgstr "Идёт загрузка недели %s %s"
 
-#: cli_jworg.py:97
+#: cli_jworg.py:100
 msgid "Weeks loaded"
 msgstr "Список встреч обновлен"
 
-#: cli_jworg.py:268
+#: cli_jworg.py:321
 msgid "Scanning \"{category_name}\"..."
 msgstr "Обновляется «{category_name}»..."
 
-#: cli_jworg.py:319
+#: cli_jworg.py:372
 msgid "Scanning \"{category_name} — {subcategory_name}\"..."
 msgstr "Обновляется «{category_name} — {subcategory_name}»..."
 
-#: jworg/meetings.py:12 subapps/khplayer/templates/khplayer/slides.html:43
+#: jworg/meetings.py:15 subapps/khplayer/templates/khplayer/slides.html:43
 msgid "image"
 msgstr "изображение"
 
-#: jworg/meetings.py:13 subapps/khplayer/templates/khplayer/slides.html:43
+#: jworg/meetings.py:16 subapps/khplayer/templates/khplayer/slides.html:43
 msgid "video"
 msgstr "видео"
 
-#: jworg/meetings.py:102
+#: jworg/meetings.py:150
 #, python-format
 msgid "Article title: \"%s\""
 msgstr "Название стати: «%s»"
 
-#: jworg/meetings.py:208
+#: jworg/meetings.py:165
+msgid "Watchtower Study"
+msgstr "ИСБ"
+
+#: jworg/meetings.py:285
 #, python-format
 msgid "Getting media list from \"%s\"..."
 msgstr "Идёт загрузка списка материала из «%s»..."
-
-#: jworg/meetings.py:337
-msgid "WT"
-msgstr ""
-
-#: jworg/meetings.py:338
-msgid "Watchtower Study"
-msgstr "ИСБ"
 
 #: subapps/khplayer/view_jwstream.py:20
 msgid "JW Stream"
@@ -133,8 +129,9 @@ msgstr "✘ Сбой загрузки фрагмента!"
 
 #: subapps/khplayer/utils/scenes.py:100 subapps/khplayer/utils/scenes.py:123
 #: subapps/khplayer/utils/scenes.py:148 subapps/khplayer/view_jwstream.py:237
-#: subapps/khplayer/view_scenes.py:26 subapps/khplayer/view_scenes.py:34
-#: subapps/khplayer/view_scenes.py:187 subapps/khplayer/view_scenes.py:221
+#: subapps/khplayer/view_meetings.py:109 subapps/khplayer/view_scenes.py:26
+#: subapps/khplayer/view_scenes.py:34 subapps/khplayer/view_scenes.py:187
+#: subapps/khplayer/view_scenes.py:221
 #: subapps/khplayer/view_scenes_composer.py:52
 #: subapps/khplayer/view_scenes_composer.py:96
 #: subapps/khplayer/view_scenes_composer.py:131
@@ -156,32 +153,32 @@ msgstr "✔ Фрагмент успешно загружен."
 msgid "Meetings"
 msgstr "Встречи"
 
-#: subapps/khplayer/view_meetings.py:46
+#: subapps/khplayer/view_meetings.py:38
 msgid "Fetching meeting schedules..."
 msgstr "Загружается список материала встреч..."
 
-#: subapps/khplayer/view_meetings.py:69
+#: subapps/khplayer/view_meetings.py:61
 msgid "Loading meeting media list..."
 msgstr "Загружается список материала для встречи..."
 
-#: subapps/khplayer/view_meetings.py:94 utils/background.py:32
+#: subapps/khplayer/view_meetings.py:86 utils/background.py:32
 #, python-format
 msgid "Error: %s"
 msgstr "Сбой: %s"
 
-#: subapps/khplayer/view_meetings.py:95
+#: subapps/khplayer/view_meetings.py:87
 msgid "✘ Unable to load meeting media list."
 msgstr "✘ Сбой загрузки списка материала для встречи."
 
-#: subapps/khplayer/view_meetings.py:97
+#: subapps/khplayer/view_meetings.py:89
 msgid "✔ Meeting media list has finished loading."
 msgstr "✔ Список материала для встречи загружён."
 
-#: subapps/khplayer/view_meetings.py:161
+#: subapps/khplayer/view_meetings.py:157
 msgid "Loading media for \"{title}\"..."
 msgstr "Идёт загрузка материала для «{title}»..."
 
-#: subapps/khplayer/view_meetings.py:164
+#: subapps/khplayer/view_meetings.py:160
 msgid "✔ All requested media have been loaded."
 msgstr "✔ Все выбранные записи и изображения загружены."
 
@@ -298,11 +295,11 @@ msgstr "Песня не существует: {song}"
 msgid "Videos"
 msgstr "Видео"
 
-#: subapps/khplayer/view_videos.py:68 subapps/khplayer/view_videos.py:77
+#: subapps/khplayer/view_videos.py:67 subapps/khplayer/view_videos.py:76
 msgid "Updating video list..."
 msgstr "Обновляется список видеороликов..."
 
-#: subapps/khplayer/view_videos.py:70 subapps/khplayer/view_videos.py:79
+#: subapps/khplayer/view_videos.py:69 subapps/khplayer/view_videos.py:78
 msgid "✔ Video list updated."
 msgstr "✔ Список видеороликов обновлён."
 
@@ -435,8 +432,8 @@ msgid "Part"
 msgstr "Пункт"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:18
-msgid "Pub."
-msgstr "Публ."
+msgid "Publication"
+msgstr "Публикация"
 
 #: subapps/khplayer/templates/khplayer/meetings_meeting.html:19
 msgid "Media Item"
@@ -618,7 +615,7 @@ msgstr "Введите поисковые термены"
 msgid "Search"
 msgstr "Поиск"
 
-#: subapps/khplayer/templates/khplayer/videos.html:40
+#: subapps/khplayer/templates/khplayer/videos.html:47
 msgid "Run <b>Update</b> to see video categories here."
 msgstr "Нажмите <b>Обновить</b> чтобы категории роликов появились здесь."
 
@@ -872,3 +869,6 @@ msgstr "Сбой в выполнении фоновой задачи."
 
 #~ msgid "Video title is \"{scene_name}\"."
 #~ msgstr "Название ролика: «{scene_name}»..."
+
+#~ msgid "Pub."
+#~ msgstr "Публ."

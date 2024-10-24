@@ -119,7 +119,7 @@ def cmd_get_meeting_media(docid):
 @click.argument("url")
 def cmd_get_article(url):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
-	root = meeting_loader.get_article_html(url)
+	root = meeting_loader.get_article(url).article
 	meeting_loader.dump_html(root, "article.html")
 
 	hrange = HighlightRange(root)
