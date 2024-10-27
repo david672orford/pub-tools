@@ -50,15 +50,20 @@ def print_query_result_table(result, title):
 		table.add_row(*[str(getattr(row, column)) for column in columns])
 	Console().print(table)
 
-def print_dict_result_table(result, title):
+def print_dict_result_table(result, title, order=()):
 	table = Table(show_header=True, title=title, show_lines=True)
 	columns = None
 	for row in result:
 		if columns is None:
-			columns = row.keys()
-			for column in columns:
+			columns = []
+			for column in order:
+				columns.append(column)
 				table.add_column(column)
-		table.add_row(*[row[column] for column in columns])
+			for column in row.keys():
+				if column not in order:
+					columns.append(column)
+					table.add_column(column)
+		table.add_row(*[str(row[column]) for column in columns])
 	Console().print(table)
 
 #=============================================================================
@@ -108,25 +113,36 @@ def cmd_show_weeks():
 # Media Extraction Tests
 #=============================================================================
 
+media_column_order = (
+	"section_title",
+	"part_title",
+	"title",
+	"pub_code",
+	"issue_code",
+	"docid",
+	"track",
+	)
+
 @cli_jworg.command("get-meeting-media", help="Scrape a meeting article to get the media")
 @click.argument("docid")
 def cmd_get_meeting_media(docid):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
 	url = meeting_loader.meeting_url(docid)
 	media = meeting_loader.extract_media(url, callback=basic_callback)
-	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media")
+	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media", order=media_column_order)
 
-@cli_jworg.command("get-article-media", help="Scrape an article to get the media")
+@cli_jworg.command("get-article-media", help="Scrape a supplemental article to get the media")
 @click.argument("url")
-def cmd_get_article(url):
+@click.option("--save-as", default=None)
+def cmd_get_article_media(url, save_as):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
 	root = meeting_loader.get_article(url).article_tag
-	meeting_loader.dump_html(root, "article.html")
+
+	if save_as is not None:
+		meeting_loader.dump_html(root, save_as)
 
 	hrange = HighlightRange(root)
 	hrange.print()
-
-	return
 
 	media_items = []
 	for figure in hrange.figures:
@@ -141,7 +157,8 @@ def cmd_get_article(url):
 				"media_url": item.media_url,
 				"thumbnail_url": item.thumbnail_url,
 				})
-	print_dict_result_table(media_items, "Media Items")
+
+	print_dict_result_table(media_items, "Media Items", order=media_column_order)
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into
@@ -243,7 +260,7 @@ def cmd_show_articles():
 	articles = []
 	for article in Articles.query:
 		articles.append(dict(
-			id = str(article.id),
+			id = article.id,
 			lang = article.lang,
 			periodical_name = article.issue.name,
 			periodical_issue = article.issue.issue,

@@ -168,7 +168,7 @@ function init_scenes()
 		   form using .click() because .submit() does not trigger
 		   Turbo Stream handling. */
 		let i;
-		if((i = e.dataTransfer.types.indexOf("text/html")) != -1)
+		if((i = e.dataTransfer.types.indexOf("text/html")) != -1)				/* preference 1, the most information */
 			{
 			e.dataTransfer.items[i].getAsString(function(html) {
 				console.log("html:", html);
@@ -176,12 +176,20 @@ function init_scenes()
 				$("#add-html-form BUTTON").click();
 				});
 			}
-		else if((i = e.dataTransfer.types.indexOf("text/uri-list")) != -1)
+		else if((i = e.dataTransfer.types.indexOf("text/uri-list")) != -1)		/* preference 2, explicit */
 			{
 			e.dataTransfer.items[i].getAsString(function(url) {
 				console.log("url:", url);
 				$("#add-url").value = url;
 				$("#add-url-form BUTTON").click();
+				});
+			}
+		else if((i = e.dataTransfer.types.indexOf("text/plain")) != -1)			/* preference 3, ambiguous */
+			{
+			e.dataTransfer.items[i].getAsString(function(text) {
+				console.log("text:", text);
+				$("#add-text").value = text;
+				$("#add-text-form BUTTON").click();
 				});
 			}
 		else if(e.dataTransfer.files.length > 0)			/* local files */

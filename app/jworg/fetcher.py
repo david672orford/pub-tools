@@ -3,8 +3,10 @@ from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPEr
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 from gzip import GzipFile
 from time import sleep, time
-import lxml.html
+from functools import cache
 import logging
+
+import lxml.html
 
 from ..utils.babel import gettext as _
 from .wtcodes import iso_language_code_to_meps
@@ -96,8 +98,16 @@ class Fetcher:
 		self.opener = build_opener(http_handler, https_handler)
 		self.no_redirects_opener = build_opener(NoRedirects, http_handler, https_handler)
 
+	# Send an HTTP HEAD request
+	def head(self, url):
+		return self.request(url, method="HEAD")
+
 	# Send an HTTP GET request
-	def get(self, url, query=None, accept="text/html, */*", follow_redirects=True):
+	def get(self, url, **kwargs):
+		return self.request(url, method="GET", **kwargs)
+
+	# Send an HTTP request
+	def request(self, url, query=None, accept="text/html, */*", follow_redirects=True, method="GET"):
 		left_to_wait = (self.min_request_interval - (time() - self.last_request_time))
 		if left_to_wait > 0:
 			sleep(left_to_wait)
@@ -106,12 +116,13 @@ class Fetcher:
 		logger.debug("Fetching %s...", unquote(url))
 		request = Request(
 			url,
-			headers={
+			headers = {
 				"Accept": accept,
 				"Accept-Encoding": "gzip",
 				"Accept-Language": "en-US",
 				"User-Agent": self.user_agent,
-				}
+				},
+			method = method,
 			)
 		if follow_redirects:
 			response = self.opener.open(request, timeout=self.request_timeout)
@@ -129,23 +140,16 @@ class Fetcher:
 
 	# Send an HTTP GET request and parse the result as JSON
 	def get_json(self, url, query=None):
-		response = self.get(url, query, accept="application/json")
+		response = self.get(url, query=query, accept="application/json")
 		return json.load(response)
-
-	# Fetch a web page and return its title
-	def get_title(self, url):
-		html = self.get_html(url)
-		title = html.xpath("./head/title")
-		if len(title) > 0:
-			return title[0].text
-		return "No Title"
 
 	# Download a video or picture from a URL, store it in the cache
 	# directory, and return its path.
-	def download_media(self, url: str, callback=None):
-		if self.cachedir is None:
-			raise FetcherError("Cachedir is not set")
-		cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
+	def download_media(self, url:str, cachefile:str=None, callback=None):
+		if cachefile is None:
+			if self.cachedir is None:
+				raise FetcherError("Cachedir is not set")
+			cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if not os.path.exists(cachefile):
 			response = self.get(url)
 			total_expected = int(response.headers.get("Content-Length"))
@@ -214,46 +218,26 @@ class Fetcher:
 	# 2) Supplements such as recorded music for a songbook
 	#======================================================================
 
-	# Get the URL of the video file which accompanies a publication
+	# Get the URL of a media file which accompanies a publication
 	def get_pub_media(self, query:dict):
 		logger.debug(f"get_pub_media(query=%s)", query)
 		final_query = {
 			"output": "json",
-			"pub": query["pub"],
 			"fileformat": query.get("fileformat", "m4v,mp4,3gp,mp3"),
-			"alllangs": "0",
+			"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
 			"langwritten": self.meps_language,
 			"txtCMSLang": self.meps_language,
 			}
+		if query.get("pub") is not None:
+			final_query["pub"] = query["pub"]
 		if query.get("issue") is not None:
 			final_query["issue"] = query["issue"]
 		if query.get("track") is not None:
 			final_query["track"] = str(query["track"])
-		#print("pub media query:", final_query)
+		if query.get("docid") is not None:
+			final_query["docid"] = query["docid"]
 		media = self.get_json(self.pub_media_url, query = final_query)
-		#self.dump_json(media)
 		return media
-
-	def get_pub_media_mp4(self, query:dict, resolution:int=None):
-		media = self.get_pub_media(query)
-
-		# Song video in various resolutions
-		mp4 = media["files"][self.meps_language]["MP4"]
-
-		# If a resulution was specified, find the download URL
-		mp4_url = None
-		if resolution is not None:
-			for variant in mp4:
-				if variant["label"] == resolution:
-					mp4_url = variant["file"]["url"]
-
-
-		return {
-			"title": mp4[0]["title"],
-			"url": mp4_url,
-			# As of October 2024 the URL is sometimes an empty string
-			"thumbnail_url": mp4[0]["trackImage"]["url"] or None,
-			}
 
 	# Find the EPUB download URL of a publication
 	def get_epub_url(self, pub:str, issue:str=None):
@@ -269,24 +253,20 @@ class Fetcher:
 		return media["files"][self.meps_language]["EPUB"][0]["file"]["url"]
 
 	#======================================================================
-	# The mediator API endpoint is used to get the metadata for videos
-	# and audio recordings, especially when they are not viewed as an
-	# addendum to another publication.
+	# Given the URL of a video on JW.ORG, get its metadata and
+	# optionally, the URL of the MP4 file
 	#======================================================================
-	#
-	# Given a link to a video from an article, extract the publication ID
-	# and language and go directly to the mediator endpoint to get the
-	# metadata bypassing the player page.
-	#
+
+	# Get the metadata for a video
 	# * url -- sharing URL for video
 	# * resolution (optional) -- "240p", "360p", "480p", or "720p"
 	# * language -- optional language override, ISO code
-	#
 	# Return None if this does not appear to be a link to a video on JW.ORG.
-	#
-	def get_video_metadata(self, url:str=None, query:dict=None, resolution:int=None, language:str=None):
-		if query is None:
-			query = self.parse_video_url(url)
+	@cache
+	def get_video_metadata(self, url:str, resolution:int=None, language:str=None):
+		assert isinstance(url, str)
+
+		query = self.parse_video_url(url)
 
 		if language is not None:
 			meps_language = iso_language_code_to_meps(language)
@@ -333,37 +313,29 @@ class Fetcher:
 				"subtitles_url": subtitles_url,
 				}
 
-		# Video is specified by its MEPS Document ID
-		# https://wol.jw.org/wol/datalink/r2/lp-u?docid=1001071937&data-video=webpubvid%3A%2F%2F%2F%3Fpub%3Dnwtsv%26track%3D190
-		elif "docid" in query:
+		if "pub" in query or "docid" in query:
 
-			docid = int(query["docid"])
-			if 1102016801 <= docid <= 1102016952:		# Songbook songs 1 through 152
+			# Video specified by publication and track
+			if "pub" in query:
 				params = {
-					"pub": "sjjm",
-					"track": str(docid - 1102016800),
+					"pub": query["pub"],
+					"track": query["track"],
 					}
-			elif 1102022953 <= docid <= 1102022958:		# Songbook songs 152 through 158
-				params = {
-					"pub": "sjjm",
-					"track": str(docid - 1102022800),
-					}
+	
+			# Video is specified by its MEPS Document ID
 			else:
 				params = {
 					"docid": query["docid"],
-					"track": "1",
 					}
+				assert "track" not in query
 
-			params.update({
-				"output": "json",
-				"fileformat": "mp4,mp3",
-				"alllangs": "0",		# 1 observed, use 0 because we don't need all the languages
-				"langwritten": meps_language,
-				"txtCMSLang": meps_language,
-				})
+			media = self.get_pub_media(params)
+			self.dump_json(media)
 
-			media = self.get_json(self.pub_media_url, query = params)
-			mp4 = media["files"][meps_language]["MP4"]
+			mp4 = media["files"][meps_language].get("MP4")
+			if mp4 is None:
+				logger.info("No video files")
+				return None
 
 			# If the caller has specified a video resolution, look for a matching file.
 			mp4_url = None
@@ -374,9 +346,10 @@ class Fetcher:
 						break
 
 			# The pub-media API does not provide a thumbnail image. Get an image from the player page.
-			player_page = self.get_html(url)
-			poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
-			thumbnail_url = poster_div.attrib["data-src"] if poster_div is not None else None
+			#player_page = self.get_html(url)
+			#poster_div = player_page.find(".//div[@class='jsVideoPoster mid%s']" % query["docid"])
+			#thumbnail_url = poster_div.attrib["data-src"] if poster_div is not None else None
+			thumbnail_url = None
 
 			return {
 				"title": mp4[0]["title"],
@@ -388,17 +361,18 @@ class Fetcher:
 		logger.info("Not a video URL")
 		return None
 
+	# We have split out the URL parsing
 	def parse_video_url(self, url):
 		url_obj = urlparse(url)
 		query = dict(parse_qsl(url_obj.query))
 
 		if url_obj.netloc == "www.jw.org":
 
-			# Sharing URL
+			# Is this a URL such as produced by the Share button?
 			if "lank" in query or "docid" in query:
 				return query
 
-			# Player page URL
+			# Is this the URL for the generic LANK player used for featured videos?
 			if url_obj.fragment:
 				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
 				if m:
@@ -408,3 +382,4 @@ class Fetcher:
 						}
 
 		return {}
+

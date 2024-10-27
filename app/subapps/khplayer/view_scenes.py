@@ -1,15 +1,17 @@
 from flask import current_app, Blueprint, render_template, request, redirect
 from time import sleep
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 import os, re, json, logging
 
-from ...utils.background import turbo, progress_callback, progress_response, run_thread, flash, async_flash
+from ...utils.background import turbo, progress_callback, progress_response, \
+	run_thread, flash, async_flash
 from ...utils.babel import gettext as _
 from ...utils.media_cache import make_media_cachefile_name
 from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
-from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, load_webpage, load_text, load_meeting_media_item
+from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, \
+	load_webpage, load_text, load_meeting_media_item, load_media_file
 from .utils.cameras import list_cameras
 from .utils.zoom import find_second_window
 from .utils.controllers import meeting_loader
@@ -18,6 +20,23 @@ from .utils.html_extractor import HTML
 logger = logging.getLogger(__name__)
 
 menu.append((_("Scenes"), "/scenes/"))
+
+#=============================================================================
+# Display the scene list and keep it up-to-date
+#=============================================================================
+
+@blueprint.route("/scenes/")
+def page_scenes():
+	scenes = get_scenes_with_thumbnails()
+	return render_template(
+		"khplayer/scenes.html",
+		scenes = scenes["scenes"],
+		program_scene_uuid = scenes.get("currentProgramSceneUuid"),
+		preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
+		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
+		remotes = current_app.config.get("VIDEO_REMOTES"),
+		top = ".."
+		)
 
 def get_scenes_with_thumbnails():
 	try:
@@ -37,19 +56,6 @@ def get_scenes_with_thumbnails():
 
 def get_scene_thumbnail(scene):
 	return obs.get_source_screenshot(scene["sceneUuid"])
-
-@blueprint.route("/scenes/")
-def page_scenes():
-	scenes = get_scenes_with_thumbnails()
-	return render_template(
-		"khplayer/scenes.html",
-		scenes = scenes["scenes"],
-		program_scene_uuid = scenes.get("currentProgramSceneUuid"),
-		preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
-		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
-		remotes = current_app.config.get("VIDEO_REMOTES"),
-		top = ".."
-		)
 
 # Update the scenes list when scenes are added, removed, renamed
 def scenes_event_handler(event):
@@ -104,6 +110,11 @@ def scene_items_event_handler(event):
 
 obs.subscribe("SceneItems", scene_items_event_handler)
 
+#=============================================================================
+# User interaction with the scene list
+#=============================================================================
+
+# Called when mouse hovers over a scene thumbnail
 @blueprint.route("/scenes/refresh-thumbnail", methods=["POST"])
 def page_scenes_refresh_thumbnail():
 	uuid = request.json["uuid"]
@@ -114,6 +125,7 @@ def page_scenes_refresh_thumbnail():
 			break
 	return ""
 
+# Called when a user drags and drops to scene in a different position
 @blueprint.route("/scenes/move-scene", methods=["POST"])
 def page_scenes_move_scene():
 	logger.debug("Move scene: %s", request.json)
@@ -124,6 +136,7 @@ def page_scenes_move_scene():
 		logger.error("Attempt to move non-existent scene: %s", data["uuid"])
 	return ""
 
+# Called when a button is pressed in the scene list
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
 	logger.debug("scenes submit: %s", request.form)
@@ -191,59 +204,95 @@ def page_scenes_submit():
 
 	return turbo.stream("")
 
-# We tried combining this with the above, but it made things messier:
-# * If no file is selected, you get a dummy file object with a mimetype of application/octet-stream
-# * We need to provide an action value for file upload. We could do that with the button, but
-#   with drag-and-drop it is more awkward. We would probably have to simulate a button click.
+# Called when the user uploads a file to the scene list
+#
+# We tried combining this with the button-press handler above, but it
+# made things messier:
+# * When no file is selected, we got a dummy file object with a mimetype
+#   of application/octet-stream
+# * We needed to provide an action value for file upload. We could do that
+#   with the button, but with drag-and-drop it is more awkward. We would
+#   probably have to simulate a button click.
+#
 @blueprint.route("/scenes/upload", methods=["POST"])
 def page_scenes_upload():
 	files = request.files.getlist("files")				# Get the Werkzeug FileStorage object
-	i = 1
 	for file in files:
 		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype), cssclass="heading")
-
-		major_mimetype = file.mimetype.split("/")[0]
-		scene_name_prefix = scene_name_prefixes.get(major_mimetype)
-		if scene_name_prefix is None:
+		if file.mimetype.split("/")[0] not in scene_name_prefixes:
 			progress_callback(_("Unsupported file type: \"%s\" (%s)") % (file.filename, file.mimetype), cssclass="error")
 			continue
-
 		save_as = make_media_cachefile_name(file.filename, file.mimetype)
 		file.save(save_as)
-
-		try:
-			obs.add_media_scene(
-				scene_name_prefix + " " + os.path.basename(file.filename),
-				major_mimetype,
-				save_as
-				)
-		except ObsError as e:
-			async_flash(_("OBS: %s") % str(e))
-
-		i += 1
-
+		load_media_file(file.filename, save_as, file.mimetype, close=False)
 	return progress_response(_("✔ All files have been loaded."), last_message=True, cssclass="success")
 
-# When an HTML element from a web browser is dropped onto the scene list
+# Called when a bare URL is dropped onto the scene list
+@blueprint.route("/scenes/add-url", methods=["POST"])
+def page_scenes_add_url():
+	return add_url(request.form["add-url"])
+
+def add_url(url):
+	def background_loader():
+		sleep(1)
+
+		url_obj = urlparse(url)
+		if url_obj.hostname == "www.jw.org":
+
+			# Share URL or Featured Video URL
+			if meeting_loader.get_video_metadata(url):
+				load_video_url(None, url)
+				return
+
+			# FIXME: We shouldn't need this
+			# Featured video URL
+			if (m := re.match(r"[^/]+/mediaitems/FeaturedLibraryVideos/([^/]+)$", url_obj.fragment)):
+				media_url = "https://www.jw.org/finder?lank=" + m.group(1)
+				load_video_url(None, media_url)
+				return
+
+		else:
+			progress_callback(_("Fetching headers of \"%s\"...") % unquote(url))
+			# HEAD times out on JW.ORG, so excluded
+			response = meeting_loader.head(url)
+			mimetype = response.headers.get("Content-Type").split(";")[0]
+			if mimetype.split("/")[0] in scene_name_prefixes:
+				filename = os.path.basename(unquote(urlparse(url).path))
+				save_as = make_media_cachefile_name(filename, mimetype)
+				meeting_loader.download_media(url, cachefile=save_as, callback=progress_callback)
+				load_media_file(filename, save_as, mimetype, close=True)
+				return
+
+		# Anything else gets displayed in a webview.
+		# We use None for scene_name so it will be taken from <title>.
+		load_webpage(None, url)
+
+	run_thread(background_loader)
+	return progress_response(_("Loading dropped URL..."), cssclass="heading")
+
+# Called when an HTML element from a web browser is dropped onto the scene list
 @blueprint.route("/scenes/add-html", methods=["POST"])
 def page_scenes_add_html():
 	html_text = request.form["add-html"]
 	doc = HTML(html_text)
 
+	# A URL wrapped in an <a> tag
 	if doc.doc.tag == "a":
 		href = doc.doc.attrib.get("href")
 		if href:
-			pub = meeting_loader.get_pub_from_a_tag(doc.doc)
-			print("pub:", pub)
-			if pub is not None:
+			# If we recognize the attributes of an <a> tag from JW.ORG which links to a media item,
+			if (pub := meeting_loader.get_pub_from_a_tag(doc.doc, dnd=True)) is not None:
 				def background_loader():
 					sleep(1)
 					load_meeting_media_item(pub)
 					progress_callback(_("✔ Publication has been loaded."), last_message=True, cssclass="success")
 				run_thread(background_loader)
 				return progress_response(_("Loading dropped publication..."), cssclass="heading")
+
+			# Otherwise, chain to the bare URL handler
 			return add_url(href)
 
+	# A URL wrapped in an <img> tag
 	elif doc.doc.tag == "img":
 		title = doc.doc.attrib.get("alt", "Image")
 		url = doc.doc.attrib.get("src")
@@ -251,7 +300,7 @@ def page_scenes_add_html():
 			sleep(1)
 			load_image_url(title, url)
 		run_thread(background_loader)
-		return progress_response(_("Loading image..."))
+		return progress_response(_("Loading dropped image..."))
 
 	# If we get here, presume the intent was to create a text slide.
 	print("Before:", doc.pretty())
@@ -260,18 +309,11 @@ def page_scenes_add_html():
 	plain_text = doc.text_content()
 	return load_text("Text", plain_text)
 
-# When a URL is dropped onto the scene list
-@blueprint.route("/scenes/add-url", methods=["POST"])
-def page_scenes_add_url():
-	return add_url(request.form["add-url"])
-
-def add_url(url):
-	def background_loader():
-		sleep(1)
-		if meeting_loader.parse_video_url(url):
-			load_video_url(None, url)
-		else:
-			load_webpage(None, url)
-	run_thread(background_loader)
-	return progress_response(_("Loading dropped URL..."), cssclass="heading")
+# Called when a piece of plain text is dropped onto the scene list
+@blueprint.route("/scenes/add-text", methods=["POST"])
+def page_scenes_add_text():
+	text = request.form["add-text"]
+	if text.startswith("https://"):
+		return add_url(text)
+	return load_text("Text", text)
 
