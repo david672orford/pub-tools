@@ -91,7 +91,7 @@ def cmd_obs_save_source_screenshot(source_name):
 
 @cli_obs.command("get-output-list", help="Get list of available outputs")
 def cmd_obs_get_output_list():
-	print_json(obs.request("GetOutputList", {}))
+	print_json(obs.request("GetOutputList", {})["responseData"]["outputs"])
 
 @cli_obs.command("get-hotkey-list", help="List defined hotkeys")
 def cmd_obs_get_hotkey_list():

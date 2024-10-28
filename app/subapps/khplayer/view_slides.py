@@ -181,10 +181,10 @@ def download_slides(client, selected):
 						client.download_file(file, save_as, callback=progress_callback)
 
 					if file.mimetype.startswith("image/"):
-						load_image_file(scene_name, save_as)
+						load_image_file(scene_name, save_as, close=False)
 					else:
 						thumbnail_file = client.download_thumbnail(file, save_as)
-						load_video_file(scene_name, save_as, thumbnail_file=thumbnail_file)
+						load_video_file(scene_name, save_as, thumbnail_file=thumbnail_file, close=False)
 
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
