@@ -92,7 +92,7 @@ def update_weeks(year=None, week=None, nweeks=8, callback=None):
 	if year is not None:
 		to_fetch = [[year, week]]
 	else:
-		to_fetch = upcoming_weeks(n)
+		to_fetch = upcoming_weeks(nweeks)
 	count = 0
 	for year, week in to_fetch:
 		update_week(year, week, count, len(to_fetch), meeting_loader, callback)
