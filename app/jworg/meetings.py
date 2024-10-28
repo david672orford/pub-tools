@@ -7,6 +7,7 @@ import logging
 from lxml import etree as ET
 
 from .fetcher import Fetcher
+from .article import WebpageMetadata, Article
 from .hrange import HighlightRange
 from ..utils.babel import gettext as _
 
@@ -17,83 +18,6 @@ logger = logging.getLogger(__name__)
 	_("image"),
 	_("video"),
 )
-
-# Basic information about a web page sufficient for playlist
-class WebpageMetadata:
-	def __init__(self, url, root):
-		self.url = url
-		self.root = root
-
-		el = root.xpath("./head/title")
-		self.title = el[0].text if len(el) > 0 else None
-
-		el = root.xpath(".//h1")
-		self.h1 = el[0].text_content().strip() if len(el) > 0 else None
-
-		el = root.xpath("./head/meta[@property='og:image']")
-		self.thumbnail_url = el[0].attrib["content"] if len(el) > 0 else None
-
-		# If this looks like an article from JW.ORG, extract the pub code.
-		self.pub_code = None
-		self.player = None
-		article_tag = None
-		if len(el := root.xpath(".//article")) > 0:
-			print("  Found <article> tag")
-			article_tag = el[0]
-			if (m := re.search(r" pub-(\S+) ", article_tag.attrib.get("class",""))):
-				print("  Found pub code")
-				self.pub_code = m.group(1)
-				if len(el := article_tag.xpath(".//div[@class='jsIncludeVideo']")) > 0:
-					print("  Found video player")
-					self.player = el[0].attrib["data-jsonurl"]
-				# FIXME: disabled because turns WT articles into videos
-				#elif len(el := article_tag.xpath(".//div[starts-with(@class,'jsAudioPlayer ')]")) > 0:
-				#	print("found audio player")
-				#	self.player = el[0].xpath(".//a")[0].attrib["href"]
-				else:
-					print("  No player found")
-			else:
-				print("  No pub code")
-		else:
-			print("  No <article> tag")
-
-# An article from JW.ORG with the HTML parsed and main sections identified
-class Article:
-	def __init__(self, url, root):
-		self.url = url
-		self.root = root
-
-		def xpath_one(container, path):
-			elements = container.xpath(path)
-			assert len(elements) == 1, f"Expected 1 match for \"{path}\", got {len(elements)}"
-			return elements[0]
-
-		self.title = xpath_one(root, "./head/title").text
-		self.main_tag = xpath_one(root, ".//main")
-		self.article_tag = xpath_one(self.main_tag, ".//article")
-		self.h1 = xpath_one(self.article_tag, ".//h1").text_content().strip()
-		self.bodyTxt = xpath_one(self.article_tag, ".//div[@class='bodyTxt']")
-
-		og_image = self.root.xpath("./head/meta[@property='og:image']")
-		self.thumbnail_url = og_image[0].attrib["content"] if len(og_image) > 0 else None
-
-		# Get the publication ID code from the class of the <article> tag
-		m = re.search(r" pub-(\S+) ", self.article_tag.attrib["class"])
-		assert m, "No pub code"
-		self.pub_code = m.group(1)
-
-		# And the issue code
-		m = re.search(r" iss-(\S+) ", self.article_tag.attrib["class"])
-		self.issue_code = m.group(1) if m is not None else None
-
-		# And the MEPS document ID
-		m = re.search(r" docId-(\d+) ", self.article_tag.attrib["class"])
-		assert m, "No pub dodid"
-		self.docid = int(m.group(1))
-
-		# Remove the section which has the page images
-		#for el in self.article_tag.xpath(".//div[@id='docSubImg']"):
-		#	el.getparent().remove(el)
 
 # A single media item, such as a video, for use at a meeting
 @dataclass
@@ -220,6 +144,13 @@ class MeetingLoader(Fetcher):
 			yield item
 
 	# Called by .extract_media() to extract media from a Meeting Workbook
+	#
+	# The Sections by section_number
+	# 1 -- Opening Song and Prayer
+	# 2 -- <h2>СОКРОВИЩА ИЗ СЛОВА БОГА</h2>
+	# 3 -- <h2>ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ</h2>
+	# 4 -- <h2>ХРИСТИАНСКАЯ ЖИЗНЬ</h2>
+	#
 	def extract_media_mwb(self, article:Article, callback):
 		assert isinstance(article, Article)
 		assert callable(callback)
@@ -229,7 +160,7 @@ class MeetingLoader(Fetcher):
 		else:
 			parser = self.mwb_parser_new(article)
 
-		# Look through the parts in the weeks program
+		# Look through the parts in the week's program
 		for section_number, section_title, part_number, part_title, part, follow_links in parser:
 			logger.info("Section %d \"%s\", part %d \"%s\", follow_links=%s", section_number, section_title, part_number, part_title, follow_links)
 
@@ -247,7 +178,66 @@ class MeetingLoader(Fetcher):
 				item.part_title = part_title
 				yield item
 
-	# Extract the articles from the MWB in the 2016 thru 2023 format
+	# Extract the articles from a MWB weekly program in the 2016 thru 2023 format
+	# This is a new implementation written in late 2024 so that we could go back
+	# and test on MWB's which link to a wide variety of videos and Bible Study
+	# material.
+	#
+	# Formatting example based on:
+	#   https://www.jw.org/finder?wtlocale=U&docid=202023401&srcid=share
+	# Note thought that earlier the <strong> tags were missing from the songs:
+	#   https://www.jw.org/finder?wtlocale=U&docid=202019449&srcid=share
+	#
+	# <div id="section1" class="section">
+	#   <div class="pGroup">
+	#     <ul>
+	#       <li><p><a class="pub-sjj" ...><strong>Song 1</strong></a> <strong>и молитва</strong></p></li>
+	#       <li><p><strong>Вступительные слова</strong> (1 мин.)</p></li>
+	#     </ul>
+	#   </div>
+	# </div>
+	# <div id="section2" class="section">
+	#   <div ...>
+	#     <h2>СОКРОВИЩА ИЗ СЛОВА БОГА</h2>
+	#   </div>
+	#   <div class="pGroup">
+	#     <ul>
+	#       <li><p><strong>«</strong><a href="..."><strong>Part Title</strong></a><strong>«</strong> (10 мин.)</p></li>
+	#       <li><p><strong>Духовные жемчужины</strong> (10 мин.)</p>
+	#         <ul>
+	#           <li></li>
+	#           <li></li>
+	#         </ul>
+	#       </li>
+	#     </ul>
+	#   </div>
+	# <div id="section3" class="section">
+	#   <div ...>
+	#     <h2>ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ</h2>
+	#   </div>
+	#   <div class="pGroup">
+	#     <ul>
+	#       <li><p><strong>Part Title</strong>Part Description</p></li>
+	#       <li><p><strong>Part Title</strong>Part Description</p></li>
+	#       <li><p><strong>Part Title</strong>Part Description</p></li>
+	#     </ul>
+	#   </div>
+	# </div>
+	# <div id="section4" class="section">
+	#   <div ...>
+	#     <h2>ХРИСТИАНСКАЯ ЖИЗНЬ</h2>
+	#   </div>
+	#   <div class="pGroup">
+	#     <ul>
+	#       <li><p><a class="pub-sjj" ...><strong>Song 2</strong></a> <strong>и молитва</strong></p></li>
+	#       <li><p><strong>Part Title</strong>Part Description</p></li>
+	#       <li><p><strong>Изучение Библии в собрании</strong> (30 мин.): Part Description</p></li>
+	#       <li><p><strong>Заключительные слова</strong> (3 мин.)</p></li>
+	#       <li><p><a class="pub-sjj" ...><strong>Song 3</strong></a> <strong>и молитва</strong></p></li>
+	#     </ul>
+	#   </div>
+	# </div>
+	#        
 	def mwb_parser_old(self, article):
 		section_number = 0
 		for section in article.bodyTxt.xpath("./div[@class='section']"):
@@ -257,37 +247,89 @@ class MeetingLoader(Fetcher):
 				section_title = el[0].text_content().strip()
 			else:
 				section_title = None
+
 			part_number = 0
 			for part in section.xpath("./div[@class='pGroup']/ul/li"):
-				print(">>", part.text_content())
 				part_number += 1
+				print(">>>", part.text_content().strip())
 				for strong in part.xpath(".//strong"):
 					part_title = strong.text_content().strip()
-					if len(part_title) > 1:
+					if len(part_title) > 1:		# not a quote mark
 						break
-				# In this version the first part is based on a linked article with illustrations we need.
-				# We follow links in part four because it includes the Congregation Bible Study.
+				else:
+					if (el := part.find(".//a")) is not None:
+						part_title = el.text_content().strip()
+					else:
+						part_title = part.text_content().strip()
+
+				# * In this MWB format the first part is based on a linked article
+				#   in the same Workbook from which we need to pull illustrations.
+				#   (NOTE: Since this is not the current MWB format we have not bothered
+				#   to limit this to the article linked in the part title.)
+				# * In section four we also follow links to MWB articles and the
+				#   Congregation Bible Study material.
 				follow_links = (section_number == 2 and part_number == 1) or (section_number == 4)
 				yield section_number, section_title, part_number, part_title, part, follow_links
 
-	# Extract the articles from the MWB in the 2024 format
+	# Extract the articles from a MWB weekly program in the 2024 format
+	#
+	# In this format the sections are no longer enclosed in <div class="section">
+	# tags. Instead each new section is introduced by a <h2> subheading. Whereas
+	# previously the instructions for some of the parts linked to articles in
+	# the same Workbook, the new format places this material inline.
+	#
+	# Formatting Example based on:
+	#   https://www.jw.org/finder?wtlocale=U&docid=202024321&srcid=share
+	#
+	# <h3><a><strong>Song 1</strong></a> <strong>...</strong></h3>
+	# <div><h2>СОКРОВИЩА ИЗ СЛОВА БОГА</h2></div>
+	# <div>
+	#   <h3>Part Title</h3>
+	#   <div>Paragraph 1</div>
+	#   <div>Paragraph 2</div>
+	# </div>
+	# <div>
+	#   <h3>Духовные жемчужины</h3>
+	#   <div>(10 мин.)</div>
+	#   <ul>
+	#     <li>Question 1</li>
+	#     <li>Question 2</li>
+	#   </ul>
+	# </div>
+	# <div>
+	#   <h3>3. Чтение Библии</h3>
+	#   <div><div><p>...</p></div></div>
+	# </div>
+	# <div><h2>ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ</h2></div>
+	# <h3>4. Part Title</h3>
+	# <div>Single Paragraph</div>
+	# <h3>5. Part Title</h3>
+	# <div>Single Paragraph</div>
+	# <h3>6. Part Title</h3>
+	# <div>Single Paragraph</div>
+	# <h3>7. Part Title</h3>
+	# <div>Single Paragraph</div>
+	# <div><h2>ХРИСТИАНСКАЯ ЖИЗНЬ</h2></div>
+	# <h3><a><strong>Song 2</strong></a></h3>
+	# <h3>8. Part Title</h3>
+	# <div>...</div>
+	# <h3>9. Изучение Библии в собрании</h3>
+	# <div><div><p>...</p></div>
+	# <h3>Заключительные слова <span>(3 мин.)</span><span><a>Song 3</a> и молитва</span></h3>
+	#
 	def mwb_parser_new(self, article):
-		# Convert the flat HTML structure to a list of the top-level sections.
-		# Each section after the first is introduced by an <h2> tag.
+
+		# Make a first pass to split into sections at the <h2> subheadings.
 		sections = [[None, []]]
 		for el in article.bodyTxt:
+			# Examples of how 
 			h2 = el.xpath("./h2")
 			if h2:
 				sections.append([h2[0].text_content().strip(), []])
 			else:
 				sections[-1][1].append(el)
 
-		# Loop through the sections of the Workbook page for a Midweek Meeting
-		# The Sections by section_number
-		# 1 -- Opening Song and Prayer
-		# 2 -- <h2>СОКРОВИЩА ИЗ СЛОВА БОГА</h2>
-		# 3 -- <h2>ОТТАЧИВАЕМ НАВЫКИ СЛУЖЕНИЯ</h2>
-		# 4 -- <h2>ХРИСТИАНСКАЯ ЖИЗНЬ</h2>
+		# Loop through the sections
 		section_number = 0
 		for section_title, section_els in sections:
 			section_number += 1
@@ -295,28 +337,8 @@ class MeetingLoader(Fetcher):
 			logger.info("Top-level section: %d %s", section_number, section_title)
 
 			# Loop through the HTML elements in each section
-			part_number = 0		# <-- used only for log messages
+			part_number = 0
 			for el in section_els:
-				#
-				# Examples of How Songs and Meeting Parts are Formatted
-				#
-				# <h3>
-				#   <a><strong>Song N</strong></a>
-				# </h3>
-				#
-				# or
-				#
-				# <div>
-				#   <h3>Part Title</h3>
-				#   <div></div>
-				#   <div></div>
-				# </div>
-				#
-				# or
-				#
-				# <h3>Part Title</h3>
-				# <div></div>
-				#
 				if el.tag == "h3":
 					part_number += 1
 					# If this is a song, we process pub links within the <h3>.
@@ -509,7 +531,7 @@ class MeetingLoader(Fetcher):
 			if pub_code in (
 					"ijwpk",		# Become Jehovah's friend
 					"ijwwb",		# Whiteboard Animations
-					"thv",			# XXX
+					"thv",			# Apply Yourself to Reading and Teaching (videos)
 					):
 				print(f"Studying \"{hyperlinked_text}\", pub_code={pub_code}, href=\"{unquote(href)}\"...")
 				page = self.get_webpage_metadata(href)

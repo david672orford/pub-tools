@@ -30,6 +30,7 @@ def page_meetings():
 	if not request.args.get("all", False):
 		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
+	weeks = weeks.order_by(Weeks.year, Weeks.week)
 	return render_template("khplayer/meetings.html", weeks=weeks.all(), top="..")
 
 # Target for "Load More Weeks" button at bottom of upcoming meetings list
@@ -133,7 +134,7 @@ def get_meeting_media(docid):
 	# FIXME: Race condition can produce duplicate cache entries, so we use first().
 	meeting = MeetingCache.query.filter_by(lang=meeting_loader.language, docid=docid).first()
 	if meeting is not None:
-		progress_callback("Meeting is already in cache.")
+		#progress_callback("Meeting is already in cache.")
 		# Deserialize list from JSON back to objects
 		for item in meeting.media:
 			yield MeetingMediaItem(**item)

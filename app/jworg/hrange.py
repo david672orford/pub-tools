@@ -2,6 +2,8 @@ from lxml import etree as ET
 import re
 import logging
 
+from .article import Article
+
 logger = logging.getLogger(__name__)
 
 class RangeFigure:
@@ -46,7 +48,8 @@ class HighlightRange:
 		"aside",					# a box
 		}
 
-	def __init__(self, article):
+	def __init__(self, article:Article):
+		assert isinstance(article, Article)
 		self.top_image = article.main_tag.find(".//figure[@id='articleTopRelatedImage']")
 
 		context = ET.iterwalk(article.article_tag, events={"start", "end"}, tag={"h1","h2","h3","h4","h5", "h6", "div", "p"})

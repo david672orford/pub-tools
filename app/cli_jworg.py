@@ -67,18 +67,40 @@ def print_dict_result_table(result, title, order=()):
 	Console().print(table)
 
 #=============================================================================
-# Load the weekly schedule from Watchtower Online Library
+# Load the weekly meeting material
+# The only place we could find this online was in Watchtower Online Library.
 #=============================================================================
 
 @cli_jworg.command("update-weeks", help="Load weekly meeting materials")
-@click.option("-n", default=8)
-def cmd_update_weeks(n):
+@click.option("--nweeks", default=8)
+@click.argument("year", required=False)
+@click.argument("week", required=False)
+def cmd_update_weeks(nweeks, year, week):
 	logging.basicConfig(level=logging.DEBUG)
-	update_weeks(basic_callback, n=n)
+	if year is not None:
+		year = int(year)
+		week = int(week)
+	update_weeks(year, week, nweeks, basic_callback)
 
-def update_weeks(callback, n=8):
+def update_weeks(year=None, week=None, nweeks=8, callback=None):
+	if year is not None:
+		assert isinstance(year, int) and year >= 2016
+		assert isinstance(week, int) and 1 <= week <= 53
+	assert isinstance(nweeks, int)
+	assert callable(callback)
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"])
+	if year is not None:
+		to_fetch = [[year, week]]
+	else:
+		to_fetch = upcoming_weeks(n)
+	count = 0
+	for year, week in to_fetch:
+		update_week(year, week, count, len(to_fetch), meeting_loader, callback)
+		count += 1
+	db.session.commit()
+	callback(_("Weeks loaded"), last_message=True)
 
+def upcoming_weeks(n):
 	current_day = date.today()
 	to_fetch = []
 	for i in range(n):
@@ -87,23 +109,19 @@ def update_weeks(callback, n=8):
 		if week_obj is None:
 			to_fetch.append((year, week))
 		current_day += timedelta(weeks=1)
+	return to_fetch
 
-	count = 0
-	for year, week in to_fetch:
-		callback(_("Fetching week %s %s") % (year, week))
-		week_data = meeting_loader.get_week(year, week)
-		count += 1
-		callback("{total_recv} of {total_expected}", total_recv=count, total_expected=len(to_fetch))
-		week_obj = Weeks(
-			year = year,
-			week = week,
-			)
-		for name, value in week_data.items():
-			setattr(week_obj, name, value)
-		db.session.add(week_obj)
-
-	db.session.commit()
-	callback(_("Weeks loaded"), last_message=True)
+def update_week(year, week, count, total, meeting_loader, callback):
+	callback(_("Fetching week %s %s") % (year, week))
+	week_data = meeting_loader.get_week(year, week)
+	callback("{total_recv} of {total_expected}", total_recv=count, total_expected=total)
+	week_obj = Weeks(
+		year = year,
+		week = week,
+		)
+	for name, value in week_data.items():
+		setattr(week_obj, name, value)
+	db.session.add(week_obj)
 
 @cli_jworg.command("show-weeks", help="List weekly meeting materials in DB")
 def cmd_show_weeks():
