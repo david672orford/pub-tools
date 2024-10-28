@@ -23,7 +23,7 @@ the year. Each is also assigned a document class number. Examples include:
 
 The docId and docClass are included in each HTML document in the class of the
 tag which encloses the content area. In the Epub files this is
-&lt;body&gt; tag.
+&lt;body&gt; tag. On JW.ORG this is the &lt;article&gt; tag.
 
 ## Links to the Songbook
 
@@ -41,15 +41,16 @@ Songbook media files (January 2021):
 
 ## Links to Videos
 
-Link to video from Russian Meeting Workbook:
+What you get if you clik on the Share button under the video "В то время как
+близится буря, держите взор на Иисусе! Будущие благословения Царства":
 
     https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
 
-Redirects to:
+Which redirects to:
 
 	https://www.jw.org/ru/библиотека/видео/?item=pub-jwbcov_201505_11_VIDEO&appLanguage=U
 
-Redirects to:
+Which redirects to:
 
 	https://www.jw.org/ru/библиотека/видео/#ru/mediaitems/VODBibleTeachings/pub-jwbcov_201505_11_VIDEO
 

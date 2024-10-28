@@ -3,13 +3,15 @@
 ## Bugs
 
 * Click on thumbnail in scenes list (sometimes) does nothing
+* Fixed disabled style on download button on meeting page
+* Why isn't scene dnd reflected in all clients?
 
 ## Easy Improvements
 
-* Fixed disabled style on download button on meeting page
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
 * CLI support for enabling debugging by module
+* Support for speaker's slides in a local folder
 * Progress bar for Gdrive downloads. This will require knowing the file size
 * Validate configuration
     * https://docs.python-cerberus.org/

@@ -43,6 +43,8 @@ OBS_WEBSOCKET = {
 #PATCHBAY = "cable"
 
 # Assign OBS source names to V4L2 devices
+# To see the device names:
+# $ v4l2-ctl --list-devices
 #CAMERA_NAME_OVERRIDES = {
 #	"CREALITY CAM: HD 4MP WEBCAM": "Good Webcam",
 #	"HD USB Camera: HD USB Camera": "ELP 2.0 MP Webcam",
