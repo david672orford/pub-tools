@@ -46,8 +46,10 @@ class HighlightRange:
 		"aside",					# a box
 		}
 
-	def __init__(self, root):
-		context = ET.iterwalk(root, events={"start", "end"}, tag={"h1","h2","h3","h4","h5", "h6", "div", "p"})
+	def __init__(self, article):
+		self.top_image = article.main_tag.find(".//figure[@id='articleTopRelatedImage']")
+
+		context = ET.iterwalk(article.article_tag, events={"start", "end"}, tag={"h1","h2","h3","h4","h5", "h6", "div", "p"})
 		first_pnum = None
 		last_pnum = None
 		stack = []

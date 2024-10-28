@@ -3,6 +3,7 @@ import os.path
 import logging
 from urllib.parse import urlparse, parse_qsl, unquote
 
+from ....jworg.meetings import MeetingMediaItem
 from ....utils.babel import gettext as _
 from ....utils.background import flash, progress_callback, progress_response
 from .controllers import meeting_loader, obs, ObsError
@@ -200,7 +201,8 @@ def load_text(scene_name, text):
 
 	return progress_response(_("✔ Text has been added."), last_message=True, cssclass="success")
 
-def load_meeting_media_item(item):
+def load_meeting_media_item(item:MeetingMediaItem):
+	assert isinstance(item, MeetingMediaItem)
 	logger.info("Loading media item: %s", repr(item))
 	if item.media_type == "web":		# HTML page
 		load_webpage(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)

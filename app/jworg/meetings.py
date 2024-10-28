@@ -25,7 +25,10 @@ class WebpageMetadata:
 		self.root = root
 
 		el = root.xpath("./head/title")
-		self.title = el[0].text if len(el) > 0 else "No Title"
+		self.title = el[0].text if len(el) > 0 else None
+
+		el = root.xpath(".//h1")
+		self.h1 = el[0].text_content().strip() if len(el) > 0 else None
 
 		el = root.xpath("./head/meta[@property='og:image']")
 		self.thumbnail_url = el[0].attrib["content"] if len(el) > 0 else None
@@ -66,7 +69,8 @@ class Article:
 			return elements[0]
 
 		self.title = xpath_one(root, "./head/title").text
-		self.article_tag = xpath_one(root, ".//article")
+		self.main_tag = xpath_one(root, ".//main")
+		self.article_tag = xpath_one(self.main_tag, ".//article")
 		self.h1 = xpath_one(self.article_tag, ".//h1").text_content().strip()
 		self.bodyTxt = xpath_one(self.article_tag, ".//div[@class='bodyTxt']")
 
@@ -220,6 +224,54 @@ class MeetingLoader(Fetcher):
 		assert isinstance(article, Article)
 		assert callable(callback)
 
+		if len(article.bodyTxt.xpath("./div[@class='section']")) > 0:
+			parser = self.mwb_parser_old(article)
+		else:
+			parser = self.mwb_parser_new(article)
+
+		# Look through the parts in the weeks program
+		for section_number, section_title, part_number, part_title, part, follow_links in parser:
+			logger.info("Section %d \"%s\", part %d \"%s\", follow_links=%s", section_number, section_title, part_number, part_title, follow_links)
+
+			# Pull media items from this part
+			for item in self.get_media(part, article.url,
+					{"song", "image", "video"},
+					callback,
+					follow_links = follow_links,
+					):
+				if item.pub_code is None:
+					item.pub_code = article.pub_code
+					item.issue_code = article.issue_code
+					item.docid = article.docid
+				item.section_title = section_title
+				item.part_title = part_title
+				yield item
+
+	# Extract the articles from the MWB in the 2016 thru 2023 format
+	def mwb_parser_old(self, article):
+		section_number = 0
+		for section in article.bodyTxt.xpath("./div[@class='section']"):
+			section_number += 1
+			el = section.xpath("./div/h2")
+			if len(el) > 0:
+				section_title = el[0].text_content().strip()
+			else:
+				section_title = None
+			part_number = 0
+			for part in section.xpath("./div[@class='pGroup']/ul/li"):
+				print(">>", part.text_content())
+				part_number += 1
+				for strong in part.xpath(".//strong"):
+					part_title = strong.text_content().strip()
+					if len(part_title) > 1:
+						break
+				# In this version the first part is based on a linked article with illustrations we need.
+				# We follow links in part four because it includes the Congregation Bible Study.
+				follow_links = (section_number == 2 and part_number == 1) or (section_number == 4)
+				yield section_number, section_title, part_number, part_title, part, follow_links
+
+	# Extract the articles from the MWB in the 2024 format
+	def mwb_parser_new(self, article):
 		# Convert the flat HTML structure to a list of the top-level sections.
 		# Each section after the first is introduced by an <h2> tag.
 		sections = [[None, []]]
@@ -280,37 +332,20 @@ class MeetingLoader(Fetcher):
 					if h3:
 						part_number += 1
 						part_title = h3[0].text_content().strip()
-				logger.info("Section %d, part %d \"%s\"", section_number, part_number, part_title)
 
-				# Pull media items from this part
-				for item in self.get_media(el, article.url,
-						{"song", "image", "video"},
-						callback,
-						# Include media in linked articles/chapters only in the last part of
-						# the meeting where we want to include illustrations in the material
-						# for the Congregation Bible Study.
-						scrape_articles = (section_number==4),
-						):
-					if item.pub_code is None:
-						item.pub_code = article.pub_code
-						item.issue_code = article.issue_code
-						item.docid = article.docid
-					item.section_title = section_title
-					item.part_title = part_title
-					yield item
-
-				# End of part loop
-			# End of Workbook section loop
+				# We follow links in part four because it includes the Congregation Bible Study.
+				follow_links = (section_number == 4)
+				yield section_number, section_title, part_number, part_title, el, follow_links
 
 	# Extract media of the specified types from the HTML container provided.
-	# If scrape_articles is True, follow links and to other documents and extract
+	# If follow_links is True, follow links and to other documents and extract
 	# their media too.
-	def get_media(self, container, baseurl:str, types:set, callback, scrape_articles:bool=False):
+	def get_media(self, container, baseurl:str, types:set, callback, follow_links:bool=False):
 		assert isinstance(container, ET.ElementBase)
 		assert isinstance(baseurl, str)
 		assert isinstance(types, set)
 		assert callable(callback)
-		assert isinstance(scrape_articles, bool)
+		assert isinstance(follow_links, bool)
 		context = ET.iterwalk(container, events={"start"}, tag={"a", "figure"})
 		linked_articles = {}
 		for action, item_tag in context:
@@ -322,17 +357,20 @@ class MeetingLoader(Fetcher):
 				# Don't let <a> handler see <a>'s in <figure>'s since get_figure_items() handles them.
 				context.skip_subtree()
 
-			elif item_tag.tag == "a":
+			elif (item_tag.tag == "a") and (not "footnoteLink" in item_tag.attrib.get("class","").split()):
 				pub = self.get_pub_from_a_tag(item_tag, baseurl)
 				if pub is None:
-					logger.warning("Unrecognized link: %s", item_tag.attrib)
+					logger.warning("Failed to identify: %s", item_tag.attrib)
 					continue
 
-				# We always keep songs and videos
+				# If the caller is looking for media items of this type, return it.
 				if pub.is_a in types:
 					yield pub
 
-				if pub.is_a == "article" and scrape_articles:
+				# Whether or not we returned the item above, if it is an article,
+				# and we are supposed to scrape linked articles, get and return any
+				# media items it may contain.
+				if pub.is_a == "article" and follow_links:
 					callback(_("Getting media list from \"%s\"...") % pub.title)
 					for item in self.get_media_from_linked_article(pub, item_tag.attrib.get("data-highlightrange"), linked_articles, callback):
 						yield item
@@ -348,7 +386,7 @@ class MeetingLoader(Fetcher):
 		# Load article, find figures, and attach them to paragraphs
 		article = linked_articles.get(article_href)
 		if article is None:
-			article = linked_articles[article_href] = HighlightRange(self.get_article(article_href).article_tag)
+			article = linked_articles[article_href] = HighlightRange(self.get_article(article_href))
 
 		# If the URL has a fragment identifying a paragraph range,
 		if highlightrange is not None and (m := re.match(r"^p(\d+)-p(\d+)$", highlightrange)):
@@ -358,6 +396,11 @@ class MeetingLoader(Fetcher):
 			figures = article.range_figures(start, end)
 		else:
 			figures = article.figures
+
+		if article.top_image is not None:
+			item = list(self.get_media(article.top_image, article_href, {"image"}, callback))[0]
+			item.pub_code = pub.pub_code
+			yield item
 
 		# Pull illustrations from the portion of the article selected above.
 		for figure in figures:
@@ -410,33 +453,39 @@ class MeetingLoader(Fetcher):
 		# We call this below. We are using it as a control structure.
 		def identify_pub():
 			nonlocal thumbnail_url
+			fallback_is_a = "article"
 
 			# A Video (but not all videos)
-			# Sample <a> tag attributes:
-			#  href="https://www.jw.org/finder?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
+			#
+			# For a sample see the May--June 2021 MWB:
+			#  https://www.jw.org/finder?wtlocale=U&docid=202021161&srcid=share
+			# The <a> tag attributes of the first video link:
+			#  href="https://www.jw.org/open?lank=pub-mwbv_202105_1_VIDEO&wtlocale=U"
 			#  data-video="webpubvid://?pub=mwbv&issue=202105&track=1"
 			#  data-jsonurl="https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS?langwritten=U&txtCMSLang=U&alllangs=1&output=json&fileformat=MP4%2CM4V%2C3GP&pub=mwbv&issue=202105&track=1"
 			#  class="jsLinkedVideo"
 			#  data-poster="https://assetsnffrgf-a.akamaihd.net/assets/ct/e781f8601f/images/video_poster.png"
 			# Note the absence of a pub-X class.
+			#
 			if a.attrib.get("data-video") is not None:
-				video_metadata = self.get_video_metadata(href)
-				assert video_metadata is not None, f"No video_metadata: {href}"
-				query = dict(parse_qsl(urlparse(a.attrib["data-video"]).query))
-				thumbnail_url = a.attrib.get("data-poster")
-				if thumbnail_url is None:
-					thumbnail_url = video_metadata["thumbnail_url"]
-				return MeetingMediaItem(
-					title = video_metadata["title"],
-					pub_code = query.get("pub"),
-					issue_code = query.get("issue"),
-					track = int(query["track"]) if "track" in query else None,
-					docid = query.get("docid"),		# FIXME: untested
-					media_type = "video",
-					is_a = "video",
-					media_url = href,
-					thumbnail_url = thumbnail_url,
-					)
+				if (video_metadata := self.get_video_metadata(href)) is not None:
+					query = dict(parse_qsl(urlparse(a.attrib["data-video"]).query))
+					thumbnail_url = a.attrib.get("data-poster")
+					if thumbnail_url is None:
+						thumbnail_url = video_metadata["thumbnail_url"]
+					return MeetingMediaItem(
+						title = video_metadata["title"],
+						pub_code = query.get("pub"),
+						issue_code = query.get("issue"),
+						track = int(query["track"]) if "track" in query else None,
+						docid = query.get("docid"),		# FIXME: untested
+						media_type = "video",
+						is_a = "video",
+						media_url = href,
+						thumbnail_url = thumbnail_url,
+						)
+				else:
+					fallback_is_a = "video"
 
 			# Link to Bible passage
 			if "jsBibleLink" in a.attrib.get("class","").split(" "):
@@ -448,12 +497,9 @@ class MeetingLoader(Fetcher):
 					is_a = "verse",
 					)
 
-			# Footnote marker, ignore
-			if a.attrib.get("class") == "footnoteLink":
-				return "footnote"
-
-			if pub_code is None:
-				return "not-a-pub"
+			# If this <a> tag lacks any attributes of a publication or media link,
+			if pub_code is None and docid is None:
+				return None
 
 			# Publication: Song from Sing Out Joyfully to Jehovah
 			if pub_code == "sjj":
@@ -463,34 +509,28 @@ class MeetingLoader(Fetcher):
 			if pub_code in (
 					"ijwpk",		# Become Jehovah's friend
 					"ijwwb",		# Whiteboard Animations
+					"thv",			# XXX
 					):
 				print(f"Studying \"{hyperlinked_text}\", pub_code={pub_code}, href=\"{unquote(href)}\"...")
 				page = self.get_webpage_metadata(href)
 				if page.player is not None:
 					return self.get_pub_from_player(page)
 
-			# If we get here, we assume this is an article from which
-			# the caller may wish to extract illustrations.
+			# If we get here, we assume this is either:
+			# 1) A video link which we failed to parse, or
+			# 2) An article from which the caller may wish to extract illustrations.
 			return MeetingMediaItem(
-				title = title or hyperlinked_text or page.title or _("No Title"),
+				title = title or hyperlinked_text or page.h1 or page.title or _("No Title"),
 				pub_code = pub_code,
 				docid = docid,
 				media_type = "web",
-				is_a = "article",
+				is_a = fallback_is_a,
 				media_url = href,
 				thumbnail_url = thumbnail_url,
 				)
 
-		result = identify_pub()
-		if type(result) is str:
-			logger.info("Nothing extracted, is a %s", result)
-			pub = None
-			is_a = result
-		else:
-			logger.info("Extracted item: %s", result)
-			pub = result
-			is_a = pub.is_a
-
+		pub = identify_pub()
+		logger.info("Link interpretation: %s", pub)
 		return pub
 
 	# Handle a link to a song from Sing Out Joyfully to Jehovah
@@ -516,12 +556,12 @@ class MeetingLoader(Fetcher):
 		#elif 1102022953 <= docid <= 1102022958:	# Songbook songs 152 through 158
 		#	song_number = (docid - 1102022800)
 
-		media_url = "https://www.jw.org/finder?" + urlencode({
+		media_url = "https://www.jw.org/open?" + urlencode({
 			"lank": f"pub-sjjm_{song_number}_VIDEO",		# Works
 			#"pub": "sjjm", "track": str(song_number),		# Doesn't work: track is ignored
 			#"docid": str(docid),							# No MP4 files 
 			"wtlocale": self.meps_language,
-			"srcid": "share",
+			#"srcid": "share",
 			})
 		metadata = self.get_video_metadata(media_url)
 
@@ -537,7 +577,7 @@ class MeetingLoader(Fetcher):
 			thumbnail_url = metadata["thumbnail_url"],
 			)
 
-	# In most cases when the Meeting Workbook links to a video, it uses a sharing
+	# In most cases when the Meeting Workbook links to a video, it uses a
 	# URL with a "lank" parameter. This redirects to one of the Video on Demand
 	# pages which were once part of tv.jw.org.
 	#
@@ -553,8 +593,10 @@ class MeetingLoader(Fetcher):
 	# * data-id-page -- "mid" + docid
 	#
 	# Examples in these Meeting Workbooks:
-	# * https://www.jw.org/finder?wtlocale=U&docid=202024323&srcid=share (Become Jehovah's Friend, ijwpk)
-	# * https://www.jw.org/finder?wtlocale=U&docid=202024408&srcid=share (Whiteboard Animation, ijwwb)
+	# * https://www.jw.org/finder?wtlocale=U&docid=202024323&srcid=share
+	#   (Links to Become Jehovah's Friend, ijwpk)
+	# * https://www.jw.org/finder?wtlocale=U&docid=202024408&srcid=share
+	#   (Links to Whiteboard Animation, ijwwb)
 	#
 	# The solution we came up with was to load the page and extract the information
 	# we need to build a sharing URL.
@@ -613,13 +655,13 @@ class MeetingLoader(Fetcher):
 				params["lank"] = "docid-%s_%d_VIDEO" % (docid, track if track is not None else 1)
 	
 		return MeetingMediaItem(
-			title = page.title,
+			title = page.h1 or page.title or _("No Title"),
 			pub_code = pub_code,
 			docid = docid,
 			track = track,
 			media_type = media_type,
 			is_a = media_type,
-			media_url = "https://www.jw.org/finder?" + urlencode(params),
+			media_url = "https://www.jw.org/open?" + urlencode(params),
 			thumbnail_url = page.thumbnail_url,
 			)
 
@@ -694,7 +736,8 @@ class MeetingLoader(Fetcher):
 		#  </div>
 		# </div>
 		#
-		# Examples of these figure types can be found here:
+		# Examples of these figure types can be found here in chapter 2
+		# of the Interactive Bible Course:
 		# https://www.jw.org/finder?wtlocale=U&docid=1102021202&srcid=share
 		#
 		link = figure.find("./a")
@@ -716,7 +759,7 @@ class MeetingLoader(Fetcher):
 						len(blurb_a := blurb_div.xpath(".//a[@data-video='%s']" % video)) > 0):
 				caption = blurb_a[0].text_content().strip()
 
-		# Is this image a link to a video or article?
+		# Is this image hyperlinked to a video or article?
 		# This is used in the Bible course for supplementary material.
 		if link is not None:
 			pub = self.get_pub_from_a_tag(link, baseurl, title=caption)

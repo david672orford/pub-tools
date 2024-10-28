@@ -63,7 +63,7 @@ def print_dict_result_table(result, title, order=()):
 				if column not in order:
 					columns.append(column)
 					table.add_column(column)
-		table.add_row(*[str(row[column]) for column in columns])
+		table.add_row(*[str(row.get(column)) for column in columns])
 	Console().print(table)
 
 #=============================================================================
@@ -136,12 +136,12 @@ def cmd_get_meeting_media(docid):
 @click.option("--save-as", default=None)
 def cmd_get_article_media(url, save_as):
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
-	root = meeting_loader.get_article(url).article_tag
+	article = meeting_loader.get_article(url).main_tag
 
 	if save_as is not None:
-		meeting_loader.dump_html(root, save_as)
+		meeting_loader.dump_html(article.main_tag, save_as)
 
-	hrange = HighlightRange(root)
+	hrange = HighlightRange(article)
 	hrange.print()
 
 	media_items = []
@@ -158,7 +158,7 @@ def cmd_get_article_media(url, save_as):
 				"thumbnail_url": item.thumbnail_url,
 				})
 
-	print_dict_result_table(media_items, "Media Items", order=media_column_order)
+	print_dict_result_table(media_items, "Media Items", order=media_column_order[2:])
 
 #=============================================================================
 # Load lists of periodicals (Watchtower, Awake, and Meeting Workbook) into

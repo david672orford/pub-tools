@@ -246,10 +246,17 @@ def add_url(url):
 
 			# FIXME: We shouldn't need this
 			# Featured video URL
-			if (m := re.match(r"[^/]+/mediaitems/FeaturedLibraryVideos/([^/]+)$", url_obj.fragment)):
-				media_url = "https://www.jw.org/finder?lank=" + m.group(1)
-				load_video_url(None, media_url)
-				return
+			#if (m := re.match(r"[^/]+/mediaitems/FeaturedLibraryVideos/([^/]+)$", url_obj.fragment)):
+			#	media_url = "https://www.jw.org/finder?lank=" + m.group(1)
+			#	load_video_url(None, media_url)
+			#	return
+
+			page = meeting_loader.get_webpage_metadata(url)
+			if page.player is not None:
+				pub = meeting_loader.get_pub_from_player(page)
+				if pub is not None:
+					load_meeting_media_item(pub)
+					return
 
 		else:
 			progress_callback(_("Fetching headers of \"%s\"...") % unquote(url))

@@ -68,7 +68,8 @@ class Fetcher:
 	# * langwritten=
 	# * txtCMSLang=
 	#
-	# Note that this API does not provide a thumbnail image.
+	# Note that this API does not provide a thumbnail image (even though
+	# the response seems to have a space for one).
 	#
 	pub_media_url = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
 
@@ -76,7 +77,8 @@ class Fetcher:
 	# Query string parameters:
 	# detailed=1 -- list subcategories and videos in this category
 	# clientType=www -- Unknown purpose
-	mediator_categories_url = "https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
+	#mediator_categories_url = "https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
+	mediator_categories_url = "https://b.jw-cdn.org/apis/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
 
 	# Used for getting the download link for a video from JW Broadcasting when
 	# we know the language we want and the video's Language Agnostic Natural Key (lank)
@@ -276,8 +278,9 @@ class Fetcher:
 			meps_language = self.meps_language
 
 		# Video is specified by its Language Agnostic Natural Key (LANK)
-    	# https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
-		# https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
+		# Examples:
+		#  https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
+		#  https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
 		if "lank" in query:
 
 			media = self.get_json(self.mediator_items_url.format(
@@ -321,7 +324,7 @@ class Fetcher:
 					"pub": query["pub"],
 					"track": query["track"],
 					}
-	
+
 			# Video is specified by its MEPS Document ID
 			else:
 				params = {
@@ -358,28 +361,43 @@ class Fetcher:
 				"thumbnail_url": thumbnail_url,
 				}
 
-		logger.info("Not a video URL")
+		logger.info("Not a share URL: %s", unquote(url))
 		return None
 
-	# We have split out the URL parsing
+	# We have split out the URL parsing so we an use return.
+	#
+	# The March 2018 MWB is the first to link to the sample presentation videos:
+	#  https://www.jw.org/finder?wtlocale=U&docid=202018083&srcid=share
+	# When the MWB started linked to the videos in March of 2018 the links looked like this:
+	#  https://data.jw-api.org/mediator/finder?item=pub-mwbv_201803_1_VIDEO&lang=U
+	#
+	# But here is the June 2020 MWB:
+	#  https://www.jw.org/finder?wtlocale=U&docid=202020204&srcid=share
+	# The link format has changed:
+	#  https://www.jw.org/open?lank=pub-mwbv_202006_1_VIDEO&wtlocale=U
+	#
 	def parse_video_url(self, url):
 		url_obj = urlparse(url)
 		query = dict(parse_qsl(url_obj.query))
 
-		if url_obj.netloc == "www.jw.org":
-
-			# Is this a URL such as produced by the Share button?
+		# Sharing link or link from MWB
+		if url_obj.netloc == "www.jw.org" and url_obj.path in ("/finder", "/open"):
 			if "lank" in query or "docid" in query:
 				return query
 
-			# Is this the URL for the generic LANK player used for featured videos?
-			if url_obj.fragment:
-				m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
-				if m:
-					return {
-						"wtlocale": iso_language_code_to_meps(m.group(1)),
-						"lank": m.group(2),
-						}
+		# Old format of links from MWB
+		if url_obj.netloc == "data.jw-api.org" and url_obj.path == "/mediator/finder":
+			if "item" in query:
+				return {"lank": query["item"]}
+
+		# Is this the URL for the generic LANK player used for featured videos?
+		if url_obj.netloc == "www.jw.org" and url_obj.fragment:
+			m = re.match(r"^([a-z]{2})/mediaitems/[^/]+/([^/]+)$", url_obj.fragment)
+			if m:
+				return {
+					"wtlocale": iso_language_code_to_meps(m.group(1)),
+					"lank": m.group(2),
+					}
 
 		return {}
 
