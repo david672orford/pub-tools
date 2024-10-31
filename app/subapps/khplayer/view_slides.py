@@ -12,9 +12,10 @@ from . import menu
 from .views import blueprint
 from .utils.scenes import load_video_url, load_video_file, load_image_file
 from .utils.controllers import obs, ObsError
+from .utils.localdrive import LocalDriveClient
 from .utils.gdrive import GDriveClient
 from .utils.playlists import ZippedPlaylist
-from .utils.httpfile import RemoteZip
+from .utils.httpfile import RemoteZip, LocalZip
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def page_slides_save_config():
 @blueprint.route("/slides/<path:path>/")
 @blueprint.cache.cached(timeout=900, key_prefix="slides-%s", unless=lambda: request.args.get("action") is not None)
 def page_slides(path):
-	client, top = get_client(path)
+	client, top = get_fs_client(path)
 
 	if request.args.get("action") == "configuration" or client is None:
 		form = ConfigForm(get_config("GDRIVE"), request.args)
@@ -77,81 +78,101 @@ def page_slides_reload(path):
 @blueprint.route("/slides/--download", defaults={"path":None}, methods=["POST"])
 @blueprint.route("/slides/<path:path>/--download", methods=["POST"])
 def page_slides_folder_download(path):
-	client, top = get_client(path)
+	client, top = get_fs_client(path)
 	assert client is not None
 	selected = set(request.form.getlist("selected"))
 	run_thread(lambda: download_slides(client, selected))
 	return progress_response(None)	# so page doesn't reload
 
-# Get the Gdrive ID number of the root from the configured Gdrive sharing URL
-def get_root_gdrive_id():
+# Go to the configuration and get the root folder for speaker's slides
+# and the client class for connecting to it.
+def get_root_folder():
 	config = get_config("GDRIVE")
 	url = config.get("url")
 	if url is not None:
-		return urlparse(url).path.split("/")[-1]
-	return None
+		url = urlparse(url)
+		return GDriveClient, url.path.split("/")[-1]
+	else:
+		return LocalDriveClient, os.path.abspath(os.path.join(current_app.instance_path, "slides"))
+	return None, None
 
-# Create a Google Drive client for the indicated path within the configured sharing link
-def get_client(path:str):
-	client = id = parent_id = zip_filename = None
+# Create a file system client for the indicated path
+# Path elements are one of the following:
+# * Google Drive ID of a folder
+# * Google Drive ID of a zip file plus the filename separated by an equal sign
+# The elements are /-separated.
+# A path of None indicates the root which will be gotten by calling get_root_folder_id().
+def get_fs_client(path:str):
 
-	# If the path is not empty, take ID from first element with a filename
-	# (which will be a zip file) or failing that, from the last element.
-	if path is not None:
+	# Parse the path and set the following following:
+	# top -- parent path back to the top
+	# path_to -- path clipped to stop at the first zip file (if any)
+	# zip_filename -- if last element of path_to[] is a zip file, its name
+	# path_within -- list of folders to traverse within the zip file (if any)
+	if path is None:
+		top = ".."
+		path_to = []
+		zip_filename = None
+		path_within = []
+	else:
 		path = path.split("/")
 		top = "/".join([".."] * (len(path)+1))
 		for i in range(len(path)):
-			#print(f"path[{i}] = '{path[i]}'")
 			parts = path[i].split("=",1)
 			if len(parts) == 2:
-				id, zip_filename = parts
-				path = path[i+1:]
-				if parent_id is None:
-					parent_id = get_root_gdrive_id()
-					assert parent_id is not None
+				folder_id, zip_filename = parts
+				path_to = path[:i] + [folder_id]
+				path_within = path[i+1:]
 				break
-			else:
-				parent_id = path[i]
 		else:
-			id = path[-1]
+			path_to = path
+			zip_filename = None
+			path_within = []
 
-	# If the path is empty, get the Gdrive ID of the root from the configuration.
-	else:
-		id = get_root_gdrive_id()
-		top = ".."
+	client_class, root_folder = get_root_folder()
+	path_to.insert(0, root_folder)
 
-	#print(f"parent_id={parent_id}, id={id}, zip_filename={zip_filename}, path={path}")
+	print(f"top={repr(top)}, path_to={path_to}, zip_filename={repr(zip_filename)}, path_within={path_within}")
 
-	if id is not None:
+	if path_to[0] is not None:
 		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
 		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
 
-		# If the ID has a .zip extension, build the Gdrive download URL and open it as a remote playlist.
+		# If the ID is a zip file, build the Gdrive download URL and open it as a remote playlist.
 		if zip_filename is not None:
-			url = f"https://drive.google.com/uc?id={id}"
-			#url = f"https://lh3.googleusercontent.com/{id}"
-			print("Zip URL:", url)
+			if client_class is GDriveClient:
+				url = f"https://drive.google.com/uc?id={folder_id}"
+				#url = f"https://lh3.googleusercontent.com/{folder_id}"
+				print("Zip URL:", url)
+				zip_reader = RemoteZip(url, cachekey=path_to[-1], cachedir=gdrive_cachedir)
+			else:
+				zip_reader = LocalZip(os.path.join(*path_to))
 
 			client = ZippedPlaylist(
-				gdrive_folder_id = parent_id,
-				zip_reader = RemoteZip(url, cachekey=id, cachedir=gdrive_cachedir),
+				path_to,
+				path_within,
+				zip_reader = zip_reader,
 				zip_filename = zip_filename,
-				path = path,
+				client_class = client_class,
 				cachedir = media_cachedir,
 				)
 
 		# Otherwise it is a Gdrive folder
 		else:
-			client = GDriveClient(
-				id,
+			client = client_class(
+				path_to,
+				path_within,
 				thumbnails = True,
 				cachedir = media_cachedir,
 				)
+	else:
+		client = None
 
 	return client, top
 
 # Background thread to download slides
-# Use the supplied Google Drive client instance to download the items with the indicated ID numbers.
+# Use the supplied file system client instance to download the items
+# with the indicated ID numbers.
 def download_slides(client, selected):
 	progress_callback(_("Downloading selected slides..."), cssclass="heading")
 	try:

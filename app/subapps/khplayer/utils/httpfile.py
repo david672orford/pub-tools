@@ -192,18 +192,9 @@ class FileRange(Seekable):
 		self._pos += size
 		return data	
 
-# Subclass ZipFile from the Python Standard Library so that we can 
-# read zip files over HTTP rather than from the file system.
-class RemoteZip(ZipFile):
-	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
-		self.fetcher = HttpFile(url, debug=debug)
-		self.fetcher = FileCache(self.fetcher, cachedir, cachekey, debug=debug)
-		self.debug = debug
-		super().__init__(self.fetcher)
-
-	def close(self):
-		self.fetcher.close()
-
+# Add a function to ZipFile to open an embedded zip file, provided it does
+# not use additional compression.
+class EmbeddedZipMixin:
 	def open_zipfile(self, filename):
 		"""Open an embedded zip file"""
 		if self.debug:
@@ -216,7 +207,7 @@ class RemoteZip(ZipFile):
 		# Instead we find the offset of the embedded zipfile and create a view file handle
 		info = self.getinfo(filename)
 		assert info.compress_type == ZIP_STORED
-		zipfile = FileRange(self.fetcher,
+		zipfile = FileRange(self.fh,
 			offset = info.header_offset + len(info.FileHeader()),
 			size = info.file_size, 
 			)
@@ -228,4 +219,24 @@ class RemoteZip(ZipFile):
 		if self.debug:
 			print("Wrapped.")
 		return zipfile
+
+# Same interface as RemoteZip, but for local file access.
+class LocalZip(ZipFile, EmbeddedZipMixin):
+	def __init__(self, path, debug=False):
+		self.fh = open(path, "rb")
+		self.debug = debug
+		super().__init__(self.fh)
+	def close(self):
+		self.fh.close()
+
+# Subclass ZipFile from the Python Standard Library so that we can 
+# read zip files over HTTP rather than from the file system.
+class RemoteZip(ZipFile, EmbeddedZipMixin):
+	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
+		self.debug = debug
+		self.fetcher = HttpFile(url, debug=debug)
+		self.fetcher = FileCache(self.fetcher, cachedir, cachekey, debug=debug)
+		super().__init__(self.fetcher)
+	def close(self):
+		self.fetcher.close()
 

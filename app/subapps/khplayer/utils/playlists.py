@@ -1,4 +1,9 @@
-import os, json, base64, re, io, sqlite3
+import os
+import json
+import base64
+import re
+import io
+import sqlite3
 import os.path
 from tempfile import NamedTemporaryFile
 from zipfile import ZipFile
@@ -8,8 +13,8 @@ from fnmatch import fnmatch
 from hashlib import md5
 from PIL import Image
 
-from .gdrive import GDriveClient
 from ....models import Videos
+from .mimetypes import extmap
 
 # Reader for zip files which may contain one or more playlists
 # Supported formats:
@@ -32,16 +37,17 @@ class ZippedPlaylist:
 				return None
 			return "data:{mimetype};base64,{data}".format(
 				mimetype = self.thumbnail_mimetype,
-				data = base64.b64encode(self.thumbnail_data).decode('utf-8'),
+				data = base64.b64encode(self.thumbnail_data).decode("utf-8"),
 				)
 		def __str__(self):
 			return f"<PlaylistItem id={self.id} title={repr(self.title)} filename={repr(self.filename)} file_size={repr(self.file_size)}>"
 
-	def __init__(self, gdrive_folder_id:str, zip_reader, zip_filename:str, path, cachedir="cache", debuglevel=10):
-		self.gdrive_folder_id = gdrive_folder_id	# Google Drive ID of folder containing this zip file
+	def __init__(self, path_to:list, path_within:list, zip_reader, zip_filename:str, client_class, cachedir="cache", debuglevel=10):
+		self.path_to = path_to
+		self.path = path_within						# path to folder within zipfile
 		self.zip_reader = zip_reader				# Zipfile compatible object
-		self.path = path							# path to folder within zipfile
 		self.zip_filename = zip_filename			# filename of the .zip file
+		self.client_class = client_class
 		self.cachedir = cachedir					# directory into which to download media files
 		self.debuglevel = debuglevel
 
@@ -76,7 +82,7 @@ class ZippedPlaylist:
 		return self.files
 
 	def make_uuid(self, file):
-		return self.gdrive_folder_id + "-" + md5(file.id.encode("utf-8")).hexdigest()
+		return self.path_to[-1] + "-" + md5(file.id.encode("utf-8")).hexdigest()
 
 	def download_thumbnail(self, file, save_as):
 		"""Download thumbnail of specified file alongside save_as, return filename"""
@@ -119,14 +125,6 @@ class ZippedPlaylist:
 
 	# Load image list from supported images files found in an generic zip archive
 	def _load_generic_zip(self):
-
-		# Table of file types to look for in the zip file
-		extmap = {
-			".jpg": "image/jpeg",
-			".png": "image/png",
-			".gif": "image/gif",
-			".svg": "image/svg+xml",
-			}
 
 		if len(self.path) == 0:
 			self.folder_name = self.zip_filename
@@ -424,7 +422,7 @@ class ZippedPlaylist:
 	# Find a file in the Gdrive folder which contains the current zipped playlist
 	def _find_neighbor_file(self, row):
 		if self.parent_reader is None:
-			self.parent_reader = GDriveClient(self.gdrive_folder_id, cachedir=self.cachedir)
+			self.parent_reader = self.client_class(self.path_to[:-1], [], cachedir=self.cachedir)
 		pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
 		print("media file search pattern:", pattern)
 		for gfile in self.parent_reader.list_image_files():

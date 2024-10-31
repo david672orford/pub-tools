@@ -47,13 +47,14 @@ class IterAsFile:
 		return chunk
 
 class GDriveClient:
-	def __init__(self, id, thumbnails=False, cachedir="cache", debug=False):
-		self.gdrive_folder_id = id
+	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
+		print("path_to:", path_to)
+		self.folder_id = path_to[-1]
 		self.cachedir = cachedir
 		self.debug = debug
 
 		# Put the ID into a sharing URL and retrieve the HTML page
-		url = "https://drive.google.com/drive/folders/{id}?usp=sharing".format(id=id)
+		url = f"https://drive.google.com/drive/folders/{self.folder_id}?usp=sharing"
 		self.session = requests.Session()
 		response = self.session.get(url, stream=True)
 		root = lxml.etree.parse(IterAsFile(response.iter_content()), parser=lxml.etree.HTMLParser(encoding=response.encoding)).getroot()
@@ -119,9 +120,9 @@ class GDriveClient:
 				elif file[3].startswith("image/"):
 					if thumbnails:
 						thumbnail_url = self._make_thumbnail_data_url(
-							# This is what the web interface uses
-							#f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
-							# This gives natural shape
+							# This is what the web interface uses:
+							#  f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
+							# But this gives the original aspect ratio:
 							f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
 							)
 					self.image_files.append(GFile(file, thumbnail_url))
