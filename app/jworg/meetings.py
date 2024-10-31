@@ -393,19 +393,20 @@ class MeetingLoader(Fetcher):
 				# and we are supposed to scrape linked articles, get and return any
 				# media items it may contain.
 				if pub.is_a == "article" and follow_links:
-					callback(_("Getting media list from \"%s\"...") % pub.title)
 					for item in self.get_media_from_linked_article(pub, item_tag.attrib.get("data-highlightrange"), linked_articles, callback):
 						yield item
 
 	# This is used to load the Congregation Bible Study material
-	# TODO: Might a future publication have videos which are not presented as hyperlinked figures?
+	# TODO: Might a future publication have standalone video links stead of hyperlinked figures?
 	def get_media_from_linked_article(self, pub:MeetingMediaItem, highlightrange:str, linked_articles:dict, callback):
 		assert isinstance(pub, MeetingMediaItem)
 		assert isinstance(highlightrange, str) or highlightrange is None
 		assert isinstance(linked_articles, dict)
-		article_href = pub.media_url
+
+		callback(_("Getting media list from \"%s\"...") % pub.title)
 
 		# Load article, find figures, and attach them to paragraphs
+		article_href = pub.media_url
 		article = linked_articles.get(article_href)
 		if article is None:
 			article = linked_articles[article_href] = HighlightRange(self.get_article(article_href))
