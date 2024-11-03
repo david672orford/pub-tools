@@ -27,8 +27,10 @@ class ConfigForm(dict):
 		if config is not None:
 			self.update(config)
 		if "url" in data:
-			self["url"] = data["url"].strip()
+			self["url"] = data["url"].strip() or None
 	def validate(self):
+		if self["url"] is None:
+			return True
 		u = urlparse(self["url"])
 		if u.scheme!="https" or u.netloc!="drive.google.com" or u.query!="usp=sharing":
 			flash(_("Not a Google Drive sharing URL"))
@@ -42,7 +44,7 @@ def page_slides_save_config():
 	if not form.validate():
 		return redirect(".?action=configuration&" + urlencode(form))
 	put_config("GDRIVE", form)
-	return redirect(".")
+	return redirect("--reload")
 
 # List files in a folder
 @blueprint.route("/slides/", defaults={"path":None})

@@ -234,9 +234,9 @@ class LocalZip(ZipFile, EmbeddedZipMixin):
 class RemoteZip(ZipFile, EmbeddedZipMixin):
 	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
 		self.debug = debug
-		self.fetcher = HttpFile(url, debug=debug)
-		self.fetcher = FileCache(self.fetcher, cachedir, cachekey, debug=debug)
-		super().__init__(self.fetcher)
+		self.fh = HttpFile(url, debug=debug)
+		self.fh = FileCache(self.fh, cachedir, cachekey, debug=debug)
+		super().__init__(self.fh)
 	def close(self):
-		self.fetcher.close()
+		self.fh.close()
 

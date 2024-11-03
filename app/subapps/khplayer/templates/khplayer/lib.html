@@ -1,7 +1,7 @@
 {% macro render_input_text(label, name, value, class="") %}
 <span class="form-field">
 	<label for="{{name}}">{{label}}</label>
-	<input type="text" id="{{name}}" name="{{name}}" value="{{value}}"{% if class %} class="{{class}}"{%endif%}>
+	<input type="text" id="{{name}}" name="{{name}}" value="{% if value != None %}{{value}}{%endif%}"{% if class %} class="{{class}}"{%endif%}>
 </span>
 {% endmacro %}
 

@@ -3,6 +3,7 @@ import io
 import base64
 from PIL import Image
 
+from ....utils.babel import gettext as _
 from .mimetypes import extmap
 from .httpfile import LocalZip
 
@@ -19,8 +20,12 @@ class LocalDriveClient:
 	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
 		assert len(path_to) > 0
 		assert len(path_within) == 0
-		self.folder_name = path_to[-1]
 		self.debug = debug
+
+		if len(path_to) == 1:
+			self.folder_name = _("Local Speaker's Slides Folder")
+		else:
+			self.folder_name = path_to[-1]
 
 		self.path = os.path.abspath(os.path.join(*path_to))
 		assert self.path == path_to[0] or self.path.startswith(path_to[0] + "/")
