@@ -7,6 +7,17 @@
 * [Release Notes](https://support.zoom.com/hc/ru/article?id=zm_kb&sysparm_article=KB0061222)
 * [Unoffical Apt Repository](https://www.matthewthom.as/mirrors/#zoom)
 
+## Suppressing Non-Standard UI Behaviors
+
+Edit ~/.config/zoomus.conf and make sure you have the following settings:
+
+    showSystemTitlebar=true
+    enableMiniWindow=false
+
+The first change restores the window manager title bars which were suppressed in Zoom 6.
+The second change prevents Zoom from turning into a weird little always-on-top picture
+of the current speaker whenever you switch virtual desktops. 
+
 ## Zoom meeting URLs
 
 And ordinary meeting URL looks like this:
