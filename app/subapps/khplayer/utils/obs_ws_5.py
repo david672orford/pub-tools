@@ -314,6 +314,13 @@ class ObsControlBase:
 		return response["d"]["results"]
 
 	#=========================================================================
+	# Implementation Information
+	#=========================================================================
+
+	def get_version(self):
+		return self.request("GetVersion", {})
+
+	#=========================================================================
 	# Scene Collections
 	#=========================================================================
 
@@ -477,7 +484,7 @@ class ObsControlBase:
 	def get_input_uuid(self, input_name:str):
 		for item in self.get_input_list():
 			if item["inputName"] == input_name:
-				return scene["inputUuid"]
+				return item["inputUuid"]
 		return None
 
 	def create_input(self, *, scene_uuid:str, input_name:str, input_kind:str, input_settings:dict={}):
@@ -491,18 +498,25 @@ class ObsControlBase:
 		result["inputName"] = input_name
 		return result
 
-	def get_input_settings(self, input_uuid:str):
-		response = self.request("GetInputSettings", {
-			"inputUuid": input_uuid,
-			})
-		return response["responseData"]
+	def get_input_settings(self, name:str=None, uuid:str=None):
+		params = {}
+		if name is not None:
+			params["inputName"] = name
+		else:
+			params["inputUuid"] = uuid
+		response = self.request("GetInputSettings", params)
+		return response["responseData"]["inputSettings"]
 
-	def set_input_settings(self, input_uuid, input_settings={}, overlay=True):
-		self.request("SetInputSettings", {
-			"inputUuid": input_uuid,
-			"inputSettings": input_settings,
+	def set_input_settings(self, name:str=None, uuid:str=None, settings:dict={}, overlay:bool=True):
+		params = {
+			"inputSettings": settings,
 			"overlay": overlay,
-			})
+			}
+		if name is not None:
+			params["inputName"] = name
+		else:
+			params["inputUuid"] = uuid
+		self.request("SetInputSettings", params)
 
 	#=========================================================================
 	# Virtual Camera
@@ -537,6 +551,7 @@ class ObsControlBase:
 	#=========================================================================
 
 	def get_source_screenshot(self, source_uuid:str, width=96, height=54):
+		"""Return a thumbnail-sized screenshot of the indicated sources as a data URL"""
 		response = self.request("GetSourceScreenshot", {
 			"sourceUuid": source_uuid,
 			"imageFormat": "jpeg",
@@ -548,12 +563,10 @@ class ObsControlBase:
 		assert data.startswith("data:")
 		return data
 
-	def save_source_screenshot(self, source_uuid:str):
-		tempfile = "/tmp/face.jpg"
+	def save_source_screenshot(self, source_uuid:str, filename, image_format="jpeg"):
 		self.request("SaveSourceScreenshot", {
 			"sourceUuid": source_uuid,
-			"imageFormat": "jpeg",
-			"imageFilePath": tempfile,
+			"imageFormat": image_format,
+			"imageFilePath": os.path.abspath(filename),
 			})
-		return tempfile
 
