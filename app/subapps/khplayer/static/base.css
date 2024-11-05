@@ -14,6 +14,7 @@ BODY {
 
 	--bg-buttons: #f0f0f0;
 	--fg-buttons: black;
+	--fg-buttons-disabled: grey;
 	--bg-input-text: white;
 	--fg-input-text: black;
 
@@ -126,6 +127,10 @@ SELECT:hover, BUTTON:hover {
 	}
 BUTTON:active {
 	filter: brightness(50%);
+	}
+BUTTON:disabled {
+	color: var(--fg-buttons-disabled);
+	filter: none;
 	}
 
 /* Button icons */
@@ -408,6 +413,7 @@ MAIN {
 	background-color: rgba(220, 220, 220, 0.75);
 	}
 .bordered-box.popup {
+	z-index: 100;
 	position: absolute;
 	left: 2vw;
 	top: 5vw;
