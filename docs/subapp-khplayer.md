@@ -88,14 +88,18 @@ not turn on, make sure the virtual camera is started in OBS.
 * Click on the down arrow next to the microphone button and select **From-OBS**
 as the audio input and unmute audio.
 
-## Creating Meeting Scenes
+## Initial Setup of Stage and Zoom Scenes
 
 * Open **http://localhost:5000/khplayer/** in a web browser
-* If this the first time, go to the **Audio** tab and select the desired
-microphone and speakers. Press **Reconnect Audio** to connect then to Zoom and OBS.
-* If this is the first time, go to the **Scenes** tab and press the **Add a Live
-Scene** button. Select the desired camera and press **Add Camera Scene**. Press
-the **Add Zoom Scene** and **Add Split Screen Scenes**.
+* Go to the **Audio** tab and select the desired
+microphone and loudspeakers. Press **Reconnect Audio** to connect then to Zoom and OBS.
+* Go to the **Scenes** tab and press the **Add a Live
+Scene** button. Select the desired camera and press **Add Camera Scene**.
+* Press the **Add Zoom Scene** button.
+* Press the **Add Split Screen Scenes** button. (FIXME)
+
+## Loading Videos and Images for a Meeting
+
 * Go to the **Meetings** tab and select the meeting and week you want. A list
 of videos and illustrations will load. There will be a checkbox next to each
 item. Remove the checkbox for any item you do not need and press
@@ -115,4 +119,43 @@ the skip buttons and the chapter buttons to help you. Hit the **Set Start**
 button.
 * Find the end of the clip. Press the **Sent End** button.
 * Adjust the **Clip Title**, if necessary, and press **Make Clip**.
+
+## Loading Speaker's Slides
+
+KH Player can load images and videos which you have placed in a folder to which
+you have pointed it. The folder can be local or on Google Drive.
+
+Local setup:
+
+* Place media files in the instace/slides folder
+* Go into the **Slides** tab in KH Player and press the **Settings** button
+* Make sure the URL is blank and press **Save**
+
+Google Drive setup:
+
+* Create a new folder within your Google Drive
+* Share it to "anyone who has the link". Copy the link.
+* Go into the **Slides** tab in KH Player and press the **Settings** button
+* Paste the Google Drive link in and press **Save**
+
+Loading slides:
+
+* Put any of the following into the local or Google Drive folder selected above
+    * Subfolders containing JPEG, PNG, or MP4 files
+    * Zip files containing JPEG, PNG, or MP4 files
+    * Playlists in .jwlplaylist format
+    * Playlists in .JWPUB format. If the playlist includes videos, download them too and save them in the folder alongside the .JWPUB file.
+* Go back to the **Slides** tab and browse to the folder you want.
+* Adjust the check marks next to the slide images and press the **Load** button.
+
+## TODO
+
+* Loading songs
+* Drag and drop into scenes
+* Renaming Cameras
+* Subtitles
+* Virtual Camera
+* Equalizer
+* Renaming Microphones
+* Disabling Distracting Devices
 

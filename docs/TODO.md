@@ -2,17 +2,15 @@
 
 ## Bugs
 
-* Click on thumbnail in scenes list (sometimes) does nothing
-* Fixed disabled style on download button on meeting page
-* Why isn't scene dnd reflected in all clients?
+* Click on thumbnail in scenes list (sometimes) does nothing. (This is likely after a refresh.)
+* Why no thumbnail if slide folder contains only a video? (See no90)
 
 ## Easy Improvements
 
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
 * CLI support for enabling debugging by module
-* Support for speaker's slides in a local folder
-* Progress bar for Gdrive downloads. This will require knowing the file size
+* Progress bar for Gdrive downloads. This will require knowing the file size. (make sure this is finished)
 * Validate configuration
     * https://docs.python-cerberus.org/
     * https://github.com/python-jsonschema/jsonschema
@@ -21,16 +19,11 @@
 
 ## Hard Stuff
 
-* Limit Bible Study illustrations to paragraph range stated in fragment. This may
-be difficult because it seems the Workbook sometimes excludes the paragraph
-with the illustration if it is at the beginning (or perhaps the end).
+* Send scene reorder events to other browsers
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
-* Auto-create yeartext slide (need to find online source for yeartext)
-* Better Zoom capture. Options:
-    * Zoom App to control participant screen positions and report them
-    * OBS plugin for the Zoom Meeting SDK
-    * Find a way to make Web SDK display a particular participant
-    * Produces mulitiple automatic crops from screen capture of Zoom window
+* Auto-create yeartext slide (would need to find the current yeartext somewhere on JW.ORG)
+* Better Zoom capture by capturing the whole window and producing automatic crops to the current
+  speaker and the current and previous speakers.
 
 ## For the Future
 
