@@ -1,3 +1,7 @@
+/*============================================================================
+** Scene list
+============================================================================*/
+
 function init_scenes()
 	{
 	function $(id)
@@ -5,7 +9,7 @@ function init_scenes()
 		return document.querySelector(id);
 		}
 
-	/* ===============================================================
+	/* -------------------------------------------------------
 	   Click on scene
     */
 	$("#scenes-list").addEventListener("click", (e) => {
@@ -24,8 +28,9 @@ function init_scenes()
 		});
 	});
 
-	/* ===============================================================
-	   Checkbox for selecting all scenes except those which begin with a star
+	/* -------------------------------------------------------
+	   Checkbox for selecting all scenes except those with
+	   names which begin with an asterisk
     */
 	$("#check-all").addEventListener("click", function() {
 		let state = event.target.checked;
@@ -37,10 +42,10 @@ function init_scenes()
 			});
 		});
 
-	/* ===============================================================
+	/* -------------------------------------------------------
 	   Drag-and-drop to reorder scenes
-	   When a drag operation starts here we install handlers which
-	   mask the handlers for file drop.
+	   When a drag operation starts here we install handlers
+	   which mask the handlers for file drop.
     */
 	let scenes_list = $("#scenes-list");
 	let moving_scene = null;
@@ -56,7 +61,7 @@ function init_scenes()
 		}
 
 	function on_scene_dragenter(e) {
-		console.log("reorder dragenter:", e.target);
+		console.log("Reorder dragenter:", e.target);
 		e.stopPropagation();
 		let over = e.target;
 		while(over.tagName != "TR")
@@ -68,7 +73,7 @@ function init_scenes()
 		}
 
 	function on_scene_drop(e) {
-		console.log("reorder drop");
+		console.log("Reorder drop");
 		e.stopPropagation();
 
 		fetch("move-scene", {
@@ -89,7 +94,7 @@ function init_scenes()
 		}
 
 	scenes_list.addEventListener("dragstart", (e) => {
-		console.log("reorder dragstart:", e.target);
+		console.log("Reorder dragstart:", e.target);
 		let target = e.target;
 		while(target.tagName != "TR")
 			target = target.parentElement;
@@ -103,7 +108,7 @@ function init_scenes()
 		scenes_list.addEventListener("drop", on_scene_drop);
 		});
 
-	/* ===============================================================
+	/* -------------------------------------------------------
 	   Reload previews on hover
     */
 	function on_row_mouseover(e) {
@@ -131,7 +136,7 @@ function init_scenes()
 		});
 	observer.observe(scenes_list, {childList: true});
 
-	/* ===============================================================
+	/* -------------------------------------------------------
        Drag-and-drop dropzone for adding scenes
 	*/
 	let dropArea = $("#scenes-scroller");
@@ -159,7 +164,7 @@ function init_scenes()
 	/* File actually dropped onto the drop zone */
 	dropArea.addEventListener("drop", (e) => {
 		e.preventDefault();
-		console.log(e.dataTransfer);
+		console.log("Drop data:", e.dataTransfer);
 		console.log("Types:", e.dataTransfer.types);
 		console.log("Files:", e.dataTransfer.files);
 
@@ -206,7 +211,7 @@ function init_scenes()
 		counter = 0;
 		});
 
-	/* ===============================================================
+	/* -------------------------------------------------------
 	   Hook up the replacements for the ugly file chooser
 	*/
 	let file_upload = $(".file-upload");
@@ -231,7 +236,7 @@ function init_scenes()
 
 	}
 
-/* Scene event handler sometimes inserts <script> tags which call these functions */
+/* Scene event handler sometimes inserts <script> tags which call this function. */
 function set_current_scene(className, uuid) {
 	console.log("set_current_scene:", className, uuid);
 	document.currentScript.remove();
@@ -244,56 +249,62 @@ function set_current_scene(className, uuid) {
 		});
 	}
 
+/*=============================================================================
+** Scene Composer
+=============================================================================*/
 function init_scene_composer() {
 
+/* Hook up the GUI control elements for each scene item. */
 Array.from(document.getElementsByTagName("form")).forEach(form_el => {
 
+	/* Skip forms without an Enabled checkbox since they do not represent scene items. */
 	if(!form_el.elements.enabled)
-		return
+		return;
 
-	/* Enable checkbox */
+	/* Hook up Enable checkbox */
 	form_el.elements.enabled.addEventListener("change", (event) => {
-		post_set_enabled(form_el);
+		post_enabled_change(form_el);
 		});
 
-	/* Face button */
+	/* Hook up Face button */
 	form_el.getElementsByClassName("face")[0].addEventListener("click", (event) => {
-		post_ptz(form_el, false, event.target.value);
+		post_ptz_change(form_el, false, event.target.value);
 		});
 
-	/* Reset button */
+	/* Hook up Reset button */
 	form_el.getElementsByClassName("reset")[0].addEventListener("click", (event) => {
 		form_el.x.value = "50";
 		form_el.y.value = "50";
 		form_el.zoom.value = "1.0";
-		post_ptz(form_el, false, null);
+		post_ptz_change(form_el, false, null);
 		});
 
-	/* PTZ sliders */
+	/* Hook up pseudo-PTZ sliders */
 	Array.from(form_el.getElementsByClassName("slider")).forEach(slider => {
 		let input = slider.getElementsByTagName("input")[0];
 		let span = slider.getElementsByTagName("span")[0];
 		span.textContent = input.value;
 		input.addEventListener("input", (event) => {
 			span.textContent = event.target.value;
-			post_ptz(form_el, false, null);
+			post_ptz_change(form_el, false, null);
 			});
 		});
 
-	/* Bounds buttons */
+	/* Hook up bounds buttons */
 	Array.from(form_el.getElementsByClassName("bounds")).forEach(position => {
 		Array.from(position.getElementsByTagName("button")).forEach(button => {
 			button.addEventListener("click", (event) => {
 				form_el.bounds.value = event.target.value;
-				post_ptz(form_el, true, null);
+				post_ptz_change(form_el, true, null);
 				});
 			});
 		});
 
 	});
 
-function post_set_enabled(form_el) {
-	console.log(form_el, form_el.enabled);
+/* Push a change in the enabled state of a scene item
+   up to the server. */
+function post_enabled_change(form_el) {
 	fetch("set-enabled", {
 		method: "POST",
 		headers: {
@@ -306,7 +317,9 @@ function post_set_enabled(form_el) {
 		});
 	}
 
-async function post_ptz(form_el, new_bounds, face_source_uuid) {
+/* Push a change in the position of the Zoom, X, and Y sliders
+   up to the server. */
+async function post_ptz_change(form_el, new_bounds, face_source_uuid) {
 	let response = await fetch("ptz", {
 		method: "POST",
 		headers: {
@@ -324,7 +337,7 @@ async function post_ptz(form_el, new_bounds, face_source_uuid) {
 			})
 		});
 	let result = await response.json();
-	console.log("result:", result);
+	console.log("result:", JSON.stringify(result));
 	form_el.x.value = result["x"];
 	form_el.y.value = result["y"];
 	form_el.zoom.value = result["zoom"];

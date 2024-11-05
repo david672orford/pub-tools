@@ -11,11 +11,11 @@
 {% endblock %}
 
 {% block main %}
-<form action="rename-scene" method="POST">
+<form action="action" method="POST">
 	<section class="bordered-box">
 		<div class="hbox">
 			<input type="text" name="scene_name" value="{{scene_name}}">
-			<button type="submit">{{_("Rename")}}</button>
+			<button type="submit" name="action" value="rename-scene">{{_("Rename")}}</button>
 		</div>
 	</section>
 </form>
