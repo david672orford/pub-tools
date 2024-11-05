@@ -12,13 +12,17 @@
 ## Integration of OBS Studio with other Programs
 
 Video and audio can be fed into and out of OBS using the virtual camera,
-streaming protocols, and players embeded in browser sources.
+virtual audio coables, streaming protocols, and players embeded in browser sources.
 
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 
 ## OBS-Websocket Documentation
+
+OBS-Websocket is a plugin for OBS (now included in the official packages) which allows an external
+program to learn its state and control it. Controlling OBS through a websocket is often easier
+than writing a plugging or a script to run inside OBS.
 
 * [Github Site](https://github.com/obsproject/obs-websocket)
 * [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
@@ -37,7 +41,7 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/)
 * [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua)
 
-## Example Scripts
+### Example OBS Scripts
 
 * [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Interesting LUA examples
 * [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake)
@@ -47,28 +51,28 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/)
 
-## Plugin Development
+## OBS Plugin Development
 
 * [Plugin API Docs](https://obsproject.com/docs/plugins.html)
 * [OBS-V4L2Sink](https://github.com/CatxFish/obs-v4l2sink) -- Useful as example of an output plugin
 * [OBS Source Record](https://github.com/exeldro/obs-source-record) -- Filter which reads frame data
 * [OBS Face Tracker](https://github.com/norihiro/obs-face-tracker) -- Another filter which reads frame data
 
-## Interesting Plugins
+### Interesting OBS Plugins
 
-* [Advanced Scene Switcher](https://github.com/WarmUpTill/SceneSwitcher)
-* [Move Transition](https://github.com/exeldro/obs-move-transition)
-* [Transitions Table](https://github.com/exeldro/obs-transition-table)
-* [Source Dock](https://github.com/exeldro/obs-source-dock) -- Always show a particular source in UI
+* [OBS Studio Portable](https://github.com/wimpysworld/obs-studio-portable) -- OBS Studio built with 50 additional plugins
+* [Advanced Scene Switcher](https://obsproject.com/forum/resources/advanced-scene-switcher.395/) [Github](https://github.com/WarmUpTill/SceneSwitcher) -- Automatically triggered macros automate tasks
+* [Move Transition](https://obsproject.com/forum/resources/move.913/) [Github](https://github.com/exeldro/obs-move-transition) -- Smoothly moves and resizes common items during scene transitions
+* [Transitions Table](https://obsproject.com/forum/resources/transition-table.1174/) [Github](https://github.com/exeldro/obs-transition-table) -- More or maybe better control over transitions between particular scenes
+* [Source Dock](https://obsproject.com/forum/resources/source-dock.1317/) [Github](https://github.com/exeldro/obs-source-dock) -- Always show a particular source in UI
 * [Downstream Keyer](https://github.com/exeldro/obs-downstream-keyer) -- Adds an overlay to all scenes
 * [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/) -- Write video filters in shader language
 * [Background Removal](https://github.com/occ-ai/obs-backgroundremoval) -- Works, but not as well as Zoom's implementation
 * [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- Crashes
-* [Pulseaudio App Capture](https://github.com/jbwong05/obs-pulseaudio-app-capture)
-* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/)
-* [OBS Studio Portable](https://github.com/wimpysworld/obs-studio-portable) -- OBS Studio built with 50 additional plugins
+* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which do unusual things
+* [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
 
-## Bugs and Feature Requests we are Following
+## OBS Bugs and Feature Requests we are Following
 
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
@@ -83,7 +87,12 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
 
-## Object Hierarcy
+## Notes from Programming in OBS
+
+Here are some notes on concepts and objects in OBS which we had to figure
+out when writing scripts for it.
+
+### Object Hierarcy
 
 Each **Scene** has zero or more **Scene Items**. Each Scene Item has a **Source** to which it applies
 a **Scene Item Transform**. A source is an **Input** or another Scene.
@@ -95,7 +104,7 @@ Each Scene Item also has an **Index** which determines its place in the stacking
 within the Scene. The index starts with 0. Stacking orders ascend from background to
 foreground. However, they descend in the Sources Dock.
 
-## Coordinate Transformation of Scene Items
+### Coordinate Transformation of Scene Items
 
 The scaling and placement of images and videos in scenes is controlled by the
 transform parameters. One can control these parameters using the **Transform**
