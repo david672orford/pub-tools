@@ -29,3 +29,6 @@ def init_app(app, url_prefix):
 	from .cli_cable import cli_cable
 	app.cli.add_command(cli_cable)
 
+	from .cli_zoom import cli_zoom
+	app.cli.add_command(cli_zoom)
+

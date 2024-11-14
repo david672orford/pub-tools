@@ -79,9 +79,9 @@ class ObsControlBase:
 			raise ObsError("Connection not configured")
 
 		try:
-			hostname = self.config['hostname']
-			port = self.config['port']
-			password = self.config['password']
+			hostname = self.config["hostname"]
+			port = self.config["port"]
+			password = self.config["password"]
 		except KeyError:
 			raise ObsError("Bad connection configuration")
 
@@ -409,19 +409,27 @@ class ObsControlBase:
 	# Scene items
 	#=========================================================================
 
+	def get_scene_item_id(self, scene_uuid, source_name):
+		try:
+			response = self.request("GetSceneItemId", {
+				"sceneUuid": scene_uuid,
+				"sourceName": source_name,
+				})
+			return response["responseData"]["sceneItemId"]
+		except ObsError as e:
+			if e.code == 600:
+				return None
+			else:
+				raise
+
 	def get_scene_item_list(self, scene_uuid):
 		response = self.request("GetSceneItemList", {
 			"sceneUuid": scene_uuid,
 			})
 		return response["responseData"]["sceneItems"]
 
-	def remove_scene_item(self, scene_uuid, scene_item_id):
-		self.request("RemoveSceneItem", {
-			"sceneUuid": scene_uuid,
-			"sceneItemId": scene_item_id,
-			})
-
 	def create_scene_item(self, *, scene_uuid:str, source_uuid:str=None, source_name:str=None):
+		assert source_uuid is not None or source_name is not None
 		req = {
 			"sceneUuid": scene_uuid,
 			}
@@ -431,6 +439,12 @@ class ObsControlBase:
 			req["sourceName"] = source_name
 		response = self.request("CreateSceneItem", req)
 		return response["responseData"]["sceneItemId"]
+
+	def remove_scene_item(self, scene_uuid, scene_item_id):
+		self.request("RemoveSceneItem", {
+			"sceneUuid": scene_uuid,
+			"sceneItemId": scene_item_id,
+			})
 
 	def get_scene_item_transform(self, scene_uuid, scene_item_id):
 		response = self.request("GetSceneItemTransform", {
