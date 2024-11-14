@@ -222,7 +222,8 @@ class ObsControl(ObsControlBase):
 			input_kind = "browser_source"
 			input_setting = {
 				"url": media_file,
-				"width": 1280, "height": 720,
+				"width": 1280,
+				"height": 720,
 				"css": "",
 				}
 		else:
@@ -367,10 +368,10 @@ class ObsControl(ObsControlBase):
 
 	def scale_scene_item(self, scene_uuid, scene_item_id, scene_item_transform={}):
 		xform = {
-			'boundsAlignment': 0,
-			'boundsWidth': 1280,
-			'boundsHeight': 720,
-			'boundsType': 'OBS_BOUNDS_SCALE_INNER',
+			"boundsAlignment": 0,
+			"boundsWidth": 1280,
+			"boundsHeight": 720,
+			"boundsType": "OBS_BOUNDS_SCALE_INNER",
 			}
 		xform.update(scene_item_transform)
 		self.set_scene_item_transform(scene_uuid, scene_item_id, xform)

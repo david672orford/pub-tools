@@ -8,6 +8,7 @@ from ....utils.background import async_flash
 from ....utils.babel import gettext as _
 
 def find_second_window():
+	"""Look for the Zoom second-monitor window and return its address for OBS window capture"""
 	second_window_name = "Zoom"
 	if have_ewmh:
 		wm = EWMH()
