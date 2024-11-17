@@ -5,6 +5,7 @@
 # * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 #
 
+import os.path
 import websocket, json, base64, hashlib
 from threading import Thread, current_thread, Lock, Condition
 from time import sleep

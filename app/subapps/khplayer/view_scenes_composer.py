@@ -1,3 +1,5 @@
+import os.path
+
 from flask import current_app, request, session, render_template, redirect
 from time import sleep
 import logging
@@ -13,10 +15,14 @@ logger = logging.getLogger(__name__)
 
 bounds_options = (
 	(1280, 720, 0, 0),		# Fullscreen
-	(638, 720, 0, 0),		# Left, Half
-	(638, 720, 642, 0),		# Right, Half
-	(640, 360, 0, 180),		# Left, Letterbox
-	(640, 360, 640, 180),	# Right, Letterbox
+	(640, 720, 0, 0),		# Left half of screen
+	(640, 720, 640, 0),		# Right half of screen
+	(640, 640, 0, 40),		# Left, square
+	(640, 640, 640, 40),	# Right, square
+	(640, 480, 0, 120),		# Left, 4:3
+	(640, 480, 640, 120),	# Right, 4:3
+	(640, 360, 0, 180),		# Left, 16:9
+	(640, 360, 640, 180),	# Right, 16:9
 	#(240, 360, 0, 0),		# Portrait
 	#(240, 360, 1040, 360),	# Portrait
 	(320, 360, 0, 0),		# Portrait top-left
