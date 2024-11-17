@@ -21,9 +21,9 @@ def cmd_zoom_track():
 	assert zoom_input_uuid is not None, "%s not found" % zoom_input_name
 
 	zoom_scenes = (
-		ZoomCropper("Zoom 0", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("Zoom 1", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("Zoom 2", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("* Zoom 0", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("* Zoom 1", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("* Zoom 2", zoom_input_name, zoom_input_uuid),
 		)
 
 	finder = ZoomBoxFinder()
@@ -45,21 +45,20 @@ def cmd_zoom_track():
 
 			# Load into our box finder and try to figure out the layout
 			finder.load_image(img)
-			print("speaker_indexes:", finder.speaker_indexes)
-			print("layout:", finder.layout)
 
 			# Adjust the cropping on all of the Zoom scenes
 			i = 0
 			for speaker_index in finder.speaker_indexes:
-				if speaker_index is not None and speaker_index < len(finder.layout):
-					zoom_scenes[i].set_crop(finder.layout[speaker_index])
+				crop = finder.layout[speaker_index] if speaker_index is not None and speaker_index < len(finder.layout) else False
+				print(f"speaker_indexes[{i}] crop is {crop}")
+				zoom_scenes[i].set_crop(crop)
 				i += 1
 
 		except ObsError as e:
 			print("OBS Error:", e)
 
 		print()
-		sleep(1)
+		sleep(3)
 
 # We crop pieces out of the Zoom window by creating a series of scenes each
 # of which has a single item which is the Zoom capture input. We do the
@@ -79,7 +78,12 @@ class ZoomCropper:
 
 	def set_crop(self, crop):
 		if crop != self.prev_crop:
-			obs.scale_scene_item(self.scene_uuid, self.scene_item_id, crop)
+			if crop is False:
+				obs.set_scene_item_enabled(self.scene_uuid, self.scene_item_id, False)
+			else:
+				if self.prev_crop is False:
+					obs.set_scene_item_enabled(self.scene_uuid, self.scene_item_id, True)
+				obs.scale_scene_item(self.scene_uuid, self.scene_item_id, crop)
 			self.prev_crop = crop
 
 @cli_zoom.command("test", help="Test the Zoom box finder")
@@ -111,15 +115,17 @@ def cmd_zoom_test(filename):
 # https://github.com/python-pillow/Pillow
 #
 class ZoomBoxFinder:
-	speaker_border_color = pack("BBB", 35, 217, 89)		# green
-	speaker_border_color_run = 50 * speaker_border_color
+	speaker_border_color = pack("BBB", 35, 217, 89)			# green
+	speaker_border_color_run = 300 * speaker_border_color	# smallest seems to be about 450px wide
+	speaker_border_width = 4
 	background_color = pack("BBB", 13, 13, 13)
 	sidebar_color = pack("BBB", 255, 255, 255)
-	corner_radius = 16
+	corner_radius = 17
 	bytes_per_pixel = 3
 	grey_border_width = 5
 
 	def __init__(self):
+		self.debug = True
 		self.prev_size = None
 		self.speaker = None
 		self.speaker_indexes = [None, None, None]
@@ -134,16 +140,19 @@ class ZoomBoxFinder:
 		# Measure length of the black row at the very bottom. If it is much shorter
 		# than the width of the image, then a side panel is open. Crop it off.
 		self.sidebar_width = self._measure_sidebar(self.img.height - 5)
-		print("sidebar_width:", self.sidebar_width)
+		if self.debug:
+			print("sidebar_width:", self.sidebar_width)
 		if self.sidebar_width > 0:
-			print("Cropping...")
+			if self.debug:
+				print("Cropping...")
 			self._load_image(self.img.crop((0, 0, self.img.width - self.sidebar_width, self.img.height)))
 
 		# If the image size (after the cropping out of the side panel) has changed,
 		# we can't work out the layout until we once again detect the green outline
 		# of a current speaker.
 		if self.img.size != self.prev_size:
-			print("Image size has changed")
+			if self.debug:
+				print("Image size has changed")
 			self.speaker = None
 			self.prev_size = self.img.size
 
@@ -236,7 +245,8 @@ class ZoomBoxFinder:
 			return None
 		x1 = int(hit1 % self.row_length_in_bytes / self.bytes_per_pixel)
 		y1 = int(hit1 / self.row_length_in_bytes)
-		print("hit1:", x1, y1)
+		if self.debug:
+			print("hit1:", x1, y1)
 
 		# Scan furthur down for the bottom border. Bail out if we don't find it.
 		hit2 = self.data.find(self.speaker_border_color_run, hit1 + 50 * self.row_length_in_bytes)
@@ -244,19 +254,24 @@ class ZoomBoxFinder:
 			return None
 		x2 = int(hit2 % self.row_length_in_bytes / self.bytes_per_pixel)
 		y2 = int(hit2 / self.row_length_in_bytes)
-		print("hit2:", x2, y2)
+		if self.debug:
+			print("hit2:", x2, y2)
+
+		# Distance between top and bottom borders fidged a bit for line width
+		height = y2 - y1 + self.speaker_border_width
 
 		# The X positions of the start of the top and bottom borders will be a bit
 		# different due to the fact that we hit it at different heights of the
 		# rounded corner, but they should be close.
 		assert (x2 - x1) < self.corner_radius
 
-		height = y2 - y1 + 4					# Distance between top and bottom borders fidged a bit for line width
 		return CropBox(
-			x = x1 - self.corner_radius,		# Move X back a bit since we hit the top border at the top of the rounded corner
+			# Move X back a bit since we hit the top border at the top of the rounded corner
+			x = x1 - self.corner_radius,
 			y = y1,
 			height = height,
-			width = int(height * 16 / 9),		# We do not measure the widht, merely infer it from the expected 16:9 aspect ratio
+			# We do not measure the width, merely infer it from the expected 16:9 aspect ratio
+			width = int(height * 16 / 9 + 2.5),
 			)
 
 	# Given:
@@ -268,6 +283,9 @@ class ZoomBoxFinder:
 		FUDGE = 10
 		columns = int((self.width+FUDGE) / self.speaker.width)
 		rows = int((self.height+FUDGE) / self.speaker.height)
+		if self.debug:
+			print(f"Gallery layout: {columns}x{rows}")
+			print(f"Speaker: {self.speaker}")
 
 		y = self.offsety
 		self.layout = []
@@ -279,7 +297,7 @@ class ZoomBoxFinder:
 			else:
 				x = self.offsetx
 			for column in range(columns):
-				if abs(x - self.speaker.x) < 5 and abs(y - self.speaker.y) < 5:
+				if abs(x - self.speaker.x) < 10 and abs(y - self.speaker.y) < 10:
 					speaker_index = len(self.layout)
 				self.layout.append({
 					"cropLeft": x,
@@ -289,6 +307,11 @@ class ZoomBoxFinder:
 					})
 				x += self.speaker.width
 			y += self.speaker.height
+
+		if self.debug:
+			for i in range(len(self.layout)):
+				print(f"layout[{i}] = {repr(self.layout[i])}")
+			print("speaker_index:", speaker_index)
 		return speaker_index
 
 	def draw_box(self, x1, y1, x2, y2):
