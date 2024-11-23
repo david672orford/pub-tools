@@ -7,7 +7,7 @@
 # $ sudo apt install pywebview
 #
 
-import sys
+from argparse import ArgumentParser
 import webview
 from threading import Thread
 from werkzeug.serving import make_server
@@ -21,16 +21,26 @@ logging.basicConfig(
 	datefmt='%H:%M:%S'
 	)
 
-print("Starting embedded web server...")
-server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
-server_thread = Thread(target=lambda: server.serve_forever())
-server_thread.daemon = True
-server_thread.start()
+parser = ArgumentParser()
+parser.add_argument("--subapp", default=None)
+parser.add_argument("--server", action="store_true")
+options = parser.parse_args()
+
+url = "http://localhost:5000"
+if options.subapp is not None:
+	url = f"{url}/{options.subapp}/"
+
+if options.server:
+	print("Starting embedded web server...")
+	server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
+	server_thread = Thread(target=lambda: server.serve_forever())
+	server_thread.daemon = True
+	server_thread.start()
 
 print("Starting webview...")
 webview.create_window(
 	title = "Pub-Tools",
-	url = "http://localhost:5000/" + "/".join(sys.argv[1:]),
+	url = url,
 	width = 1200,
 	height = 900,
 	)
@@ -41,8 +51,9 @@ webview.start(
 	)
 print("Webview has exited.")
 
-print("Shutting down the web server...")
-server.shutdown()
-server_thread.join()
-print("Server has stopt.")
+if options.server:
+	print("Shutting down the web server...")
+	server.shutdown()
+	server_thread.join()
+	print("Server has stopt.")
 
