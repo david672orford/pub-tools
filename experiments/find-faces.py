@@ -1,5 +1,8 @@
 #! /usr/bin/python3
 
+# See:
+# https://pypi.org/project/face-recognition/
+
 import face_recognition
 from PIL import Image, ImageDraw
 

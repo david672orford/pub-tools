@@ -6,11 +6,6 @@ from obs_wrap import ObsScript, ObsWidget
 from config import get_config, put_config
 from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
 
-#import obspython as obs
-#for item in dir(obs):
-#	if "frontend" in str(item):
-#		print("obs", item)
-
 class ObsVirtualAudioCable(ObsScript):
 	description = """
 		<h2>KH Player—Virtual Audio Cable</h2>

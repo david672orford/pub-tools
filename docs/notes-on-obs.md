@@ -50,6 +50,7 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/)
 * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/)
+* [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
 
 ## OBS Plugin Development
 

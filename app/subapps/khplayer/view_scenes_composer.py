@@ -106,7 +106,7 @@ def page_scenes_composer_add_source(scene_uuid):
 			case "add-camera":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
-					scene_item_id = obs.add_camera_input(scene_uuid, camera_dev)
+					obs.add_camera_input(scene_uuid, camera_dev)
 
 			case "add-zoom":
 				capture_window = find_second_window()
@@ -115,8 +115,8 @@ def page_scenes_composer_add_source(scene_uuid):
 					obs.scale_scene_item(scene_uuid, scene_item_id)
 
 			case "add-remote":
-				settings = current_app.config["REMOTES"][action[1]]
-				scene_item_id = obs.add_remote_input(scene_uuid, settings)
+				settings = current_app.config["VIDEO_REMOTES"][action[1]]
+				obs.create_remote_scene("* %s" % action[1], settings)
 
 			case "delete":
 				obs.remove_scene_item(scene_uuid, int(request.form["scene_item_id"]))
@@ -224,12 +224,10 @@ class Padded:
 #
 # This uses:
 #   https://pypi.org/project/face-recognition/
-# We also tried this and it worked:
-#   https://github.com/elliottzheng/batch-face
-# The initial experimental code was more ambitious and may be of interest:
+# The initial experimental code was more ambitious and may be of value later:
 #   https://github.com/david672orford/pub-tools/blob/v0.8/app/subapps/khplayer/cli_obs.py
 # There you can find:
-#  * Support for both libraries above
+#  * Alternative implementation using Batch-Face
 #  * Attempts to infer a head-and-shoulders box from the face bbox
 #  * Smooth panning and zooming of the OBS transform to the selected crop box
 def find_face(scene_uuid, id, source_uuid):
@@ -249,8 +247,8 @@ def find_face(scene_uuid, id, source_uuid):
 	if len(faces) > 0:
 		print("faces:", faces)
 		top, right, bottom, left = faces[0]
-		print("horizontal extent: %s -- %s" % (left, right))
-		print("vertical extent: %s -- %s" % (top, bottom))
+		print(f"horizontal extent: {left} -- {right}")
+		print(f"vertical extent: {top} -- {bottom}")
 
 		face_width = right - left
 		face_height = bottom - top
@@ -275,4 +273,3 @@ def find_face(scene_uuid, id, source_uuid):
 			max(image_height / face_height / backoff, 1.0)	# Zoom
 			)
 	return None
-

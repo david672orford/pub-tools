@@ -58,9 +58,9 @@ class ObsControl(ObsControlBase):
 	def scene_list(self):
 		if self._scene_list is None:
 
-			# Initial load scene list is from OBS 
+			# Initial load scene list is from OBS
 			self._scene_list = super().get_scene_list()
-	
+
 			# Restore our saved scene order.
 			scenes = []
 			for scene_uuid in get_config("SCENE_ORDER", []):
@@ -208,7 +208,7 @@ class ObsControl(ObsControlBase):
 					"subtitle": subtitle_track,
 					}
 			# Otherwise use the FFmpeg source which seems to be more stable
-			else:	
+			else:
 				input_kind = "ffmpeg_source"
 				input_setting = {
 					"local_file": media_file,
@@ -381,7 +381,6 @@ class ObsControl(ObsControlBase):
 		pos = self.select_scene_pos(skiplist="*")
 		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
 		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
-		#self.scale_scene_item(scene_uuid, scene_item_id)
 
 	# Create a scene containing just a capture of the specified window
 	def create_zoom_scene(self, scene_name, capture_window):
@@ -430,4 +429,3 @@ class ObsControl(ObsControlBase):
 				}
 			)
 		#self.scale_scene_item(scene_uuid, scene_item_id)
-
