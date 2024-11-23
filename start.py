@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 #
-# This script runs Pub-Tools as a standalone web server.
+# This script runs Pub-Tools in a standalone web server.
 #
 # To start it:
 #
@@ -11,28 +11,31 @@
 #   http://127.0.0.1:5000
 #
 
-import sys
 import logging
+from argparse import ArgumentParser
 from werkzeug.serving import run_simple
 from app import create_app
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
 
-debug_mode = listen_all = False
-for arg in sys.argv[1:]:
-	match arg:
-		case "--debug":
-			debug_mode = True
-		case "--debug-requests":
-			from http.client import HTTPConnection
-			HTTPConnection.debuglevel = 1
-		case "--listen-all":
-			listen_all = True
+parser = ArgumentParser()
+parser.add_argument("--debug", action="store_true")
+parser.add_argument("--debug-requests", action="store_true")
+parser.add_argument("--listen-addr", default="127.0.0.1")
+parser.add_argument("--listen-port", type=int, default=5000)
+options = parser.parse_args()
 
 logging.basicConfig(
-	level=logging.DEBUG if debug_mode else logging.INFO,
+	level=logging.DEBUG if options.debug else logging.INFO,
 	format='%(asctime)s.%(msecs)03d %(levelname)s %(name)s %(message)s',
 	datefmt='%H:%M:%S'
 	)
 
+if options.debug_requests:
+	from http.client import HTTPConnection
+	HTTPConnection.debuglevel = 1
+
 app = create_app()
-run_simple("0.0.0.0" if listen_all else "127.0.0.1", 5000, app, request_handler=CleanlogWSGIRequestHandler, threaded=True)
+run_simple(
+	options.listen_addr, options.listen_port,
+	app, request_handler=CleanlogWSGIRequestHandler, threaded=True
+	)
