@@ -33,33 +33,34 @@ OBS embeds Lua and Python interpreters. Scripts written in these language can au
 tasks, be sources and sinks of video and audio, and perform filtering. Python scripts
 do not generally run fast enough to process video, but Lua scripts do.
 
-* [Python/Lua Scripting](https://docs.obsproject.com/scripting)
-* [API Reference](https://docs.obsproject.com/reference-core-objects)
-* [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting)
-* [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API)
+* [Python/Lua Scripting](https://docs.obsproject.com/scripting) -- Description of the functions which a script should apply and how it calls the C API
+* [API Reference](https://docs.obsproject.com/reference-core-objects) -- Scripts call this C API through wrappers
+* [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting) -- Wiki page with more information about the funtions a script must provide
+* [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API) -- Examples of using the API from Python
+* [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua) -- Examples of using the API from Lua
 * [Tips and Tricks for Lua Scripts](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/) -- OBS Forum thread
-* [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/)
-* [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua)
 
 ### Example OBS Scripts
 
-* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Interesting LUA examples
-* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake)
-* [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
-* [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in text source
-* [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/)
-* [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
-* [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/)
-* [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
+* [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/) -- Place for people to post their scripts
+* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Framework for attaching Lua scripts to sources. Includes some interesting examples.
+* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake) -- Animate the scene item transform in Python or Lua
+* Video filters written in LUA and shader language
+    * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
+    * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
+    * [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
+* [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
+* [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
+* [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions
 
 ## OBS Plugin Development
 
-* [Plugin API Docs](https://obsproject.com/docs/plugins.html)
+* [Plugin API Docs](https://obsproject.com/docs/plugins.html) -- Describes plugin template and how to register the sources, outputs, etc. which one's plugin provides
 * [OBS-V4L2Sink](https://github.com/CatxFish/obs-v4l2sink) -- Useful as example of an output plugin
-* [OBS Source Record](https://github.com/exeldro/obs-source-record) -- Filter which reads frame data
-* [OBS Face Tracker](https://github.com/norihiro/obs-face-tracker) -- Another filter which reads frame data
+* [OBS Source Record](https://github.com/exeldro/obs-source-record) -- Example of filter which reads frame data
+* [OBS Face Tracker](https://github.com/norihiro/obs-face-tracker) -- Another example of a filter which reads frame data
 
-### Interesting OBS Plugins
+### Useful-Looking OBS Plugins
 
 * [OBS Studio Portable](https://github.com/wimpysworld/obs-studio-portable) -- OBS Studio built with 50 additional plugins
 * [Advanced Scene Switcher](https://obsproject.com/forum/resources/advanced-scene-switcher.395/) [Github](https://github.com/WarmUpTill/SceneSwitcher) -- Automatically triggered macros automate tasks
@@ -73,18 +74,26 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which do unusual things
 * [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
 
-## OBS Bugs and Feature Requests we are Following
+## Audio Output
+
+OBS has an internal audio mixer. The output of this mixer is used when
+streaming or recording to a file. However, there is no provision for
+sending it to a local audio devices. For some reason the developers do
+not regard this as a serious deficiency, to the considerable frustration
+of quite a number of users.
 
 * [Idea: Virtual Camera audio](https://ideas.obsproject.com/posts/1415/obs-virtual-camera-audio) -- Proposal to provide audio output
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
-* [PR: Sample Rate Conversion](https://github.com/obsproject/obs-studio/pull/6351) -- May be blocking implementation of audio output
 * [PR: Virtual Camera Audio in Linux](https://github.com/obsproject/obs-studio/pull/8171) -- Uses ALSA loopback device
+* [PR: linux-pulseaudio: Implement audio output](https://github.com/obsproject/obs-studio/pull/10495) -- Our implementation of audio output for Linux
+
+## OBS Bugs and Feature Requests we are Following
+
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
 * Bug: DND of file into browser dock does nothing, but URL works
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
-* [PR: linux-pulseaudio: Implement audio output](https://github.com/obsproject/obs-studio/pull/10495)
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
 
