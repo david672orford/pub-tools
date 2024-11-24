@@ -14,7 +14,7 @@
 Video and audio can be fed into and out of OBS using the virtual camera,
 virtual audio coables, streaming protocols, and players embeded in browser sources.
 
-* [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/)
+* [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/) -- Instruction for connecting OBS and Zoom using a V4L virtual camera on Ubuntu Linux
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 
