@@ -6,35 +6,41 @@ from ...utils.config import get_config
 
 cli_cable = AppGroup("cable", help="Virtual Audio Cable in Pipewire")
 
-@cli_cable.command("create", help="Create the cable, but don't connect it to anything")
+@cli_cable.command("create")
 def cmd_cable_create():
+	"""Create the cable, but don't connect it to anything"""
 	patchbay.load()
 	create_cable(patchbay)
 
-@cli_cable.command("destroy", help="Disconnect the cable and delete it")
+@cli_cable.command("destroy")
 def cmd_cable_destroy():
+	"""Disconnect the cable and delete it"""
 	patchbay.load()
 	destroy_cable(patchbay)
 
-@cli_cable.command("connect-peripherals", help="Connect microphone and speakers to cable")
+@cli_cable.command("connect-peripherals")
 def cmd_cable_connect_peripherals():
+	"""Connect microphone and speakers to cable"""
 	config = get_config("PERIPHERALS")
 	patchbay.load()
 	connect_peripherals(patchbay, config)
 
-@cli_cable.command("connect-obs", help="Connect OBS Studio's monitor output to cable")
+@cli_cable.command("connect-obs")
 def cmd_cable_connect_obs():
+	"""Connect OBS Studio's monitor output to cable"""
 	patchbay.load()
 	connect_obs(patchbay)
 
-@cli_cable.command("connect-zoom", help="Connect Zoom's microphone input to cable")
+@cli_cable.command("connect-zoom")
 def cmd_cable_connect_zoom():
+	"""Connect Zoom's microphone input to cable"""
 	config = get_config("PERIPHERALS")
 	patchbay.load()
 	connect_zoom(patchbay, config)
 
-@cli_cable.command("connect-all", help="Create cable and connect everything")
+@cli_cable.command("connect-all")
 def cmd_cable_connect_all():
+	"""Create cable and connect everything"""
 	config = get_config("PERIPHERALS")
 	patchbay.load()
 	connect_all(patchbay, config)

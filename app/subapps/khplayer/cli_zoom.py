@@ -1,3 +1,7 @@
+"""
+CLI for the Zoom tracker
+"""
+
 from flask.cli import AppGroup
 import click
 
@@ -7,13 +11,16 @@ from .utils.zoom_tracker import zoom_tracker, ZoomBoxFinder
 
 cli_zoom = AppGroup("zoom", help="Zoom scene control")
 
-@cli_zoom.command("track", help="Track current speaker in Zoom window")
+@cli_zoom.command("track")
 def cmd_zoom_track():
+	"""Track current speaker in Zoom window"""
 	zoom_tracker()
 
-@cli_zoom.command("test", help="Test the Zoom box finder")
+@cli_zoom.command("test")
 @click.argument("filename")
 def cmd_zoom_test(filename):
+	"""Test the Zoom box finder"""
+
 	finder = ZoomBoxFinder()
 	img = Image.open(filename)
 	finder.load_image(img)
@@ -30,4 +37,3 @@ def cmd_zoom_test(filename):
 		finder.draw_box(crop)
 
 	finder.img.show()
-

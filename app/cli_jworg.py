@@ -71,11 +71,12 @@ def print_dict_result_table(result, title, order=()):
 # The only place we could find this online was in Watchtower Online Library.
 #=============================================================================
 
-@cli_jworg.command("update-weeks", help="Load weekly meeting materials")
+@cli_jworg.command("update-weeks")
 @click.option("--nweeks", default=8)
 @click.argument("year", required=False)
 @click.argument("week", required=False)
 def cmd_update_weeks(nweeks, year, week):
+	"""Load weekly meeting materials"""
 	logging.basicConfig(level=logging.DEBUG)
 	if year is not None:
 		year = int(year)
@@ -123,8 +124,9 @@ def update_week(year, week, count, total, meeting_loader, callback):
 		setattr(week_obj, name, value)
 	db.session.add(week_obj)
 
-@cli_jworg.command("show-weeks", help="List weekly meeting materials in DB")
+@cli_jworg.command("show-weeks")
 def cmd_show_weeks():
+	"""List weekly meeting materials in DB"""
 	print_query_result_table(Weeks.query, "Weekly Meeting Materials")
 
 #=============================================================================
@@ -141,18 +143,21 @@ media_column_order = (
 	"track",
 	)
 
-@cli_jworg.command("get-meeting-media", help="Scrape a meeting article to get the media")
+@cli_jworg.command("get-meeting-media")
 @click.argument("docid")
 def cmd_get_meeting_media(docid):
+	"""Scrape a meeting article to get the media"""
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
 	url = meeting_loader.meeting_url(docid)
 	media = meeting_loader.extract_media(url, callback=basic_callback)
 	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media", order=media_column_order)
 
-@cli_jworg.command("get-article-media", help="Scrape a supplemental article to get the media")
+@cli_jworg.command("get-article-media")
 @click.argument("url")
 @click.option("--save-as", default=None)
 def cmd_get_article_media(url, save_as):
+	"""Scrape a supplemental article to get the media"""
+
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
 	article = meeting_loader.get_article(url).main_tag
 
@@ -197,10 +202,11 @@ class PeriodicalTable:
 	def print(self):
 		Console().print(self.table)
 
-@cli_jworg.command("update-periodicals", help="Load the list of the issues of indicated periodical")
+@cli_jworg.command("update-periodicals")
 @click.argument("pub_code")
 @click.argument("year", required=False)
 def cmd_update_periodicals(pub_code, year=None):
+	"""Load the list of the issues of indicated periodical"""
 	logging.basicConfig(level=logging.DEBUG)
 	years = []
 	if year == "all":
@@ -254,12 +260,14 @@ def update_periodicals(pub_code, year=None, table=None):
 	if table is not None:
 		table.print()
 
-@cli_jworg.command("show-periodicals", help="List periodicals in DB")
+@cli_jworg.command("show-periodicals")
 def cmd_show_periodicals():
+	"""List periodicals in DB"""
 	print_query_result_table(PeriodicalIssues.query, "Periodical Issues")
 
-@cli_jworg.command("update-articles", help="Load article titles from TOC of every periodical in the DB")
+@cli_jworg.command("update-articles")
 def cmd_update_articles():
+	"""Load article titles from TOC of every periodical in the DB"""
 	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.lang==pub_finder.language).filter(PeriodicalIssues.pub_code.in_(("w", "g", "mwb"))):
 		print(issue, len(issue.articles))
@@ -273,8 +281,9 @@ def cmd_update_articles():
 					))
 	db.session.commit()
 
-@cli_jworg.command("show-articles", help="List articles in DB")
+@cli_jworg.command("show-articles")
 def cmd_show_articles():
+	"""List articles in DB"""
 	articles = []
 	for article in Articles.query:
 		articles.append(dict(
@@ -292,8 +301,9 @@ def cmd_show_articles():
 # Books and brochures
 #=============================================================================
 
-@cli_jworg.command("update-books", help="Load list of books and brochures")
+@cli_jworg.command("update-books")
 def cmd_update_books():
+	"""Load list of books and brochures"""
 	logging.basicConfig(level=logging.DEBUG)
 	update_books()
 
@@ -313,8 +323,9 @@ def update_books():
 		book.formats = pub.formats
 	db.session.commit()
 
-@cli_jworg.command("show-books", help="List books in DB")
+@cli_jworg.command("show-books")
 def cmd_show_books():
+	"""List books in DB"""
 	print_query_result_table(Books.query, "Books")
 
 #=============================================================================
@@ -326,10 +337,11 @@ def cmd_show_books():
 #        -> Video
 #=============================================================================
 
-@cli_jworg.command("update-videos", help="Update list of available videos")
+@cli_jworg.command("update-videos")
 @click.argument("category_key", required=False)
 @click.argument("subcategory_key", required=False)
 def cmd_update_videos(category_key=None, subcategory_key=None):
+	"""Update list of available videos"""
 	logging.basicConfig(level=logging.DEBUG)
 	language = current_app.config["PUB_LANGUAGE"]
 	if category_key is None and subcategory_key is None:
@@ -426,13 +438,15 @@ def write_video_category_to_db(category_db_obj, category, callback):
 	video_index.add_videos(category_db_obj.videos)
 	video_index.commit()
 
-@cli_jworg.command("show-videos", help="List videos in DB")
+@cli_jworg.command("show-videos")
 def cmd_show_videos():
+	"""List videos in DB"""
 	print_query_result_table(Videos.query, "Videos")
 
-@cli_jworg.command("search-videos", help="Perform a test query on the video index")
+@cli_jworg.command("search-videos")
 @click.argument("q")
 def cmd_search_videos(q):
+	"""Perform a test query on the video index"""
 	result, suggestion = video_index.search(q)
 	table = Table(show_header=True, title="Matching Videos", show_lines=True)
 	columns = Videos.__table__.columns.keys()
@@ -448,9 +462,10 @@ def cmd_search_videos(q):
 # Download Epubs
 #=============================================================================
 
-@cli_jworg.command("download-epubs", help="Download the Epub of the indicated publication")
+@cli_jworg.command("download-epubs")
 @click.argument("pub_code")
 def cmd_download_epubs(pub_code):
+	"""Download the Epub of the indicated publication"""
 	pub_finder = PubFinder(
 			language = current_app.config["PUB_LANGUAGE"],
 			cachedir = current_app.config["MEDIA_CACHEDIR"],
@@ -477,8 +492,9 @@ def download_epub(pub_finder, pub, epub_url):
 # Index illustrations
 #=============================================================================
 
-@cli_jworg.command("index-illustrations", help="Index illustrations in periodicals and books")
+@cli_jworg.command("index-illustrations")
 def cmd_index_illustrations():
+	"""Index illustrations in periodicals and books"""
 	illustration_index.create()
 	for issue in PeriodicalIssues.query.filter(PeriodicalIssues.epub_filename!=None):
 		print(f"issue: {issue.pub_code} {issue.issue_code}")
@@ -503,10 +519,9 @@ def index_illustrations(pub_code, publication):
 				alt = img.attrib["alt"]
 				illustration_index.add_illustration(pub_code, src, caption, alt)
 
-# For testing
-@cli_jworg.command("search-illustrations", help="Search illustration captions")
+@cli_jworg.command("search-illustrations")
 @click.argument("q")
 def cmd_search_illustrations(q):
+	"""Search illustration captions (for testing)"""
 	illustrations = illustration_index.search(q)
 	print_dict_result_table(illustrations, "Illustration Search Results")
-

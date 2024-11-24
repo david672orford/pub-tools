@@ -1,13 +1,13 @@
 #! /usr/bin/python3
-#
-# This script starts an HTTP server for Pub-Tools and then
-# creates a browser widget which connects to it.
-#
-# Requires PyWebview:
-# $ sudo apt install pywebview
-#
+"""
+This script starts an HTTP server for Pub-Tools and then
+creates a browser widget which connects to it.
 
-from argparse import ArgumentParser
+Requires PyWebview:
+  $ sudo apt install pywebview
+"""
+
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import webview
 from threading import Thread
 from werkzeug.serving import make_server
@@ -15,45 +15,46 @@ import logging
 
 from app import create_app
 
-logging.basicConfig(
-	level=logging.DEBUG,
-	format='%(asctime)s %(levelname)s %(name)s %(message)s',
-	datefmt='%H:%M:%S'
+parser = ArgumentParser(
+	description = __doc__,
+	formatter_class = RawDescriptionHelpFormatter,
 	)
-
-parser = ArgumentParser()
-parser.add_argument("--subapp", default=None)
-parser.add_argument("--server", action="store_true")
+parser.add_argument("--subapp", default=None, help="Choose the top-level directory")
+parser.add_argument("--server", action="store_true", help="Use own instance of Pub Tools web server")
+parser.add_argument("--gui-toolkit", default="qt", help="Select gtk or qt")
+parser.add_argument("--debug", action="store_true", help="Enabling devtools, verbose logging")
 options = parser.parse_args()
 
-url = "http://localhost:5000"
-if options.subapp is not None:
-	url = f"{url}/{options.subapp}/"
+logging.basicConfig(
+	level = logging.DEBUG if options.debug else logging.INFO,
+	format = '%(asctime)s %(levelname)s %(name)s %(message)s',
+	datefmt = '%H:%M:%S'
+	)
 
 if options.server:
-	print("Starting embedded web server...")
+	logging.info("Starting embedded web server...")
 	server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
 	server_thread = Thread(target=lambda: server.serve_forever())
 	server_thread.daemon = True
 	server_thread.start()
 
-print("Starting webview...")
+logging.info("Starting webview...")
 webview.create_window(
 	title = "Pub-Tools",
-	url = url,
+	url = "http://localhost:5000/" + ((options.subapp + "/") if options.subapp else ""),
 	width = 1200,
 	height = 900,
 	)
 webview.start(
-	debug=True,
-	gui="qt",		# small unless we set QT_SCALE_FACTOR=2, no button padding
-	#gui="gtk",		# patchbay does not work
+	debug = options.debug,
+	# qt: small unless we set QT_SCALE_FACTOR=2, no button padding
+	# gtk: patchbay does not work
+	gui = options.gui_toolkit,
 	)
-print("Webview has exited.")
+logging.info("Webview has exited.")
 
 if options.server:
-	print("Shutting down the web server...")
+	logging.info("Shutting down the web server...")
 	server.shutdown()
 	server_thread.join()
-	print("Server has stopt.")
-
+	logging.info("Server has stopt.")

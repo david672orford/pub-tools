@@ -1,23 +1,24 @@
 #! /usr/bin/python3
-#
-# This script runs Pub-Tools in a standalone web server.
-#
-# To start it:
-#
-#   ./start.py
-#
-# Then browser to:
-#
-#   http://127.0.0.1:5000
-#
+"""
+This script runs Pub-Tools in a standalone web server.
+
+Start it:
+   ./start.py
+
+Then browser to:
+   http://127.0.0.1:5000
+"""
 
 import logging
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from werkzeug.serving import run_simple
 from app import create_app
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
 
-parser = ArgumentParser()
+parser = ArgumentParser(
+	description = __doc__,
+	formatter_class = RawDescriptionHelpFormatter,
+	)
 parser.add_argument("--debug", action="store_true")
 parser.add_argument("--debug-requests", action="store_true")
 parser.add_argument("--listen-addr", default="127.0.0.1")

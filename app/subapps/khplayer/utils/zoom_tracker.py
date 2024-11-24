@@ -308,5 +308,3 @@ class ZoomCropper:
 					obs.set_scene_item_enabled(self.scene_uuid, self.scene_item_id, True)
 				obs.scale_scene_item(self.scene_uuid, self.scene_item_id, crop)
 			self.prev_crop = crop
-
-
