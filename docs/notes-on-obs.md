@@ -52,6 +52,8 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions
+* [Advanced Filename Formatter](https://github.com/Penwy/adv-ff)
+* [Get source frame data FFI](https://github.com/KashouC/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API/blob/master/src/get_source_frame_data_ffi.py)
 
 ## OBS Plugin Development
 
