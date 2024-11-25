@@ -1,4 +1,7 @@
-import os, sys, types
+"""Start KHPlayer's virtual audio cable when OBS starts"""
+
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -7,16 +10,16 @@ from config import get_config, put_config
 from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
 
 class ObsVirtualAudioCable(ObsScript):
-	description = """
-		<h2>KH Player—Virtual Audio Cable</h2>
-		<p>Create virtual audio cable in the Pipewire audio server to connect OBS, Zoom, a microphone, and speakers.</p>
-		"""
+	"""
+	<h2>KH Player—Virtual Audio Cable</h2>
+	<p>Create virtual audio cable in the Pipewire audio server to connect OBS, Zoom, a microphone, and speakers.</p>
+	"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.config = None
 		self.microphone_options = []
-		self.speakers_options = []	
+		self.speakers_options = []
 
 		# Define script configuration GUI
 		self.gui = [
@@ -32,6 +35,7 @@ class ObsVirtualAudioCable(ObsScript):
 			]
 
 	def on_load(self, settings):
+		"""Script loaded"""
 		self.config = get_config("PERIPHERALS")
 		if self.debug:
 			print("config:", self.config)
@@ -39,33 +43,35 @@ class ObsVirtualAudioCable(ObsScript):
 		connect_all(patchbay, self.config)
 		#obs.obs_frontend_add_tools_menu_item("Reconnect Audio", self.on_button)
 
-	# About to display the GUI
 	def on_before_gui(self):
+		"""About to display the GUI"""
 		self.config = get_config("PERIPHERALS")
 		if self.debug:
 			print("on_gui()", self.config)
 		patchbay.load()
 		self.microphone_options = []
-		self.speakers_options = []	
+		self.speakers_options = []
 		for node in patchbay.nodes:
 			if node.media_class == "Audio/Source":
 				self.microphone_options.append((node.name, node.nick if node.nick else node.name))
 			if node.media_class == "Audio/Sink" and node.name != "To-Zoom":
 				self.speakers_options.append((node.name, node.nick if node.nick else node.name))
 
-	# Accept settings from the script configuration GUI
 	def on_gui_change(self, settings):
+		"""Accept settings from the script configuration GUI"""
 		print("settings:", settings)
 		self.config["microphone"] = settings.microphone
 		self.config["speakers"] = settings.speakers
 
 	def on_button(self):
+		"""Reconnect Audio button pressed"""
 		print("Reconnect Audio")
 		put_config("PERIPHERALS", self.config)
 		patchbay.load()
 		connect_all(patchbay, self.config)
 
 	def on_unload(self):
+		"""Script is about to be unloaded"""
 		patchbay.load()
 		destroy_cable(patchbay)
 

@@ -98,6 +98,18 @@ def cmd_get_special_inputs():
 	response = obs.request("GetSpecialInputs", {})
 	print_json(response["responseData"])
 
+@cli_obs.command("create-input")
+@click.argument("scene_name")
+@click.argument("input_kind")
+@click.argument("input_name")
+def cmd_obs_create_input(scene_name, input_kind, input_name):
+	response = obs.request("CreateInput", {
+		"sceneName": scene_name,
+		"inputKind": input_kind,
+		"inputName": input_name,
+		})
+	print_json(response["responseData"])
+
 @cli_obs.command("get-input-default-settings")
 @click.argument("input_kind")
 def cmd_obs_get_input_default_settings(input_kind):
@@ -107,49 +119,41 @@ def cmd_obs_get_input_default_settings(input_kind):
 		})
 	print_json(response["responseData"])
 
-@cli_obs.command("get-input-property-options")
-@click.argument("input_name")
-@click.argument("property_name")
-def cmd_obs_get_input_property_options(input_name, property_name):
-	"""Get the options for the specified setting"""
-	response = obs.request("GetInputPropertiesListPropertyItems", {
-		"inputName": input_name,
-		"propertyName": property_name,
-		})
-	print_json(response["responseData"]["propertyItems"])
-
-@cli_obs.command("create-input")
-@click.argument("input_kind")
-@click.argument("input_name")
-def cmd_obs_create_input(input_kind, input_name):
-	response = obs.request("CreateInput", {
-		})
-	print_json(response["responseData"])
-
 @cli_obs.command("get-input-uuid")
 @click.argument("input_name")
 def cmd_obs_get_input_uuid(input_name):
 	"""Given name, get UUID"""
 	print(obs.get_input_uuid(input_name))
 
+@cli_obs.command("get-input-setting-options")
+@click.argument("input_name")
+@click.argument("property_name")
+def cmd_obs_get_input_setting_options(input_name, property_name):
+	"""Get the options for the specified setting of the specified input"""
+	response = obs.request("GetInputPropertiesListPropertyItems", {
+		"inputName": input_name,
+		"propertyName": property_name,
+		})
+	print_json(response["responseData"]["propertyItems"])
+
 @cli_obs.command("get-input-settings")
 @click.argument("input_name")
 def cmd_obs_get_input_settings(input_name):
-	"""Show settings of specified input"""
+	"""Show all settings of specified input"""
 	print_json(obs.get_input_settings(name=input_name))
 
 @cli_obs.command("set-input-settings")
 @click.argument("input_name")
 @click.argument("settings")
-def cmd_obs_set_input_settings(input_name, settings):
-	"""Change settings of specified input"""
+def cmd_obs_update_input_settings(input_name, settings):
+	"""Merge JSON into settings of specified input"""
 	settings = json.loads(settings)
 	obs.set_input_settings(name=input_name, settings=settings)
 
 @cli_obs.command("get-input-device-list")
 @click.argument("input_name", default="Mic/Aux")
 def cmd_get_input_device_list(input_name):
-	"""List the device options for the named input"""
+	"""List options for device_id setting of the named input"""
 	print(f"Devices for {input_name}:")
 	response = obs.request("GetInputPropertiesListPropertyItems", {
 		"inputName": input_name,
@@ -160,7 +164,7 @@ def cmd_get_input_device_list(input_name):
 @cli_obs.command("get-input-device")
 @click.argument("input_name")
 def cmd_get_input_device(input_name):
-	"""Get the device_id of the specified input"""
+	"""Get the device_id setting of the named input"""
 	settings = obs.get_input_settings(name=input_name)
 	print(settings.get("device_id"))
 
@@ -168,7 +172,7 @@ def cmd_get_input_device(input_name):
 @click.argument("input_name")
 @click.argument("device_id")
 def cmd_set_input_device(input_name, device_id):
-	"""Set the device_id of the named input"""
+	"""Set the device_id setting of the named input"""
 	obs.set_input_settings(name=input_name, settings={"device_id": device_id})
 
 #=============================================================================

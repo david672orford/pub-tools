@@ -380,7 +380,7 @@ class ObsControl(ObsControlBase):
 	def create_camera_scene(self, scene_name, camera_dev):
 		pos = self.select_scene_pos(skiplist="*")
 		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
+		self.add_camera_input(scene_uuid, camera_dev)
 
 	# Create a scene containing just a capture of the specified window
 	def create_zoom_scene(self, scene_name, capture_window):
@@ -416,7 +416,7 @@ class ObsControl(ObsControlBase):
 	def create_remote_scene(self, scene_name, settings):
 		pos = self.select_scene_pos(skiplist="*")
 		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-		scene_item_id = self.create_input_with_reuse(
+		self.create_input_with_reuse(
 			scene_uuid = scene_uuid,
 			input_name = "VDO.Ninja %s" % settings.get("view"),
 			input_kind = "browser_source",
@@ -428,4 +428,3 @@ class ObsControl(ObsControlBase):
 				"webpage_control_level": 0,
 				}
 			)
-		#self.scale_scene_item(scene_uuid, scene_item_id)

@@ -1,5 +1,4 @@
-# OBS Studio Plugin which embeds the Flask web server to run
-# the same apps as ../start.py does.
+"""Embed the web server for KHPlayer in OBS so we can be sure it will be running"""
 
 import os, sys
 from threading import Thread
@@ -28,13 +27,11 @@ logger = logging.getLogger()
 logger.removeHandler(logger.handlers[0])
 
 class KHPlayer(ObsScript):
-	"""Run KH Player inside OBS"""
-
-	description = """
-		<h2>KH Player—Server</h2>
-		<p>KH Player loads videos and illustrations from JW.ORG. Enable it and
-		point a browser at <a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
-		"""
+	"""
+	<h2>KH Player—Server</h2>
+	<p>KH Player loads videos and illustrations from JW.ORG. Enable it and
+	point a browser at <a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
+	"""
 
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -53,8 +50,8 @@ class KHPlayer(ObsScript):
 		self.server = None		# HTTP server object
 		self.logger = logging.getLogger("app")
 
-	# Accept settings from the script configuration GUI
 	def on_gui_change(self, settings):
+		"""Accept settings from the script configuration GUI"""
 		if settings.debug != self.debug:
 			if settings.debug:
 				self.logger.setLevel(logging.DEBUG)
@@ -70,13 +67,13 @@ class KHPlayer(ObsScript):
 			self.enable = settings.enable
 			self.apply_server_thread_state()
 
-	# OBS Shutdown
 	def on_unload(self):
+		"""OBS shutdown"""
 		self.enable = False
 		self.apply_server_thread_state()
 
-	# Start or stop the HTTP server thread in accord with the current settings
 	def apply_server_thread_state(self):
+		"""Start or stop the HTTP server thread in accord with the current settings"""
 		self.logger.debug("apply_server_thread_state(): enable=%s thread=%s", self.enable, self.thread)
 
 		if self.thread is not None:

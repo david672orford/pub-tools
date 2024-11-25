@@ -83,7 +83,6 @@ def freeing(source_list):
 
 # Derive your OBS script class from this
 class ObsScript:
-	description = "Description of script here"
 	gui = []
 
 	def __init__(self, debug=False):
@@ -133,7 +132,7 @@ class ObsScript:
 
 	# Install OBS callback functions in the global namespace of the calling module
 	def _install_callbacks(self, g):
-		g['script_description'] = lambda: self.description
+		g['script_description'] = lambda: self.__doc__
 		g['script_load'] = lambda settings: self._script_load(settings)
 		g['script_unload'] = lambda: self._script_unload()
 		g['script_save'] = lambda settings: self._script_save(settings)

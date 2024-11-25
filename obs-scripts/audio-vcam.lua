@@ -22,7 +22,7 @@ function on_event(event)
 	print("event: " .. event)
 	if event == obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED then
 		device = obs.obs_data_get_string(saved_settings, "device")
-		output = obs.obs_output_create("pulse_output", device, saved_settings, None)
+		output = obs.obs_output_create("pulse_output", device, saved_settings, nil)
 		obs.obs_output_start(output)
 	elseif event == obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED then
 		stop_output()
