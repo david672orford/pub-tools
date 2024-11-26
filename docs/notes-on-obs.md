@@ -53,6 +53,7 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions
 * [Advanced Filename Formatter](https://github.com/Penwy/adv-ff)
+* [Get source frame data](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653)
 * [Get source frame data FFI](https://github.com/KashouC/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API/blob/master/src/get_source_frame_data_ffi.py)
 
 ## OBS Plugin Development

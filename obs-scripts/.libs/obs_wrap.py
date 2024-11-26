@@ -79,7 +79,7 @@ def freeing(source_list):
 	try:
 		yield source_list
 	finally:
-		obs.source_list_release(source_list)	
+		obs.source_list_release(source_list)
 
 # Derive your OBS script class from this
 class ObsScript:
@@ -201,7 +201,8 @@ class ObsScript:
 		# this handler installed since it creates lockups when scripts switch
 		# scenes. See: https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
 		def on_event(event):
-			print("*** event:", event)
+			if self.debug:
+				print("*** event:", event)
 			if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
 				if self.debug:
 					print("*** finished loading")
@@ -451,4 +452,3 @@ class ObsScriptSourceEventsMixin:
 
 	def on_media_stopped(self, source):
 		pass
-
