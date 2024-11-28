@@ -1,7 +1,10 @@
 #! /usr/bin/python3
-#
-# Custom volume control for PulseAudio
-#
+"""
+Custom volume control for PulseAudio
+
+Requires Pulsectl:
+    $ sudo apt-get install python3-pulsectl
+"""
 # ## Currently Used
 # * [Python Gtk+ 3.0 API](https://athenajc.gitbooks.io/python-gtk-3-api/content/)
 # * [Python bindings for Libpulse](https://github.com/mk-fg/python-pulse-control/)
@@ -14,7 +17,6 @@
 # * [GLib event loop integration for asyncio](https://github.com/jhenstridge/asyncio-glib)
 # * [Attempts to integrate above with Gtk](https://github.com/jhenstridge/asyncio-glib/issues/1)
 # * https://github.com/henrikschnor/pasimple/
-#
 
 app_name = "my-volume"
 app_icon = "multimedia-volume-control-symbolic"

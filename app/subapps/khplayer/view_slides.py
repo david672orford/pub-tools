@@ -134,7 +134,7 @@ def get_fs_client(path:str):
 	client_class, root_folder = get_root_folder()
 	path_to.insert(0, root_folder)
 
-	print(f"top={repr(top)}, path_to={path_to}, zip_filename={repr(zip_filename)}, path_within={path_within}")
+	#print(f"top={repr(top)}, path_to={path_to}, zip_filename={repr(zip_filename)}, path_within={path_within}")
 
 	if path_to[0] is not None:
 		media_cachedir = current_app.config["MEDIA_CACHEDIR"]

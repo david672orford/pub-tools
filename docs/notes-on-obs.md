@@ -2,6 +2,11 @@
 
 ## OBS Studio Installation
 
+On Ubuntu:
+
+    $ sudo add-apt-repository ppa:obsproject/obs-studio
+	$ sudo apt install ffmpeg obs-studio
+
 * [OBS Main Site](https://obsproject.com/)
 * [OBS Github Site](https://github.com/obsproject/obs-studio)
 * [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
@@ -52,9 +57,11 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions
-* [Advanced Filename Formatter](https://github.com/Penwy/adv-ff)
-* [Get source frame data](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653)
-* [Get source frame data FFI](https://github.com/KashouC/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API/blob/master/src/get_source_frame_data_ffi.py)
+* Screenshotting
+    * [Advanced Filename Formatter](https://github.com/Penwy/adv-ff)
+    * [Get source frame data](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653)
+    * [Get source frame data FFI](https://github.com/KashouC/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API/blob/master/src/get_source_frame_data_ffi.py)
+    * [PR: Typemapping for gs_stagesurface_map added](https://github.com/obsproject/obs-studio/pull/4779)
 
 ## OBS Plugin Development
 
@@ -99,6 +106,7 @@ of quite a number of users.
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
+* [Lua: Deadlocks in scripts that implement video sources and call obs_enter_graphics](https://github.com/obsproject/obs-studio/issues/6674)
 
 ## Notes from Programming in OBS
 
@@ -110,7 +118,7 @@ out when writing scripts for it.
 Each **Scene** has zero or more **Scene Items**. Each Scene Item has a **Source** to which it applies
 a **Scene Item Transform**. A source is an **Input** or another Scene.
 
-Scenes are identified by Name and by UUID. Scene Items are identified by Scene and ID. 
+Scenes are identified by Name and by UUID. Scene Items are identified by Scene and ID.
 Scene Item ID's are a small integers. They are unique only within the scene.
 
 Each Scene Item also has an **Index** which determines its place in the stacking order
@@ -150,4 +158,3 @@ at the indicated position. The default is to place the top-left corner
 of the image at that position.
 6. The image is rotated around the **Position** by the number of degrees
 indicated in the **Rotation** parameter.
-

@@ -9,7 +9,7 @@ Linux distributions.
 
 ## Pipewire
 
-* [Pipewire](https://www.pipewire.org/)
+* [Pipewire Project Site](https://www.pipewire.org/)
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
 * [Pipewire Wiki](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/home)
 * [Pipewire Guide](https://github.com/mikeroyal/PipeWire-Guide) -- Setting up Pipeware and compatible utilities
@@ -25,7 +25,7 @@ Linux distributions.
 
 ### Pipewire Programming Examples
 
-* [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- A virtual audio source from an audio file
+* [A Custom PipeWire Node](https://bootlin.com/blog/a-custom-pipewire-node/) -- Simple audio file player
 
 ## PulseAudio
 

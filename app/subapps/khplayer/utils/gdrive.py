@@ -48,7 +48,6 @@ class IterAsFile:
 
 class GDriveClient:
 	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
-		print("path_to:", path_to)
 		self.folder_id = path_to[-1]
 		self.cachedir = cachedir
 		self.debug = debug
