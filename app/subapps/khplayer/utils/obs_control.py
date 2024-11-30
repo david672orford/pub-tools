@@ -81,6 +81,8 @@ class ObsControl(ObsControlBase):
 		if self._scene_list is None:
 			return
 		data = event["eventData"]
+		if data.get("isGroup", False):
+			return
 		match event["eventType"]:
 			case "CurrentSceneCollectionChanged":
 				self._scene_list = None
@@ -341,8 +343,9 @@ class ObsControl(ObsControlBase):
 				#"pixelformat": 875967048,		# H.264
 				#"pixelformat" : 1448695129,	# YUYV 4:2:2
 				"resolution": 83886800,			# 1280x720
+				"framerate": 4294967326,		# 30 fps
 				"auto_reset": True,
-				#"timeout_frames": 30,			# Default of 5 is too short for some cameras, leads to continuous restarts
+				"timeout_frames": 30,			# Default of 5 is too short for some cameras, leads to continuous restarts
 				"buffering": False,
 				}
 			)

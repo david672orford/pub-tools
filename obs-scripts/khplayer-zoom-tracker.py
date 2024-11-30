@@ -5,7 +5,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from time import sleep
+from time import sleep, time
+from ctypes import string_at, byref
 from PIL import Image
 import obspython as obs
 import gs_stagesurface_map
@@ -23,12 +24,12 @@ class ObsZoomTracker(ObsScript):
 		self.windows = []
 		self.source_name = "Zoom Capture"
 		self.source = None
-		self.scene_names = (
-			"* Zoom Speaker",
-			"* Zoom 1",
-			"* Zoom 2",
+		self.cropper_names = (
+			"Zoom Crop 0",
+			"Zoom Crop 1",
+			"Zoom Crop 2",
 			)
-		self.zoom_scenes = []
+		self.croppers = []
 		self.tracker = ZoomTracker()
 
 		self.gui = [
@@ -45,11 +46,11 @@ class ObsZoomTracker(ObsScript):
 		if self.source is None:
 			self.source = obs.obs_source_create("xcomposite_input", self.source_name, None, None)
 
-		# Create the scenes which will contain cropped versions of this input
-		for i in range(len(self.scene_names)):
-			scene_name = self.scene_names[i]
-			print("Creating", scene_name)
-			self.zoom_scenes.append(ZoomCropper(scene_name, self.source_name, self.source, i!=0))
+		# Create the sources which will contain cropped versions of this input
+		for i in range(len(self.cropper_names)):
+			cropper_name = self.cropper_names[i]
+			print("Creating cropper:", cropper_name)
+			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.source, i!=0))
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
 
@@ -65,7 +66,7 @@ class ObsZoomTracker(ObsScript):
 
 	def on_gui_change(self, settings):
 		"""When a setting is changed in the GUI"""
-		print("GUI change: capture_window:", settings.capture_window)
+		print("GUI change: capture_window is now:", settings.capture_window)
 		source_settings = obs.obs_data_create()
 		obs.obs_data_set_string(source_settings, "capture_window", settings.capture_window)
 		obs.obs_data_set_int(source_settings, "cut_top", 130)
@@ -77,21 +78,32 @@ class ObsZoomTracker(ObsScript):
 	def on_unload(self):
 		if self.source is not None:
 			obs.obs_source_release(self.source)
+		for zoom_scene in self.croppers:
+			zoom_scene.release()
 
-	def on_source_show(self):
-		print("Source is now showing")
-		self.schedule_tracking(100, repeat=True)
+	def active(self):
+		#return obs.obs_source_active(self.source)
+		for cropper in self.croppers:
+			if obs.obs_source_active(cropper.source):
+				return True
+		return False
 
 	def tick(self):
-		if obs.obs_source_active(self.source):
-			img = snapshot(self.source)
-			if img is not None:
-				#img.save("/tmp/image.png", "PNG")
-				self.tracker.load_image(img)
-				self.tracker.do_cropping(self.zoom_scenes)
+		if self.active():
+			data, width, height = snapshot(self.source)
+			if data is not None:
+				def task():
+					obs.remove_current_callback()
+					img = Image.frombuffer("RGBA", (width, height), data, "raw", "RGBA", 0, 1)
+					img = img.convert("RGB")
+					#img.save("/tmp/image.png", "PNG")
+					self.tracker.load_image(img)
+					self.tracker.do_cropping(self.croppers)
+				#task()
+				obs.timer_add(task, 1)
 
 def snapshot(source):
-	"""Take a screenshot of the named source and return it as a PIL image"""
+	"""Take a screenshot of the supplied OBS source"""
 	# We found these examples helpful:
 	# https://github.com/obsproject/obs-websocket/blob/master/src/requesthandler/RequestHandler_Sources.cpp
 	# https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653
@@ -116,7 +128,8 @@ def snapshot(source):
 		# Get ahold of the copy
 		linesize, rawdata = obs.gs_stagesurface_map(stagesurf)
 		if linesize is not None:
-			data = bytes(rawdata[:linesize*height])
+			#data = bytes(rawdata[:linesize*height])
+			data = bytearray(string_at(rawdata, linesize*height))
 		if data is not None:
 			obs.gs_stagesurface_unmap(stagesurf)
 
@@ -126,11 +139,8 @@ def snapshot(source):
 	obs.obs_leave_graphics()
 
 	if data is None:
-		return None
-
-	img = Image.frombuffer("RGBA", (width, height), data, "raw", "RGBA", 0, 1)
-	img = img.convert("RGB")
-	return img
+		return None, None, None
+	return data, width, height
 
 class ZoomCropper:
 	"""
@@ -138,19 +148,20 @@ class ZoomCropper:
 	There is an OBS-Websocket version of this in cli_zoom.py.
 	"""
 
-	def __init__(self, scene_name, source_name, source, toggle):
+	def __init__(self, source_name, zoom_source_name, zoom_source, toggle):
 		self.prev_crop_box = None
 		self.toggle = toggle
 
 		# Find the named scene. Create it if it does not exist.
-		scene = obs.obs_get_scene_by_name(scene_name)
-		if scene is None:
-			scene = obs.obs_scene_create(scene_name)
+		self.source = obs.obs_get_source_by_name(source_name)
+		if self.source is None:
+			self.source = obs.obs_source_create("group", source_name, None, None)
 
 		# If the named source is not in the scene, add it.
-		self.scene_item = obs.obs_scene_find_source(scene, source_name)
+		group = obs.obs_group_from_source(self.source)
+		self.scene_item = obs.obs_scene_find_source(group, zoom_source_name)
 		if self.scene_item is None:
-			self.scene_item = obs.obs_scene_add(scene, source)
+			self.scene_item = obs.obs_scene_add(group, zoom_source)
 
 		# Prepare the scene item for cropping.
 		obs.obs_sceneitem_set_bounds_type(self.scene_item, obs.OBS_BOUNDS_SCALE_INNER)
@@ -160,7 +171,8 @@ class ZoomCropper:
 		obs.obs_sceneitem_set_bounds(self.scene_item, bounds)
 		obs.obs_sceneitem_set_bounds_alignment(self.scene_item, 0)
 
-		obs.obs_scene_release(scene)
+	def release(self):
+		obs.obs_source_release(self.source)
 
 	def set_crop(self, crop_box, width, height):
 		if crop_box != self.prev_crop_box:
@@ -185,7 +197,7 @@ zoom_tracker = ObsZoomTracker()
 tick_count = 0
 def script_tick(seconds):
 	global tick_count
-	TICK_DIVISOR = 15
+	TICK_DIVISOR = 5
 	if seconds > 0.034:
 		print("long tick:", seconds)
 	tick_count += 1

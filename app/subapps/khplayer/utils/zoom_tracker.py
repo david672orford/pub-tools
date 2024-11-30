@@ -17,15 +17,12 @@ class ZoomTracker:
 	https://github.com/python-pillow/Pillow
 	"""
 
-	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# green
-	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# smallest seems to be about 450px wide
-	SPEAKER_BORDER_WIDTH = 4
-	SPEAKER_BORDER_LR = SPEAKER_BORDER_WIDTH * SPEAKER_BORDER_COLOR
-	BACKGROUND_COLOR = pack("BBB", 13, 13, 13)
-	SIDEBAR_COLOR = pack("BBB", 255, 255, 255)
-	CORNER_RADIUS = 16
 	BYTES_PER_PIXEL = 3
 	GREY_BORDER_WIDTH = 5
+	BACKGROUND_COLOR = pack("BBB", 13, 13, 13)
+	SIDEBAR_COLOR = pack("BBB", 255, 255, 255)
+	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# green
+	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# smallest seems to be about 450px wide
 
 	def __init__(self):
 		self.debug = False
@@ -46,8 +43,6 @@ class ZoomTracker:
 		if self.debug:
 			print("sidebar_width:", self.sidebar_width)
 		if self.sidebar_width > 0:
-			if self.debug:
-				print("Cropping...")
 			self._load_image(self.img.crop((0, 0, self.img.width - self.sidebar_width, self.img.height)))
 
 		# Find the area in the center where the gallery view is
@@ -60,15 +55,13 @@ class ZoomTracker:
 		# and can work out where all the boxes are.
 		if gallery is not None and speaker_box is not None:
 			self.layout, speaker_index = self.do_layout(gallery, speaker_box)
-			if self.debug:
-				print("speaker_index:", speaker_index)
 			self.speaker_indexes.set_speaker_index(speaker_index)
 		else:
 			self.layout = []
 
 	def _load_image(self, img):
 		if self.debug:
-			print(img.format, img.width, img.height, img.mode)
+			print("Image:", img.format, img.width, img.height, img.mode)
 		self.img = img
 		self.data = self.img.tobytes()
 		# Multiplier for the y-coordinate to find where a row starts in the
@@ -122,19 +115,19 @@ class ZoomTracker:
 
 	def measure_left_margin(self, y):
 		"""Count the number of black pixels at the start of the indicated row"""
-		offset = (y * self.img.width + self.GREY_BORDER_WIDTH) * self.BYTES_PER_PIXEL
+		offset = self.xy_to_offset(self.GREY_BORDER_WIDTH, y)
 		for x in range(self.GREY_BORDER_WIDTH, self.img.width):
-			if self.data.find(self.BACKGROUND_COLOR, offset) != offset:
+			if self.data.find(self.BACKGROUND_COLOR, offset, offset+self.BYTES_PER_PIXEL) != offset:
 				return x - 1
 			offset += self.BYTES_PER_PIXEL
 		raise AssertionError("Reached far right without finding end of left margin")
 
 	def measure_sidebar(self, y):
 		"""Measure the white sidebar based on a row at the very bottom of window"""
-		offset = (y * self.img.width + self.img.width - self.GREY_BORDER_WIDTH) * self.BYTES_PER_PIXEL
-		for x in range(self.img.width - (2 * self.GREY_BORDER_WIDTH)):
-			if self.data.find(self.SIDEBAR_COLOR, offset) != offset:
-				return x
+		offset = self.xy_to_offset(self.img.width - self.GREY_BORDER_WIDTH, y)
+		for width in range(self.img.width - (2 * self.GREY_BORDER_WIDTH)):
+			if self.data.find(self.SIDEBAR_COLOR, offset, offset+self.BYTES_PER_PIXEL) != offset:
+				return width
 			offset -= self.BYTES_PER_PIXEL
 		raise AssertionError("Reached far left without finding end of sidebar")
 
@@ -160,47 +153,62 @@ class ZoomTracker:
 		if self.debug:
 			print("hit2:", x2, y2)
 
+		border_width = self.measure_border_width(x1, y1)
+		if self.debug:
+			print("border width:", border_width)
+		border_corner_radius = border_width * 4
+		border_lr = border_width * self.SPEAKER_BORDER_COLOR
+
 		# The X positions of the start of the top and bottom borders will be a bit
 		# different due to the fact that hit1 and hit2 hit it at different heights of the
 		# rounded corner, but they should be close.
-		if (x2 - x1) > self.CORNER_RADIUS:
+		if (x2 - x1) > border_corner_radius:
 			return None
 
 		# Distance between the tops of the top and bottom borders plus the
 		# border width is the height of the speaker box.
-		height = y2 - y1 + self.SPEAKER_BORDER_WIDTH
+		height = y2 - y1 + border_width
 
 		# Estimate positions of left and right edges of the box
-		x = x1 - self.CORNER_RADIUS
+		x = x1 - border_corner_radius
 		width = int(height * 16 / 9 + 0.5)
 		if self.debug:
 			print(f"Estimates: x={x}, width={width}")
 
 		# Use our estimates to find the right and left borders and measure their actual positions.
 		middle_y = y1 + int(height / 2)
-		FUDGE = 5
+		FUDGE = 10
 		lb_hit = self.data.find(
-			self.SPEAKER_BORDER_LR,
+			border_lr,
 			self.xy_to_offset(x - FUDGE, middle_y),
-			self.xy_to_offset(x + self.SPEAKER_BORDER_WIDTH + FUDGE, middle_y),
+			self.xy_to_offset(x + border_width + FUDGE, middle_y),
 			)
 		if lb_hit != -1:
 			x = self.offset_to_x(lb_hit)
 		else:
-			print("Failed to find right border")
+			print("Failed to find left border")
+
 		rb_hit = self.data.find(
-			self.SPEAKER_BORDER_LR,
-			self.xy_to_offset(x + width - self.SPEAKER_BORDER_WIDTH - FUDGE, middle_y),
+			border_lr,
+			self.xy_to_offset(x + width - border_width - FUDGE, middle_y),
 			self.xy_to_offset(x + width + FUDGE, middle_y),
 			)
 		if rb_hit != -1:
-			width = int((rb_hit - lb_hit) / self.BYTES_PER_PIXEL + self.SPEAKER_BORDER_WIDTH)
+			width = int((rb_hit - lb_hit) / self.BYTES_PER_PIXEL + border_width)
 		else:
 			print("Failed to find right border")
 		if self.debug:
 			print(f"Final: x={x}, width={width}")
 
 		return CropBox(x, y1, width, height)
+
+	def measure_border_width(self, x, y):
+		"""Given the x, y coordinates of the top of the border, scan down to find the width"""
+		for yscan in range(y+1, y + 20):
+			offset = self.xy_to_offset(x, yscan)
+			if self.data.find(self.SPEAKER_BORDER_COLOR, offset, offset+self.BYTES_PER_PIXEL) != offset:
+				return (yscan - y)
+		raise AssertionError("Speaker border implausibly wide")
 
 	def do_layout(self, gallery, speaker_box):
 		"""
@@ -214,7 +222,7 @@ class ZoomTracker:
 		columns = int((gallery.width+FUDGE) / speaker_box.width)
 		rows = int((gallery.height+FUDGE) / speaker_box.height)
 		if self.debug:
-			print(f"Gallery layout: {columns}x{rows}")
+			print(f"Gallery layout: {columns} x {rows}")
 			print(f"Speaker box: {speaker_box}")
 
 		y = gallery.y
@@ -292,8 +300,12 @@ class SimpleSpeakerIndexes(list):
 
 	def set_speaker_index(self, speaker_index):
 
-		# OBS is the "speaker" or no change
-		if speaker_index in (0, self[0]):
+		# Exclude first box
+		#if speaker_index == 0:
+		#	return
+
+		# No change
+		if speaker_index == self[0]:
 			return
 
 		# Set current speaker

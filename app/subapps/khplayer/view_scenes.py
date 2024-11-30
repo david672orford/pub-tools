@@ -45,17 +45,18 @@ def get_scenes_with_thumbnails():
 		flash(_("OBS: %s") % str(e))
 		scenes = {"scenes": []}
 
-	try:
-		for scene in scenes["scenes"]:
-			if not "thumbnail_url" in scene:
-				scene["thumbnail_url"] = get_scene_thumbnail(scene)
-	except ObsError as e:
-		flash(_("OBS: %s") % str(e))
+	for scene in scenes["scenes"]:
+		if not "thumbnail_url" in scene:
+			scene["thumbnail_url"] = get_scene_thumbnail(scene)
 
 	return scenes
 
 def get_scene_thumbnail(scene):
-	return obs.get_source_screenshot(scene["sceneUuid"])
+	try:
+		return obs.get_source_screenshot(scene["sceneUuid"])
+	except ObsError as e:
+		logger.error("Failed to get thumbnail: %s", e)
+		return None
 
 # Update the scenes list when scenes are added, removed, renamed
 def scenes_event_handler(event):
@@ -104,6 +105,9 @@ obs.subscribe("Ui", scenes_event_handler)			# studio mode
 def scene_items_event_handler(event):
 	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 	scene = event["eventData"]
+	# FIXME: This fires for groups too. Need a more general way to filter them out.
+	if scene["sceneName"].startswith("Zoom Crop "):
+		return
 	scene["thumbnail_url"] = get_scene_thumbnail(scene)
 	with blueprint.app.app_context():
 		turbo.push(render_template("khplayer/scenes_event_thumbnail.html", scene=scene))
@@ -323,4 +327,3 @@ def page_scenes_add_text():
 	if text.startswith("https://"):
 		return add_url(text)
 	return load_text("Text", text)
-

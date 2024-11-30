@@ -64,9 +64,9 @@ def cmd_zoom_track():
 	assert zoom_input_uuid is not None, "%s not found" % zoom_input_name
 
 	zoom_scenes = (
-		ZoomCropper("* Zoom Speaker", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("* Zoom 1", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("* Zoom 2", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Crop 0", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Crop 1", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Crop 2", zoom_input_name, zoom_input_uuid),
 		)
 
 	tracker = ZoomTracker()
@@ -105,7 +105,7 @@ class ZoomCropper:
 	"""
 
 	def __init__(self, scene_name, zoom_input_name, zoom_input_uuid):
-		self.prev_crop = None
+		self.prev_crop_box = None
 
 		self.scene_uuid = obs.get_scene_uuid(scene_name)
 		if self.scene_uuid is None:
