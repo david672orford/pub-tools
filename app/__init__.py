@@ -1,4 +1,6 @@
-import os, uuid, platform
+import os
+import uuid
+import platform
 from importlib import import_module
 from flask import Flask, session
 import logging
@@ -54,6 +56,7 @@ def create_app(instance_path=None):
 		VIDEO_REMOTES = {},				# remove video feeds using VDO.Ninja
 		CAMERA_NAME_OVERRIDES = {},		# rename the V4L cameras
 		PATCHBAY = "virtual-cable",
+		SLIDES_DIR = os.path.abspath(os.path.join(current_app.instance_path, "slides")),
 		)
 
 	# Overlay with configuration from instance/config.py

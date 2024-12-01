@@ -397,6 +397,7 @@ def update_videos(language, callback):
 		top_level_count += 1
 
 def update_video_subcategory(language, category_key, subcategory_key, callback):
+	video_index.create(clear=False)
 	lister = VideoLister(language=language)
 	subcategory = lister.get_category(subcategory_key)
 	category_db_obj = VideoCategories.query.filter_by(

@@ -5,7 +5,7 @@ import warnings
 import os
 
 # https://whoosh.readthedocs.io/en/latest/
-from whoosh.index import create_in, open_dir
+from whoosh.index import create_in, exists_in, open_dir
 from whoosh.fields import Schema, ID, TEXT
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.qparser import QueryParser
@@ -28,12 +28,12 @@ class BaseWhooshIndex:
 		self.whoosh_path = whoosh_path
 		self._writer = None
 
-	def create(self):
+	def create(self, clear=True):
 		if not os.path.exists(self.whoosh_path):
 			os.mkdir(self.whoosh_path)
 
-		# Create the index or clear it if it already exists
-		create_in(self.whoosh_path, self.schema, indexname=self.indexname)
+		if clear or not exists_in(self.whoosh_path, indexname=self.indexname):
+			create_in(self.whoosh_path, self.schema, indexname=self.indexname)
 
 	def open(self):
 		with warnings.catch_warnings():

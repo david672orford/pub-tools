@@ -95,7 +95,10 @@ def get_root_folder():
 		url = urlparse(url)
 		return GDriveClient, url.path.split("/")[-1]
 	else:
-		return LocalDriveClient, os.path.abspath(os.path.join(current_app.instance_path, "slides"))
+		slides_dir = current_app.config["SLIDES_DIR"]
+		if not os.path.exists(slides_dir):
+			os.mkdir(slides_dir)
+		return LocalDriveClient(slides_dir)
 	return None, None
 
 # Create a file system client for the indicated path
