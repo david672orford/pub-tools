@@ -347,6 +347,10 @@ class ObsControlBase:
 					raise
 			sleep(.1)
 
+	def get_group_list(self):
+		result = self.request("GetGroupList", {})
+		return result["responseData"]["groups"]
+
 	def get_current_preview_scene(self):
 		response = self.request("GetCurrentPreviewScene", {})
 		return response["responseData"]

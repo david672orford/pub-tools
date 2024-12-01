@@ -13,7 +13,7 @@ from .utils.controllers import obs, ObsError
 from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, \
 	load_webpage, load_text, load_meeting_media_item, load_media_file
 from .utils.cameras import list_cameras
-from .utils.zoom import find_second_window
+from .utils.zoom import zoom_tracker_loaded, find_second_window
 from .utils.controllers import meeting_loader
 from .utils.html_extractor import HTML
 
@@ -183,22 +183,22 @@ def page_scenes_submit():
 					obs.create_source_scene(_("* Camera"), "camera", camera_dev)
 
 			case "add-zoom":
-				if False:
+				if zoom_tracker_loaded():
+					obs.create_source_scene(_("* Zoom"), "group", "Zoom Crop 0")
+				else:
 					capture_window = find_second_window()
 					if capture_window is not None:
 						obs.create_source_scene(_("* Zoom"), "window", capture_window)
-				else:
-					obs.create_source_scene(_("* Zoom"), "group", "Zoom Crop 0")
 
 			case "add-camera+zoom":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
-					if False:
+					if zoom_tracker_loaded():
+						obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "group", "Zoom Crop 0")
+					else:
 						capture_window = find_second_window()
 						if capture_window is not None:
 							obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "window", capture_window)
-					else:
-						obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "group", "Zoom Crop 0")
 
 			case "add-zoom-1+2":
 				obs.create_split_scene(_("* Zoom 1+2"), "group", "Zoom Crop 1", "group", "Zoom Crop 2")

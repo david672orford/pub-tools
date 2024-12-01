@@ -9,7 +9,7 @@ from ...utils.babel import gettext as _
 from ...utils.background import flash
 from .utils.controllers import obs, ObsError
 from .utils.cameras import list_cameras
-from .utils.zoom import find_second_window
+from .utils.zoom import zoom_tracker_loaded, find_second_window
 
 logger = logging.getLogger(__name__)
 
@@ -115,13 +115,13 @@ def page_scenes_composer_add_source(scene_uuid):
 					obs.add_camera_source(scene_uuid, camera_dev)
 
 			case "add-zoom":
-				if action[1] == "0" and False:
+				if zoom_tracker_loaded():
+					obs.add_group_source(scene_uuid, f"Zoom Crop {action[1]}")
+				elif action[1] == "0":
 					capture_window = find_second_window()
 					if capture_window is not None:
 						scene_item_id = obs.add_capture_source(scene_uuid, capture_window)
 						obs.scale_scene_item(scene_uuid, scene_item_id)
-				else:
-					obs.add_group_source(scene_uuid, f"Zoom Crop {action[1]}")
 
 			case "add-remote":
 				settings = current_app.config["VIDEO_REMOTES"][action[1]]

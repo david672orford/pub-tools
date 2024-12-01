@@ -49,8 +49,7 @@ def cmd_obs_get_scene_list():
 @cli_obs.command("get-group-list")
 def cmd_obs_get_group_list():
 	"""List groups by name"""
-	response = obs.request("GetGroupList", {})
-	print_json(response["responseData"])
+	print_json(obs.get_group_list())
 
 @cli_obs.command("get-scene-uuid")
 @click.argument("scene_name")

@@ -6,6 +6,10 @@ except ModuleNotFoundError:
 
 from ....utils.background import async_flash
 from ....utils.babel import gettext as _
+from .controllers import obs
+
+def zoom_tracker_loaded():
+	return "Zoom Crop 0" in obs.get_group_list()
 
 def find_second_window():
 	"""Look for the Zoom second-monitor window and return its address for OBS window capture"""
