@@ -56,7 +56,7 @@ def create_app(instance_path=None):
 		VIDEO_REMOTES = {},				# remove video feeds using VDO.Ninja
 		CAMERA_NAME_OVERRIDES = {},		# rename the V4L cameras
 		PATCHBAY = "virtual-cable",
-		SLIDES_DIR = os.path.abspath(os.path.join(current_app.instance_path, "slides")),
+		SLIDES_DIR = os.path.abspath(os.path.join(app.instance_path, "slides")),
 		)
 
 	# Overlay with configuration from instance/config.py
