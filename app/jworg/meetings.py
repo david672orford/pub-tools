@@ -237,7 +237,7 @@ class MeetingLoader(Fetcher):
 	#     </ul>
 	#   </div>
 	# </div>
-	#        
+	#
 	def mwb_parser_old(self, article):
 		section_number = 0
 		for section in article.bodyTxt.xpath("./div[@class='section']"):
@@ -322,7 +322,7 @@ class MeetingLoader(Fetcher):
 		# Make a first pass to split into sections at the <h2> subheadings.
 		sections = [[None, []]]
 		for el in article.bodyTxt:
-			# Examples of how 
+			# Examples of how
 			h2 = el.xpath("./h2")
 			if h2:
 				sections.append([h2[0].text_content().strip(), []])
@@ -379,10 +379,11 @@ class MeetingLoader(Fetcher):
 				# Don't let <a> handler see <a>'s in <figure>'s since get_figure_items() handles them.
 				context.skip_subtree()
 
-			elif (item_tag.tag == "a") and (not "footnoteLink" in item_tag.attrib.get("class","").split()):
+			elif (item_tag.tag == "a") and not set(("fn-symbol", "footnoteLink")).intersection(set(item_tag.attrib.get("class","").split())):
 				pub = self.get_pub_from_a_tag(item_tag, baseurl)
 				if pub is None:
-					logger.warning("Failed to identify: %s", item_tag.attrib)
+					# FIXME: Watchtower for week of November 25, 2024 triggers this
+					#logger.warning("Skipping link not understood: %s", item_tag.attrib)
 					continue
 
 				# If the caller is looking for media items of this type, return it.
@@ -435,7 +436,7 @@ class MeetingLoader(Fetcher):
 	# If the <a> tag supplied points to a publications or media item from
 	# JW.ORG, return a MeetingMediaItem object (or its subclass). Otherwise,
 	# return None.
-	# a -- the <a> tag as an Element 
+	# a -- the <a> tag as an Element
 	# baseurl -- used to canonicalize hrefs (required if any are not canonical)
 	# title -- fallback title
 	# dnd -- return None if href is non-canononical and baseurl is None
@@ -582,7 +583,7 @@ class MeetingLoader(Fetcher):
 		media_url = "https://www.jw.org/open?" + urlencode({
 			"lank": f"pub-sjjm_{song_number}_VIDEO",		# Works
 			#"pub": "sjjm", "track": str(song_number),		# Doesn't work: track is ignored
-			#"docid": str(docid),							# No MP4 files 
+			#"docid": str(docid),							# No MP4 files
 			"wtlocale": self.meps_language,
 			#"srcid": "share",
 			})
@@ -676,7 +677,7 @@ class MeetingLoader(Fetcher):
 				params["lank"] = "pub-%s_%s_VIDEO" % (pub_code, str(track) if track is not None else "x")
 			else:
 				params["lank"] = "docid-%s_%d_VIDEO" % (docid, track if track is not None else 1)
-	
+
 		return MeetingMediaItem(
 			title = page.h1 or page.title or _("No Title"),
 			pub_code = pub_code,
@@ -812,4 +813,3 @@ class MeetingLoader(Fetcher):
 					media_url = src,
 					thumbnail_url = span.attrib.get("data-img-size-xs"),
 					)
-
