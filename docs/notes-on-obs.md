@@ -31,6 +31,7 @@ than writing a plugging or a script to run inside OBS.
 
 * [Github Site](https://github.com/obsproject/obs-websocket)
 * [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
+* [Plugin Example](https://github.com/obsproject/obs-websocket/blob/eed8a49933786383d11f4868a4e5604a9ee303c6/lib/example/simplest-plugin.c)
 
 ## OBS Script Development
 

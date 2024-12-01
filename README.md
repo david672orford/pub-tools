@@ -7,12 +7,23 @@ from JW.ORG.
 
 To install on Ubuntu and other Debian-Family Linuxes:
 
-    $ sudo apt-get install git python3-pip ffmpeg python3-ewmh
+    $ sudo apt-get install git ffmpeg python3-pip python3-ewmh python3-babel
     $ git clone https://github.com/david672orford/pub-tools.git
     $ cd pub-tools
     $ pip3 install -r requirements.txt
-	$ mkdir instance
-	$ echo "SECRET_KEY='`dd if=/dev/random bs=32 count=1 | base64`'" >>instance/config.py
+    $ mkdir instance
+    $ echo "SECRET_KEY='`dd if=/dev/random bs=32 count=1 | base64`'" >>instance/config.py
+
+For the Russsian UI:
+
+    $ cd app
+    $ make mo
+    $ cd ..
+    echo 'UI_LANGUAGE="ru"' >>instance/config.py
+
+To change the publication language:
+
+    $ echo 'PUB_LANGUAGE="ru"' >>instance/config.py
 
 ## Running Pub-Tools
 
@@ -22,7 +33,7 @@ Start the Pub-Tools web server:
 
 Then open this URL in a web browser:
 
-     http://localhost:5000
+    http://localhost:5000
 
 ## Subapps
 
