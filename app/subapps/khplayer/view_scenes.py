@@ -149,6 +149,7 @@ def page_scenes_submit():
 		action = request.form.get("action", "scene").split(":",1)
 		match action[0]:
 
+			# User clicked on a scene. Switch to it.
 			case "scene":
 				scene = request.form.get("scene")
 				if obs.get_current_preview_scene()["sceneUuid"] is not None:
@@ -156,6 +157,7 @@ def page_scenes_submit():
 				else:
 					obs.set_current_program_scene(scene)
 
+			# Delete button pressed
 			case "delete":
 				scenes = request.form.getlist("del")
 				try:
@@ -163,38 +165,50 @@ def page_scenes_submit():
 				except ObsError as e:
 					async_flash(str(e))
 
+			# Composer Button pressed
+			case "composer":
+				scene = obs.get_current_preview_scene()
+				if scene["sceneUuid"] is None:
+					scene = obs.get_current_program_scene()
+				return redirect(f"composer/{scene['sceneUuid']}/")
+
+			# Add Scene button pressed. Reload page with a popup button box.
+			# The all-* actions below this are for the buttons.
 			case "add-scene":
 				return redirect(".?action=add-scene")
 
 			case "add-camera":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
-					obs.create_camera_scene(_("* Camera"), camera_dev)
+					obs.create_source_scene(_("* Camera"), "camera", camera_dev)
 
 			case "add-zoom":
-				capture_window = find_second_window()
-				if capture_window is not None:
-					obs.create_zoom_scene(_("* Zoom"), capture_window)
+				if False:
+					capture_window = find_second_window()
+					if capture_window is not None:
+						obs.create_source_scene(_("* Zoom"), "window", capture_window)
+				else:
+					obs.create_source_scene(_("* Zoom"), "group", "Zoom Crop 0")
 
 			case "add-camera+zoom":
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
-					capture_window = find_second_window()
-					if capture_window is not None:
-						obs.create_split_scene(_("* Camera+Zoom"), camera_dev, capture_window)
+					if False:
+						capture_window = find_second_window()
+						if capture_window is not None:
+							obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "window", capture_window)
+					else:
+						obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "group", "Zoom Crop 0")
+
+			case "add-zoom-1+2":
+				obs.create_split_scene(_("* Zoom 1+2"), "group", "Zoom Crop 1", "group", "Zoom Crop 2")
 
 			case "add-remote":
 				settings = current_app.config["VIDEO_REMOTES"][action[1]]
-				obs.create_remote_scene("* %s" % action[1], settings)
+				obs.create_source_scene("* %s" % action[1], "remote", settings)
 
 			case "add-empty":
 				obs.create_scene(_("* New Scene"), make_unique=True)
-
-			case "composer":
-				scene = obs.get_current_preview_scene()
-				if scene["sceneUuid"] is None:
-					scene = obs.get_current_program_scene()
-				return redirect(f"composer/{scene['sceneUuid']}/")
 
 			case _:
 				flash("Internal error: missing case: %s" % action[0])
@@ -205,6 +219,10 @@ def page_scenes_submit():
 
 	# FIXME: It seems if we return before the change is rendered, it may not be.
 	sleep(1)
+
+	# If a button in the Add Scene box was pressed, delete the box.
+	if action[0].startswith("add-"):
+		return turbo.stream("<turbo-stream action=\"remove\" target=\"add-scene\"></turbo-stream>")
 
 	return turbo.stream("")
 

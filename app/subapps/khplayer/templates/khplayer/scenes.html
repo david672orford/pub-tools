@@ -28,11 +28,13 @@
 		</div>
 
 		{% if cameras %}
-		<section class="bordered-box popup">
+		<section id="add-scene" class="bordered-box popup">
+			<h2>{{_("Add Scene")}}</h2>
 			{{render_cameras(cameras)}}
 			<button class="new" type="submit" name="action" value="add-camera">{{_("Camera")}}</button>
 			<button class="new" type="submit" name="action" value="add-zoom">{{_("Zoom")}}</button>
 			<button class="new" type="submit" name="action" value="add-camera+zoom">{{_("Camera+Zoom")}}</button>
+			<button class="new" type="submit" name="action" value="add-zoom-1+2">{{_("Zoom 1+2")}}</button>
 			{{render_remotes(remotes)}}
 			<button class="new" type="submit" name="action" value="add-empty">{{_("Empty Scene")}}</button>
 			<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>

@@ -278,7 +278,7 @@ class ObsControl(ObsControlBase):
 				})
 
 	#============================================================================
-	# Create inputs
+	# Create input sources of various types
 	#============================================================================
 
 	# Create the specified OBS input and add it as a scene item to the specified scene.
@@ -328,9 +328,11 @@ class ObsControl(ObsControlBase):
 			i += 1
 		return result
 
-	# Create an OBS input for the configured camera, if it does not exist already,
-	# and add it to the specified scene.
-	def add_camera_input(self, scene_uuid, camera_dev):
+	def add_camera_source(self, scene_uuid, camera_dev):
+		"""
+		Create an OBS source for the configured camera, if it does not
+		exist already, and add it to the specified scene.
+		"""
 		camera_dev, camera_name = camera_dev.split(" ",1)
 		scene_item_id = self.create_input_with_reuse(
 			scene_uuid = scene_uuid,
@@ -351,9 +353,11 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	# Create an OBS input which captures the specified window, if it does
-	# not exist already, and add it to the specified scene.
-	def add_zoom_input(self, scene_uuid, capture_window):
+	def add_capture_source(self, scene_uuid, capture_window):
+		"""
+		Create an OBS source which captures the specified window, if it does
+		not exist already, and add it to the specified scene.
+		"""
 		scene_item_id = self.create_input_with_reuse(
 			scene_uuid = scene_uuid,
 			input_name = "Second Zoom Window",
@@ -365,61 +369,17 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	#============================================================================
-	# Create standard scenes
-	#============================================================================
+	def add_group_source(self, scene_uuid, group_name):
+		"""Add an existing OBS group (a kind of scene) as a scene item"""
+		scene_item_id = self.create_scene_item(
+			scene_uuid = scene_uuid,
+			source_name = group_name,
+			)
+		return scene_item_id
 
-	def scale_scene_item(self, scene_uuid, scene_item_id, scene_item_transform={}):
-		xform = {
-			"boundsAlignment": 0,
-			"boundsWidth": 1280,
-			"boundsHeight": 720,
-			"boundsType": "OBS_BOUNDS_SCALE_INNER",
-			}
-		xform.update(scene_item_transform)
-		self.set_scene_item_transform(scene_uuid, scene_item_id, xform)
-
-	# Create a scene containing just the specified camera
-	def create_camera_scene(self, scene_name, camera_dev):
-		pos = self.select_scene_pos(skiplist="*")
-		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-		self.add_camera_input(scene_uuid, camera_dev)
-
-	# Create a scene containing just a capture of the specified window
-	def create_zoom_scene(self, scene_name, capture_window):
-		pos = self.select_scene_pos(skiplist="*")
-		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-		scene_item_id = self.add_zoom_input(scene_uuid, capture_window)
-		self.scale_scene_item(scene_uuid, scene_item_id)
-
-	# Create a scene with the specified camera on the left and a capture of the specified window on the right
-	def create_split_scene(self, scene_name, camera_dev, capture_window):
-		pos = self.select_scene_pos(skiplist="*")
-		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-
-		# Camera on left side
-		scene_item_id = self.add_camera_input(scene_uuid, camera_dev)
-		self.scale_scene_item(scene_uuid, scene_item_id, {
-			"boundsHeight": 360.0,
-			"boundsWidth": 640.0,
-			"positionX": 0.0,
-			"positionY": 160.0,
-			})
-
-		# Zoom on right side
-		scene_item_id = self.add_zoom_input(scene_uuid, capture_window)
-		self.scale_scene_item(scene_uuid, scene_item_id, {
-			"boundsHeight": 360.0,
-			"boundsWidth": 640.0,
-			"positionX": 640.0,
-			"positionY": 160.0,
-			})
-
-	# Create a scene with a browser source in a VDO.Ninja video conference
-	def create_remote_scene(self, scene_name, settings):
-		pos = self.select_scene_pos(skiplist="*")
-		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
-		self.create_input_with_reuse(
+	def add_remote_source(self, scene_uuid, settings):
+		"""Add a browser source displaying the VDO.Ninja site"""
+		scene_item_id = self.create_input_with_reuse(
 			scene_uuid = scene_uuid,
 			input_name = "VDO.Ninja %s" % settings.get("view"),
 			input_kind = "browser_source",
@@ -431,3 +391,61 @@ class ObsControl(ObsControlBase):
 				"webpage_control_level": 0,
 				}
 			)
+		return scene_item_id
+
+	def add_source(self, scene_uuid, scheme, address):
+		"""Fork out to the other add_*_source functions"""
+		if scheme == "camera":
+			return self.add_camera_source(scene_uuid, address)
+		if scheme == "window":
+			return self.add_capture_source(scene_uuid, address)
+		elif scheme == "group":
+			return self.add_group_source(scene_uuid, address)
+		elif scheme == "remote":
+			return self.add_remote_source(scene_uuid, address)
+		raise ValueError(f"unrecognized scheme: {scheme}")
+
+	#============================================================================
+	# Create scenes with sources
+	#============================================================================
+
+	def create_source_scene(self, scene_name, source_scheme, source_address):
+		"""Create a scene containing a single source"""
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
+		scene_item_id = self.add_source(scene_uuid, source_scheme, source_address)
+		self.scale_scene_item(scene_uuid, scene_item_id)
+
+	def create_split_scene(self, scene_name, left_scheme, left_address, right_scheme, right_address):
+		"""Create a scene containing the two indicated sources"""
+		pos = self.select_scene_pos(skiplist="*")
+		scene_uuid = self.create_scene(scene_name, make_unique=True, pos=pos)["sceneUuid"]
+
+		# Left side
+		scene_item_id = self.add_source(scene_uuid, left_scheme, left_address)
+		self.scale_scene_item(scene_uuid, scene_item_id, {
+			"boundsHeight": 360.0,
+			"boundsWidth": 640.0,
+			"positionX": 0.0,
+			"positionY": 160.0,
+			})
+
+		# Right Side
+		scene_item_id = self.add_source(scene_uuid, right_scheme, right_address)
+		self.scale_scene_item(scene_uuid, scene_item_id, {
+			"boundsHeight": 360.0,
+			"boundsWidth": 640.0,
+			"positionX": 640.0,
+			"positionY": 160.0,
+			})
+
+	def scale_scene_item(self, scene_uuid, scene_item_id, scene_item_transform=None):
+		xform = {
+			"boundsAlignment": 0,
+			"boundsWidth": 1280,
+			"boundsHeight": 720,
+			"boundsType": "OBS_BOUNDS_SCALE_INNER",
+			}
+		if scene_item_transform is not None:
+			xform.update(scene_item_transform)
+		self.set_scene_item_transform(scene_uuid, scene_item_id, xform)

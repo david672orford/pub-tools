@@ -20,4 +20,3 @@ def find_second_window():
 		return None
 	async_flash("Not implemented")
 	return None
-

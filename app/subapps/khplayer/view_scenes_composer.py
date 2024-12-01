@@ -103,26 +103,29 @@ def page_scenes_composer_add_source(scene_uuid):
 			case "rename-scene":
 				obs.set_scene_name(scene_uuid, request.form["scene_name"])
 
-			case "add-camera":
-				camera_dev = request.form.get("camera")
-				if camera_dev is not None:
-					obs.add_camera_input(scene_uuid, camera_dev)
-
-			case "add-zoom":
-				capture_window = find_second_window()
-				if capture_window is not None:
-					scene_item_id = obs.add_zoom_input(scene_uuid, capture_window)
-					obs.scale_scene_item(scene_uuid, scene_item_id)
-
-			case "add-remote":
-				settings = current_app.config["VIDEO_REMOTES"][action[1]]
-				obs.create_remote_scene("* %s" % action[1], settings)
-
 			case "delete":
 				obs.remove_scene_item(scene_uuid, int(request.form["scene_item_id"]))
 
 			case "set-index":
 				obs.set_scene_item_index(scene_uuid, int(request.form["scene_item_id"]), int(action[1]))
+
+			case "add-camera":
+				camera_dev = request.form.get("camera")
+				if camera_dev is not None:
+					obs.add_camera_source(scene_uuid, camera_dev)
+
+			case "add-zoom":
+				if action[1] == "0" and False:
+					capture_window = find_second_window()
+					if capture_window is not None:
+						scene_item_id = obs.add_capture_source(scene_uuid, capture_window)
+						obs.scale_scene_item(scene_uuid, scene_item_id)
+				else:
+					obs.add_group_source(scene_uuid, f"Zoom Crop {action[1]}")
+
+			case "add-remote":
+				settings = current_app.config["VIDEO_REMOTES"][action[1]]
+				obs.add_remote_source(scene_uuid, settings)
 
 			case _:
 				flash("Internal error: missing case: %s" % action[0])

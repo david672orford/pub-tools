@@ -27,9 +27,12 @@
 {% else %}
 <form action="action" method="POST">
 	<section class="bordered-box popup">
+		<h2>{{_("Add Source")}}</h2>
 		{{render_cameras(cameras)}}
 		<button class="new" type="submit" name="action" value="add-camera">{{_("Camera")}}</button>
-		<button class="new" type="submit" name="action" value="add-zoom">{{_("Zoom")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom:0">{{_("Zoom")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom:1">{{_("Zoom 1")}}</button>
+		<button class="new" type="submit" name="action" value="add-zoom:2">{{_("Zoom 2")}}</button>
 		{{render_remotes(remotes)}}
 		<a href="."><button class="cancel" type="button">{{_("Close")}}</button></a>
 	</section>
