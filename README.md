@@ -14,14 +14,13 @@ To install on Ubuntu and other Debian-Family Linuxes:
 
 To install on Microsoft Windows: (draft)
 
-    > winget install python
-    > winget install --id Git.Git -e --source winget
-    > winget install cmake
-    > winget install --id Microsoft.VisualStudio.2022.Community
-    (Open new terminal)
+    > winget install --id Git.Git -e --source winget --scope user
+    > winget install -e --id Python.Python.3.12 --scope user
+    (Close and re-open the terminal)
+    > cd Desktop
     > git clone https://github.com/david672orford/pub-tools.git
     > cd pub-tools
-    > python3 venv_tool.py --create
+    > python venv_tool.py --create
 
 To switch the UI to Russian:
 
