@@ -434,7 +434,8 @@ def write_video_category_to_db(category_db_obj, category, callback):
 		video_obj.duration = video.duration
 		video_obj.thumbnail = video.thumbnail
 		video_obj.href = video.href
-		category_db_obj.videos.append(video_obj)
+		if video_obj not in category_db_obj.videos:
+			category_db_obj.videos.append(video_obj)
 	db.session.commit()
 	video_index.add_videos(category_db_obj.videos)
 	video_index.commit()

@@ -40,7 +40,7 @@ pywebview
 rich==13.7.1
 
 # Russian inflection
-pymorphy2==0.9.1
+pymorphy3
 
 # Search engine
 Whoosh==2.7.4
@@ -50,4 +50,3 @@ Pillow>=10.3.0
 
 # For zooming to face in Scene Composer
 face-recognition==1.3.0
-

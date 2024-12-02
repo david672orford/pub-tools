@@ -15,8 +15,9 @@ from .models import VideoCategories, Videos
 # Dictionary-based stemmer for Russian
 def morpher():
 	if not hasattr(morpher, "obj"):
-		import pymorphy2
-		morpher.obj = pymorphy2.MorphAnalyzer()
+		#from pymorphy2 import MorphAnalyzer
+		from pymorphy3 import MorphAnalyzer
+		morpher.obj = MorphAnalyzer()
 	return morpher.obj
 
 # Stemmer function for Whoosh which pickels a reference to it
@@ -37,6 +38,7 @@ class BaseWhooshIndex:
 
 	def open(self):
 		with warnings.catch_warnings():
+			# Ignore warnings caused by a slight error in Whoosh
 			# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
 			warnings.simplefilter("ignore", category=SyntaxWarning)
 			index = open_dir(self.whoosh_path, indexname=self.indexname)
@@ -45,7 +47,7 @@ class BaseWhooshIndex:
 	@property
 	def writer(self):
 		if self._writer is None:
-			self._writer = open_dir(self.whoosh_path, indexname=self.indexname).writer()
+			self._writer = self.open().writer()
 		return self._writer
 
 	def commit(self):
