@@ -17,13 +17,22 @@
     * https://json-schema.org/learn/getting-started-step-by-step
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
 
+## Automate Setup
+
+* Create virtual environment
+* Install OBS
+* Create profile and scene collection in OBS, set video settings: flask obs configure
+* Install Zoom
+* Edit zoomus.conf: flask zoom configure
+* Install and configure V4L2 virtual cable
+
 ## Hard Stuff
 
 * Send scene reorder events to other browsers
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 * Auto-create yeartext slide (would need to find the current yeartext somewhere on JW.ORG)
-* Better Zoom capture by capturing the whole window and producing automatic crops to the current
-  speaker and the current and previous speakers.
+* Add face recognition to the Zoom cropper. References:
+    * https://stackoverflow.com/questions/384759/how-do-i-convert-a-pil-image-into-a-numpy-array#384926
 
 ## For the Future
 

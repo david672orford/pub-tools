@@ -5,7 +5,7 @@
 On Ubuntu:
 
     $ sudo add-apt-repository ppa:obsproject/obs-studio
-	$ sudo apt install ffmpeg obs-studio
+    $ sudo apt install ffmpeg obs-studio
 
 * [OBS Main Site](https://obsproject.com/)
 * [OBS Github Site](https://github.com/obsproject/obs-studio)
@@ -55,6 +55,7 @@ do not generally run fast enough to process video, but Lua scripts do.
     * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
     * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
     * [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
+    * [Crop Filter](https://github.com/rse/obs-crop-control/tree/master)
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions

@@ -22,15 +22,15 @@ def activate(dist_packages=False):
 	"""
 	if os.path.exists(os.path.join(venv_dir, "pyvenv.cfg")):
 		sys.prefix = sys.exec_prefix = os.path.abspath(venv_dir)
-	
+
 		# Drop packages added by the Linux distribution from the path
 		if not dist_packages:
 			sys.path = list(filter(lambda item: not item.endswith("/dist-packages"), sys.path))
-	
+
 		# Add packages from the virtual environment to the path
 		import site
 		if sys.platform == "win32":
-			site_packages = os.path.join(base, "Lib", "site-packages")
+			site_packages = os.path.join(sys.prefix, "Lib", "site-packages")
 		else:
 			site_packages = os.path.join(sys.prefix, f"lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages")
 		site.addsitedir(site_packages)
@@ -68,5 +68,3 @@ if __name__ == "__main__":
 
 	else:
 		parser.print_help()
-
-
