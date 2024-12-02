@@ -10,6 +10,18 @@ are our notes.
 * [Git](https://git-scm.com/download/win)
 * [Python](https://www.python.org/downloads/windows/)
 
+## Installing Dlib
+
+Compile from source:
+    > winget install cmake
+    > winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --quiet --add ProductLang En-us --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+    > pip install dlib
+
+Or download wheel from:
+	https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+And install it:
+    python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
+
 ## Setting up Python Embedded
 
 We would like to bundle Pub-Tools with a Python runtime. The

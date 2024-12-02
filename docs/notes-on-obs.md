@@ -1,5 +1,12 @@
 # Notes on OBS Studio
 
+* [OBS Main Site](https://obsproject.com/)
+* [OBS Github Site](https://github.com/obsproject/obs-studio)
+* [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
+* [Build Instructions for Linux](https://github.com/obsproject/obs-studio/wiki/build-instructions-for-linux)
+* [Building on Debian (from forum)](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
+* [Checking out Pull Requests](https://stackoverflow.com/questions/27567846/how-can-i-check-out-a-github-pull-request-with-git#30584951)
+
 ## OBS Studio Installation
 
 On Ubuntu:
@@ -7,12 +14,9 @@ On Ubuntu:
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install ffmpeg obs-studio
 
-* [OBS Main Site](https://obsproject.com/)
-* [OBS Github Site](https://github.com/obsproject/obs-studio)
-* [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
-* [Build Instructions for Linux](https://github.com/obsproject/obs-studio/wiki/build-instructions-for-linux)
-* [Building on Debian (from forum)](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
-* [Checking out Pull Requests](https://stackoverflow.com/questions/27567846/how-can-i-check-out-a-github-pull-request-with-git#30584951)
+On Microsoft Windows:
+
+    $ winget install -e --id OBSProject.OBSStudio
 
 ## Integration of OBS Studio with other Programs
 

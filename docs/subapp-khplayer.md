@@ -9,11 +9,17 @@ Linux 22.04.
 
 ## Install OBS Studio
 
+On Ubuntu:
+
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install obs-studio
 
+On Microsoft Windows:
+
+    > winget install --id=OBSProject.OBSStudio -e
+
 The KH Player module communicates with OBS over a websocket. You will need to use
-OBS version 2.8 or later. Enable the websocket plugin in **Tools** → 
+OBS version 2.8 or later. Enable the websocket plugin in **Tools** →
 **Websocket Server Settings**. If KH Player cannot find your OBS configuration
 to get the websocket port and password, set OBS\_WEBSOCKET in config.py
 using the example in sample-config.py.
@@ -61,7 +67,6 @@ or later, then Pipewire may already be installed.
 directory of this project:
   * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
   * **khplayer-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
-  * **khplayer-startup.py** -- Set initial state of OBS
   * **khplayer-automate.py** -- Simplify startup and playing of vidoes
     * At Startup:
       * Start a fullscreen output on the monitor you select
@@ -78,11 +83,10 @@ directory of this project:
 * Start OBS.
 * Start Zoom. Make sure a second window appears on the second monitor.
 * Log in to Zoom and start the meeting.
-* Click on the down arrow next to the camera button and select
-**Dummy video device (0x0000)** as the camera. Turn it on. If it will
-not turn on, make sure the virtual camera is started in OBS.
+* Click on the down arrow next to the camera button and select **OBS Virtual Camera**
+  as the camera. Turn it on. If it will not turn on, make sure the virtual camera is started in OBS.
 * Click on the down arrow next to the microphone button and select **From-OBS**
-as the audio input and unmute audio.
+  as the audio input and unmute audio.
 
 ## Initial Setup of Stage and Zoom Scenes
 
@@ -156,4 +160,3 @@ We need to cover these additional topics.
 * Equalizer
 * Renaming Microphones
 * Disabling Distracting Devices
-
