@@ -60,7 +60,11 @@ if __name__ == "__main__":
 	if options.create or options.update:
 		activate()
 		import subprocess
-		subprocess.check_call([os.path.join(venv_dir, "bin", "python"), "-m", "pip", "install", "-r", "requirements.txt"])
+		if sys.platform == "win32":
+			python = os.path.join(venv_dir, "Scripts", "python")
+		else:
+			python = os.path.join(venv_dir, "bin", "python")
+		subprocess.check_call([python, "-m", "pip", "install", "-r", "requirements.txt"])
 
 	elif options.delete:
 		import shutil
