@@ -35,10 +35,9 @@ Install dependency packages:
 
     wine python.exe -m pip install -r ../requirements.txt
 
-Create sitecustomize.py 
+Create sitecustomize.py
 
     import sys
     sys.path.insert(0, '')
 
 See [Setting up python's Windows embeddable distribution (properly)](https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081).
-

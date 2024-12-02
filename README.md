@@ -12,6 +12,17 @@ To install on Ubuntu and other Debian-Family Linuxes:
     $ cd pub-tools
     $ ./venv_tool.py --create
 
+To install on Microsoft Windows: (draft)
+
+    > winget install python
+    > winget install --id Git.Git -e --source winget
+    > winget install cmake
+    > winget install --id Microsoft.VisualStudio.2022.Community
+    (Open new terminal)
+    > git clone https://github.com/david672orford/pub-tools.git
+    > cd pub-tools
+    > python3 venv_tool.py --create
+
 To switch the UI to Russian:
 
     $ cd app/translations
@@ -42,4 +53,3 @@ documentation below.
 * [KH Player](docs/subapp-khplayer.md)
 * [Teaching Toolbox](docs/subapp-toolbox.md)
 * [Epub Reader](docs/subapp-epubs.md)
-

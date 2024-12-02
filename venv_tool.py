@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	# Install or upgrade the virtual environment
 	if options.create:
 		if os.path.exists(venv_dir):
-			print("Already exists")
+			print("Venv already exists. Use --delete or --update.")
 			sys.exit(1)
 		import venv
 		venv.create(venv_dir, with_pip=True)

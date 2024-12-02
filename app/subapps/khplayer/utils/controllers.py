@@ -21,17 +21,18 @@ meeting_loader = MeetingLoader(
 from .obs_control import ObsControl, ObsError
 
 obs_config = current_app.config.get("OBS_WEBSOCKET")
-if obs_config is None:
+if obs_config is None and "HOME" in os.environ:
 	obs_websocket_configfile = os.path.join(os.environ["HOME"], ".config/obs-studio/plugin_config/obs-websocket/config.json")
-	with open(obs_websocket_configfile) as fh:
-		obs_websocket_config = json.load(fh)
+	if os.path.exists(obs_websocket_configfile):
+		with open(obs_websocket_configfile) as fh:
+			obs_websocket_config = json.load(fh)
 		
-	obs_config = {
-		"hostname": "localhost",
-		"port": obs_websocket_config["server_port"],
-		"password": obs_websocket_config["server_password"],
-		"obs_websocket_enabled": obs_websocket_config["server_enabled"],
-		}
+		obs_config = {
+			"hostname": "localhost",
+			"port": obs_websocket_config["server_port"],
+			"password": obs_websocket_config["server_password"],
+			"obs_websocket_enabled": obs_websocket_config["server_enabled"],
+			}
 
 obs = ObsControl(config = obs_config)
 

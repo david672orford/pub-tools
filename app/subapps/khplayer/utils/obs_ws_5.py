@@ -78,8 +78,6 @@ class ObsControlBase:
 	def connect(self):
 		if self.config is None:
 			raise ObsError("Connection not configured")
-		if not self.config.get("obs_websocket_enabled", True):
-			raise ObsError("The OBS-Websocket plugin is not enabled")
 
 		try:
 			hostname = self.config["hostname"]
@@ -105,6 +103,8 @@ class ObsControlBase:
 				raise ObsError("Incorrect protocol version in server Hello")
 
 		except ConnectionRefusedError:
+			if not self.config.get("obs_websocket_enabled", True):
+				raise ObsError("The OBS-Websocket plugin is not enabled")
 			raise ObsError("Not found on {hostname} port {port}".format(**self.config))
 
 		except Exception as e:
@@ -324,11 +324,33 @@ class ObsControlBase:
 		return self.request("GetVersion", {})
 
 	#=========================================================================
+	# Profiles
+	#=========================================================================
+
+	def create_profile(self, name, reuse=False):
+		try:
+			self.request("CreateProfile", {"profileName": name})
+		except ObsError as e:
+			if e.code == 601 and reuse:		# ResourceAlreadyExists
+				self.set_current_profile(name)
+			else:
+				raise
+
+	def set_current_profile(self, name):
+		self.request("SetCurrentProfile", {"profileName": name})
+
+	#=========================================================================
 	# Scene Collections
 	#=========================================================================
 
-	def create_scene_collection(self, name):
-		self.request("CreateSceneCollection", {"sceneCollectionName": name})
+	def create_scene_collection(self, name, reuse=False):
+		try:
+			self.request("CreateSceneCollection", {"sceneCollectionName": name})
+		except ObsError as e:
+			if e.code == 601 and reuse:		# ResourceAlreadyExists
+				self.set_current_scene_collection(name)
+			else:
+				raise
 
 	def set_current_scene_collection(self, name):
 		self.request("SetCurrentSceneCollection", {"sceneCollectionName": name})
@@ -555,8 +577,14 @@ class ObsControlBase:
 			self.request("StopVirtualCam", {})
 
 	#=========================================================================
-	# Output Projectors
+	# Output
 	#=========================================================================
+
+	def get_video_settings(self):
+		return self.request("GetVideoSettings", {})["responseData"]
+
+	def set_video_settings(self, settings):
+		self.request("SetVideoSettings", settings)
 
 	def get_monitor_list(self):
 		return self.request("GetMonitorList", {})["responseData"]["monitors"]
@@ -590,4 +618,3 @@ class ObsControlBase:
 			"imageFormat": image_format,
 			"imageFilePath": os.path.abspath(filename),
 			})
-
