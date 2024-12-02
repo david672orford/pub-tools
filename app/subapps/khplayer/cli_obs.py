@@ -18,6 +18,27 @@ def print_json(data):
 	json.dump(data, sys.stdout, indent=4, ensure_ascii=False)
 	print()
 
+#=============================================================================
+# Set OBS up for use with KH Player
+#=============================================================================
+
+@cli_obs.command("configure")
+def cmd_obs_configure():
+	obs.create_profile("KH Player", reuse=True)
+	obs.create_scene_collection("KH Player", reuse=True)
+	obs.set_video_settings({
+		"baseHeight": 720,
+		"baseWidth": 1280,
+		"fpsDenominator": 1,
+		"fpsNumerator": 30,
+		"outputHeight": 720,
+		"outputWidth": 1280
+		})
+
+#=============================================================================
+# Misc info
+#=============================================================================
+
 @cli_obs.command("get-version", help="Show OBS version and features")
 def cmd_obs_get_version():
 	print_json(obs.get_version())
@@ -204,6 +225,11 @@ def cmd_obs_save_source_screenshot(source_name):
 #=============================================================================
 # Outputs
 #=============================================================================
+
+@cli_obs.command("get-video-settings")
+def cmd_obs_get_video_settings():
+	"""Get the output video resolution and other settings"""
+	print_json(obs.get_video_settings())
 
 @cli_obs.command("get-output-list")
 def cmd_obs_get_output_list():

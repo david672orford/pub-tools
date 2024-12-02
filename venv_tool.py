@@ -64,6 +64,8 @@ if __name__ == "__main__":
 			python = os.path.join(venv_dir, "Scripts", "python")
 		else:
 			python = os.path.join(venv_dir, "bin", "python")
+		if sys.platform == "win32":
+			subprocess.check_call([python, "-m", "pip", "install", "https://github.com/z-mahmud22/Dlib_Windows_Python3.x/raw/refs/heads/main/dlib-19.24.99-cp312-cp312-win_amd64.whl"])
 		subprocess.check_call([python, "-m", "pip", "install", "-r", "requirements.txt"])
 
 	elif options.delete:
