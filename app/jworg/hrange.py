@@ -19,7 +19,7 @@ class HighlightRange:
 
 	# <p> tags with these classes can be ignored
 	excluded_paragraph_types = {
-		"qu",			# printed study question 
+		"qu",			# printed study question
 		"figcaption",	# for formatting a picture caption
 		}
 
@@ -70,7 +70,7 @@ class HighlightRange:
 						if first_pnum is None:
 							first_pnum = last_pnum
 						self.sweep_figures(last_pnum, "next")
-					print(f"paragraph {id} first_pnum={first_pnum} last_pnum={last_pnum}")
+					#print(f"paragraph {id} first_pnum={first_pnum} last_pnum={last_pnum}")
 					context.skip_subtree()
 
 				# Figure
@@ -81,18 +81,18 @@ class HighlightRange:
 						figure_pnum = "next"
 					else:											# connected to first paragraph in paragraph group container
 						figure_pnum = "neighbor"
-					print(f"figure {id} {figure_pnum}")
+					#print(f"figure {id} {figure_pnum}")
 					self.figures.append(RangeFigure(figure_pnum, el))
 					context.skip_subtree()
 
 				elif classes & self.pgroup_classes:
-					print()
-					print(f"start of pgroup: {el.tag} {id}")
+					#print()
+					#print(f"start of pgroup: {el.tag} {id}")
 					stack.append(first_pnum)
 					first_pnum = last_pnum = None
 				elif classes & self.columns_classes:
-					print()
-					print(f"start of columns: {el.tag} {id}")
+					#print()
+					#print(f"start of columns: {el.tag} {id}")
 					stack.append(first_pnum)
 					first_pnum = last_pnum = None
 
@@ -102,14 +102,14 @@ class HighlightRange:
 				elif re.match(r"f\d+$", id):
 					pass
 				elif classes & self.pgroup_classes:
-					print(f"end of pgroup {el.tag} {id} first_pnum={first_pnum} last_pnum={last_pnum}")
-					print()
+					#print(f"end of pgroup {el.tag} {id} first_pnum={first_pnum} last_pnum={last_pnum}")
+					#print()
 					self.sweep_figures(last_pnum, "neighbor")
 					first_pnum = stack.pop(-1)
 					last_pnum = None
 				elif classes & self.columns_classes:
-					print(f"end of columns {el.tag} {id} first_pnum={first_pnum} last_pnum={last_pnum}")
-					print()
+					#print(f"end of columns {el.tag} {id} first_pnum={first_pnum} last_pnum={last_pnum}")
+					#print()
 					self.sweep_figures(first_pnum, "neighbor")
 					first_pnum = stack.pop(-1)
 					last_pnum = None
@@ -120,12 +120,12 @@ class HighlightRange:
 				figure.pnum = 0
 
 	def sweep_figures(self, pnum, placeholder):
-		print(f"sweep_figures({pnum}, {placeholder})")
+		#print(f"sweep_figures({pnum}, {placeholder})")
 		assert pnum is not None
 		for i in reversed(range(len(self.figures))):
 			if self.figures[i].pnum != placeholder:
 				break
-			print(f" assigning {self.figures[i].id} to {pnum}")
+			#print(f" assigning {self.figures[i].id} to {pnum}")
 			self.figures[i].pnum = pnum
 
 	def print(self):
@@ -136,4 +136,3 @@ class HighlightRange:
 		for figure in self.figures:
 			if start <= figure.pnum <= end:
 				yield figure
-
