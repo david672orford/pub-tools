@@ -98,7 +98,7 @@ def get_root_folder():
 		slides_dir = current_app.config["SLIDES_DIR"]
 		if not os.path.exists(slides_dir):
 			os.mkdir(slides_dir)
-		return LocalDriveClient(slides_dir)
+		return LocalDriveClient, slides_dir
 	return None, None
 
 # Create a file system client for the indicated path
