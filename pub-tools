@@ -5,7 +5,12 @@ creates a browser widget which connects to it.
 
 Requires PyWebview:
   $ sudo apt install pywebview
+Required for --gui-toolkit qt:
+  $ sudo apt install python3-qtpy
 """
+
+from venv_tool import activate
+activate(dist_packages=True)
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import webview
@@ -20,8 +25,8 @@ parser = ArgumentParser(
 	formatter_class = RawDescriptionHelpFormatter,
 	)
 parser.add_argument("--subapp", default=None, help="Choose the top-level directory")
-parser.add_argument("--server", action="store_true", help="Use own instance of Pub Tools web server")
-parser.add_argument("--gui-toolkit", default="qt", help="Select gtk or qt")
+parser.add_argument("--no-server", action="store_true", help="Don't run own instance of the Pub Tools server")
+parser.add_argument("--gui-toolkit", default="gtk", help="Select gtk or qt")
 parser.add_argument("--debug", action="store_true", help="Enabling devtools, verbose logging")
 options = parser.parse_args()
 
@@ -31,7 +36,7 @@ logging.basicConfig(
 	datefmt = '%H:%M:%S'
 	)
 
-if options.server:
+if not options.no_server:
 	logging.info("Starting embedded web server...")
 	server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
 	server_thread = Thread(target=lambda: server.serve_forever())
@@ -53,7 +58,7 @@ webview.start(
 	)
 logging.info("Webview has exited.")
 
-if options.server:
+if not options.no_server:
 	logging.info("Shutting down the web server...")
 	server.shutdown()
 	server_thread.join()

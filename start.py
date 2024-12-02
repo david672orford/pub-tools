@@ -9,9 +9,14 @@ Then browser to:
    http://127.0.0.1:5000
 """
 
+from venv_tool import activate
+activate()
+
 import logging
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
 from werkzeug.serving import run_simple
+
 from app import create_app
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
 

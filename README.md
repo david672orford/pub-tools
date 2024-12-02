@@ -7,21 +7,19 @@ from JW.ORG.
 
 To install on Ubuntu and other Debian-Family Linuxes:
 
-    $ sudo apt-get install git ffmpeg python3-pip python3-ewmh python3-babel
+    $ sudo apt-get install git cmake ffmpeg pulseaudio-utils python3-pip python3-venv
     $ git clone https://github.com/david672orford/pub-tools.git
     $ cd pub-tools
-    $ pip3 install -r requirements.txt
-    $ mkdir instance
-    $ echo "SECRET_KEY='`dd if=/dev/random bs=32 count=1 | base64`'" >>instance/config.py
+    $ ./venv_tool.py --create
 
-For the Russsian UI:
+To switch the UI to Russian:
 
-    $ cd app
+    $ cd app/translations
     $ make mo
-    $ cd ..
+    $ cd ../..
     echo 'UI_LANGUAGE="ru"' >>instance/config.py
 
-To change the publication language:
+To change the publication language to Russian:
 
     $ echo 'PUB_LANGUAGE="ru"' >>instance/config.py
 

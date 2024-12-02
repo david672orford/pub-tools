@@ -1,6 +1,12 @@
 """Embed the web server for KHPlayer in OBS so we can be sure it will be running"""
 
-import os, sys
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from venv_tool import activate
+activate()
+
 from threading import Thread
 import logging
 

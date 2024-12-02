@@ -4,6 +4,8 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from venv_tool import activate
+activate()
 
 from obs_wrap import ObsScript, ObsWidget
 from config import get_config, put_config

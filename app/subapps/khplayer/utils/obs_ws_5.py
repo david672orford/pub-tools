@@ -78,6 +78,8 @@ class ObsControlBase:
 	def connect(self):
 		if self.config is None:
 			raise ObsError("Connection not configured")
+		if not self.config.get("obs_websocket_enabled", True):
+			raise ObsError("The OBS-Websocket plugin is not enabled")
 
 		try:
 			hostname = self.config["hostname"]

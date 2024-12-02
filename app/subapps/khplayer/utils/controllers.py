@@ -1,3 +1,4 @@
+import os
 from flask import current_app
 import json
 
@@ -19,9 +20,20 @@ meeting_loader = MeetingLoader(
 
 from .obs_control import ObsControl, ObsError
 
-obs = ObsControl(
-	config = current_app.config.get("OBS_WEBSOCKET"),
-	)
+obs_config = current_app.config.get("OBS_WEBSOCKET")
+if obs_config is None:
+	obs_websocket_configfile = os.path.join(os.environ["HOME"], ".config/obs-studio/plugin_config/obs-websocket/config.json")
+	with open(obs_websocket_configfile) as fh:
+		obs_websocket_config = json.load(fh)
+		
+	obs_config = {
+		"hostname": "localhost",
+		"port": obs_websocket_config["server_port"],
+		"password": obs_websocket_config["server_password"],
+		"obs_websocket_enabled": obs_websocket_config["server_enabled"],
+		}
+
+obs = ObsControl(config = obs_config)
 
 def init_app(app):
 	obs.app = app

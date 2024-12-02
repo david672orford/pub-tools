@@ -1,5 +1,5 @@
 # Set to a random value
-SECRET_KEY = "__change_me__"
+SECRET_KEY = "__secret_key_here__"
 
 # Select theme. Default is "basic-light".
 #THEME="basic-light"
@@ -7,19 +7,20 @@ SECRET_KEY = "__change_me__"
 #THEME="colorful"
 
 # Pub-Tools has several applications which can be enabled individually
-ENABLED_SUBAPPS = [
-	"khplayer",
-	#"toolbox",
-	#"epubs",
-	#"admin",
-	]
+#ENABLED_SUBAPPS = [
+#	"khplayer",
+#	"toolbox",
+#	"epubs",
+#	"admin",
+#	]
 
 # Match to settings in OBS Studio
-OBS_WEBSOCKET = {
-	"hostname": "localhost",
-	"port": 4455,
-	"password": "__change_me__",
-	}
+# Needed only if Pub-Tools is unable to find your OBS configuration directory.
+#OBS_WEBSOCKET = {
+#	"hostname": "localhost",
+#	"port": 4455,
+#	"password": "__change_me__",
+#	}
 
 # Language for user interface (default is "en")
 #UI_LANGUAGE="ru"
@@ -59,4 +60,3 @@ OBS_WEBSOCKET = {
 #		"view": "my-channel-124",
 #	},
 #}
-

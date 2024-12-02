@@ -7,18 +7,18 @@ This note describes how to set up OBS to play the videos at meetings while
 some participants are connected by Zoom. These instructions apply to Ubuntu
 Linux 22.04.
 
-The KH Player module communicates with OBS over websocket. You will need to use
-OBS version 2.8 or later. To pair them, open OBS and enable the websocket plugin.
-Note the port and password. Then open **instance/config.py** in a text editor and
-add this:
+## Install OBS Studio
 
-    OBS_WEBSOCKET = {
-      'hostname': 'localhost',
-      'port': 4455,
-      'password': 'secret',
-      }
+    $ sudo add-apt-repository ppa:obsproject/obs-studio
+    $ sudo apt install obs-studio
 
-Replace *secret* with the password you set for the Websocket plugin in OBS.
+The KH Player module communicates with OBS over a websocket. You will need to use
+OBS version 2.8 or later. Enable the websocket plugin in **Tools** → 
+**Websocket Server Settings**. If KH Player cannot find your OBS configuration
+to get the websocket port and password, set OBS\_WEBSOCKET in config.py
+using the example in sample-config.py.
+
+## Test Run
 
 Start the Pub-Tools web server:
 
@@ -26,21 +26,17 @@ Start the Pub-Tools web server:
 
 Then open this URL in a web browser:
 
-    http://localhost:5000/toolbox/
+    http://localhost:5000/khplayer/
 
 A window will appear with tabs such as **Meetings**, **Songs**,
 and **Videos** which can be used to load videos material into OBS.
-
-## Install OBS Studio
-
-    $ sudo add-apt-repository ppa:obsproject/obs-studio
-    $ sudo apt install obs-studio
 
 ## Install Pipewire
 
 Install the new audio subsystem called Pipewire following the instructions
 in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
-Be sure to follow the part about installing Wireplumber.
+Be sure to follow the part about installing Wireplumber. If you are running Ubuntu 24.04
+or later, then Pipewire may already be installed.
 
 ## Set Up Video Loopback Device
 
@@ -149,6 +145,8 @@ Loading slides:
 * Adjust the check marks next to the slide images and press the **Load** button.
 
 ## TODO
+
+We need to cover these additional topics.
 
 * Loading songs
 * Drag and drop into scenes
