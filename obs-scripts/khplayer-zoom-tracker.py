@@ -48,8 +48,14 @@ class ObsZoomTracker(ObsScript):
 		if self.source is None:
 			if sys.platform == "win32":
 				self.source = obs.obs_source_create("window_capture", self.source_name, None, None)
+				obs.obs_data_set_bool(source_settings, "cursor", False)
+				obs.obs_data_set_int(source_settings, "priority", 1)	# Window title must match
+				obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
 			else:
 				self.source = obs.obs_source_create("xcomposite_input", self.source_name, None, None)
+				obs.obs_data_set_bool(source_settings, "show_cursor", False)
+				obs.obs_data_set_int(source_settings, "cut_top", 130)
+				obs.obs_data_set_int(source_settings, "cut_bot", 0)
 
 		# Create the sources which will contain cropped versions of this input
 		for i in range(len(self.cropper_names)):
@@ -75,14 +81,8 @@ class ObsZoomTracker(ObsScript):
 		source_settings = obs.obs_data_create()
 		if sys.platform == "win32":
 			obs.obs_data_set_string(source_settings, "window", settings.capture_window)
-			obs.obs_data_set_bool(source_settings, "cursor", False)
-			obs.obs_data_set_int(source_settings, "priority", 1)	# Window title must match
-			obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
 		else:
 			obs.obs_data_set_string(source_settings, "capture_window", settings.capture_window)
-			obs.obs_data_set_bool(source_settings, "show_cursor", False)
-			obs.obs_data_set_int(source_settings, "cut_top", 130)
-			obs.obs_data_set_int(source_settings, "cut_bot", 0)
 		obs.obs_source_update(self.source, source_settings)
 		obs.obs_data_release(source_settings)
 
