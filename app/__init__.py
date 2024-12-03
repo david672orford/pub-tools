@@ -24,12 +24,8 @@ def create_app(instance_path=None):
 	app.config.from_mapping(
 		APP_DISPLAY_NAME = "Pub Tools",
 		FLASK_ADMIN_FLUID_LAYOUT = True,
-
-		# Options are:
-		# * basic-light
-		# * basic-dark
-		# * colorful (for testing)
-		THEME = "basic-light",
+		THEME = None,
+		UI_LANGUAGE = None,
 
 		# Database and cache settings
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
@@ -48,13 +44,12 @@ def create_app(instance_path=None):
 			],
 
 		# KH Player Settings
-		UI_LANGUAGE = "en",
-		PUB_LANGUAGE = "en",			# language in which to load publications from JW.ORG
+		PUB_LANGUAGE = None,			# language in which to load publications from JW.ORG
 		SUB_LANGUAGE = None,			# choose language to enable video subtitles
 		VIDEO_RESOLUTION = "480p",		# resolution of videos from JW.ORG
 		OBS_BROWSER_DOCK_SCALE = 1.0,	# font size when running on OBS browser dock
-		VIDEO_REMOTES = {},				# remove video feeds using VDO.Ninja
-		CAMERA_NAME_OVERRIDES = {},		# rename the V4L cameras
+		CAMERA_NAME_OVERRIDES = {},		# friendly names of V4L cameras
+		VIDEO_REMOTES = {},				# remote video feeds using VDO.Ninja
 		PATCHBAY = "virtual-cable",
 		SLIDES_DIR = os.path.abspath(os.path.join(app.instance_path, "slides")),
 		)
@@ -63,14 +58,24 @@ def create_app(instance_path=None):
 	app.config.from_pyfile("config.py")
 
 	# FIXME: there must be a better way to do this
-	assert type(app.config["UI_LANGUAGE"]) is str
-	assert type(app.config["PUB_LANGUAGE"]) is str
+	assert type(app.config["UI_LANGUAGE"]) in(str, type(None))
+	assert type(app.config["PUB_LANGUAGE"]) in (str, type(None))
 	assert type(app.config["SUB_LANGUAGE"]) in (str, type(None))
 	assert app.config["VIDEO_RESOLUTION"] in ("240p", "360p", "480p", "720p")
 	assert type(app.config["OBS_BROWSER_DOCK_SCALE"]) is float
 	assert type(app.config["CAMERA_NAME_OVERRIDES"]) is dict
 	assert type(app.config["VIDEO_REMOTES"]) is dict
 	assert app.config["PATCHBAY"] in (False, True, "virtual-cable")
+
+	# Default language settings
+	if app.config["UI_LANGUAGE"] is None:
+		try:
+			import obspython as obs
+			app.config["UI_LANGUAGE"] = obs.obs_get_locale().split("-")[0]
+		except ImportError:
+			app.config["UI_LANGUAGE"] = "en"
+	if app.config["PUB_LANGUAGE"] is None:
+		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
 
 	# Init DB
 	with app.app_context():
@@ -109,4 +114,3 @@ def create_app(instance_path=None):
 			os.mkdir(app.config["MEDIA_CACHEDIR"])
 
 	return app
-

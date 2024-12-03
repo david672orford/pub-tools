@@ -1,5 +1,6 @@
 import os
 from .utils.runningtime import time_to_str
+from .utils.theme import get_theme
 
 menu = []
 
@@ -7,6 +8,7 @@ def init_app(app, url_prefix):
 
 	app.jinja_env.globals["menu"] = menu
 	app.jinja_env.filters["runningtime"] = time_to_str
+	app.jinja_env.globals["get_theme"] = get_theme
 
 	from .views import blueprint
 	blueprint.cache.init_app(app, {
@@ -31,4 +33,3 @@ def init_app(app, url_prefix):
 
 	from .cli_zoom import cli_zoom
 	app.cli.add_command(cli_zoom)
-

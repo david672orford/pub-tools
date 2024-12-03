@@ -6,4 +6,3 @@ def get_locale():
 
 def init_babel(app):
 	app.babel = babel = Babel(app, locale_selector=get_locale)
-

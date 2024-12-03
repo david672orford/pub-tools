@@ -1,7 +1,7 @@
 # Set to a random value
 SECRET_KEY = "__secret_key_here__"
 
-# Select theme. Default is "basic-light".
+# Select theme. Default is "basic-light" or "basic-dark" when running under OBS in dark mode.
 #THEME="basic-light"
 #THEME="basic-dark"
 #THEME="colorful"
