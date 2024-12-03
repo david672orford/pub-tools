@@ -15,7 +15,10 @@ Start the Pub-Tools web server:
 
     $ ./start.py
 
+On Microsoft Windows:
+
+    > python start.py
+
 Then open this URL in a web browser:
 
     http://localhost:5000/toolbox/
-
