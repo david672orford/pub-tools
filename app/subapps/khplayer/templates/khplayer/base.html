@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="turbo-root" content="/khplayer">
 <link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='base.css')}}">
-<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='themes/' + config.THEME + '/theme.css')}}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='themes/' + get_theme() + '/theme.css')}}">
 {{ turbo() }}
 <script src="{{ url_for('.static', filename='base.js')}}"></script>
 {% block head_add %}
