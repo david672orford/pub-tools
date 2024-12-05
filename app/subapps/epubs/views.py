@@ -14,8 +14,8 @@ from ...cli_jworg import update_periodicals, update_books
 
 logger = logging.getLogger(__name__)
 
-blueprint = Blueprint('epubs', __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = 'Epub Viewer'
+blueprint = Blueprint("epubs", __name__, template_folder="templates", static_folder="static")
+blueprint.display_name = "Epub Viewer"
 blueprint.blurb = "Display ePub files from JW.ORG"
 
 lang = current_app.config["PUB_LANGUAGE"]
@@ -29,19 +29,19 @@ def epub_index():
 		"epubs/index.html",
 		periodicals = (
 			("w", "Watchtower Study Edition",
-				PeriodicalIssues.query.filter_by(pub_code="w").order_by(PeriodicalIssues.issue_code),
+				PeriodicalIssues.query.filter_by(lang=lang).filter_by(pub_code="w").order_by(PeriodicalIssues.issue_code),
 				),
 			("wp", "Watchtower Public Edition",
-				PeriodicalIssues.query.filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code),
+				PeriodicalIssues.query.filter_by(lang=lang).filter_by(pub_code="wp").order_by(PeriodicalIssues.issue_code),
 				),
 			("g", "Awake!",
-				PeriodicalIssues.query.filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code),
+				PeriodicalIssues.query.filter_by(lang=lang).filter_by(pub_code="g").order_by(PeriodicalIssues.issue_code),
 				),
 			("mwb", "Meeting Workbook",
-				PeriodicalIssues.query.filter_by(pub_code="mwb").order_by(PeriodicalIssues.issue_code),
+				PeriodicalIssues.query.filter_by(lang=lang).filter_by(pub_code="mwb").order_by(PeriodicalIssues.issue_code),
 				),
 			),
-		books = Books.query.order_by(Books.name),
+		books = Books.query.filter_by(lang=lang).order_by(Books.name),
 		)
 
 # User has pressed one of the Load buttons to load a list of publications
@@ -57,7 +57,7 @@ def epub_load():
 # Search for illustrations
 @blueprint.route("/illustrations/")
 def search_illustrations():
-	q = request.args.get("q")	
+	q = request.args.get("q")
 	print("q:", q)
 	if q:
 		results = illustration_index.search(q)
@@ -67,7 +67,7 @@ def search_illustrations():
 
 @blueprint.route("/illustrations/<int:docnum>")
 def show_illustration(docnum):
-	q = request.args.get("q")	
+	q = request.args.get("q")
 	result = illustration_index.get_document(docnum)
 	return render_template("epubs/illustration_viewer.html", q = q, result=result)
 
@@ -165,4 +165,3 @@ def epub_file(pub_code, path):
 #	css_text = file_handle.read() + viewer_css_override.encode("utf-8")
 #
 #	return Response(css_text, mimetype=item.mimetype)
-
