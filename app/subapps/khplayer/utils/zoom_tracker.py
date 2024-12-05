@@ -24,8 +24,8 @@ class ZoomTracker:
 	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# green
 	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# smallest seems to be about 450px wide
 
-	def __init__(self):
-		self.debug = False
+	def __init__(self, debug=False):
+		self.debug = debug
 		self.speaker_indexes = SimpleSpeakerIndexes()
 		self.gallery = None
 		self.speaker_box = None
