@@ -88,6 +88,8 @@ class ObsScript:
 	def __init__(self, debug=False):
 		self.debug = debug
 		self._install_callbacks(inspect.currentframe().f_back.f_globals)
+		self._finished_loading = False
+		self._deferred_on_gui_change = None
 
 	#===================================================================
 	# Here we install functions for all of the OBS callbacks. Don't
@@ -206,7 +208,13 @@ class ObsScript:
 			if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
 				if self.debug:
 					print("*** finished loading")
-				self.enqueue(lambda: self.on_finished_loading())
+				self._finished_loading = True
+				def run_on_finished_loading():
+					self.on_finished_loading()
+					if self._deferred_on_gui_change is not None:
+						self.on_gui_change(self._deferred_on_gui_change)
+						self._deferred_on_gui_change = None
+				self.enqueue(run_on_finished_loading)
 				obs.obs_frontend_remove_event_callback(on_event)
 		obs.obs_frontend_add_event_callback(on_event)
 
@@ -247,7 +255,10 @@ class ObsScript:
 		settings = self._pythonize_settings(raw_settings)
 		if self.debug:
 			print("*** settings:", settings)
-		self.on_gui_change(settings)
+		if self._finished_loading:
+			self.on_gui_change(settings)
+		else:
+			self._deferred_on_gui_change = settings
 
 	# Called just before script_unload()
 	# Documentation is a bit unclear about this, but it sounds like it
