@@ -54,26 +54,22 @@ On Microsoft Windows:
 ## The Subapps
 
 When you open Pub-Tools in a web browser as described above the first
-thing you will see is a menu of the subapps. For instructions on setting
-them up and using them refer to the documentation below.
+thing you will see is a menu of the subapps. 
 
-* [KH Player](docs/subapp-khplayer.md)
-* [Teaching Toolbox](docs/subapp-toolbox.md)
-* [Epub Reader](docs/subapp-epubs.md)
+### KH Player
 
-## Language Support
+![Screenshot of Songbook tab in KH Player](docs/images/screenshot-khplayer-songbook.png)
 
-The UI can be switched to Russian. First build the translation file:
+[KH Player Documentation](docs/subapp-khplayer.md)
 
-    $ cd app/translations
-    $ make mo
-    $ cd ../..
+### Teaching Toolbox Sharing Tool
 
-Then open instance/config.py in your favorite text editor and change
-UI\_LANGUAGE like so:
+![Screenshot of the Teaching Toolbox Sharing Tool](docs/images/screenshot-toolbox.png)
 
-    UI\_LANGUAGE="ru"
+[Teaching Toolbox Documentation](docs/subapp-toolbox.md)
 
-To change the publication language to Russian change PUB_LANGUAGE:
+### Epub Reader
 
-    PUB\_LANGUAGE="ru"
+![Screenshot of the Epub Reader](docs/images/screenshot-epubs.png)
+
+[Epub Reader Documentation](docs/subapp-epubs.md)
