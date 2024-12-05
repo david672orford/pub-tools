@@ -1,0 +1,7 @@
+#! /bin/sh
+for file in "$@"
+	do
+	convert $file -bordercolor grey -border 2x2 bordered.png
+	mv bordered.png $file
+	pngcrush -ow $file
+	done
