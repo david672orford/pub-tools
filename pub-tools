@@ -36,6 +36,7 @@ logging.basicConfig(
 	datefmt = '%H:%M:%S'
 	)
 
+server = server_thread = None
 if not options.no_server:
 	logging.info("Starting embedded web server...")
 	server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
@@ -58,7 +59,7 @@ webview.start(
 	)
 logging.info("Webview has exited.")
 
-if not options.no_server:
+if server is not None:
 	logging.info("Shutting down the web server...")
 	server.shutdown()
 	server_thread.join()
