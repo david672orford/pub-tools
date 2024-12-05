@@ -6,7 +6,7 @@ OBS Studio which turn it into a media player for use at congregation meetings.
 
 ## Installing Pub-Tools
 
-To install on Ubuntu and other Debian-Family Linuxes:
+To install on Ubuntu and other Debian-family Linuxes:
 
     $ sudo apt-get install git cmake ffmpeg pulseaudio-utils python3-pip python3-venv
     $ git clone https://github.com/david672orford/pub-tools.git

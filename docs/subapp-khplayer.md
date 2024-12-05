@@ -61,7 +61,8 @@ or later, then Pipewire may already be installed.
   **Make projectors always on top** and **Limit one fullscreen projector per screen**.
 * In the settings under **Audio** set the **Monitoring Device** to **Monitor of To-Zoom**.
 * In the settings under **Video** set the **Base (Canvas) Resolution** and **Output (Scaled) Resolution** to 1024x720.
-* Enable the OBS-Websocket plugin and copy the password into the config.py file of **Pub-Tools**.
+* TODO: Setting to prevent warning about exit with virtual camera running
+* Under **Tools** find the OBS-Websocket plugin and enable it
 * Under **Docks** uncheck **Audio Mixer** since we will not be using it.
 * Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
 directory of this project:
@@ -77,6 +78,7 @@ directory of this project:
       * Mute the microphone. This improves sound quality for participant in Zoom considerably.
       * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
       * Return to the state scene you specify whenever a video finishes playing.
+  * TODO: **khplayer-zoom-tracker.py**
 
 ## Starting the Meeting
 

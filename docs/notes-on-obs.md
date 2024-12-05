@@ -119,6 +119,15 @@ of quite a number of users.
 Here are some notes on concepts and objects in OBS which we had to figure
 out when writing scripts for it.
 
+## Configuration
+
+* Script configuration is stored in the scene collection
+* Hotkeys are stored in the profile
+* Output settings are stored in the profile
+* The audio monitor setting is stored in the profile
+* Browser doc configuration is stored in global.ini
+* Warn before closing with virtual camera running is stored in ___________________
+
 ### Object Hierarcy
 
 Each **Scene** has zero or more **Scene Items**. Each Scene Item has a **Source** to which it applies
