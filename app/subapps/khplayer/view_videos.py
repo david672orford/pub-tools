@@ -30,7 +30,9 @@ def page_videos():
 # When Search button pressed
 @blueprint.route("/videos/search")
 def page_videos_search():
-	q = request.args.get("q")	
+	q = request.args.get("q")
+	if q is None:
+		return redirect(".")
 	search_results, search_suggestion = video_index.search(q)
 	if search_suggestion:
 		search_suggestion = '<a href="search?%s">%s</a>' % (urlencode(dict(q=search_suggestion)), escape(search_suggestion))
@@ -78,4 +80,3 @@ def page_videos_category_subcategory_update(category_key, subcategory_key):
 	progress_callback(_("✔ Video list updated."), cssclass="success", close=True)
 	sleep(1)
 	return redirect(".")
-

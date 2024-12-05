@@ -6,6 +6,21 @@ SECRET_KEY = "__secret_key_here__"
 #THEME="basic-dark"
 #THEME="colorful"
 
+# Size of text in browser dock may be off
+#OBS_BROWSER_DOCK_SCALE = 1.0
+
+# Language for user interface (defaults to the system locale)
+#UI_LANGUAGE="ru"
+
+# Language for loading publications, videos (defaults to UI_LANGUAGE)
+#PUB_LANGUAGE="ru"
+
+# Uncomment to enable subtitles in videoes, where available (defaults to disabled)
+#SUB_LANGUAGE="en"
+
+# Set to "240p", "360p", "480p", or "720p" (defaults to "720p")
+#VIDEO_RESOLUTION="480p"
+
 # Pub-Tools has several applications which can be enabled individually
 #ENABLED_SUBAPPS = [
 #	"khplayer",
@@ -21,21 +36,6 @@ SECRET_KEY = "__secret_key_here__"
 #	"port": 4455,
 #	"password": "__change_me__",
 #	}
-
-# Language for user interface (default is "en")
-#UI_LANGUAGE="ru"
-
-# Size of text in browser dock may be off
-#OBS_BROWSER_DOCK_SCALE = 1.0
-
-# Language for loading publications, videos (default is "en")
-#PUB_LANGUAGE="ru"
-
-# Uncomment to enable subtitles in videoes, where available
-#SUB_LANGUAGE="en"
-
-# Set to "240p", "360p", "480p", or "720p"
-#VIDEO_RESOLUTION="480p"
 
 # Patchbay mode:
 # False - Disable

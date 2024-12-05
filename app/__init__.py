@@ -46,7 +46,7 @@ def create_app(instance_path=None):
 		# KH Player Settings
 		PUB_LANGUAGE = None,			# language in which to load publications from JW.ORG
 		SUB_LANGUAGE = None,			# choose language to enable video subtitles
-		VIDEO_RESOLUTION = "480p",		# resolution of videos from JW.ORG
+		VIDEO_RESOLUTION = "720p",		# resolution of videos from JW.ORG
 		OBS_BROWSER_DOCK_SCALE = 1.0,	# font size when running on OBS browser dock
 		CAMERA_NAME_OVERRIDES = {},		# friendly names of V4L cameras
 		VIDEO_REMOTES = {},				# remote video feeds using VDO.Ninja
@@ -73,7 +73,8 @@ def create_app(instance_path=None):
 			import obspython as obs
 			app.config["UI_LANGUAGE"] = obs.obs_get_locale().split("-")[0]
 		except ImportError:
-			app.config["UI_LANGUAGE"] = "en"
+			import locale
+			app.config["UI_LANGUAGE"] = locale.getlocale()[0].split("_")[0]
 	if app.config["PUB_LANGUAGE"] is None:
 		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
 
