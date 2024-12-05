@@ -69,7 +69,7 @@ def cmd_zoom_track():
 		ZoomCropper("Zoom Crop 2", zoom_input_name, zoom_input_uuid),
 		)
 
-	tracker = ZoomTracker()
+	tracker = ZoomTracker(debug=True)
 
 	while True:
 		try:

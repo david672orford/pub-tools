@@ -32,7 +32,7 @@ class ObsZoomTracker(ObsScript):
 			"Zoom Crop 2",
 			)
 		self.croppers = []
-		self.tracker = ZoomTracker()
+		self.tracker = ZoomTracker(debug=self.debug)
 
 		self.gui = [
 			ObsWidget("select", "capture_window", "Zoom Window",
@@ -206,7 +206,7 @@ class ZoomCropper:
 				obs.obs_sceneitem_set_crop(self.scene_item, crop_struct)
 			self.prev_crop_box = crop_box
 
-zoom_tracker = ObsZoomTracker(debug=False)
+zoom_tracker = ObsZoomTracker(debug=True)
 
 # The OBS documentation recommends against using this function, but if we
 # use a timer OBS segfaults in the graphics thread.
