@@ -60,13 +60,14 @@ class ObsControlBase:
 
 		# Connect right away so if browers reconnect after a server restart, they will
 		# receive events right away. But if we cannot connect to OBS, suppress the error
-		# since we have no one to whom to report it.
-		# The user will get the error again when he tries to do something
-		# which require communication with OBS.
+		# since we have no one to whom to report it. The user will get the error again
+		# when he tries to do something which require communication with OBS.
+		#
+		# FIXME: Find a way to suppress this called from the flask command.
 		try:
 			self.connect()
 		except ObsError as e:
-			logger.warning("Failed to connect to OBS: %s", e)
+			pass
 
 	# Register an event callback function. Currently only scenes-event
 	# subscriptions are implemented.
