@@ -23,22 +23,22 @@ class ObsZoomTracker(ObsScript):
 
 	def __init__(self, *args, debug=False, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.windows = []
 		self.source_name = "Zoom Capture"
-		self.source = None
 		self.cropper_names = (
 			"Zoom Crop 0",
 			"Zoom Crop 1",
 			"Zoom Crop 2",
 			)
-		self.croppers = []
+		self.capture = None
 		self.tracker = ZoomTracker(debug=self.debug)
+		self.croppers = []
 		self.last_active = False
 		self.last_snapshot = False
 
 		self.gui = [
 			ObsWidget("select", "capture_window", "Zoom Window",
-				options=lambda: self.capture_windows,
+				value=lambda: self.capture.get_window(),
+				options=lambda: self.capture.get_window_options(),
 				),
 			]
 
@@ -46,73 +46,47 @@ class ObsZoomTracker(ObsScript):
 		"""Create the Zoom scenes an sources if they do not exist yet"""
 
 		# Create the input which captures the main Zoom screen, or reuse the old one if it exists.
-		self.source = obs.obs_get_source_by_name(self.source_name)
-		if self.source is None:
-			source_settings = obs.obs_data_create()
-			if sys.platform == "win32":
-				self.source = obs.obs_source_create("window_capture", self.source_name, None, None)
-				obs.obs_data_set_bool(source_settings, "cursor", False)
-				obs.obs_data_set_int(source_settings, "priority", 1)	# Window title must match
-				obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
-			else:
-				self.source = obs.obs_source_create("xcomposite_input", self.source_name, None, None)
-				obs.obs_data_set_bool(source_settings, "show_cursor", False)
-				obs.obs_data_set_int(source_settings, "cut_top", 130)
-				obs.obs_data_set_int(source_settings, "cut_bot", 0)
-			obs.obs_source_update(self.source, source_settings)
-			obs.obs_data_release(source_settings)
+		self.capture = WindowCapture(self.source_name)
 
 		# Create the sources which will contain cropped versions of this input
 		for i in range(len(self.cropper_names)):
 			cropper_name = self.cropper_names[i]
 			if self.debug:
 				print("Creating cropper:", cropper_name)
-			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.source, i!=0))
+			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.capture.source, i!=0))
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
-
-	def on_before_gui(self):
-		"""Load values and options into the GUI before it is displayed"""
-		self.capture_windows = []
-		properties = obs.obs_get_source_properties("xcomposite_input")
-		property = obs.obs_properties_get(properties, "capture_window")
-		for i in range(obs.obs_property_list_item_count(property)):
-			option = obs.obs_property_list_item_string(property, i)
-			self.capture_windows.append((option, option.split("\r\n")[1]))
-		obs.obs_properties_destroy(properties)
 
 	def on_gui_change(self, settings):
 		"""When a setting is changed in the GUI"""
 		if self.debug:
 			print("GUI change: capture_window is now:", settings.capture_window)
-		source_settings = obs.obs_data_create()
-		if sys.platform == "win32":
-			obs.obs_data_set_string(source_settings, "window", settings.capture_window)
-		else:
-			obs.obs_data_set_string(source_settings, "capture_window", settings.capture_window)
-		obs.obs_source_update(self.source, source_settings)
-		obs.obs_data_release(source_settings)
+		self.capture.set_window(settings.capture_window)
 
 	def on_unload(self):
-		if self.source is not None:
-			obs.obs_source_release(self.source)
+		"""Script or OBS shutting down. Free resources."""
+		if self.capture is not None:
+			self.capture.destroy()
+			self.capture = None
 		for zoom_scene in self.croppers:
 			zoom_scene.release()
 
 	def active(self):
-		#return obs.obs_source_active(self.source)
+		"""Is at least one OBS scene showing Zoom active?"""
+		#return obs.obs_source_active(self.capture.source)
 		for cropper in self.croppers:
 			if obs.obs_source_active(cropper.source):
 				return True
 		return False
 
 	def tick(self):
+		"""Time to get a screenshot and adjust the cropping"""
 		if self.active():
 			if not self.last_active:
 				if self.debug:
 					print("Zoom scene now active")
 				self.last_active = True
-			data, width, height = snapshot(self.source)
+			data, width, height = snapshot(self.capture.source)
 			if data is not None:
 				if not self.last_snapshot:
 					if self.debug:
@@ -134,6 +108,54 @@ class ObsZoomTracker(ObsScript):
 			if self.debug:
 				print("Zoom scene now inactive")
 			self.last_active = False
+
+class WindowCapture:
+	"""Wrapper for an OBS input which does screen capture on an application window"""
+	def __init__(self, source_name):
+		self.source = obs.obs_get_source_by_name(source_name)
+		if sys.platform == "win32":
+			self.input_kind = "window_capture"
+			self.window_key = "window"
+		else:
+			self.input_kind = "xcomposite_input"
+			self.window_key = "capture_window"
+		if self.source is None:
+			self.source = obs.obs_source_create(self.input_kind, source_name, None, None)
+		source_settings = obs.obs_data_create()
+		if sys.platform == "win32":
+			obs.obs_data_set_bool(source_settings, "cursor", False)
+			obs.obs_data_set_int(source_settings, "priority", 1)	# Window title must match
+			obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
+		else:
+			obs.obs_data_set_bool(source_settings, "show_cursor", False)
+		obs.obs_source_update(self.source, source_settings)
+		obs.obs_data_release(source_settings)
+
+	def destroy(self):
+		obs.obs_source_release(self.source)
+
+	def get_window(self):
+		source_settings = obs.obs_source_get_settings(self.source)
+		value = obs.obs_data_get_string(source_settings, self.window_key)
+		obs.obs_data_release(source_settings)
+		print("============", value, "============")
+		return value
+
+	def set_window(self, window):
+		source_settings = obs.obs_data_create()
+		obs.obs_data_set_string(source_settings, self.window_key, window)
+		obs.obs_source_update(self.source, source_settings)
+		obs.obs_data_release(source_settings)
+
+	def get_window_options(self):
+		properties = obs.obs_get_source_properties(self.input_kind)
+		property = obs.obs_properties_get(properties, self.window_key)
+		capture_windows = []
+		for i in range(obs.obs_property_list_item_count(property)):
+			option = obs.obs_property_list_item_string(property, i)
+			capture_windows.append((option, option.split("\r\n")[1]))
+		obs.obs_properties_destroy(properties)
+		return capture_windows
 
 def snapshot(source):
 	"""Take a screenshot of the supplied OBS source"""

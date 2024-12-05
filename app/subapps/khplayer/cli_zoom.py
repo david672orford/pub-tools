@@ -13,7 +13,12 @@ from PIL import Image, ImageDraw
 from .utils.controllers import obs, ObsError
 from .utils.zoom_tracker import ZoomTracker
 
-cli_zoom = AppGroup("zoom", help="Zoom scene control")
+cli_zoom = AppGroup("zoom", help="Zoom conferencing integration")
+
+@cli_zoom.command("configure")
+def cmd_zoom_configure():
+	"""Change Zoom settings to work with KHPlayer"""
+	pass
 
 @cli_zoom.command("test")
 @click.argument("filename")
