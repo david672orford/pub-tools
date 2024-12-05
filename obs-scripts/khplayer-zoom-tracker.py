@@ -229,7 +229,7 @@ zoom_tracker = ObsZoomTracker(debug=True)
 tick_count = 0
 def script_tick(seconds):
 	global tick_count
-	TICK_DIVISOR = 5
+	TICK_DIVISOR = 15
 	if seconds > 0.034:
 		print("long tick:", seconds)
 	tick_count += 1
