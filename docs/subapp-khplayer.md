@@ -2,14 +2,12 @@
 
 This is the most well-developed of the modules. It helps you to load the videos
 and illustrations for a congregation meeting into OBS Studio ready to play.
-
 This note describes how to set up OBS to play the videos at meetings while
-some participants are connected by Zoom. These instructions apply to Ubuntu
-Linux 22.04.
+some participants are connected by Zoom.
 
 ## Install OBS Studio
 
-On Ubuntu:
+On Ubuntu Linux 22.04 or later:
 
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install obs-studio
@@ -30,6 +28,10 @@ Start the Pub-Tools web server:
 
     $ ./start.py
 
+On Microsoft Windows:
+
+    > python start.py
+
 Then open this URL in a web browser:
 
     http://localhost:5000/khplayer/
@@ -39,12 +41,14 @@ and **Videos** which can be used to load videos material into OBS.
 
 ## Install Pipewire
 
-Install the new audio subsystem called Pipewire following the instructions
+Install the new audio subsystem called Pipewire on Ubuntu 22.04 following the instructions
 in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
-Be sure to follow the part about installing Wireplumber. If you are running Ubuntu 24.04
-or later, then Pipewire may already be installed.
+Be sure to follow the part about installing Wireplumber.
 
-## Set Up Video Loopback Device
+If you are running Ubuntu 24.04 or later, then Pipewire is already in the main package
+repository. Skip the part about added in the 3rd-party repository and proceed from there.
+
+## Set Up a Video Loopback Device
 
     $ ./docs/setup-loopback.sh
 
