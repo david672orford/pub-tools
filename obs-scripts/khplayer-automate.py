@@ -233,5 +233,5 @@ class DummySource:
 	name = "dummy_source"
 	settings = {}
 
-ObsAutomate(debug=True)
+ObsAutomate(debug=False)
 

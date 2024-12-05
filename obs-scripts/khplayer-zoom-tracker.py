@@ -43,9 +43,10 @@ class ObsZoomTracker(ObsScript):
 	def on_finished_loading(self):
 		"""Create the Zoom scenes an sources if they do not exist yet"""
 
-		# Create the input which captures the main Zoom screen
+		# Create the input which captures the main Zoom screen, or reuse the old one if it exists.
 		self.source = obs.obs_get_source_by_name(self.source_name)
 		if self.source is None:
+			source_settings = obs.obs_data_create()
 			if sys.platform == "win32":
 				self.source = obs.obs_source_create("window_capture", self.source_name, None, None)
 				obs.obs_data_set_bool(source_settings, "cursor", False)
@@ -56,11 +57,14 @@ class ObsZoomTracker(ObsScript):
 				obs.obs_data_set_bool(source_settings, "show_cursor", False)
 				obs.obs_data_set_int(source_settings, "cut_top", 130)
 				obs.obs_data_set_int(source_settings, "cut_bot", 0)
+			obs.obs_source_update(self.source, source_settings)
+			obs.obs_data_release(source_settings)
 
 		# Create the sources which will contain cropped versions of this input
 		for i in range(len(self.cropper_names)):
 			cropper_name = self.cropper_names[i]
-			print("Creating cropper:", cropper_name)
+			if self.debug:
+				print("Creating cropper:", cropper_name)
 			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.source, i!=0))
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
@@ -77,7 +81,8 @@ class ObsZoomTracker(ObsScript):
 
 	def on_gui_change(self, settings):
 		"""When a setting is changed in the GUI"""
-		print("GUI change: capture_window is now:", settings.capture_window)
+		if self.debug:
+			print("GUI change: capture_window is now:", settings.capture_window)
 		source_settings = obs.obs_data_create()
 		if sys.platform == "win32":
 			obs.obs_data_set_string(source_settings, "window", settings.capture_window)
@@ -201,7 +206,7 @@ class ZoomCropper:
 				obs.obs_sceneitem_set_crop(self.scene_item, crop_struct)
 			self.prev_crop_box = crop_box
 
-zoom_tracker = ObsZoomTracker()
+zoom_tracker = ObsZoomTracker(debug=False)
 
 # The OBS documentation recommends against using this function, but if we
 # use a timer OBS segfaults in the graphics thread.
