@@ -66,7 +66,7 @@ thing you will see is a menu of the subapps.
 
 ![Screenshot of the Teaching Toolbox Sharing Tool](docs/images/screenshot-toolbox.png)
 
-[Teaching Toolbox Documentation](docs/subapp-toolbox.md)
+[Teaching Toolbox Viewer Documentation](docs/subapp-toolbox.md)
 
 ### Epub Reader
 
