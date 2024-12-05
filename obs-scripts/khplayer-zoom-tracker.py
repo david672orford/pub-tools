@@ -138,7 +138,6 @@ class WindowCapture:
 		source_settings = obs.obs_source_get_settings(self.source)
 		value = obs.obs_data_get_string(source_settings, self.window_key)
 		obs.obs_data_release(source_settings)
-		print("============", value, "============")
 		return value
 
 	def set_window(self, window):
