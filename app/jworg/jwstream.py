@@ -111,8 +111,8 @@ class StreamEvent:
 		return self._download_url
 
 	def get_video_url(self, resolution):
-		for download_url in self.event['downloadUrls']:
-			m = re.match(r"^(\d+)", download_url['quality'])
+		for download_url in self.event["downloadUrls"]:
+			m = re.match(r"^(\d+)", download_url["quality"])
 			if int(m.group(1)) == resolution:
 				break
 		else:
@@ -164,7 +164,7 @@ class StreamRequester:
 
 		self.session = requests.Session()
 		self.session.headers.update({
-			'User-Agent': self.user_agent,
+			"User-Agent": self.user_agent,
 			"Accept": "application/json",
 			})
 
