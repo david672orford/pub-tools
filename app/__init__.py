@@ -6,7 +6,7 @@ from flask import Flask, session
 import logging
 
 from .utils.background import turbo
-from .utils.babel import init_babel
+from .utils.babel import init_babel, compile_babel_catalogs
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +84,7 @@ def create_app(instance_path=None):
 		models_init_app(app)
 
 	# Initialize Babel
+	compile_babel_catalogs()
 	init_babel(app)
 
 	# Accept SSE connection from Hotwire Turbo running in the browser
