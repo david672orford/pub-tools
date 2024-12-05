@@ -101,7 +101,7 @@ def create_app(instance_path=None):
 
 	# Load, initialize, and connect app components
 	with app.app_context():
-		for module_name in ("views", "subapps", "cli_jworg", "cli_cache"):
+		for module_name in ("views", "subapps", "cli", "cli_jworg", "cli_cache"):
 			logger.debug("Loading module %s..." % module_name)
 			module = import_module("app.%s" % module_name)
 			module.init_app(app)
