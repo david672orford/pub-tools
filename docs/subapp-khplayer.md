@@ -1,4 +1,4 @@
-## The KH Player Module
+## The KH Player Subapp
 
 This is the most well-developed of the modules. It helps you to load the videos
 and illustrations for a congregation meeting into OBS Studio ready to play.
@@ -102,12 +102,18 @@ Scene** button. Select the desired camera and press **Add Camera Scene**.
 
 ## Loading Videos and Images for a Meeting
 
+![Screenshot of the Meetings tab](images/screenshot-khplayer-meetings.png)
+
 * Go to the **Meetings** tab and select the meeting and week you want. A list
 of videos and illustrations will load. There will be a checkbox next to each
 item. Remove the checkbox for any item you do not need and press
 the **Download Media and Create Scenes in OBS** button.
 * For the weekend meeting, go to the **Songs** tab and load the song chosen by
 the speaker.
+
+## Loading Additional Songs
+
+![Screenshot of the Songbook tab](images/screenshot-khplayer-songbook.png)
 
 ## Loading Clips from JW Stream
 

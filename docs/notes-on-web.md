@@ -9,8 +9,9 @@ There are notes about web standards and frameworks used in this project.
 * [Flashing Messages in Flask](https://www.askpython.com/python-modules/flask/flask-flash-method)
 * [Wtforms](https://wtforms.readthedocs.io/en/3.0.x/)
 
-## Turbo Flask
+## Hotwire Turbo
 
+* [Hotwire Turbo](https://turbo.hotwired.dev/)
 * [Turbo-Flask](https://github.com/miguelgrinberg/turbo-flask)
 * [Flask-Sock](https://github.com/miguelgrinberg/flask-sock)
 * [Pure Python & Flask server-side event source](https://gist.github.com/jelmervdl/5a9861f7298907179c20a54c0e154560)

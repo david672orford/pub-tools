@@ -15,8 +15,8 @@ from ...cli_jworg import update_periodicals, update_books
 logger = logging.getLogger(__name__)
 
 blueprint = Blueprint("epubs", __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = "Epub Viewer"
-blueprint.blurb = "Display ePub files from JW.ORG"
+blueprint.display_name = "Epub Reader"
+blueprint.blurb = "Download and display ePub files from JW.ORG"
 
 lang = current_app.config["PUB_LANGUAGE"]
 

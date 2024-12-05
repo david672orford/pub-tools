@@ -8,8 +8,8 @@ from ...models import PeriodicalIssues, Books, VideoCategories, Videos
 logger = logging.getLogger(__name__)
 
 blueprint = Blueprint("toolbox", __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = "Toolbox"
-blueprint.blurb = "Get lists of publications from the Teaching Toolbox"
+blueprint.display_name = "Teaching Toolbox Viewer"
+blueprint.blurb = "Lists the publications in the Teaching Toolbox"
 
 books = (
 	"lffi",		# Радуйтесь жизни сейчас и вечно! (вводной курс)
@@ -70,4 +70,3 @@ def toolbox(pub_category):
 			share = lambda item: ""
 			classes = "pubs"
 	return render_template("toolbox/publications.html", title=title, items=items, share=share, classes=classes)
-

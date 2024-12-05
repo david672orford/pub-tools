@@ -58,7 +58,7 @@ thing you will see is a menu of the subapps.
 
 ### KH Player
 
-![Screenshot of Songbook tab in KH Player](docs/images/screenshot-khplayer-songbook.png)
+![Screenshot of Meetings tab in KH Player](docs/images/screenshot-khplayer-meetings.png)
 
 [KH Player Documentation](docs/subapp-khplayer.md)
 
