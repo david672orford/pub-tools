@@ -21,7 +21,7 @@ class ObsZoomTracker(ObsScript):
 	<p>Run screen capture on the main Zoom window and crop out the current and previous speakers.</p>
 	"""
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self, *args, debug=False, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.windows = []
 		self.source_name = "Zoom Capture"
@@ -33,6 +33,8 @@ class ObsZoomTracker(ObsScript):
 			)
 		self.croppers = []
 		self.tracker = ZoomTracker(debug=self.debug)
+		self.last_active = False
+		self.last_snapshot = False
 
 		self.gui = [
 			ObsWidget("select", "capture_window", "Zoom Window",
@@ -106,8 +108,16 @@ class ObsZoomTracker(ObsScript):
 
 	def tick(self):
 		if self.active():
+			if not self.last_active:
+				if self.debug:
+					print("Zoom scene now active")
+				self.last_active = True
 			data, width, height = snapshot(self.source)
 			if data is not None:
+				if not self.last_snapshot:
+					if self.debug:
+						print("Zoom snapshot gained")
+					self.last_snapshot = True
 				def task():
 					obs.remove_current_callback()
 					img = Image.frombuffer("RGBA", (width, height), data, "raw", "RGBA", 0, 1)
@@ -115,8 +125,15 @@ class ObsZoomTracker(ObsScript):
 					#img.save("/tmp/image.png", "PNG")
 					self.tracker.load_image(img)
 					self.tracker.do_cropping(self.croppers)
-				#task()
 				obs.timer_add(task, 1)
+			elif self.last_snapshot:
+				if self.debug:
+					print("Zoom snapshot lost")
+				self.last_snapshot = False
+		elif self.last_active is True:
+			if self.debug:
+				print("Zoom scene now inactive")
+			self.last_active = False
 
 def snapshot(source):
 	"""Take a screenshot of the supplied OBS source"""
@@ -146,7 +163,6 @@ def snapshot(source):
 		if linesize is not None:
 			#data = bytes(rawdata[:linesize*height])
 			data = bytearray(string_at(rawdata, linesize*height))
-		if data is not None:
 			obs.gs_stagesurface_unmap(stagesurf)
 
 		obs.gs_stagesurface_destroy(stagesurf)
