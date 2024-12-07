@@ -116,7 +116,7 @@ def page_scenes_composer_add_source(scene_uuid):
 
 			case "add-zoom":
 				if zoom_tracker_loaded():
-					obs.add_group_source(scene_uuid, f"Zoom Crop {action[1]}")
+					obs.add_existing_source(scene_uuid, f"Zoom Participant {action[1]}")
 				elif action[1] == "0":
 					capture_window = find_second_window()
 					if capture_window is not None:

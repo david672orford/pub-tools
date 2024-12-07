@@ -20,14 +20,13 @@ class ObsZoomTracker(ObsScript):
 	<h2>KH Player—Zoom Tracker</h2>
 	<p>Run screen capture on the main Zoom window and crop out the current and previous speakers.</p>
 	"""
-
 	def __init__(self, *args, debug=False, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.source_name = "Zoom Capture"
 		self.cropper_names = (
-			"Zoom Crop 0",
-			"Zoom Crop 1",
-			"Zoom Crop 2",
+			"Zoom Participant 0",
+			"Zoom Participant 1",
+			"Zoom Participant 2",
 			)
 		self.capture = None
 		self.tracker = ZoomTracker(debug=self.debug)
@@ -43,7 +42,7 @@ class ObsZoomTracker(ObsScript):
 			]
 
 	def on_finished_loading(self):
-		"""Create the Zoom scenes an sources if they do not exist yet"""
+		"""Create the Zoom capture source and participant sources, if they do not exist yet"""
 
 		# Create the input which captures the main Zoom screen, or reuse the old one if it exists.
 		self.capture = WindowCapture(self.source_name)
@@ -53,7 +52,7 @@ class ObsZoomTracker(ObsScript):
 			cropper_name = self.cropper_names[i]
 			if self.debug:
 				print("Creating cropper:", cropper_name)
-			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.capture.source, i!=0))
+			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.capture.source))
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
 
@@ -135,18 +134,21 @@ class WindowCapture:
 		obs.obs_source_release(self.source)
 
 	def get_window(self):
+		"""Get the window currently captured"""
 		source_settings = obs.obs_source_get_settings(self.source)
 		value = obs.obs_data_get_string(source_settings, self.window_key)
 		obs.obs_data_release(source_settings)
 		return value
 
 	def set_window(self, window):
+		"""Set the window currently captured"""
 		source_settings = obs.obs_data_create()
 		obs.obs_data_set_string(source_settings, self.window_key, window)
 		obs.obs_source_update(self.source, source_settings)
 		obs.obs_data_release(source_settings)
 
 	def get_window_options(self):
+		"""Get the list of windows available for capturing"""
 		properties = obs.obs_get_source_properties(self.input_kind)
 		property = obs.obs_properties_get(properties, self.window_key)
 		capture_windows = []
@@ -197,50 +199,33 @@ def snapshot(source):
 
 class ZoomCropper:
 	"""
-	Wrapper for an OBS scene which contains a cropped version of the Zoom screen capture
+	Wrapper for a proxy source which crops a piece out of Zoom Capture.
 	There is an OBS-Websocket version of this in cli_zoom.py.
 	"""
-
-	def __init__(self, source_name, zoom_source_name, zoom_source, toggle):
+	def __init__(self, source_name, zoom_source_name, zoom_source):
 		self.prev_crop_box = None
-		self.toggle = toggle
-
 		# Find the named scene. Create it if it does not exist.
 		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
-			self.source = obs.obs_source_create("group", source_name, None, None)
-
-		# If the named source is not in the scene, add it.
-		group = obs.obs_group_from_source(self.source)
-		self.scene_item = obs.obs_scene_find_source(group, zoom_source_name)
-		if self.scene_item is None:
-			self.scene_item = obs.obs_scene_add(group, zoom_source)
-
-		# Prepare the scene item for cropping.
-		obs.obs_sceneitem_set_bounds_type(self.scene_item, obs.OBS_BOUNDS_SCALE_INNER)
-		bounds = obs.vec2()
-		bounds.x = 1280
-		bounds.y = 720
-		obs.obs_sceneitem_set_bounds(self.scene_item, bounds)
-		obs.obs_sceneitem_set_bounds_alignment(self.scene_item, 0)
+			self.source = obs.obs_source_create("khplayer-zoom-participant", source_name, None, None)
 
 	def release(self):
 		obs.obs_source_release(self.source)
 
-	def set_crop(self, crop_box, width, height):
+	def set_crop(self, crop_box):
 		if crop_box != self.prev_crop_box:
+			source_settings = obs.obs_data_create()
 			if crop_box is False:
-				if self.toggle:
-					obs.obs_sceneitem_set_visible(self.scene_item, False)
+				obs.obs_data_set_bool(source_settings, "enabled", False)
 			else:
 				if self.prev_crop_box is False:
-					obs.obs_sceneitem_set_visible(self.scene_item, True)
-				crop_struct = obs.obs_sceneitem_crop()
-				crop_struct.left = crop_box.x
-				crop_struct.top = crop_box.y
-				crop_struct.right = width - crop_box.width - crop_box.x
-				crop_struct.bottom = height - crop_box.height - crop_box.y
-				obs.obs_sceneitem_set_crop(self.scene_item, crop_struct)
+					obs.obs_data_set_bool(source_settings, "enabled", True)
+				obs.obs_data_set_int(source_settings, "crop_x", crop_box.x)
+				obs.obs_data_set_int(source_settings, "crop_y", crop_box.y)
+				obs.obs_data_set_int(source_settings, "crop_width", crop_box.width)
+				obs.obs_data_set_int(source_settings, "crop_height", crop_box.height)
+			obs.obs_source_update(self.source, source_settings)
+			obs.obs_data_release(source_settings)
 			self.prev_crop_box = crop_box
 
 zoom_tracker = ObsZoomTracker(debug=True)

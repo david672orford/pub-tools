@@ -9,7 +9,11 @@ from ....utils.babel import gettext as _
 from .controllers import obs
 
 def zoom_tracker_loaded():
-	return "Zoom Crop 0" in obs.get_group_list()
+	"""Is the KH Player Zoom Tracker running in OBS?"""
+	for input in obs.get_input_list():
+		if input["inputKind"] == "khplayer-zoom-participant":
+			return True
+	return False
 
 def find_second_window():
 	"""Look for the Zoom second-monitor window and return its address for OBS window capture"""

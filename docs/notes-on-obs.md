@@ -37,6 +37,15 @@ than writing a plugging or a script to run inside OBS.
 * [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
 * [Plugin Example](https://github.com/obsproject/obs-websocket/blob/eed8a49933786383d11f4868a4e5604a9ee303c6/lib/example/simplest-plugin.c)
 
+Requests missing from OBS-Websocket:
+
+* Get the UUID of a scene
+* Create a group
+* Get the UUID of a group
+* Get properties of an object (source, output, etc.) kind without instantiating it
+* Get locale
+* Get dark mode
+
 ## OBS Script Development
 
 OBS embeds Lua and Python interpreters. Scripts written in these language can automate
@@ -59,7 +68,6 @@ do not generally run fast enough to process video, but Lua scripts do.
     * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
     * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
     * [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
-    * [Crop Filter](https://github.com/rse/obs-crop-control/tree/master)
 * [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
 * [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions

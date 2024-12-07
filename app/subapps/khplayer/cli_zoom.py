@@ -33,21 +33,18 @@ def cmd_zoom_test(filename):
 	drawer = BoxDrawer(tracker.img)
 
 	gallery = tracker.find_gallery()
+	speaker_box = tracker.find_speaker_box()
+
 	print("Gallery:", gallery)
 	if gallery is not None:
 		print("x2:", gallery.x2)
 		print("width2:", gallery.width2)
 		drawer.draw_box(gallery)
-
-	speaker_box = tracker.find_speaker_box()
 	print("Speaker box:", speaker_box)
 	if speaker_box is not None:
 		drawer.draw_box(speaker_box)
-
 	print("Layout:", tracker.layout)
-
 	print("Speaker indexes:", tracker.speaker_indexes)
-
 	for box in tracker.layout:
 		drawer.draw_box(box)
 
@@ -69,9 +66,9 @@ def cmd_zoom_track():
 	assert zoom_input_uuid is not None, "%s not found" % zoom_input_name
 
 	zoom_scenes = (
-		ZoomCropper("Zoom Crop 0", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("Zoom Crop 1", zoom_input_name, zoom_input_uuid),
-		ZoomCropper("Zoom Crop 2", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Participant 0", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Participant 1", zoom_input_name, zoom_input_uuid),
+		ZoomCropper("Zoom Participant 2", zoom_input_name, zoom_input_uuid),
 		)
 
 	tracker = ZoomTracker(debug=True)
@@ -109,28 +106,21 @@ class ZoomCropper:
 	There is an OBS-API version of this in khplayer-zoom-tracker.py.
 	"""
 
-	def __init__(self, scene_name, zoom_input_name, zoom_input_uuid):
+	def __init__(self, source_name, zoom_input_name, zoom_input_uuid):
 		self.prev_crop_box = None
+		self.input_uuid = obs.get_input_uuid(source_name)
 
-		self.scene_uuid = obs.get_scene_uuid(scene_name)
-		if self.scene_uuid is None:
-			self.scene_uuid = obs.create_scene(scene_name)["sceneUuid"]
-
-		self.scene_item_id = obs.get_scene_item_id(self.scene_uuid, zoom_input_name)
-		if self.scene_item_id is None:
-			self.scene_item_id = obs.create_scene_item(scene_uuid=self.scene_uuid, source_uuid=zoom_input_uuid)
-
-	def set_crop(self, crop_box, width, height):
-		if crop_box != self.prev_crop_box:
+	def set_crop(self, crop_box):
+		if self.input_uuid is not None and crop_box != self.prev_crop_box:
 			if crop_box is False:
-				obs.set_scene_item_enabled(self.scene_uuid, self.scene_item_id, False)
+				settings = {"enabled": False}
 			else:
-				if self.prev_crop_box is False:
-					obs.set_scene_item_enabled(self.scene_uuid, self.scene_item_id, True)
-				obs.scale_scene_item(self.scene_uuid, self.scene_item_id, {
-					"cropLeft": crop_box.x,
-					"cropTop": crop_box.y,
-					"cropRight": width - crop_box.width - crop_box.x,
-					"cropBottom": height - crop_box.height - crop_box.y,
-					})
+				settings = {
+					"enabled": True,
+					"crop_x": crop_box.x,
+					"crop_y": crop_box.y,
+					"crop_width": crop_box.width,
+					"crop_height": crop_box.height,
+					}
+			obs.set_input_settings(uuid=self.input_uuid, settings=settings)
 			self.prev_crop_box = crop_box

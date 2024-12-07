@@ -128,7 +128,7 @@ class ObsScript:
 	# 4) script_update()
 	#
 	# Script Delete Call Sequence
-	# 1) script_unload
+	# 1) script_unload()
 	#
 	#===================================================================
 
@@ -208,20 +208,23 @@ class ObsScript:
 			if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
 				if self.debug:
 					print("*** finished loading")
-				self._finished_loading = True
-				def run_on_finished_loading():
-					self.on_finished_loading()
-					if self._deferred_on_gui_change is not None:
-						self.on_gui_change(self._deferred_on_gui_change)
-						self._deferred_on_gui_change = None
-				self.enqueue(run_on_finished_loading)
+				self.enqueue(self.run_on_finished_loading)
 				obs.obs_frontend_remove_event_callback(on_event)
 		obs.obs_frontend_add_event_callback(on_event)
+
+	def run_on_finished_loading(self):
+		if not self._finished_loading:
+			self._finished_loading = True
+			self.on_finished_loading()
+			if self._deferred_on_gui_change is not None:
+				self.on_gui_change(self._deferred_on_gui_change)
+				self._deferred_on_gui_change = None
 
 	# Called just before settings screen is displayed to build the GUI
 	def _script_properties(self):	# why not settings?
 		if self.debug:
 			print("*** script_properties()")
+		self.run_on_finished_loading()		# in case script loaded after start
 		self.on_before_gui()
 		self._apply_widget_values(self.raw_settings)
 		props = obs.obs_properties_create()

@@ -105,9 +105,6 @@ obs.subscribe("Ui", scenes_event_handler)			# studio mode
 def scene_items_event_handler(event):
 	logger.debug("%s %s", event["eventType"], json.dumps(event["eventData"], indent=2, ensure_ascii=False))
 	scene = event["eventData"]
-	# FIXME: This fires for groups too. Need a more general way to filter them out.
-	if scene["sceneName"].startswith("Zoom Crop "):
-		return
 	scene["thumbnail_url"] = get_scene_thumbnail(scene)
 	with blueprint.app.app_context():
 		turbo.push(render_template("khplayer/scenes_event_thumbnail.html", scene=scene))
@@ -184,7 +181,7 @@ def page_scenes_submit():
 
 			case "add-zoom":
 				if zoom_tracker_loaded():
-					obs.create_source_scene(_("* Zoom"), "group", "Zoom Crop 0")
+					obs.create_source_scene(_("* Zoom"), "existing", "Zoom Participant 0")
 				else:
 					capture_window = find_second_window()
 					if capture_window is not None:
@@ -194,14 +191,14 @@ def page_scenes_submit():
 				camera_dev = request.form.get("camera")
 				if camera_dev is not None:
 					if zoom_tracker_loaded():
-						obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "group", "Zoom Crop 0")
+						obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "existing", "Zoom Participant 0")
 					else:
 						capture_window = find_second_window()
 						if capture_window is not None:
 							obs.create_split_scene(_("* Camera+Zoom"), "camera", camera_dev, "window", capture_window)
 
 			case "add-zoom-1+2":
-				obs.create_split_scene(_("* Zoom 1+2"), "group", "Zoom Crop 1", "group", "Zoom Crop 2")
+				obs.create_split_scene(_("* Zoom 1+2"), "existing", "Zoom Participant 1", "existing", "Zoom Participant 2")
 
 			case "add-remote":
 				settings = current_app.config["VIDEO_REMOTES"][action[1]]

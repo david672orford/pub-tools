@@ -369,11 +369,11 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	def add_group_source(self, scene_uuid, group_name):
-		"""Add an existing OBS group (a kind of scene) as a scene item"""
+	def add_existing_source(self, scene_uuid, source_name):
+		"""Add an existing OBS source as a scene item"""
 		scene_item_id = self.create_scene_item(
 			scene_uuid = scene_uuid,
-			source_name = group_name,
+			source_name = source_name,
 			)
 		return scene_item_id
 
@@ -399,8 +399,8 @@ class ObsControl(ObsControlBase):
 			return self.add_camera_source(scene_uuid, address)
 		if scheme == "window":
 			return self.add_capture_source(scene_uuid, address)
-		elif scheme == "group":
-			return self.add_group_source(scene_uuid, address)
+		elif scheme == "existing":
+			return self.add_existing_source(scene_uuid, address)
 		elif scheme == "remote":
 			return self.add_remote_source(scene_uuid, address)
 		raise ValueError(f"unrecognized scheme: {scheme}")

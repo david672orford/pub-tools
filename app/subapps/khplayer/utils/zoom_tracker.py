@@ -255,14 +255,12 @@ class ZoomTracker:
 
 	def do_cropping(self, zoom_scenes):
 		"""Set the crop boxes on the supplied ZoomCropper objects"""
-		width = self.img.width + self.sidebar_width
-		height = self.img.height
 		i = 0
 		for speaker_index in self.speaker_indexes:
 			crop = self.layout[speaker_index] if speaker_index is not None and speaker_index < len(self.layout) else False
 			if self.debug:
 				print(f"speaker_indexes[{i}] crop is {crop}")
-			zoom_scenes[i].set_crop(crop, width, height)
+			zoom_scenes[i].set_crop(crop)
 			i += 1
 
 	def offset_to_xy(self, offset):
