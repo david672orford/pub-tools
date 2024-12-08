@@ -92,8 +92,7 @@ class KHPlayer(ObsScript):
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			#listen_address = "127.0.0.1"
-			listen_address = "0.0.0.0"
+			listen_address = "127.0.0.1"
 			listen_port = 5000
 			try:
 				self.server = make_server(
@@ -109,4 +108,10 @@ class KHPlayer(ObsScript):
 			except SystemExit:
 				self.logger.error("Server failed to start.")
 
-KHPlayer()
+khplayer = KHPlayer()
+
+# FIXME: Temporary fix for the fact that the browser dock starts after this
+# script is loaded but before it is initialized.
+khplayer.enable = True
+khplayer.apply_server_thread_state()
+
