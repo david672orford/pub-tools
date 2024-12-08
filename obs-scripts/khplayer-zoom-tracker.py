@@ -72,11 +72,7 @@ class ObsZoomTracker(ObsScript):
 
 	def active(self):
 		"""Is at least one OBS scene showing Zoom active?"""
-		#return obs.obs_source_active(self.capture.source)
-		for cropper in self.croppers:
-			if obs.obs_source_active(cropper.source):
-				return True
-		return False
+		return obs.obs_source_active(self.capture.source)
 
 	def tick(self):
 		"""Time to get a screenshot and adjust the cropping"""

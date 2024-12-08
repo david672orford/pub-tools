@@ -28,6 +28,18 @@ source_def.destroy = function(data)
 	obs.gs_texrender_destroy(data.texrender)
 end
 
+source_def.activate = function(data)
+	if data.parent_source ~= nil then
+		obs.obs_source_inc_active(data.parent_source)
+	end
+end
+
+source_def.deactivate = function(data)
+	if data.parent_source ~= nil then
+		obs.obs_source_dec_active(data.parent_source)
+	end
+end
+
 source_def.get_width = function(data)
     return data.width
 end
@@ -76,8 +88,8 @@ source_def.video_render = function(data)
        		end
       		obs.gs_texrender_reset(data.texrender)
 		end
-	else
-		print("no source")
+	-- else
+	--	print("no source")
     end
 end
 
