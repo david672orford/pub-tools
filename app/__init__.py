@@ -1,4 +1,5 @@
 import os
+import sys
 import uuid
 import platform
 from importlib import import_module
@@ -10,7 +11,12 @@ from .utils.babel import init_babel, compile_babel_catalogs
 
 logger = logging.getLogger(__name__)
 
-def create_app(instance_path=None):
+def create_app():
+	if sys.platform == "win32":
+		instance_path = os.path.join(os.environ["LOCALAPPDATA"], "Pub-Tools")
+	else:
+		instance_path = None	# default next to "app"
+
 	app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
 
 	# If we don't have a config file yet, create one

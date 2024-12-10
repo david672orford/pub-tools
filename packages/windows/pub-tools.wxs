@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<?define ProductVersion = "0.9.0"?>
+<?define ProductUpgradeCode = "84ab5d01-de0b-49e3-b85e-c24ba32edada"?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+    <Product Id="*"
+	    	Name="Pub-Tools"
+	        Version="$(var.ProductVersion)"
+	     	Manufacturer="Nuhub"
+	        UpgradeCode="$(var.ProductUpgradeCode)"
+	        Language="1033">
+    	<Package Compressed="yes" />
+        <Media Id="1" Cabinet="pub-tools.cab" EmbedCab="yes"/>
+
+		<Upgrade Id="$(var.ProductUpgradeCode)">
+			<UpgradeVersion Minimum="$(var.ProductVersion)" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+			<UpgradeVersion Minimum="0.0.0" Maximum="$(var.ProductVersion)" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+		</Upgrade>
+		<Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+        		<Directory Id="INSTALLDIR" Name="Pub-Tools" />
+			</Directory>
+		</Directory>
+
+		<InstallExecuteSequence>
+			<RemoveExistingProducts After="InstallValidate"/>
+		</InstallExecuteSequence>
+
+		<Feature Id="DefaultFeature" Level="1">
+			<ComponentGroupRef Id="Pub-Tools"/>
+			<ComponentGroupRef Id="Python"/>
+		</Feature>
+	</Product>
+</Wix>
