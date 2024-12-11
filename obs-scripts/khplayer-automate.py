@@ -27,12 +27,12 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		<li>Start the virtual camera
 		<li>Switch to the <b>Yeartext Scene</a>
 		</ul></li>
-        <li>Mute the microphone whenever the <b>Yeartext Scene</b> is displayed.
-        <li>Playing Videos:
-            <ul>
-    	    <li>Mute microphone at start and unmute afterwards
-    	    <li>Stop the video a few seconds from the end, if it is from JW.ORG
-    	    <li>Return to <b>Stage Scene</b> when the video ends
+	<li>Mute the microphone whenever the <b>Yeartext Scene</b> is displayed.
+	<li>Playing Videos:
+		<ul>
+		<li>Mute microphone at start and unmute afterwards
+		<li>Stop the video a few seconds from the end, if it is from JW.ORG
+		<li>Return to the previous scene when the video ends
 		</ul></li>
 	</ul>
 	"""
@@ -42,21 +42,21 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 		self.stopper = MediaStopper(self)
 		self.yeartext_scene = None
-		self.stage_scene = None
 		self.end_trim = None
 		self.playing_sources = set()
-		#self.output = None
+		self.previous_scene = None
 
 		# Define script configuration GUI
 		self.gui = [
-			ObsWidget("select", "screen", "Projector Screen", default_value="2", options=[
+			ObsWidget("select", "screen", "Projector Screen", default_value="", options=[
+						["", "Not set"],
 						["0", "Screen 1"],
 						["1", "Screen 2"],
 						["2", "Screen 3"],
 					]
 				),
+			ObsWidget("bool", "start_vcam", "Start Virtual Camera", default_value=True),
 			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
-			ObsWidget("select", "stage_scene", "Stage Scene", options=self.get_scene_options),
 			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.0),
 			]
 
@@ -68,14 +68,17 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def on_gui_change(self, settings):
 		"""Accept settings from the script configuration GUI"""
 		self.yeartext_scene = settings.yeartext_scene
-		self.stage_scene = settings.stage_scene
 		self.end_trim = settings.end_trim
-		obs.obs_frontend_open_projector("StudioProgram", int(settings.screen), "", "")
+		if settings.start_vcam:
+			obs.obs_frontend_start_virtualcam()
+		else:
+			obs.obs_frontend_stop_virtualcam()
+		if settings.screen != "":
+			obs.obs_frontend_open_projector("StudioProgram", int(settings.screen), "", "")
 
 	def on_finished_loading(self):
-		"""OBS startup complete"""
+		"""OBS startup complete, scenes are loaded, switch to yeartext scene"""
 		self.set_scene(self.yeartext_scene)
-		obs.obs_frontend_start_virtualcam()
 
 	def on_scene_activate(self, scene_name):
 		"""Only seems to fire if user initiated the switch"""
@@ -89,6 +92,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			print("Scene deactivated:", scene_name)
 		if scene_name == self.yeartext_scene:
 			self.video_remove(DummySource(), return_to_home=False)
+		self.previous_scene = scene_name
 
 	def on_media_started(self, source):
 		"""Playing started for any reason"""
@@ -176,7 +180,10 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		if self.debug:
 			print("act(mute=%s, return_to_home=%s)" % (mute, return_to_home))
 		if return_to_home:
-			self.set_scene(self.stage_scene)
+			if self.previous_scene is not None:
+				self.set_scene(self.previous_scene)
+			else:
+				self.set_scene(self.yeartext_scene)
 		run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
 
 # Used to set a timer to stop a media source a few minutes before the end
@@ -234,4 +241,3 @@ class DummySource:
 	settings = {}
 
 ObsAutomate(debug=False)
-
