@@ -19,9 +19,25 @@
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="ProgramFilesFolder">
-        		<Directory Id="INSTALLDIR" Name="Pub-Tools" />
+        		<Directory Id="INSTALLDIR" Name="Pub-Tools">
+          			<Directory Id="PYTHONINSTALLDIR" Name="python" />
+          		</Directory>
+          		<Directory Id="StartMenuFolder" />
 			</Directory>
 		</Directory>
+
+		<DirectoryRef Id="StartMenuFolder">
+			<Component Id="ApplicationShortcut" Guid="f38c6004-2066-4d2f-a836-78076d9f1d82">
+				<Shortcut Id="ApplicationStartMenuShortcut"
+						Name="Pub Tools"
+						Description="Download media from JW.ORG"
+						Target="[INSTALLDIR]python\pythonw.exe"
+						Arguments="pub-tools"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<RegistryValue Root="HKCU" Key="Software\Nuhub\Pub-Tools" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+			</Component>
+		</DirectoryRef>
 
 		<InstallExecuteSequence>
 			<RemoveExistingProducts After="InstallValidate"/>
@@ -30,6 +46,7 @@
 		<Feature Id="DefaultFeature" Level="1">
 			<ComponentGroupRef Id="Pub-Tools"/>
 			<ComponentGroupRef Id="Python"/>
+			<ComponentRef Id="ApplicationShortcut" />
 		</Feature>
 	</Product>
 </Wix>
