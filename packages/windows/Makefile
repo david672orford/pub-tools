@@ -1,9 +1,11 @@
 all:
 
 build-python:
+	rm -rf build/python
 	./build-python.sh
 
 build-app:
+	rm -rf build/app
 	./build-app.sh
 
 msi:

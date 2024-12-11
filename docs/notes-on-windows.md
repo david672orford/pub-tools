@@ -52,4 +52,13 @@ Create sitecustomize.py
     import sys
     sys.path.insert(0, '')
 
-See [Setting up python's Windows embeddable distribution (properly)](https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081).
+See:
+
+* [Setting up python's Windows embeddable distribution (properly)](https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081)
+* [Unimplemented function KERNEL32.dll.CopyFile2](https://forum.winehq.org/viewtopic.php?t=39119)
+
+## Building MSI Packages
+
+* https://wiki.gnome.org/msitools/HowTo/CreateMSI
+* https://www.firegiant.com/docs/wix/v3/tutorial/
+* https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with

@@ -1,5 +1,8 @@
 ## The KH Player Subapp
 
+NOTE: This document is in a state of flux as we attempt to simplify the setup of KH Player.
+Until this work is complete it may contain conflicting, incomplete, or confusing instructions.
+
 This is the most well-developed of the modules. It helps you to load the videos
 and illustrations for a congregation meeting into OBS Studio ready to play.
 This note describes how to set up OBS to play the videos at meetings while
@@ -37,9 +40,53 @@ Then open this URL in a web browser:
     http://localhost:5000/khplayer/
 
 A window will appear with tabs such as **Meetings**, **Songs**,
-and **Videos** which can be used to load videos material into OBS.
+and **Videos**.
 
-## Install Pipewire
+## Initial Setup of OBS
+
+* In the settings under **Video** set the **Base (Canvas) Resolution** and
+  **Output (Scaled) Resolution** to 1024x720.
+* In the settings under **General** find **Projectors** and check the boxes next to
+  **Make projectors always on top** and **Limit one fullscreen projector per screen**.
+* TODO: Setting to prevent warning about exit with virtual camera running
+* Under **Tools** find the OBS-Websocket plugin and enable it
+* Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
+directory of this project:
+  * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
+  * **khplayer-automate.py** -- Simplify startup and playing of vidoes
+    * At Startup:
+      * Start a fullscreen projector video output on the monitor you select
+      * Start the virtual camera
+      * Switch to the yeartext scene you have selected
+    * Mute the microphone whenever the yeartext scene is displayed
+    * When a Video is played:
+      * Mute the microphone. This improves quality of the sound heard by participants on Zoom considerably.
+      * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
+      * Return to the state scene you specify whenever a video finishes playing.
+  * **khplayer-zoom-tracker.py**
+  * **khplayer-zoom-cropper.py**
+
+## Initial Setup of Zoom
+
+* Under **Video** select **Original ratio** and **HD**. Turn off **Mirror my video**.
+* Still under **Video** choose **See myself as the active speaker while speaking**.
+* Under **Audio** set **Suppress background noise** to **Low** so that music will not be muted.
+
+## Set Up a Video Loopback Device on Linux
+
+    $ echo v4l2loopback \
+    $     | sudo tee /etc/modules-load.d/v4l2loopback.conf
+    $ echo 'options v4l2loopback video\_nr=10 card_label="OBS Virtual Camera"' \
+    $     | sudo tee /etc/modprobe.d/v4l2loopback.conf
+    $ sudo modprobe v4l2loopback
+
+## Audio Setup
+
+We need a way to have the sound from videos played over the loudspeakers in the hall and sent into Zoom,
+but we must not feed the sound from the microphones into the speakers. There are three known ways
+to accomplish this.
+
+### Option 1: Virtual Audio Cables in Pipewire
 
 Install the new audio subsystem called Pipewire on Ubuntu 22.04 following the instructions
 in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
@@ -48,41 +95,39 @@ Be sure to follow the part about installing Wireplumber.
 If you are running Ubuntu 24.04 or later, then Pipewire is already in the main package
 repository. Skip the part about added in the 3rd-party repository and proceed from there.
 
-## Set Up a Video Loopback Device
+Once you have Pipewire installed and working, add **khplayer-cable.py** to OBS. This script
+will create two virtual audio cables when OBS starts and tear them down when it exits.
+The cable will be used to connect OBS, Zoom, the Microphone, and the loadspeakers in the
+proper configuration.
 
-    $ ./docs/setup-loopback.sh
+You can select the microphone and loudspeakers either in the options of the **khplayer-cable.py**
+script or in the **Audio** tab of KH Player. Press **Reconnect Audio** to connect then to Zoom and OBS.
 
-## Initial Setup of Zoom
+If you are using this method:
 
-* Under **General** enable **Use dual monitors**.
-* Under **Video** select **Original ratio** and **HD**. Turn off **Mirror my video**.
-* Still under **Video** choose **See myself as the active speaker while speaking**.
-* Under **Audio** set **Suppress background noise** to **Low** so that music will not be muted.
+* Select **From-OBS** as the audio input in Zoom
+* In the settings of OBS under **Audio** set the **Monitoring Device** to **Monitor of To-Zoom**
+* Under **Docks** uncheck **Audio Mixer** since we will not be using it
 
-## Initial Setup of OBS
+### Option 2: Audio Output Plugin for OBS
 
-* In the settings under **General** find **Projectors** and check the boxes next to
-  **Make projectors always on top** and **Limit one fullscreen projector per screen**.
-* In the settings under **Audio** set the **Monitoring Device** to **Monitor of To-Zoom**.
-* In the settings under **Video** set the **Base (Canvas) Resolution** and **Output (Scaled) Resolution** to 1024x720.
-* TODO: Setting to prevent warning about exit with virtual camera running
-* Under **Tools** find the OBS-Websocket plugin and enable it
-* Under **Docks** uncheck **Audio Mixer** since we will not be using it.
-* Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
-directory of this project:
-  * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
-  * **khplayer-cable.py** -- Creates a To-Zoom/From-OBS virtual audio cable every time OBS starts
-  * **khplayer-automate.py** -- Simplify startup and playing of vidoes
-    * At Startup:
-      * Start a fullscreen output on the monitor you select
-      * Start the virtual camera
-      * Switch to the yeartext scene you have selected
-    * Mute the microphone whenever the yeartext scene is displayed
-    * When a Video is played:
-      * Mute the microphone. This improves sound quality for participant in Zoom considerably.
-      * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
-      * Return to the state scene you specify whenever a video finishes playing.
-  * TODO: **khplayer-zoom-tracker.py**
+OBS does not provide a way to output mixed audio. However, we have create a plugin which will
+add this function on Linux. To implement:
+
+* Install the plugin
+* Delete the pulse_linux.so plugin
+* Add the script audio-vcam.lua to OBS
+* Start OBS and select **Virtual Camera Audio** as the microphone
+* Select the desired speakers as the audio monitoring device in OBS
+
+### Option 3: Share System Sound in Zoom
+
+This method requires no additional software or special configuration. To implement:
+
+* Select the microphone as the input device in Zoom
+* Select the desired speakers in Zoom
+* Select the same speakers as the monitoring device in OBS
+* When you start the meeting, go into **Screen Sharing** and select **Share System Audio**.
 
 ## Starting the Meeting
 
@@ -91,29 +136,28 @@ directory of this project:
 * Log in to Zoom and start the meeting.
 * Click on the down arrow next to the camera button and select **OBS Virtual Camera**
   as the camera. Turn it on. If it will not turn on, make sure the virtual camera is started in OBS.
-* Click on the down arrow next to the microphone button and select **From-OBS**
-  as the audio input and unmute audio.
+* Click on the down arrow next to the microphone button and select the appropriate input
+  for the sound configuration method you selected above. Unmute the microphone.
 
-## Initial Setup of Stage and Zoom Scenes
+## Initial Setup of Yeartext and Stage Scenes
 
-* Open **http://localhost:5000/khplayer/** in a web browser
-* Go to the **Audio** tab and select the desired
-microphone and loudspeakers. Press **Reconnect Audio** to connect then to Zoom and OBS.
-* Go to the **Scenes** tab and press the **Add a Live
-Scene** button. Select the desired camera and press **Add Camera Scene**.
-* Press the **Add Zoom Scene** button.
-* Press the **Add Split Screen Scenes** button. (FIXME)
+* Open **http://localhost:5000/khplayer/** in a web browser or create an OBS browser dock for it.
+* Go to the **Scenes** tab.
+* Press the **+Add Scene** button, then **+Empty Scene**.
+* Switch to the empty scene, hit the **Layout** botton, and rename the secene to "* Yeartext". Putting an asterisk at the start of the name will protect it from automatic deletion when you load meeting material.
+* Go to the **Sources** panel in OBS and add text sources for the yeartext. You will probably need to create one source for each line.
+* Press the **+Add Scene** button, select the desired camera and press the **+Camera** button.
 
 ## Loading Videos and Images for a Meeting
 
 ![Screenshot of the Meetings tab](images/screenshot-khplayer-meetings.png)
 
-* Go to the **Meetings** tab and select the meeting and week you want. A list
-of videos and illustrations will load. There will be a checkbox next to each
-item. Remove the checkbox for any item you do not need and press
-the **Download Media and Create Scenes in OBS** button.
-* For the weekend meeting, go to the **Songs** tab and load the song chosen by
-the speaker.
+* Go to the **Meetings** tab and press **More Weeks** to load a list of upcoming meetings from JW.ORG.
+* Select the meeting and week you want. A list of videos and illustrations will load.
+There will be a checkbox next to each item. Remove the checkbox for any item you do
+not need and press the **Download Media and Create Scenes in OBS** button.
+* If you are loading material for the weekend meeting, go to the **Songs** tab and
+load the song chosen by the speaker.
 
 ## Loading Additional Songs
 
@@ -164,7 +208,6 @@ Loading slides:
 
 We need to cover these additional topics.
 
-* Loading songs
 * Drag and drop into scenes
 * Renaming Cameras
 * Subtitles

@@ -5,7 +5,11 @@ import warnings
 import os
 
 # https://whoosh.readthedocs.io/en/latest/
-from whoosh.index import create_in, exists_in, open_dir
+# NOTE: Whoosh triggers warnings in recent versions of Python. We supress them. See:
+# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
+with warnings.catch_warnings():
+	warnings.simplefilter("ignore", category=SyntaxWarning)
+	from whoosh.index import create_in, exists_in, open_dir
 from whoosh.fields import Schema, ID, TEXT
 from whoosh.analysis import StemmingAnalyzer
 from whoosh.qparser import QueryParser
@@ -38,8 +42,6 @@ class BaseWhooshIndex:
 
 	def open(self):
 		with warnings.catch_warnings():
-			# Ignore warnings caused by a slight error in Whoosh
-			# See https://github.com/mchaput/whoosh/commit/d9a3fa2a4905e7326c9623c89e6395713c189161
 			warnings.simplefilter("ignore", category=SyntaxWarning)
 			index = open_dir(self.whoosh_path, indexname=self.indexname)
 		return index

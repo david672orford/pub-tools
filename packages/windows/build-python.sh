@@ -19,8 +19,14 @@ cd ..
 mkdir -p build/python
 cd build/python
 unzip ../../download/python-3.12.8-embed-amd64.zip
-echo "import sys\nsys.path.insert(0, '')" >sitecustomize.py
+cat - <<HERE >sitecustomize.py
+import sys
+sys.path.insert(0, "")
+sys.path.insert(1, "app.zip")
+HERE
 echo "import site" >>python312._pth
+
+# Install dependencies
 # Tested with Wine 10.0-rc1
 wine python.exe ../../download/get-pip.py
 wine python.exe -m pip install setuptools
@@ -29,6 +35,11 @@ if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
 	wine python.exe -m pip install ../../download/dlib-19.24.99-cp312-cp312-win_amd64.whl
 	fi
 wine python.exe -m pip install -r ../../../../requirements.txt --no-warn-script-location
+
+# Slim down
+wine python.exe -m pip uninstall -y setuptools
+rm -r Scripts Include
+#find Lib/site-packages -name '*.dist-info' | xargs rm -r
 
 find . -type f \
 	| wixl-heat --prefix "./" \

@@ -2,8 +2,9 @@
 CLI for the Zoom tracker
 """
 
-import os.path
+import os
 from time import time, sleep
+from configparser import ConfigParser
 
 from flask import current_app
 from flask.cli import AppGroup
@@ -18,9 +19,23 @@ cli_zoom = AppGroup("zoom", help="Zoom conferencing integration")
 @cli_zoom.command("configure")
 def cmd_zoom_configure():
 	"""Change Zoom settings to work with KHPlayer"""
-	pass
+	zoom_configfile = os.path.join(os.environ["HOME"], ".config", "zoomus.conf")
+	tmpfile = "." + zoom_configfile
+	backup_file = zoom_configfile + "~"
 
-@cli_zoom.command("test")
+	config = ConfigParser()
+	config.read(zoom_configfile)
+
+	print("Language:", config.get("General", "language"))
+
+	with open(tmpfile, "w") as fh:
+		config.write(fh)
+	if False:
+		if os.path.exists(backup_file):
+			os.remove(backup_file)
+		os.rename(tmpfile, zoom_configfile)
+
+@cli_zoom.command("test-tracker")
 @click.argument("filename")
 def cmd_zoom_test(filename):
 	"""Test the Zoom tracker on an image"""
@@ -105,7 +120,6 @@ class ZoomCropper:
 	Wrapper for an OBS scene which contains a cropped version of the Zoom screen capture
 	There is an OBS-API version of this in khplayer-zoom-tracker.py.
 	"""
-
 	def __init__(self, source_name, zoom_input_name, zoom_input_uuid):
 		self.prev_crop_box = None
 		self.input_uuid = obs.get_input_uuid(source_name)

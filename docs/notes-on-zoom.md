@@ -15,8 +15,8 @@ Edit ~/.config/zoomus.conf and make sure you have the following settings:
     enableMiniWindow=false
 
 The first change restores the window manager title bars which were suppressed in Zoom 6.
-The second change prevents Zoom from turning into a weird little always-on-top picture
-of the current speaker whenever you switch virtual desktops. 
+The second change prevents the Zoom window from turning into a weird little always-on-top picture
+of the current speaker whenever you switch virtual desktops.
 
 ## Zoom meeting URLs
 

@@ -19,6 +19,15 @@ def create_app():
 
 	app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
 
+	# FIXME: Bad hack for when running in a zip file
+	#print("root_path:", app.root_path)
+	#if "/app.zip/" in app.root_path:
+	#	app.root_path = app.root_path.replace("/app.zip/app", "/app")
+	#	app.instance_path = app.instance_path.replace("/app.zip/instance", "/instance")
+	#	app.config.root_path = app.instance_path
+	#	print("root_path:", app.root_path)
+	#	print("instance_path:", app.instance_path)
+
 	# If we don't have a config file yet, create one
 	if not os.path.exists(app.instance_path):
 		import secrets
