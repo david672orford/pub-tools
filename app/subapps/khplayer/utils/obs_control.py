@@ -5,11 +5,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-#try:
-#	from .obs_api import ObsControlBase, ObsError
-#except ModuleNotFoundError:
-#	from .obs_ws_5 import ObsControlBase, ObsError
-
 from .obs_ws_5 import ObsControlBase, ObsError
 from ....utils.config import get_config, put_config
 

@@ -42,7 +42,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 		self.stopper = MediaStopper(self)
 		self.yeartext_scene = None
-		self.end_trim = None
+		self.end_trim = 5.0			# FIXME: Repeating self because OBS restart with media scene current can reference betfore on_gui_change() called
 		self.playing_sources = set()
 		self.previous_scene = None
 
@@ -138,6 +138,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 		# If the video from JW.ORG, set a timer so we can stop it a few seconds
 		# from the end just before the copyright and credits card.
+		# FIXME: Why does this have to be outside the if?
 		if self.is_from_jworg(source):
 			self.stopper.set_source(source)
 
@@ -155,6 +156,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			if len(self.playing_sources) == 0:			# went from 1 to 0
 				self.enqueue(lambda: self.act(mute=False, return_to_home=return_to_home))
 
+		# FIXME: Why does this have to be outside the if?
 		self.stopper.cancel(source)
 
 	def is_from_jworg(self, source):
@@ -186,34 +188,36 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 				self.set_scene(self.yeartext_scene)
 		run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
 
-# Used to set a timer to stop a media source a few minutes before the end
 class MediaStopper:
+	"""Used to set a timer to stop a media source a few minutes before the end"""
 	def __init__(self, automate):
-		self.automate = automate
+		self.debug = False
+		self.automate = automate		# pointer to ObsAutomate object
 		self.timer_running = False
 		self.source = None
 
 		# Called when it is time to stop the media file and return to the home scene
 		def _callback():
-			if self.automate.debug:
+			if self.debug:
 				print("Timer expired, returning to home")
 			obs.remove_current_callback()
 			self.timer_running = False
 			self.source = None
 			self.automate.act(mute=False, return_to_home=True)
-			if self.automate.debug:
+			if self.debug:
 				print("Timer callback done")
 		self.callback = _callback
 
 	def set_source(self, source):
 		"""Called when a source (video) which should be stopped early begins playing"""
-		if self.automate.debug:
-			print("Set source:", source.name, source.duration)
+		if self.debug:
+			print(f"set_source({source})")
 		assert source.duration > 0
+		self._cancel()
 		self.source = source
 		remaining = (source.duration - source.time)
 		remaining -= int(self.automate.end_trim * 1000)
-		if self.automate.debug:
+		if self.debug:
 			print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 			print("remaining:", remaining/1000.0)
 			print("stop after:", remaining/1000.0)
@@ -223,13 +227,15 @@ class MediaStopper:
 
 	def cancel(self, source):
 		"""Called when the list of playing videos changes"""
-		if self.automate.debug:
-			print("Stopper cancel()")
-		if source is not self.source:
-			print("Different source")
-			return
+		if self.debug:
+			print(f"Stopper cancel({source})")
+		if self.source is not None and source.uuid == self.source.uuid:
+			self._cancel()
+
+	def _cancel(self):
 		if self.timer_running:
-			print("Stopping timer")
+			if self.debug:
+				print(f"Stopping timer for {self.source}")
 			obs.timer_remove(self.callback)
 			self.timer_running = False
 		self.source = None
@@ -238,6 +244,7 @@ class MediaStopper:
 class DummySource:
 	id = "dummy_source"
 	name = "dummy_source"
+	uuid = "dummy_source"
 	settings = {}
 
-ObsAutomate(debug=False)
+ObsAutomate(debug=True)
