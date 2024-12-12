@@ -58,16 +58,18 @@ class ObsControlBase:
 		self.responses = {}
 		self.event_queue = queue.SimpleQueue()
 
+		# FIXME: We have disabled this because it attempted to connect to OBS even
+		# in cases where KH Player was not going to be used such as when running
+		# flask CLI commands to manage the publications DB.
+		#
 		# Connect right away so if browers reconnect after a server restart, they will
 		# receive events right away. But if we cannot connect to OBS, suppress the error
 		# since we have no one to whom to report it. The user will get the error again
 		# when he tries to do something which require communication with OBS.
-		#
-		# FIXME: Find a way to suppress this called from the flask command.
-		try:
-			self.connect()
-		except ObsError as e:
-			pass
+		#try:
+		#	self.connect()
+		#except ObsError as e:
+		#	logger.warning("Failed to connect to OBS: %s", e)
 
 	# Register an event callback function. Currently only scenes-event
 	# subscriptions are implemented.
