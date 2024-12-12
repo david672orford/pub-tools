@@ -38,6 +38,11 @@ class ObsSource:
 	def id(self):
 		return obs.obs_source_get_id(self.source)
 
+	# Unique ID
+	@property
+	def uuid(self):
+		return obs.obs_source_get_uuid(self.source)
+
 	# The name of the source as seen by the user
 	@property
 	def name(self):
@@ -71,7 +76,7 @@ class ObsSource:
 		obs.obs_source_media_stop(self.source)
 
 	def __str__(self):
-		return "<ObsSource id=%s name=%s>" % (self.id, self.name)
+		return f"<ObsSource id={self.id} name={repr(self.name)} uuid={self.uuid}>"
 
 # For iterating the scene and source lists
 @contextmanager

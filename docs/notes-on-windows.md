@@ -1,28 +1,27 @@
 # Notes on Windows
 
-A long-term goal is to get Pub-Tools running under Microsoft Windows. These
-are our notes.
+These notes are releated to the onging work to port Pub Tools to Microsoft Windows.
 
 ## Unix Tools for Windows
 
-* [Putty](https://www.putty.org/) -- SSH Client
+These packages proved useful during developement.
+
+* [Putty](https://www.putty.org/) -- SSH Client, useful for transfering files
 * [Busybox](https://frippery.org/busybox/) -- Small versions of the standard Unix CLI tools
-* [Git](https://git-scm.com/download/win)
-* [Python](https://www.python.org/downloads/windows/)
+* [Git](https://git-scm.com/download/win) -- Includes Bash, Vim, etc. in addition to Git
 
-## Installing Dlib
+## Python
 
-Compile from source:
-    > winget install cmake
-    > winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --quiet --add ProductLang En-us --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
-    > pip install dlib
+### Python.org Installer
 
-Or download wheel from:
-	https://github.com/z-mahmud22/Dlib_Windows_Python3.x
-And install it:
-    python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
+* [Python](https://www.python.org/downloads/windows/) -- Official packages
 
-## Setting up Python Embedded
+### Install Using Winget
+
+    > winget install -e --id Python.Python.3.12
+    > winget install -e --id=Python.Launcher
+
+### Setting up Python Embedded
 
 We would like to bundle Pub-Tools with a Python runtime. The
 Python Embedded distribution is a candidate. Here we install
@@ -57,8 +56,24 @@ See:
 * [Setting up python's Windows embeddable distribution (properly)](https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081)
 * [Unimplemented function KERNEL32.dll.CopyFile2](https://forum.winehq.org/viewtopic.php?t=39119)
 
+## Installing Dlib
+
+Option 1, Compile from source:
+    > winget install cmake
+    > winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --quiet --add ProductLang En-us --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended"
+    > pip install dlib
+
+Option 2, Download wheel from:
+	https://github.com/z-mahmud22/Dlib_Windows_Python3.x
+And install it:
+    python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
+
 ## Building MSI Packages
 
 * https://wiki.gnome.org/msitools/HowTo/CreateMSI
 * https://www.firegiant.com/docs/wix/v3/tutorial/
 * https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with
+
+## Running from a Zip
+
+* https://stackoverflow.com/questions/52599007/python3-pkgutil-get-data-usage 

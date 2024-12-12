@@ -92,7 +92,8 @@ class KHPlayer(ObsScript):
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			listen_address = "127.0.0.1"
+			#listen_address = "127.0.0.1"
+			listen_address = "0.0.0.0"
 			listen_port = 5000
 			try:
 				self.server = make_server(
@@ -114,4 +115,3 @@ khplayer = KHPlayer()
 # script is loaded but before it is initialized.
 khplayer.enable = True
 khplayer.apply_server_thread_state()
-
