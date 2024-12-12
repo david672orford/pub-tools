@@ -2,8 +2,11 @@
 
 ## Bugs
 
-* Click on thumbnail in scenes list (sometimes) does nothing. (This is likely after a refresh.)
+* Click on thumbnail in scenes list (sometimes) does nothing.
+  (This is likely after a refresh.)
 * Why no thumbnail if slide folder contains only a video? (See no90)
+* Still problems with DND of song from pub producing browser source
+  rather than downloading the video
 
 ## Easy Improvements
 

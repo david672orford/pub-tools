@@ -298,9 +298,9 @@ class SimpleSpeakerIndexes(list):
 
 	def set_speaker_index(self, speaker_index):
 
-		# Exclude first box
-		#if speaker_index == 0:
-		#	return
+		# Exclude first box (hopefully the one showing OBS output)
+		if speaker_index == 0:
+			return
 
 		# No change
 		if speaker_index == self[0]:

@@ -156,11 +156,7 @@ def cmd_obs_get_input_uuid(input_name):
 @click.argument("property_name")
 def cmd_obs_get_input_setting_options(input_name, property_name):
 	"""Get the options for the specified setting of the specified input"""
-	response = obs.request("GetInputPropertiesListPropertyItems", {
-		"inputName": input_name,
-		"propertyName": property_name,
-		})
-	print_json(response["responseData"]["propertyItems"])
+	print_json(obs.get_input_setting_options(input_name, property_name))
 
 @cli_obs.command("get-input-settings")
 @click.argument("input_name")

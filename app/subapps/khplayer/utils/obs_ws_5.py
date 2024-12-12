@@ -564,6 +564,13 @@ class ObsControlBase:
 			params["inputUuid"] = uuid
 		self.request("SetInputSettings", params)
 
+	def get_input_setting_options(self, input_name, property_name):
+		response = self.request("GetInputPropertiesListPropertyItems", {
+			"inputName": input_name,
+			"propertyName": property_name,
+			})
+		return response["responseData"]["propertyItems"]
+
 	#=========================================================================
 	# Virtual Camera
 	#=========================================================================
