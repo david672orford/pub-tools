@@ -77,3 +77,10 @@ And install it:
 ## Running from a Zip
 
 * https://stackoverflow.com/questions/52599007/python3-pkgutil-get-data-usage 
+* https://realpython.com/python-zip-import/
+* https://docs.python.org/3/library/zipimport.html
+
+## Powershell
+
+* https://serverfault.com/questions/877548/how-to-download-an-archive-and-extract-it-without-saving-the-archive-to-disk-usi
+
