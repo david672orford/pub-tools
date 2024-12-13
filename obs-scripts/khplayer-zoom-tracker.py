@@ -196,7 +196,6 @@ def snapshot(source):
 class ZoomCropper:
 	"""
 	Wrapper for a proxy source which crops a piece out of Zoom Capture.
-	There is an OBS-Websocket version of this in cli_zoom.py.
 	"""
 	def __init__(self, source_name, zoom_source_name, zoom_source):
 		self.prev_crop_box = None

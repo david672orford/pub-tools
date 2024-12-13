@@ -6,8 +6,13 @@ SECRET_KEY = "__secret_key_here__"
 #THEME="basic-dark"
 #THEME="colorful"
 
-# Size of text in browser dock may be off
-#OBS_BROWSER_DOCK_SCALE = 1.0
+# Pub-Tools has several applications which can be enabled individually
+#ENABLED_SUBAPPS = [
+#	"khplayer",
+#	"toolbox",
+#	"epubs",
+#	"admin",
+#	]
 
 # Language for user interface (defaults to the system locale)
 #UI_LANGUAGE="ru"
@@ -21,16 +26,11 @@ SECRET_KEY = "__secret_key_here__"
 # Set to "240p", "360p", "480p", or "720p" (defaults to "720p")
 #VIDEO_RESOLUTION="480p"
 
-# Pub-Tools has several applications which can be enabled individually
-#ENABLED_SUBAPPS = [
-#	"khplayer",
-#	"toolbox",
-#	"epubs",
-#	"admin",
-#	]
+# Size of text in browser dock may be off
+#OBS_BROWSER_DOCK_SCALE = 1.0
 
-# Match to settings in OBS Studio
-# Needed only if Pub-Tools is unable to find your OBS configuration directory.
+# Override OBS-Websocket configuration
+# Default: read from OBS configuration file
 #OBS_WEBSOCKET = {
 #	"hostname": "localhost",
 #	"port": 4455,
@@ -60,3 +60,8 @@ SECRET_KEY = "__secret_key_here__"
 #		"view": "my-channel-124",
 #	},
 #}
+
+# "Update Stream URLs" button configuration
+# Format: CSV
+# Column: URL
+#JWSTREAM_UPDATES = "URL Here"

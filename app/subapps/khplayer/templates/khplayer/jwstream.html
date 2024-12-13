@@ -22,9 +22,9 @@
 {% for channel in channels %}
 <tr>
 	<td><a href="{{channel.token}}/">{{gettext(channel.name)}}</a></td>
-	<td>{{gettext(channel.language)}}</td>	
-	<td>{{gettext(channel.country)}}</td>	
-	<td>{{channel.status}}</td>	
+	<td>{{gettext(channel.language)}}</td>
+	<td>{{gettext(channel.country)}}</td>
+	<td>{{channel.status}}</td>
 </tr>
 {% endfor %}
 {% for i in range(channels|length, 3) %}
@@ -45,6 +45,9 @@
 <h2>{{gettext("Configuration")}}</h2>
 <form action="save-config" method="POST">
 {{lib.render_textarea(_("JW Stream Sharing URLs"), "urls", form["urls"], class="urls")}}
+{% if "JWSTREAM_UPDATES" in config %}
+<button type="submit" formaction="update-stream-urls">{{gettext("Update Stream URLs")}}</button>
+{% endif %}
 <div class="borderless-box">
 {{lib.render_select(_("Preview Resolution"), "preview_resolution", form["preview_resolution"], form.resolutions)}}
 {{lib.render_select(_("Download Resolution"), "download_resolution", form["download_resolution"], form.resolutions)}}
@@ -60,4 +63,3 @@
 {% endif %}
 
 {% endblock %}
-

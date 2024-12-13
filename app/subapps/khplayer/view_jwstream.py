@@ -1,9 +1,13 @@
-from flask import current_app, Blueprint, render_template, request, redirect
 from urllib.parse import urlencode
-import os, re
+import os
+import re
+import csv
 from time import sleep, time
 import subprocess
 import logging
+
+import requests
+from flask import current_app, Blueprint, render_template, request, redirect
 
 from ... import turbo
 from ...utils.background import progress_callback, progress_response, run_thread, flash
@@ -57,7 +61,7 @@ def jwstream_channels(config=None):
 
 class ConfigForm(dict):
 	defaults = {
-		"preview_resolution": 234,	
+		"preview_resolution": 234,
 		"download_resolution": 720,
 		}
 	resolutions = ((234, "416x234"), (360, "640x360"), (540, "960x540"), (720, "1280x720"))
@@ -80,9 +84,9 @@ class ConfigForm(dict):
 				flashes += 1
 		return flashes == 0
 
-# Show available JW Stream channels
 @blueprint.route("/jwstream/")
 def page_jwstream():
+	"""Show available JW Stream channels"""
 	config = get_config("JW_STREAM")
 	if request.args.get("action") == "configuration" or not "urls" in config:
 		form = ConfigForm(config, request.args)
@@ -95,34 +99,45 @@ def page_jwstream():
 		top = ".."
 		)
 
-# Save JW Stream player configuration
 @blueprint.route("/jwstream/save-config", methods=["POST"])
 def page_jwstream_save_config():
+	"""Save JW Stream player configuration"""
 	form = ConfigForm(None, request.form)
 	if not form.validate():
 		return redirect(".?action=configuration&" + urlencode(form))
 	put_config("JW_STREAM", form)
 	return redirect(".")
 
-# Display the programs (talks or meetings) in a channel
+@blueprint.route("/jwstream/update-stream-urls", methods=["POST"])
+def page_jwstream_update_urls():
+	"""Pull a list of URLs from a configured source"""
+	response = requests.get(current_app.config["JWSTREAM_UPDATES"])
+	urls = []
+	for row in csv.DictReader(response.text.splitlines()):
+		urls.append(row.get("URL"))
+	form = ConfigForm(None, request.form)
+	form["urls"] = "\n".join(urls)
+	return redirect(".?action=configuration&" + urlencode(form))
+
 @blueprint.route("/jwstream/<token>/")
 def page_jwstream_channel(token):
+	"""Display the programs (talks or meetings) in a channel"""
 	channel = jwstream_channels()[token]
 	events = channel.list_events()
 	events = sorted(list(events), key=lambda item: (item.datetime, item.title))
 	return render_template("khplayer/jwstream_events.html", channel=channel, events=events, top="../..")
 
-# User has pressed Update button to reload the channel's program list
 @blueprint.route("/jwstream/<token>/update", methods=["POST"])
 def page_jwstream_update(token):
+	"""User has pressed Update button to reload the channel's program list"""
 	progress_callback(_("Updating event list..."), cssclass="heading")
 	channel = jwstream_channels()[token]
 	channel.reload()
 	return progress_response(_("✔ Channel event list updated."), last_message=True, cssclass="success")
 
-# Video player page for making clips
 @blueprint.route("/jwstream/<token>/<id>/")
 def page_jwstream_player(token, id):
+	"""Video player page for making clips"""
 	channel = jwstream_channels()[token]
 	event = channel.get_event(id)
 	return render_template("khplayer/jwstream_player.html",
@@ -135,9 +150,9 @@ def page_jwstream_player(token, id):
 		top = "../../..",
 		)
 
-# User has pressed the Make Clip button
 @blueprint.route("/jwstream/<token>/<id>/clip", methods=["POST"])
 def page_jwstream_clip(token, id):
+	"""User has pressed the Make Clip button"""
 	clip_start = request.form.get("clip_start").strip()
 	clip_end = request.form.get("clip_end").strip()
 	clip_title = request.form.get("clip_title").strip()
@@ -178,6 +193,7 @@ def page_jwstream_clip(token, id):
 	return progress_response(None)
 
 def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration):
+	"""Background task to download video clip from JW Stream"""
 	progress_callback(_("Downloading clip..."), cssclass="heading")
 
 	# Request a download URL with access token
@@ -238,4 +254,3 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 			progress_callback(_("✘ Unable to load clip into OBS."), last_message=True, cssclass="error")
 		else:
 			progress_callback(_("✔ Clip has been loaded."), last_message=True, cssclass="success")
-

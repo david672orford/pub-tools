@@ -21,7 +21,8 @@ On Microsoft Windows:
 ## Integration of OBS Studio with other Programs
 
 Video and audio can be fed into and out of OBS using the virtual camera,
-virtual audio coables, streaming protocols, and players embeded in browser sources.
+virtual audio cables, streaming protocols, and media players embeded in
+browser sources.
 
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/) -- Instruction for connecting OBS and Zoom using a V4L virtual camera on Ubuntu Linux
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
@@ -129,12 +130,17 @@ out when writing scripts for it.
 
 ## Configuration
 
-* Script configuration is stored in the scene collection
-* Hotkeys are stored in the profile
-* Output settings are stored in the profile
-* The audio monitor setting is stored in the profile
-* Browser doc configuration is stored in global.ini
-* Warn before closing with virtual camera running is stored in ___________________
+* In the Scene Collection
+  * Addon scripts
+* In the profile
+  * Hotkeys
+  * Output settings
+  * Audio monitor device selection
+* In global.ini/user.ini
+  * Browser dock configuration
+  * Show active outputs warning on exit: General, ConfirmOnExit=false
+  * BasicWindow, ProjectorAlwaysOnTop=true
+  * BasicWindow, CloseExistingProjectors=true
 
 ### Object Hierarcy
 

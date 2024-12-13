@@ -48,8 +48,8 @@ and **Videos**.
   **Output (Scaled) Resolution** to 1024x720.
 * In the settings under **General** find **Projectors** and check the boxes next to
   **Make projectors always on top** and **Limit one fullscreen projector per screen**.
-* TODO: Setting to prevent warning about exit with virtual camera running
-* Under **Tools** find the OBS-Websocket plugin and enable it
+* In the settings under **Advanced** uncheck **Show active outputs warning on exit**.
+* Under the **Tools** menu find the OBS-Websocket plugin and enable it
 * Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
 directory of this project:
   * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
@@ -64,7 +64,7 @@ directory of this project:
       * Stop the playing of videos from JW.ORG a few seconds before the end so the speaker will not have to wait for the end card to disappear.
       * Return to the state scene you specify whenever a video finishes playing.
   * **khplayer-zoom-tracker.py**
-  * **khplayer-zoom-cropper.py**
+  * **khplayer-zoom-participant.lua**
 
 ## Initial Setup of Zoom
 
