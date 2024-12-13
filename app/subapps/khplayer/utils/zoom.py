@@ -17,7 +17,7 @@ def zoom_tracker_loaded():
 
 def find_second_window():
 	"""Look for the Zoom second-monitor window and return its address for OBS window capture"""
-	second_window_name = "Zoom"
+	second_window_name = "Zoom Workplace"
 	if have_ewmh:
 		wm = EWMH()
 		for window in wm.getClientList():

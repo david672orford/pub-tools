@@ -67,7 +67,12 @@ def cmd_obs_dump_scenes():
 @cli_obs.command("get-scene-list")
 def cmd_obs_get_scene_list():
 	"""List scenes by name"""
-	print_json(obs.get_scene_list())
+	table = Table(show_header=True, title="Scenes", show_lines=False)
+	for col in ("Idx", "Scene Name", "Scene UUID"):
+		table.add_column(col)
+	for scene in obs.get_scene_list()["scenes"]:
+		table.add_row(str(scene["sceneIndex"]), scene["sceneName"], scene["sceneUuid"])
+	Console().print(table)
 
 @cli_obs.command("get-group-list")
 def cmd_obs_get_group_list():
@@ -80,6 +85,11 @@ def cmd_get_scene_uuid(scene_name):
 	"""Given name, get scene UUID"""
 	print(obs.get_scene_uuid(scene_name))
 
+@cli_obs.command("create-scene")
+@click.argument("scene_name")
+def cmd_create_scene(scene_name):
+	obs.create_scene(scene_name)
+
 #=============================================================================
 # Scene Items
 #=============================================================================
@@ -88,8 +98,37 @@ def cmd_get_scene_uuid(scene_name):
 @click.argument("scene_uuid")
 def cmd_obs_get_scene_item_list(scene_uuid):
 	"""Show the items in the specified scene"""
+	table = Table(show_header=True, title="Scene Items", show_lines=False)
+	for col in (
+			"Idx",
+			"ID",
+			"Is Group",
+			"Input Kind",
+			"Source Type",
+			"Name",
+			"Enabled",
+			"Locked",
+			"Blend Mode",
+			"Source UUID",
+			#"Transform",
+			):
+		table.add_column(col)
 	for item in obs.get_scene_item_list(scene_uuid):
-		print_json(item)
+		#print_json(item)
+		table.add_row(*[str(item[name]) for name in (
+			"sceneItemIndex",
+			"sceneItemId",
+			"isGroup",
+			"inputKind",
+			"sourceType",
+			"sourceName",
+			"sceneItemEnabled",
+			"sceneItemLocked",
+			"sceneItemBlendMode",
+			"sourceUuid",
+			#"sceneItemTransform",
+			)])
+		Console().print(table)
 
 @cli_obs.command("get-scene-item-transform")
 @click.argument("scene_uuid")
@@ -183,9 +222,8 @@ def cmd_obs_select_input_dev(input_name):
 	else:
 		options = obs.get_input_list()
 		table = Table(show_header=True, title="Available Inputs", show_lines=False)
-		table.add_column("Enter")
-		table.add_column("Input Kind")
-		table.add_column("Input Name")
+		for col in ("Enter", "Input Kind", "Input Name"):
+			table.add_column(col)
 		i = 1
 		for option in options:
 			table.add_row(str(i), option["inputKind"], option["inputName"])
@@ -210,9 +248,8 @@ def cmd_obs_select_input_dev(input_name):
 	options = obs.get_input_setting_options(input_name, option_name)
 	current_value = settings["inputSettings"][option_name]
 	table = Table(show_header=True, title="Available Devices", show_lines=False)
-	table.add_column("Enter")
-	table.add_column("Current")
-	table.add_column("Device Name")
+	for col in ("Enter", "Current", "Device Name"):
+		table.add_column(col)
 	i = 1
 	for option in options:
 		table.add_row(

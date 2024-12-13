@@ -13,8 +13,8 @@ class ZoomTracker:
 	Given an image of the main Zoom window, find the box which
 	contains each participant's video.
 	https://pillow.readthedocs.io/en/stable/index.html
-	https://realpython.com/image-processing-with-the-python-pillow-library/
 	https://github.com/python-pillow/Pillow
+	https://realpython.com/image-processing-with-the-python-pillow-library/
 	"""
 
 	BYTES_PER_PIXEL = 3
@@ -32,6 +32,7 @@ class ZoomTracker:
 		self.layout = None
 
 	def load_image(self, img):
+		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
 		assert img.mode == "RGB", f"Unsupported image mode: {img.mode}"
 
 		# Load the screenshot of the Zoom window into self.img and self.data
@@ -299,8 +300,8 @@ class SimpleSpeakerIndexes(list):
 	def set_speaker_index(self, speaker_index):
 
 		# Exclude first box (hopefully the one showing OBS output)
-		if speaker_index == 0:
-			return
+		#if speaker_index == 0:
+		#	return
 
 		# No change
 		if speaker_index == self[0]:
@@ -313,3 +314,39 @@ class SimpleSpeakerIndexes(list):
 		if speaker_index not in self[1:]:
 			self[self.speaker_switch_count % 2 + 1] = speaker_index
 			self.speaker_switch_count += 1
+
+def tracker_test(filename):
+	from time import sleep
+	from PIL import Image, ImageDraw
+	from .controllers import obs, ObsError
+
+	img = Image.open(filename)
+	if img.mode != "RGB":
+		img = img.convert("RGB")
+	tracker = ZoomTracker()
+	tracker.load_image(img)
+
+	class BoxDrawer:
+		def __init__(self, img):
+			self.draw = ImageDraw.Draw(img)
+		def draw_box(self, box):
+			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=(255, 0, 0), width=1)
+	drawer = BoxDrawer(tracker.img)
+
+	gallery = tracker.find_gallery()
+	speaker_box = tracker.find_speaker_box()
+
+	print("Gallery:", gallery)
+	if gallery is not None:
+		print("x2:", gallery.x2)
+		print("width2:", gallery.width2)
+		drawer.draw_box(gallery)
+	print("Speaker box:", speaker_box)
+	if speaker_box is not None:
+		drawer.draw_box(speaker_box)
+	print("Layout:", tracker.layout)
+	print("Speaker indexes:", tracker.speaker_indexes)
+	for box in tracker.layout:
+		drawer.draw_box(box)
+
+	tracker.img.show()
