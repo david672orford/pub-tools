@@ -551,7 +551,7 @@ class ObsControlBase:
 		else:
 			params["inputUuid"] = uuid
 		response = self.request("GetInputSettings", params)
-		return response["responseData"]["inputSettings"]
+		return response["responseData"]
 
 	def set_input_settings(self, name:str=None, uuid:str=None, settings:dict={}, overlay:bool=True):
 		params = {

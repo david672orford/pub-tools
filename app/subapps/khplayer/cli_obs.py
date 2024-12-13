@@ -8,6 +8,8 @@ import json
 
 from flask.cli import AppGroup
 import click
+from rich.console import Console
+from rich.table import Table
 
 from .utils.controllers import obs
 
@@ -19,7 +21,7 @@ def print_json(data):
 	print()
 
 #=============================================================================
-# Set OBS up for use with KH Player
+# Perform the initial setup of OBS up for use with KH Player
 #=============================================================================
 
 @cli_obs.command("configure")
@@ -136,7 +138,7 @@ def cmd_obs_create_input(scene_name, input_kind, input_name):
 		})
 	print_json(response["responseData"])
 
-@cli_obs.command("get-input-default-settings")
+@cli_obs.command("get-input-defaults")
 @click.argument("input_kind")
 def cmd_obs_get_input_default_settings(input_kind):
 	"""Get the defaults for an input kind"""
@@ -148,7 +150,7 @@ def cmd_obs_get_input_default_settings(input_kind):
 @cli_obs.command("get-input-uuid")
 @click.argument("input_name")
 def cmd_obs_get_input_uuid(input_name):
-	"""Given name, get UUID"""
+	"""Given name, get UUID of input"""
 	print(obs.get_input_uuid(input_name))
 
 @cli_obs.command("get-input-setting-options")
@@ -172,30 +174,69 @@ def cmd_obs_update_input_settings(input_name, settings):
 	settings = json.loads(settings)
 	obs.set_input_settings(name=input_name, settings=settings)
 
-@cli_obs.command("get-input-device-list")
-@click.argument("input_name", default="Mic/Aux")
-def cmd_get_input_device_list(input_name):
-	"""List options for device_id setting of the named input"""
-	print(f"Devices for {input_name}:")
-	response = obs.request("GetInputPropertiesListPropertyItems", {
-		"inputName": input_name,
-		"propertyName": "device_id",
-		})
-	print_json(response["responseData"]["propertyItems"])
+@cli_obs.command("select-input-dev")
+@click.argument("input_name", nargs=-1)
+def cmd_obs_select_input_dev(input_name):
+	"""Allow the user to pick an input's device from available options"""
+	if len(input_name) > 0:
+		input_name = input_name[0]
+	else:
+		options = obs.get_input_list()
+		table = Table(show_header=True, title="Available Inputs", show_lines=False)
+		table.add_column("Enter")
+		table.add_column("Input Kind")
+		table.add_column("Input Name")
+		i = 1
+		for option in options:
+			table.add_row(str(i), option["inputKind"], option["inputName"])
+			i += 1
+		Console().print(table)
+		if (selection := get_choice(options)) is not None:
+			input_name = selection["inputName"]
+		else:
+			print("Not a valid choice")
+			return
 
-@cli_obs.command("get-input-device")
-@click.argument("input_name")
-def cmd_get_input_device(input_name):
-	"""Get the device_id setting of the named input"""
 	settings = obs.get_input_settings(name=input_name)
-	print(settings.get("device_id"))
+	match settings["inputKind"]:
+		case "xcomposite_input":
+			option_name = "capture_window"
+		case "pulse_input_capture":
+			option_name = "device_id"
+		case _:
+			print("Inputs if {kind} not supported".format(kind=settings["inputKind"]))
+			return
 
-@cli_obs.command("set-input-device")
-@click.argument("input_name")
-@click.argument("device_id")
-def cmd_set_input_device(input_name, device_id):
-	"""Set the device_id setting of the named input"""
-	obs.set_input_settings(name=input_name, settings={"device_id": device_id})
+	options = obs.get_input_setting_options(input_name, option_name)
+	current_value = settings["inputSettings"][option_name]
+	table = Table(show_header=True, title="Available Devices", show_lines=False)
+	table.add_column("Enter")
+	table.add_column("Current")
+	table.add_column("Device Name")
+	i = 1
+	for option in options:
+		table.add_row(
+			str(i),
+			"*" if option["itemValue"] == current_value else "",
+			option["itemName"],
+			)
+		i += 1
+		Console().print(table)
+	if (selection := get_choice(options)) is not None:
+		obs.set_input_settings(name=input_name, settings={option_name: selection["itemValue"]})
+	else:
+		print("Not a valid option")
+
+def get_choice(options):
+	response = input("> ")
+	try:
+		response = int(response)
+	except ValueError:
+		return None
+	response = response - 1
+	if 0 <= response < len(options):
+		return options[response]
+	return None
 
 #=============================================================================
 # Sources

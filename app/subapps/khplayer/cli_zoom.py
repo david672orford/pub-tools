@@ -23,11 +23,15 @@ def cmd_zoom_configure():
 	tmpfile = "." + zoom_configfile
 	backup_file = zoom_configfile + "~"
 
+	# Load Zoom's configuration
 	config = ConfigParser()
 	config.read(zoom_configfile)
 
-	print("Language:", config.get("General", "language"))
+	# https://askubuntu.com/questions/1388053/what-are-all-of-the-available-zoomus-conf-options
+	config.set("General", "showSystemTitlebar", "true")
+	config.set("General", "enableMiniWindow", "false")
 
+	# Save the modified config
 	with open(tmpfile, "w") as fh:
 		config.write(fh)
 	if False:
@@ -70,20 +74,6 @@ class BoxDrawer:
 		self.draw = ImageDraw.Draw(img)
 	def draw_box(self, box):
 		self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=(255, 0, 0), width=1)
-
-@cli_zoom.command("select-window")
-def cmd_zoom_select_window():
-	"""Choose the Zoom capture window from a list"""
-	windows = obs.get_input_setting_options("Zoom Capture", "capture_window")
-	capture_window = obs.get_input_settings(name="Zoom Capture")["capture_window"]
-	i = 1
-	for window in windows:
-		print("*" if window["itemValue"] == capture_window else " ", i, window["itemName"])
-		i += 1
-	selection = input("> ")
-	if selection:
-		selection = int(selection) - 1
-		obs.set_input_settings(name="Zoom Capture", settings={"capture_window": windows[selection]["itemValue"]})
 
 @cli_zoom.command("track")
 def cmd_zoom_track():
