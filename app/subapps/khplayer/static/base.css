@@ -427,8 +427,9 @@ MAIN {
 /* Labeled form field */
 .form-field {
 	display: inline-flex;
-	align-items: center;
+	align-items: flex-start;
 	margin: 0 .25em .25em 0;
+	flex-wrap: wrap;
 	flex-grow: 1;
 	max-width: calc(100% - .5em);
 	}
@@ -437,6 +438,9 @@ MAIN {
 	}
 .form-field > *:last-child {
 	margin-right: 0;
+	}
+.form-field > LABEL {
+	margin-top: .5em;		/* same as button padding */
 	}
 .form-field > LABEL:first-child::after {
 	content: ":";
@@ -449,7 +453,7 @@ MAIN {
 	}
 .form-field > TEXTAREA.urls {
 	width: 40em;
-	height: 5em;
+	height: 6em;
 	}
 
 /* For drag-and-drop */
@@ -614,4 +618,3 @@ MAIN {
 .bounds BUTTON svg rect.bounds {
 	fill: #8080c0;
 	}
-
