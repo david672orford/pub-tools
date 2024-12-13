@@ -1,48 +1,39 @@
-# Flask framework
+# To find out what has been kept back:
+# pip3 list --outdated
+
+# Flask framework, its dependencies, and addons
 Flask==3.0.2
-
-# Flask dependencies
-#click==8.1.3
-#itsdangerous==2.1.2
-#Jinja2==3.1.2
-#Markupsafe==2.1.1
-#Werkzeug==2.2.2
-
-# Database integration for the Flask framework
 Flask-SQLAlchemy>=3.0.2
-
-# Gettext
 flask-babel==4.0.0
-
-# Experimental
 Flask_Caching==2.1.0
+click==8.1.7
+itsdangerous==2.2.0
+Jinja2==3.1.4
+Markupsafe==3.0.2
+Werkzeug==3.1.3
+# Used to examine DB during development
+#flask_admin==1.6.1
 
-# Mainly useful during development to examine and reset the DB
-#flask_admin
-
-# For making HTTP requests
+# For web scraping
 requests==2.32.3
-
-# For parsing HTML
-lxml>=3.5.0
+lxml==5.3.0
 
 # For communicating with the OBS Websocket plugin
-websocket-client==1.4.2
+#websocket-client==1.4.2
+websocket-client==1.8.0
 
 # For controlling the X window manager
 ewmh==0.1.6; sys_platform != "win32"
 
-# For embedded web browser
+# Used by pub-tools script
 pywebview==5.3.2
 
 # For printing tables in the CLI
-rich==13.7.1
+rich==13.9.4
 
-# For Russian morphology
-pymorphy3
-
-# Search engine
+# For the search engine
 Whoosh==2.7.4
+pymorphy3==2.0.2
 
 # For making image thumbnails and for the Zoom tracker
 Pillow>=10.3.0
