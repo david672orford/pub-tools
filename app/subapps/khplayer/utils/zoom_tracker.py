@@ -31,6 +31,10 @@ class ZoomTracker:
 		self.speaker_box = None
 		self.layout = None
 
+	def set_exclude_first_box(self, exclude_first_box):
+		"""Never treat the first box as the speaker, it is our output"""
+		self.speaker_indexes.exclude_first_box = exclude_first_box
+
 	def load_image(self, img):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
 		assert img.mode == "RGB", f"Unsupported image mode: {img.mode}"
@@ -296,12 +300,13 @@ class SimpleSpeakerIndexes(list):
 	def __init__(self):
 		self.extend((None, None, None))
 		self.speaker_switch_count = 0
+		self.exclude_first_box = True
 
 	def set_speaker_index(self, speaker_index):
 
-		# Exclude first box (hopefully the one showing OBS output)
-		#if speaker_index == 0:
-		#	return
+		# First box is generally the one showing OBS output
+		if speaker_index == 0 and self.exclude_first_box:
+			return
 
 		# No change
 		if speaker_index == self[0]:

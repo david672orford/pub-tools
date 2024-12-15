@@ -18,9 +18,9 @@ from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker
 class ObsZoomTracker(ObsScript):
 	"""
 	<h2>KH Player—Zoom Tracker</h2>
-	<p>Run screen capture on the main Zoom window and crop out the current and previous speakers.</p>
+	<p>Run screen capture on the main Zoom window and create sources which track the current and last two speakers.</p>
 	"""
-	def __init__(self, *args, debug=False, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.source_name = "Zoom Capture"
 		self.cropper_names = (
@@ -39,6 +39,8 @@ class ObsZoomTracker(ObsScript):
 				value=lambda: self.capture.get_window(),
 				options=lambda: self.capture.get_window_options(),
 				),
+			ObsWidget("bool", "exclude_first_box", "Exclude First Box", default_value=True),
+			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
 	def on_finished_loading(self):
@@ -61,6 +63,9 @@ class ObsZoomTracker(ObsScript):
 		if self.debug:
 			print("GUI change: capture_window is now:", settings.capture_window)
 		self.capture.set_window(settings.capture_window)
+		self.tracker.set_exclude_first_box(settings.exclude_first_box)
+		self.debug = settings.debug
+		self.tracker.debug = settings.debug
 
 	def on_unload(self):
 		"""Script or OBS shutting down. Free resources."""
@@ -74,7 +79,7 @@ class ObsZoomTracker(ObsScript):
 		"""Is at least one OBS scene showing Zoom active?"""
 		return self.capture is not None and obs.obs_source_active(self.capture.source)
 
-	def tick(self):
+	def track(self):
 		"""Time to get a screenshot and adjust the cropping"""
 		if self.active():
 			if not self.last_active:
@@ -223,17 +228,17 @@ class ZoomCropper:
 			obs.obs_data_release(source_settings)
 			self.prev_crop_box = crop_box
 
-zoom_tracker = ObsZoomTracker(debug=True)
+zoom_tracker = ObsZoomTracker()
 
 # The OBS documentation recommends against using this function, but if we
 # use a timer OBS segfaults in the graphics thread.
 tick_count = 0
 def script_tick(seconds):
 	global tick_count
-	TICK_DIVISOR = 15
+	SCREENSHOT_INTERVAL = 15
 	if seconds > 0.034:
 		print("long tick:", seconds)
 	tick_count += 1
-	if tick_count > TICK_DIVISOR:
-		zoom_tracker.tick()
+	if tick_count > SCREENSHOT_INTERVAL:
+		zoom_tracker.track()
 		tick_count = 0
