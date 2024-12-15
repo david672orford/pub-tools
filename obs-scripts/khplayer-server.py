@@ -51,7 +51,6 @@ class KHPlayer(ObsScript):
 		# Instantiante the KH Player app and prepare to serve it.
 		self.app = create_app()
 		self.enable = False		# should the HTTP server be running?
-		self.debug = False
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
 		self.logger = logging.getLogger("app")
