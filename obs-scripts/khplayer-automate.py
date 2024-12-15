@@ -40,11 +40,10 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.stopper = MediaStopper(self)
-		self.yeartext_scene = None
-		self.end_trim = 5.0			# FIXME: Repeating self because OBS restart with media scene current can reference betfore on_gui_change() called
-		self.playing_sources = set()
-		self.previous_scene = None
+		self.yeartext_scene = None				# scene to switch to at OBS start
+		self.stopper = MediaStopper(self)		# stops videos before the end
+		self.playing_sources = set()			# sources currently playing video
+		self.previous_scene = None				# switch to this when playback stops
 
 		# Define script configuration GUI
 		self.gui = [
@@ -58,6 +57,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			ObsWidget("bool", "start_vcam", "Start Virtual Camera", default_value=True),
 			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
 			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.0),
+			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
 	def get_scene_options(self):
@@ -68,7 +68,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def on_gui_change(self, settings):
 		"""Accept settings from the script configuration GUI"""
 		self.yeartext_scene = settings.yeartext_scene
-		self.end_trim = settings.end_trim
+		self.stopper.end_trim = settings.end_trim
 		if settings.start_vcam:
 			obs.obs_frontend_start_virtualcam()
 		else:
@@ -81,17 +81,18 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		self.set_scene(self.yeartext_scene)
 
 	def on_scene_activate(self, scene_name):
-		"""Only seems to fire if user initiated the switch"""
+		"""Activate a dummy source when Yeartext scene becomes active"""
 		if self.debug:
 			print("Scene activated:", scene_name)
 		if scene_name == self.yeartext_scene:
 			self.video_add(DummySource())
 
 	def on_scene_deactivate(self, scene_name):
+		"""Deactivate dummy source when Yeartext scene ceases to be active"""
 		if self.debug:
 			print("Scene deactivated:", scene_name)
 		if scene_name == self.yeartext_scene:
-			self.video_remove(DummySource(), return_to_home=False)
+			self.video_remove(DummySource(), return_to_previous=False)
 		self.previous_scene = scene_name
 
 	def on_media_started(self, source):
@@ -100,7 +101,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	def on_media_ended(self, source):
 		"""Video played to the end without interfernce"""
-		self.video_remove(source, return_to_home=True)
+		self.video_remove(source, return_to_previous=True)
 
 	def on_media_play(self, source):
 		"""User pressed the Play button"""
@@ -108,20 +109,20 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	def on_media_stopped(self, source):
 		"""User pressed the stop button"""
-		self.video_remove(source, return_to_home=True)
+		self.video_remove(source, return_to_previous=True)
 
 	def on_media_pause(self, source):
 		"""User pressed the play button"""
-		self.video_remove(source, return_to_home=False)
+		self.video_remove(source, return_to_previous=False)
 
 	def on_source_deactivate(self, source):
 		"""Video stopped because user switched away from scene"""
-		self.video_remove(source, return_to_home=False)
+		self.video_remove(source, return_to_previous=False)
 
 	def on_source_destroy(self, source):
 		"""Video was removed from scene"""
 		if source.id.endswith("_source"):	# i.e., not a scene
-			self.video_remove(source, return_to_home=False)
+			self.video_remove(source, return_to_previous=False)
 
 	def video_add(self, source):
 		"""Add a video to the list of those playing"""
@@ -134,7 +135,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 				print("playing_sources:", self.playing_sources)
 
 			if len(self.playing_sources) == 1:						# went from 0 to 1
-				self.enqueue(lambda: self.act(mute=True, return_to_home=False))
+				self.act(mute=True, return_to_previous=False)
 
 		# If the video from JW.ORG, set a timer so we can stop it a few seconds
 		# from the end just before the copyright and credits card.
@@ -142,10 +143,10 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		if self.is_from_jworg(source):
 			self.stopper.set_source(source)
 
-	def video_remove(self, source, return_to_home=True):
+	def video_remove(self, source, return_to_previous=True):
 		"""Remove a video from the list of those playing"""
 		if self.debug:
-			print("video_remove(%s, return_to_home=%s)" % (source, return_to_home))
+			print("video_remove(%s, return_to_previous=%s)" % (source, return_to_previous))
 
 		name = source.name
 		if name in self.playing_sources:
@@ -154,13 +155,13 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 				print("playing_sources:", self.playing_sources)
 
 			if len(self.playing_sources) == 0:			# went from 1 to 0
-				self.enqueue(lambda: self.act(mute=False, return_to_home=return_to_home))
+				self.act(mute=False, return_to_previous=return_to_previous)
 
 		# FIXME: Why does this have to be outside the if?
 		self.stopper.cancel(source)
 
 	def is_from_jworg(self, source):
-		"""Does the filename of this video suggest it is from JW.ORG?"""
+		"""Does the filename of this video suggest it is a video from JW.ORG?"""
 		# Find the source filename
 		settings = source.settings
 		print("Source settings:", settings)
@@ -171,28 +172,28 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		else:
 			filename = ""
 
-		# *_480P.mp4
+		# *_480P.mp4, *_720P.mp4, etc.
 		return re.search(r"_r\d+P\.mp4$", filename) is not None
 
-	def act(self, mute, return_to_home):
+	def act(self, mute, return_to_previous):
 		"""
 		Mute or unmute the default audio source as indicated.
 		Optionally return to the home scene as well.
 		"""
 		if self.debug:
-			print("act(mute=%s, return_to_home=%s)" % (mute, return_to_home))
-		if return_to_home:
-			if self.previous_scene is not None:
+			print("act(mute=%s, return_to_previous=%s)" % (mute, return_to_previous))
+		def action():
+			if return_to_previous and self.previous_scene is not None:
 				self.set_scene(self.previous_scene)
-			else:
-				self.set_scene(self.yeartext_scene)
-		run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
+			run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
+		self.enqueue(action)
 
 class MediaStopper:
 	"""Used to set a timer to stop a media source a few minutes before the end"""
 	def __init__(self, automate):
 		self.debug = False
 		self.automate = automate		# pointer to ObsAutomate object
+		self.end_trim = None			# will be set by .on_gui_change()
 		self.timer_running = False
 		self.source = None
 
@@ -203,7 +204,7 @@ class MediaStopper:
 			obs.remove_current_callback()
 			self.timer_running = False
 			self.source = None
-			self.automate.act(mute=False, return_to_home=True)
+			self.automate.act(mute=False, return_to_previous=True)
 			if self.debug:
 				print("Timer callback done")
 		self.callback = _callback
@@ -212,11 +213,13 @@ class MediaStopper:
 		"""Called when a source (video) which should be stopped early begins playing"""
 		if self.debug:
 			print(f"set_source({source})")
+		if self.end_trim is None:		# If .on_gui_change() not yet called
+			return
 		assert source.duration > 0
 		self._cancel()
 		self.source = source
 		remaining = (source.duration - source.time)
-		remaining -= int(self.automate.end_trim * 1000)
+		remaining -= int(self.end_trim * 1000)
 		if self.debug:
 			print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 			print("remaining:", remaining/1000.0)
@@ -247,4 +250,4 @@ class DummySource:
 	uuid = "dummy_source"
 	settings = {}
 
-ObsAutomate(debug=True)
+ObsAutomate()
