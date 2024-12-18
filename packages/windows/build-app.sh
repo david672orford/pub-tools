@@ -12,7 +12,7 @@ find . -name .ropeproject | xargs rmdir
 find . -name '*.md' | xargs rm
 
 # Compile .py module files to .pyc and remove the .py files
-python -m compileall -b app obs-scripts/.libs venv_tool.py
+python3 -m compileall -b app obs-scripts/.libs venv_tool.py
 find app -name '*.py' | xargs rm
 
 ## Move the .pyc files into a zip archive

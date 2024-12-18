@@ -19,15 +19,6 @@ def create_app():
 
 	app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
 
-	# FIXME: Bad hack for when running in a zip file
-	#print("root_path:", app.root_path)
-	#if "/app.zip/" in app.root_path:
-	#	app.root_path = app.root_path.replace("/app.zip/app", "/app")
-	#	app.instance_path = app.instance_path.replace("/app.zip/instance", "/instance")
-	#	app.config.root_path = app.instance_path
-	#	print("root_path:", app.root_path)
-	#	print("instance_path:", app.instance_path)
-
 	# If we don't have a config file yet, create one
 	if not os.path.exists(app.instance_path):
 		import secrets
@@ -72,7 +63,7 @@ def create_app():
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# FIXME: there must be a better way to do this
+	# FIXME: There must be a better way to verify the integrity of the configuration
 	assert type(app.config["UI_LANGUAGE"]) in(str, type(None))
 	assert type(app.config["PUB_LANGUAGE"]) in (str, type(None))
 	assert type(app.config["SUB_LANGUAGE"]) in (str, type(None))
@@ -89,7 +80,13 @@ def create_app():
 			app.config["UI_LANGUAGE"] = obs.obs_get_locale().split("-")[0]
 		except ImportError:
 			import locale
-			app.config["UI_LANGUAGE"] = locale.getlocale()[0].split("_")[0]
+			lang = locale.getlocale()[0].split("_")[0]
+			if sys.platform == "win32":		# FIXME: this is a temporary hack to get things working
+				lang = {
+					"English":"en",
+					"Russian":"ru",
+					}[lang]
+			app.config["UI_LANGUAGE"] = lang
 	if app.config["PUB_LANGUAGE"] is None:
 		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
 
