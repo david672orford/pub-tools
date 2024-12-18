@@ -5,13 +5,18 @@ CLI for OBS
 import sys
 import os
 import json
+from time import sleep
+import uuid
+import subprocess
 
+from flask import current_app
 from flask.cli import AppGroup
 import click
 from rich.console import Console
 from rich.table import Table
 
-from .utils.controllers import obs
+from .utils.controllers import obs, ObsError
+from .utils.obs_config import ObsConfig
 
 cli_obs = AppGroup("obs", help="Control OBS Studio")
 
@@ -24,10 +29,44 @@ def print_json(data):
 # Perform the initial setup of OBS up for use with KH Player
 #=============================================================================
 
-@cli_obs.command("configure")
-def cmd_obs_configure():
-	obs.create_profile("KH Player", reuse=True)
+@cli_obs.command("setup")
+def cmd_obs_setup():
+	"""Perform initial setup of OBS to work with KH Player"""
+
+	obs_config = ObsConfig()
+
+	print("Enabling OBS-Websocket...")
+	enabled = obs_config.default_websocket_config().get("obs_websocket_enabled", False)
+	if not enabled:
+		obs_config.enable_websocket()
+
+	print("Starting OBS...")
+	obs_handle = subprocess.Popen(["obs"])
+
+	while True:
+		try:
+			obs.get_version()
+			break
+		except ObsError as e:
+			print("Waiting for OBS to start...")
+			sleep(2)
+
+	print("Stopping virtual camera...")
+	try:
+		obs.set_virtual_camera_status(False)
+		while True:
+			if obs.get_virtual_camera_status() is False:
+				break
+			sleep(1)
+	except ObsError as e:
+		if e.code != 501:
+			raise
+
+	print("Creating scene collection...")
 	obs.create_scene_collection("KH Player", reuse=True)
+
+	print("Creating profile...")
+	obs.create_profile("KH Player", reuse=True)
 	obs.set_video_settings({
 		"baseHeight": 720,
 		"baseWidth": 1280,
@@ -36,6 +75,66 @@ def cmd_obs_configure():
 		"outputHeight": 720,
 		"outputWidth": 1280
 		})
+
+	try:
+		from ewmh import EWMH
+		wm = EWMH()
+		for window in wm.getClientList():
+			name = wm.getWmName(window).decode("utf-8")
+			print("window:", name)
+			if name.startswith("OBS"):
+				print("Asking OBS to close...")
+				wm.setCloseWindow(window)
+				wm.display.flush()
+				break
+	except ModuleNotFoundError:
+		print("Module ewmh not found")
+
+	while(obs_handle.returncode is None):
+		print("Now please close OBS.")
+		try:
+			obs_handle.wait(2)
+			break
+		except subprocess.TimeoutExpired:
+			pass
+
+	print("General configuration...")
+	user_config = obs_config.get_user_config()
+	user_config["General"]["ConfirmOnExit"] = "false"
+	user_config["BasicWindow"]["SideDocks"] = "true"
+	user_config["BasicWindow"]["ProjectorAlwaysOnTop"] = "true"
+	user_config["BasicWindow"]["CloseExistingProjectors"] = "true"
+	user_config.set("BasicWindow", "ExtraBrowserDocks", json.dumps([
+		{
+			"title": "KH Player",
+			"url": "http://localhost:5000/khplayer/",
+			"uuid": uuid.uuid4().hex,
+		}
+		]))
+	user_config["BasicWindow"]["geometry"] = "AdnQywADAAAAAAAAAAAAJAAABSIAAANiAAAAAwAAADwAAAUfAAADXwAAAAAAAAAACZoAAAADAAAAPAAABR8AAANf"
+	user_config["BasicWindow"]["DockState"] = "AAAA/wAAAAD9AAAAAgAAAAAAAAJHAAAC6/wCAAAAAfsAAAAsAEsASAAgAFAAbABhAHkAZQByAF8AZQB4AHQAcgBhAEIAcgBvAHcAcwBlAHIBAAAAFwAAAusAAABQAP///wAAAAMAAALSAAAA/PwBAAAABvsAAAAUAHMAYwBlAG4AZQBzAEQAbwBjAGsAAAAA7QAAAJgAAACYAP////sAAAAWAHMAbwB1AHIAYwBlAHMARABvAGMAawEAAAJLAAAAoAAAAJgA////+wAAABIAbQBpAHgAZQByAEQAbwBjAGsBAAAC7wAAAO4AAADeAP////sAAAAeAHQAcgBhAG4AcwBpAHQAaQBvAG4AcwBEAG8AYwBrAAAAAq4AAADsAAAAggD////7AAAAGABjAG8AbgB0AHIAbwBsAHMARABvAGMAawEAAAPhAAABPAAAAScA////+wAAABIAcwB0AGEAdABzAEQAbwBjAGsCAAADbwAAAk8AAAK8AAAAyAAAAtIAAAHrAAAAAQAAAAIAAAABAAAAAvwAAAAA"
+	if sys.platform == "win32":
+		user_config.set("Python", "Path64bit", os.path.join(current_app.root_path, "..", "python"))
+	user_config["Appearance"]["Theme"] = "com.obsproject.Yami.Light"
+	obs_config.save_user_config(user_config)
+
+	print("Adding scripts to scene collection...")
+	scenes = obs_config.get_scene_collection("KH Player")
+	scripts = []
+	for filename, settings in (
+			("khplayer-server.py", {"enable": True}),
+			("khplayer-automate.py", {}),
+			("khplayer-zoom-participant.lua", {}),
+			("khplayer-zoom-tracker.py", {}),
+		):
+		scripts.append({
+			"path": os.path.join(current_app.root_path, "..", "obs-scripts", filename),
+			"settings": settings,
+			})
+	scenes["modules"]["scripts-tool"] = scripts
+	obs_config.save_scene_collection("KH Player", scenes)
+
+	print("Done.")
 
 #=============================================================================
 # Misc info
@@ -59,10 +158,9 @@ def cmd_obs_get_hotkey_list():
 @cli_obs.command("dump-scenes")
 def cmd_obs_dump_scenes():
 	"""Pretty-print scene collection KH Player"""
-	filename = f"{os.environ['HOME']}/.config/obs-studio/basic/scenes/KH_Player.json"
-	with open(filename, encoding="utf8") as fh:
-		data = json.load(fh)
-	print_json(data)
+	obs_config = ObsConfig()
+	scenelist = obs_config.get_scenelist("KH Player")
+	print_json(scenelist)
 
 @cli_obs.command("get-scene-list")
 def cmd_obs_get_scene_list():

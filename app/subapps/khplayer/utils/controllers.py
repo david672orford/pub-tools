@@ -1,7 +1,4 @@
-import os
-import sys
 from flask import current_app
-import json
 
 #=============================================================================
 # For fetching articles and media files from JW.ORG
@@ -20,25 +17,14 @@ meeting_loader = MeetingLoader(
 #=============================================================================
 
 from .obs_control import ObsControl, ObsError
+from .obs_config import ObsConfig
 
-obs_config = current_app.config.get("OBS_WEBSOCKET")
-if obs_config is None:
-	if sys.platform == "win32":
-		obs_websocket_configfile = os.path.join(os.environ["APPDATA"], "obs-studio", "plugin_config", "obs-websocket", "config.json")
-	else:
-		obs_websocket_configfile = os.path.join(os.environ["HOME"], ".config", "obs-studio", "plugin_config", "obs-websocket", "config.json")
-	if os.path.exists(obs_websocket_configfile):
-		with open(obs_websocket_configfile) as fh:
-			obs_websocket_config = json.load(fh)
+obs_websocket_config = current_app.config.get("OBS_WEBSOCKET")
+if obs_websocket_config is None:
+	obs_config = ObsConfig()
+	obs_websocket_config = obs_config.default_websocket_config()
 
-		obs_config = {
-			"hostname": "localhost",
-			"port": obs_websocket_config["server_port"],
-			"password": obs_websocket_config["server_password"],
-			"obs_websocket_enabled": obs_websocket_config["server_enabled"],
-			}
-
-obs = ObsControl(config = obs_config)
+obs = ObsControl(config = obs_websocket_config)
 
 def init_app(app):
 	obs.app = app
