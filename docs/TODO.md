@@ -10,6 +10,7 @@
 
 ## Easy Improvements
 
+* Listen address and port setting in khplayer-server.py
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
 * CLI support for enabling debugging per module

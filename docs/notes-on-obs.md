@@ -28,6 +28,32 @@ browser sources.
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 
+### SRT Instructions
+
+* Create a media source
+* Turn off **Local file**
+* Turn off **Restart playback when source becomes active**
+* Set **Input** to an SRT URL such as srt://192.168.0.1:4000?mode=listener
+* Set the **Input format** to "mpegts"
+* Go to the other OBS and open settings
+* Under **Stream** change the **Service** to Custom
+* Set the **Server** to an SRT URL such as srt://192.168.6.251:4000
+* Save settings
+* Press **Start Streaming**
+
+The above has about three seconds of latency. To get down to about half a second:
+
+* Go to settings **Output**
+* Change the **Output mode** to Custom
+* Switch to the **Recording** tab
+* Change **FFmpeg Output Type** to Output to URL
+* Set the **File path or URL** to the caller URL used above
+* Set the **Container Format** to mpegts
+* Check the box **Show all codecs (even if potentially incompatible)
+* Set the **Video Encoder** to libx264
+* Save the settings
+* Press **Start Recording**
+
 ## OBS-Websocket Documentation
 
 OBS-Websocket is a plugin for OBS (now included in the official packages) which allows an external
@@ -98,7 +124,8 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- Crashes
 * [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which do unusual things
 * [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
-
+* [Source Clone](https://obsproject.com/forum/resources/source-clone.1632/) [Github](https://github.com/exeldro/obs-source-clone) -- Clone sources to allow different filters, clone current or previous scene
+* [jrDockie](https://obsproject.com/forum/resources/jrdockie-save-and-load-window-and-dock-layouts.1955/) [Github](https://github.com/dcmouser/obsPlugins/tree/main/jr/jrdockie) -- Load and save browser dock sets. Has OBS-Websocket integration.
 ## Audio Output
 
 OBS has an internal audio mixer. The output of this mixer is used when
@@ -130,17 +157,30 @@ out when writing scripts for it.
 
 ## Configuration
 
+Configuration directory:
+
+* %APPDATA%/obs-studio
+* $HOME/.config/obs-studio
+
+What is where:
+
+* In global.ini aka appConfig
+  * Location of profiles: Locations, Profiles
+  * Location of scene collections: Locations, SceneCollections
+  * Location of user.ini: Locations, Configuration
+* In user.ini aka userConfig
+* Show active outputs warning on exit: General, ConfirmOnExit=false
+  * Python path (Windows): Python, Path64bit (path is in Windows format with forward slashes)
+  * Full-height browser docks: BasicWindow, SideDocks
+  * Browser dock configuration in BasicWindow, ExtraBrowserDocks
+  * BasicWindow, ProjectorAlwaysOnTop=true
+  * BasicWindow, CloseExistingProjectors=true
 * In the Scene Collection
-  * Addon scripts
+  * Addon scripts: modules, scripts-tool,
 * In the profile
   * Hotkeys
   * Output settings
   * Audio monitor device selection
-* In global.ini/user.ini
-  * Browser dock configuration
-  * Show active outputs warning on exit: General, ConfirmOnExit=false
-  * BasicWindow, ProjectorAlwaysOnTop=true
-  * BasicWindow, CloseExistingProjectors=true
 
 ### Object Hierarcy
 
