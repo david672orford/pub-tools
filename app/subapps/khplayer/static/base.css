@@ -3,6 +3,7 @@ BODY {
 
 	--bg: white;
 	--fg: black;
+	--border: black;
 
 	--bg-header: #efefef;
 	--bg-tabs: #b0b0b0;
@@ -92,6 +93,10 @@ INPUT, SELECT, TEXTAREA, BUTTON {
 INPUT[type=checkbox] {
 	width: 1.2em;
 	height: 1.2em;
+	background-color: var(--bg);
+	color: var(--fg);
+	border: thin solid var(--border);
+	border-radius: .1em;
 	}
 INPUT[type=text], TEXTAREA {
 	background-color: var(--bg-input-text);
