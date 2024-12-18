@@ -1,6 +1,7 @@
 BODY {
 	--fg: white;
 	--bg: #1f1e1f;
+	--border: #c0c0c0;
 
 	--bg-header: #464546;
 	--bg-tabs: #262526;
@@ -46,9 +47,6 @@ INPUT, SELECT, BUTTON {
 	}
 INPUT[type="checkbox"] {
 	appearance: none;
-	background-color: var(--bg);
-	color: var(--fg);
-	border: thin solid black;
 	position: relative;
 	}
 INPUT[type="checkbox"]:checked::after {
@@ -63,9 +61,8 @@ BUTTON[class]::before {
 	color: black;
 	}
 A {
-	color: white;
+	color: var(--fg);
 	}
 A:visited {
 	color: #a0a0a0;
 	}
-
