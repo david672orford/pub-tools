@@ -407,3 +407,13 @@ def cmd_obs_get_video_settings():
 def cmd_obs_get_output_list():
 	"""Get list of available outputs"""
 	print_json(obs.request("GetOutputList", {})["responseData"]["outputs"])
+
+@cli_obs.command("stop-vcam")
+def cmd_obs_stop_vcam():
+	obs.set_virtual_camera_status(False)
+
+@cli_obs.command("start-vcam")
+def cmd_obs_stop_vcam():
+	obs.set_virtual_camera_status(True)
+
+
