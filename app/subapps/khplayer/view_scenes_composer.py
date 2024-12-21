@@ -64,7 +64,7 @@ def page_scenes_composer(scene_uuid):
 	try:
 		scene_name = obs.get_scene_name(scene_uuid)
 
-		for scene_item in obs.get_scene_item_list(scene_uuid):
+		for scene_item in obs.get_scene_item_list(scene_uuid=scene_uuid):
 
 			# FIXME: An ffmpeg_source which is not playing will have zero width
 			# so we skip it to avoid a ZeroDivisionError exception in SceneItem

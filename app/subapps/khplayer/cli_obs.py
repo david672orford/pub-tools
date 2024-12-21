@@ -140,12 +140,14 @@ def cmd_obs_setup():
 # Misc info
 #=============================================================================
 
-@cli_obs.command("get-version", help="Show OBS version and features")
+@cli_obs.command("get-version")
 def cmd_obs_get_version():
+	"""Show OBS version and features"""
 	print_json(obs.get_version())
 
-@cli_obs.command("get-hotkey-list", help="List defined hotkeys")
+@cli_obs.command("get-hotkey-list")
 def cmd_obs_get_hotkey_list():
+	"""List defined hotkeys"""
 	response = obs.request("GetHotkeyList", {})
 	print_json(response)
 
@@ -186,6 +188,7 @@ def cmd_get_scene_uuid(scene_name):
 @cli_obs.command("create-scene")
 @click.argument("scene_name")
 def cmd_create_scene(scene_name):
+	"""Create a new empty scene"""
 	obs.create_scene(scene_name)
 
 #=============================================================================
@@ -193,8 +196,8 @@ def cmd_create_scene(scene_name):
 #=============================================================================
 
 @cli_obs.command("get-scene-item-list")
-@click.argument("scene_uuid")
-def cmd_obs_get_scene_item_list(scene_uuid):
+@click.argument("scene_name")
+def cmd_obs_get_scene_item_list(scene_name):
 	"""Show the items in the specified scene"""
 	table = Table(show_header=True, title="Scene Items", show_lines=False)
 	for col in (
@@ -211,7 +214,7 @@ def cmd_obs_get_scene_item_list(scene_uuid):
 			#"Transform",
 			):
 		table.add_column(col)
-	for item in obs.get_scene_item_list(scene_uuid):
+	for item in obs.get_scene_item_list(scene_name=scene_name):
 		#print_json(item)
 		table.add_row(*[str(item[name]) for name in (
 			"sceneItemIndex",
@@ -229,18 +232,18 @@ def cmd_obs_get_scene_item_list(scene_uuid):
 		Console().print(table)
 
 @cli_obs.command("get-scene-item-transform")
-@click.argument("scene_uuid")
+@click.argument("scene_name")
 @click.argument("scene_item_id", type=click.IntRange(min=1), default=1)
-def cmd_obs_get_scene_item_transform(scene_uuid, scene_item_id):
+def cmd_obs_get_scene_item_transform(scene_name, scene_item_id):
 	"""Show the coordinate transform of scene item"""
-	print_json(obs.get_scene_item_transform(scene_uuid, scene_item_id))
+	print_json(obs.get_scene_item_transform(scene_name=scene_name, scene_item_id=scene_item_id))
 
 @cli_obs.command("get-scene-item-settings")
-@click.argument("scene_uuid")
+@click.argument("scene_name")
 @click.argument("scene_item_id", type=click.IntRange(min=1), default=1)
-def cmd_obs_get_scene_item_private_settings(scene_uuid, scene_item_id):
+def cmd_obs_get_scene_item_private_settings(scene_name, scene_item_id):
 	"""Show the private settings of scene item"""
-	print_json(obs.get_scene_item_private_settings(scene_uuid, scene_item_id))
+	print_json(obs.get_scene_item_private_settings(scene_name=scene_name, scene_item_id=scene_item_id))
 
 #=============================================================================
 # Inputs
@@ -268,6 +271,7 @@ def cmd_get_special_inputs():
 @click.argument("input_kind")
 @click.argument("input_name")
 def cmd_obs_create_input(scene_name, input_kind, input_name):
+	"""Create a new input in a specified scene"""
 	response = obs.request("CreateInput", {
 		"sceneName": scene_name,
 		"inputKind": input_kind,
@@ -339,6 +343,8 @@ def cmd_obs_select_input_dev(input_name):
 			option_name = "capture_window"
 		case "pulse_input_capture":
 			option_name = "device_id"
+		case "v4l2_input":
+			option_name = "device_id"
 		case _:
 			print("Inputs if {kind} not supported".format(kind=settings["inputKind"]))
 			return
@@ -356,7 +362,7 @@ def cmd_obs_select_input_dev(input_name):
 			option["itemName"],
 			)
 		i += 1
-		Console().print(table)
+	Console().print(table)
 	if (selection := get_choice(options)) is not None:
 		obs.set_input_settings(name=input_name, settings={option_name: selection["itemValue"]})
 	else:
@@ -410,10 +416,11 @@ def cmd_obs_get_output_list():
 
 @cli_obs.command("stop-vcam")
 def cmd_obs_stop_vcam():
+	"""Stop the virtual camera"""
 	obs.set_virtual_camera_status(False)
 
 @cli_obs.command("start-vcam")
 def cmd_obs_stop_vcam():
+	"""Start the virtual camera"""
 	obs.set_virtual_camera_status(True)
-
 

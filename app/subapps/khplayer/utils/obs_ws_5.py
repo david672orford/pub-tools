@@ -454,10 +454,13 @@ class ObsControlBase:
 			else:
 				raise
 
-	def get_scene_item_list(self, scene_uuid):
-		response = self.request("GetSceneItemList", {
-			"sceneUuid": scene_uuid,
-			})
+	def get_scene_item_list(self, scene_name:str=None, scene_uuid:str=None):
+		req = { }
+		if scene_uuid is not None:
+			req["sceneUuid"] = scene_uuid
+		elif scene_name is not None:
+			req["sceneName"] = scene_name
+		response = self.request("GetSceneItemList", req)
 		return response["responseData"]["sceneItems"]
 
 	def create_scene_item(self, *, scene_uuid:str, source_uuid:str=None, source_name:str=None):
@@ -478,11 +481,15 @@ class ObsControlBase:
 			"sceneItemId": scene_item_id,
 			})
 
-	def get_scene_item_transform(self, scene_uuid, scene_item_id):
-		response = self.request("GetSceneItemTransform", {
-			"sceneUuid": scene_uuid,
+	def get_scene_item_transform(self, scene_name:str=None, scene_uuid:str=None, scene_item_id=None):
+		req = {
 			"sceneItemId": scene_item_id,
-			})
+			}
+		if scene_uuid is not None:
+			req["sceneUuid"] = scene_uuid
+		elif scene_name is not None:
+			req["sceneName"] = scene_name
+		response = self.request("GetSceneItemTransform", req)
 		return response["responseData"]["sceneItemTransform"]
 
 	def set_scene_item_transform(self, scene_uuid:str, scene_item_id:int, transform:dict):
@@ -492,11 +499,15 @@ class ObsControlBase:
 			"sceneItemTransform": transform,
 			})
 
-	def get_scene_item_private_settings(self, scene_uuid, scene_item_id):
-		response = self.request("GetSceneItemPrivateSettings", {
-			"sceneUuid": scene_uuid,
+	def get_scene_item_private_settings(self, scene_name:str=None, scene_uuid:str=None, scene_item_id=None):
+		req = {
 			"sceneItemId": scene_item_id,
-			})
+			}
+		if scene_uuid is not None:
+			req["sceneUuid"] = scene_uuid
+		elif scene_name is not None:
+			req["sceneName"] = scene_name
+		response = self.request("GetSceneItemPrivateSettings", req)
 		return response["responseData"]["sceneItemSettings"]
 
 	def set_scene_item_private_settings(self, scene_uuid:str, scene_item_id:int, settings:dict):
