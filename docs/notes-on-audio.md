@@ -17,6 +17,7 @@ Linux distributions.
 * [Pipewire Under the Hood](https://venam.nixers.net/blog/unix/2021/06/23/pipewire-under-the-hood.html) -- Decent overview from somebody frustrated by the poor documentation
 * [Migrating from PulseAudio to Pipewire](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Echo Cancel Module](https://docs.pipewire.org/page_module_echo_cancel.html)
+* [Multiple ports simultaneously in PipeWire](https://denilson.sa.nom.br/blog/2023-11-10/pipewire-multiple-ports)
 
 ### Wireplumber
 

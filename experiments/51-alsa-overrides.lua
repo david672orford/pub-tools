@@ -1,9 +1,10 @@
--- ~/.config/wireplumber/main.lua.d/51-alsa-overrides.lua
+-- ~/.config/wireplumber/main.lua.d/55-alsa-overrides.lua
 -- Audio Devices Setup
 --
 -- This is for Wireplumber version 0.4.17. In version 0.5 the format will
 -- change from Lua to a dialect of JSON.
 --
+-- See <https://unix.stackexchange.com/questions/648666/rename-devices-in-pipewire> for discussion.
 -- See /usr/share/wireplumber/main.lua.d/50-alsa-config.lua for context.
 --
 -- To list devices and nodes:
