@@ -1,4 +1,4 @@
-from flask import current_app, Blueprint, render_template, request, redirect
+from flask import current_app, render_template, request, redirect
 import logging
 
 from ...utils.background import flash
@@ -144,4 +144,3 @@ def page_patchbay_destroy_link():
 	patchbay.load()
 	patchbay.destroy_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
-

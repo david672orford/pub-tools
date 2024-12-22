@@ -2,14 +2,27 @@ import subprocess
 import json
 from collections import defaultdict
 
+class Device:
+	def __init__(self, item, props):
+		self.id = item["id"]
+		self.name = props["device.name"]
+		self.nick = props.get("device.nick")
+		self.description = props.get("device.description")
+
 # Has inputs and outputs
 class Node:
-	def __init__(self):
-		self.id = None
-		self.name = None
+	def __init__(self, item, props):
+		self.id = item["id"]
+		self.name = props["node.name"]
 		self.name_serial = None
-		self.nick = None
-		self.description = None
+		self.nick = props.get("node.nick")
+		self.description = props.get("node.description")
+		for key in ("media.class", "media.type"):	# media.type observed on Telegram's "alsoft" node
+			if key in props:
+				self.media_class = props[key]
+				break
+		else:
+			self.media_class = ""
 		self.inputs = []
 		self.outputs = []
 
@@ -48,11 +61,11 @@ class Node:
 
 # An input or an output
 class Port:
-	def __init__(self):
-		self.id = None
-		self.node = None
-		self.name = None
-		self.direction = None
+	def __init__(self, item, info, props, node):
+		self.id = item["id"]
+		self.name = props["port.name"]
+		self.direction = info["direction"]
+		self.node = node
 		self.links = []
 
 	def add_link(self, link):
@@ -70,8 +83,10 @@ class Port:
 
 # Connection between an output and an input
 class Link:
-	def __init__(self):
-		self.id = None
+	def __init__(self, id, output_port, input_port):
+		self.id = id
+		self.output_port = output_port
+		self.input_port = input_port
 
 	def __repr__(self):
 		return "<Link id=%d %s --> %s>" % (
@@ -98,11 +113,13 @@ class Patchbay:
 				for item in block:
 					yield item
 
+		self.devices = []
+		self.devices_by_id = {}
 		self.nodes_by_id = {}
 		self.nodes_by_name = defaultdict(list)
 		self.ports_by_id = {}
 		self.links = []
-		
+
 		for item in pwconf_iter():
 			#print(item["id"], item.get("type"))
 
@@ -114,32 +131,18 @@ class Patchbay:
 
 			props = info.get("props")
 
-			if item["type"] == "PipeWire:Interface:Node":
-				node = Node()
-				node.id = item["id"]
-				node.name = props["node.name"]
-				node.nick = props.get("node.nick")
-				node.description = props.get("node.description")
-				for key in ("media.class", "media.type"):	# media.type observed on Telegram's "alsoft" node
-					if key in props:
-						node.media_class = props[key]
-						break
-				else:
-					node.media_class = ""
-				self._add_node(node)
+			if item["type"] == "PipeWire:Interface:Device":
+				self._add_device(Device(item, props))
+			elif item["type"] == "PipeWire:Interface:Node":
+				self._add_node(Node(item, props))
 			elif item["type"].endswith("PipeWire:Interface:Port"):
-				port = Port()
-				port.id = item["id"]
-				port.name = props["port.name"]
-				port.direction = info["direction"]
-				port.node = self.nodes_by_id[props["node.id"]]
-				self._add_port(port)
+				self._add_port(Port(item, info, props, self.nodes_by_id[props["node.id"]]))
 			elif item["type"].endswith("PipeWire:Interface:Link"):
-				link = Link()
-				link.id = item["id"]
-				link.input_port = self.ports_by_id[info["input-port-id"]]
-				link.output_port = self.ports_by_id[info["output-port-id"]]
-				self._add_link(link)
+				self._add_link(Link(
+					item["id"],
+					self.ports_by_id[info["output-port-id"]],
+					self.ports_by_id[info["input-port-id"]],
+					))
 
 		self.nodes = self.nodes_by_id.values()
 
@@ -149,6 +152,10 @@ class Patchbay:
 				print(node)
 		for link in self.links:
 			print(link)
+
+	def _add_device(self, device):
+		self.devices_by_id[device.id] = device
+		self.devices.append(device)
 
 	def _add_node(self, node):
 		self.nodes_by_id[node.id] = node
@@ -220,9 +227,7 @@ class Patchbay:
 			if link.output_port is output_port and link.input_port is input_port:
 				return
 
-		link = Link()
-		link.output_port = output_port
-		link.input_port = input_port
+		link = Link(None,  output_port, input_port)
 		cmd = ["pw-link", str(link.output_port.id), str(link.input_port.id)]
 		subprocess.run(cmd, check=True)
 		self._add_link(link)
@@ -233,4 +238,3 @@ class Patchbay:
 		cmd = ["pw-link", "-d", str(link.id)]
 		subprocess.run(cmd, check=True)
 		self._remove_link(link)
-
