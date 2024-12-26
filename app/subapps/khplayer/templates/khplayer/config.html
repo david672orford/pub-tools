@@ -1,0 +1,67 @@
+{% set title = gettext("Configuration") %}
+{% extends "khplayer/base.html" %}
+{% import "khplayer/lib.html" as lib -%}
+
+{% block head_add %}
+<style>
+.nick { width: 10em; }
+.description { width: 25em; }
+</style>
+{% endblock %}
+
+{% block main %}
+<form action="save" method="POST">
+
+<section>
+	<h2>Audio Devices</h2>
+	<table class="borders full-width">
+		<thead>
+			<tr>
+				<th>{{gettext("Device")}}</th>
+				<th>{{gettext("Nick")}}</th>
+				<th>{{gettext("Description")}}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for device in patchbay.devices %}
+			<tr>
+				<td>{{device.name.split(".",1)[1]}}</td>
+				<td><input class="nick" name="device-{{device.id}}-nick" value="{{device.nick}}"></td>
+				<td><input class="description" name="device-{{device.id}}-description" value="{{device.description}}"</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</section>
+
+<section>
+	<h2>Audio Ports</h2>
+	<table class="borders full-width">
+		<thead>
+			<tr>
+				<th>{{gettext("Media Class")}}</th>
+				<th>{{gettext("Device")}}</th>
+				<th>{{gettext("Nick")}}</th>
+				<th>{{gettext("Description")}}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for node in patchbay.nodes %}
+			{% if node.media_class.startswith("Audio/") %}
+			<tr>
+				<td>{{node.media_class}}</td>
+				<td>{{node.name.split(".",1)[1]}}</td>
+				<td><input class="nick" name="node-{{node.id}}-nick" value="{{node.nick}}"></td>
+				<td><input class="description" name="node-{{node.id}}-description" value="{{node.description}}"></td>
+			</tr>
+			{% endif %}
+			{% endfor %}
+		</tbody>
+	</table>
+</section>
+
+<section>
+	<button type="submit">{{_("Save")}}</button>
+</section>
+</form>
+{% endblock %}
