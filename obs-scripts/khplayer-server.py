@@ -109,8 +109,3 @@ class KHPlayer(ObsScript):
 				self.logger.error("Server failed to start.")
 
 khplayer = KHPlayer()
-
-# FIXME: Temporary fix for the fact that the browser dock starts after this
-# script is loaded but before it is initialized.
-khplayer.enable = True
-khplayer.apply_server_thread_state()
