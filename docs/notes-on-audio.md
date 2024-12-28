@@ -1,13 +1,17 @@
 # Notes on Audio for Linux
 
-Pipewire is a new audio server which is set to place PulseAudio in popular
-Linux distributions.
+Here we have collected notes on the popular audio subsystems for Linux. These include
+the ALSA audio drivers in the kernel and the PulseAudio sound server or its replacement
+Pipewire.
 
 ## Audio in General
 
 * [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
 
 ## Pipewire
+
+Pipewire is a new audio server which (as of late 2024) is steadily replacing
+PulseAudio in popular Linux distributions.
 
 * [Pipewire Project Site](https://www.pipewire.org/)
 * [Pipewire Docs](https://pipewire.pages.freedesktop.org/pipewire/)
@@ -17,9 +21,12 @@ Linux distributions.
 * [Pipewire Under the Hood](https://venam.nixers.net/blog/unix/2021/06/23/pipewire-under-the-hood.html) -- Decent overview from somebody frustrated by the poor documentation
 * [Migrating from PulseAudio to Pipewire](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Echo Cancel Module](https://docs.pipewire.org/page_module_echo_cancel.html)
-* [Multiple ports simultaneously in PipeWire](https://denilson.sa.nom.br/blog/2023-11-10/pipewire-multiple-ports)
+* [Multiple ports simultaneously in PipeWire](https://denilson.sa.nom.br/blog/2023-11-10/pipewire-multiple-ports) -- How to prevent aggregation of multiple output ports into a single device with switchable output
 
 ### Wireplumber
+
+Wireplumber is a Pipewire "session manager". This means that it makes decisions for Pipewire
+on how audio should be routed between inputs, outputs, and applications.
 
 * [Wireplumber Documentation](https://pipewire.pages.freedesktop.org/wireplumber/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
@@ -65,4 +72,3 @@ PulseAudio documentation and programming examples are still useful.
 * [How to Disable Audio Devices in Pipewire / Wireplumber](https://gist.github.com/gtirloni/4384f4de6f4d3fda8446b04057ca5f9d)
 * [Pulseaudio cracking/skipping sound glitches](https://community.solid-run.com/t/pulseaudio-crackling-skipping-sound-glitches/120)
 * [Pipewire Equalizer](https://askubuntu.com/questions/1420560/can-anyone-recommend-a-good-audio-equalizer-for-ubuntu)
-
