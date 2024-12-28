@@ -9,14 +9,15 @@ class Device:
 		self.nick = props.get("device.nick")
 		self.description = props.get("device.description")
 
-# Has inputs and outputs
 class Node:
+	"""Pipewire node with its input and output ports"""
 	def __init__(self, item, props):
 		self.id = item["id"]
 		self.name = props["node.name"]
 		self.name_serial = None
 		self.nick = props.get("node.nick")
 		self.description = props.get("node.description")
+		self.is_vu_meter = (props.get("node.rate","") == "1/25")
 		for key in ("media.class", "media.type"):	# media.type observed on Telegram's "alsoft" node
 			if key in props:
 				self.media_class = props[key]
@@ -59,8 +60,8 @@ class Node:
 			self.outputs,
 			)
 
-# An input or an output
 class Port:
+	"""A Pipewire input or an output port"""
 	def __init__(self, item, info, props, node):
 		self.id = item["id"]
 		self.name = props["port.name"]
@@ -81,8 +82,8 @@ class Port:
 			self.direction,
 			)
 
-# Connection between an output and an input
 class Link:
+	"""Connection between an output and an input port"""
 	def __init__(self, id, output_port, input_port):
 		self.id = id
 		self.output_port = output_port
@@ -96,6 +97,8 @@ class Link:
 			)
 
 class Patchbay:
+	"""Representation of a Pipewire patchbay"""
+
 	def load(self):
 		pwdump = subprocess.Popen(["pw-dump"], stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
 
@@ -177,8 +180,8 @@ class Patchbay:
 		link.output_port.remove_link(link)
 		self.links.remove(link)
 
-	# Find the node specified by attributes
 	def find_node(self, **kwargs):
+		"""Find the node specified by attributes"""
 		class NodeTest:
 			def __init__(self, **kwargs):
 				self.tests = []
@@ -196,9 +199,9 @@ class Patchbay:
 				return node
 		return None
 
-	# Find the port specified by ID, or Nodename:Portname.
-	# If object is passed, simply return it.
 	def find_port(self, port):
+		"""Find the port specified by ID, or Nodename:Portname.
+		If object is passed, simply return it."""
 		if type(port) is Port:
 			return port
 		if type(port) is str:
@@ -209,16 +212,16 @@ class Patchbay:
 			return node.find_port_by_name(port_name)
 		return self.ports_by_id[port]
 
-	# Find the link specified by the ID's of the ports it connects
 	def find_link(self, output_port_id, input_port_id):
+		"""Find the link specified by the ID's of the ports it connects"""
 		for link in self.links:
 			if link.output_port.id == output_port_id and link.input_port.id == input_port_id:
 				return link
 		return None
 
-	# Create a link between an output and an input. Both are specified
-	# in any format understood by .find_port().
 	def create_link(self, output_port, input_port):
+		"""Create a link between an output and an input. Both are specified
+		in any format understood by .find_port()."""
 		output_port = self.find_port(output_port)
 		input_port = self.find_port(input_port)
 

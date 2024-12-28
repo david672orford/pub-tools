@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 menu.append((_("Audio"), "/patchbay/"))
 
 class VirtualCableControls:
+	"""Backend for GUI controls of virtual audio cable"""
 	def __init__(self, patchbay):
 		self.peripherals = get_config("PERIPHERALS")
 		self.microphones = []
@@ -24,6 +25,7 @@ class VirtualCableControls:
 				self.speakers.append((node.name, node.nick if node.nick else node.name))
 
 class Positioner:
+	"""Automatically position nodes in patchbay"""
 	def __init__(self):
 		class PositionerColumn:
 			def __init__(self, x, step, reservations=[]):

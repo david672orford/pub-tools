@@ -35,7 +35,7 @@
 {{lib.render_select(_("Speakers"), "speakers", vcable.peripherals.get("speakers"), vcable.speakers)}}
 <button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
 {% endif %}
-<a href=".?action=reset"><button class="reload">{{_("Arange Nodes")}}</button></a>
+<a href=".?action=reset"><button class="reload">{{_("Arrange Nodes")}}</button></a>
 </section>
 </form>
 
@@ -57,7 +57,7 @@
 	</svg>
 </template>
 {% for node in patchbay.nodes %}
-{% if "Audio" in node.media_class %}
+{% if "Audio" in node.media_class and not node.is_vu_meter %}
 {{ render_node(node) }}
 {% endif %}
 {% endfor %}
@@ -68,7 +68,9 @@ if(!document.documentElement.hasAttribute("data-turbo-preview"))
 	{
 	var links = [
 	{% for link in patchbay.links %}
+	{% if not link.input_port.node.is_vu_meter %}
 	[{{link.output_port.id}}, {{link.input_port.id}}],
+	{% endif %}
 	{% endfor %}
 	];
 	setTimeout(function() { init_patchbay(links) }, 100);
@@ -76,4 +78,3 @@ if(!document.documentElement.hasAttribute("data-turbo-preview"))
 </script>
 
 {% endblock %}
-
