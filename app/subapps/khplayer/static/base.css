@@ -437,6 +437,7 @@ MAIN {
 	flex-wrap: wrap;
 	flex-grow: 1;
 	max-width: calc(100% - .5em);
+	vertical-align: top;	/* seems to match button vertical alignment */
 	}
 .form-field > * {
 	margin: 0 .3em 0 0;
@@ -445,7 +446,7 @@ MAIN {
 	margin-right: 0;
 	}
 .form-field > LABEL {
-	margin-top: .5em;		/* same as button padding */
+	padding-top: .5em;		/* same as button padding (don't use margin as it will shift things) */
 	}
 .form-field > LABEL:first-child::after {
 	content: ":";
