@@ -82,7 +82,6 @@ class ObsZoomTracker(ObsScript):
 				if self.debug:
 					print("Zoom source now showing")
 				self.last_showing = True
-				self.tracker.reset_speakers()
 			data, width, height = self.capture.snapshot()
 			if data is not None:
 				if not self.last_snapshot:
@@ -104,6 +103,8 @@ class ObsZoomTracker(ObsScript):
 		elif self.last_showing is True:
 			if self.debug:
 				print("Zoom sources no longer showing")
+			self.tracker.reset_speakers()
+			self.tracker.do_cropping(self.croppers)
 			self.last_showing = False
 
 class WindowCapture:
