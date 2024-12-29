@@ -31,7 +31,7 @@ def print_json(data):
 
 @cli_obs.command("setup")
 def cmd_obs_setup():
-	"""Perform initial setup of OBS to work with KH Player"""
+	"""Set up OBS to work well with KH Player"""
 
 	obs_config = ObsConfig()
 
@@ -155,14 +155,12 @@ def cmd_obs_get_hotkey_list():
 # Scenes
 #=============================================================================
 
-# Pretty print the JSON file which contains the scene collection
-# This is useful for getting the parameters to construct scenes programatically.
-@cli_obs.command("dump-scenes")
-def cmd_obs_dump_scenes():
-	"""Pretty-print scene collection KH Player"""
+@cli_obs.command("dump-scene-collection")
+def cmd_obs_dump_scene_collection():
+	"""Pretty-print scene collection 'KH Player'"""
 	obs_config = ObsConfig()
-	scenelist = obs_config.get_scenelist("KH Player")
-	print_json(scenelist)
+	scene_collection = obs_config.get_scene_collection("KH Player")
+	print_json(scene_collection)
 
 @cli_obs.command("get-scene-list")
 def cmd_obs_get_scene_list():

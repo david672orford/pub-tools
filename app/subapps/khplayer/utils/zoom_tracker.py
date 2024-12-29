@@ -35,6 +35,9 @@ class ZoomTracker:
 		"""Never treat the first box as the speaker, it is our output"""
 		self.speaker_indexes.exclude_first_box = exclude_first_box
 
+	def reset_speakers(self):
+		self.speaker_indexes.reset_speakers()
+
 	def load_image(self, img):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
 		assert img.mode == "RGB", f"Unsupported image mode: {img.mode}"
@@ -301,6 +304,10 @@ class SimpleSpeakerIndexes(list):
 		self.extend((None, None, None))
 		self.speaker_switch_count = 0
 		self.exclude_first_box = True
+
+	def reset_speakers(self):
+		for i in range(len(self)):
+			self[i] = None
 
 	def set_speaker_index(self, speaker_index):
 

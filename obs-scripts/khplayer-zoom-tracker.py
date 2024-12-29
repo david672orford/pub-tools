@@ -31,7 +31,7 @@ class ObsZoomTracker(ObsScript):
 		self.capture = None
 		self.tracker = ZoomTracker(debug=self.debug)
 		self.croppers = []
-		self.last_active = False
+		self.last_showing = False
 		self.last_snapshot = False
 
 		self.gui = [
@@ -75,22 +75,19 @@ class ObsZoomTracker(ObsScript):
 		for zoom_scene in self.croppers:
 			zoom_scene.release()
 
-	def active(self):
-		"""Is at least one OBS scene showing Zoom active?"""
-		return self.capture is not None and obs.obs_source_active(self.capture.source)
-
 	def track(self):
 		"""Time to get a screenshot and adjust the cropping"""
-		if self.active():
-			if not self.last_active:
+		if self.capture is not None and obs.obs_source_showing(self.capture.source):
+			if not self.last_showing:
 				if self.debug:
-					print("Zoom scene now active")
-				self.last_active = True
-			data, width, height = snapshot(self.capture.source)
+					print("Zoom source now showing")
+				self.last_showing = True
+				self.tracker.reset_speakers()
+			data, width, height = self.capture.snapshot()
 			if data is not None:
 				if not self.last_snapshot:
 					if self.debug:
-						print("Zoom snapshot gained")
+						print("Zoom snapshotting gained")
 					self.last_snapshot = True
 				def task():
 					obs.remove_current_callback()
@@ -102,15 +99,16 @@ class ObsZoomTracker(ObsScript):
 				obs.timer_add(task, 1)
 			elif self.last_snapshot:
 				if self.debug:
-					print("Zoom snapshot lost")
+					print("Zoom snapshotting lost")
 				self.last_snapshot = False
-		elif self.last_active is True:
+		elif self.last_showing is True:
 			if self.debug:
-				print("Zoom scene now inactive")
-			self.last_active = False
+				print("Zoom sources no longer showing")
+			self.last_showing = False
 
 class WindowCapture:
 	"""Wrapper for an OBS input which does screen capture on an application window"""
+
 	def __init__(self, source_name):
 		self.source = obs.obs_get_source_by_name(source_name)
 		if sys.platform == "win32":
@@ -133,16 +131,17 @@ class WindowCapture:
 
 	def destroy(self):
 		obs.obs_source_release(self.source)
+		self.source = None
 
 	def get_window(self):
-		"""Get the window currently captured"""
+		"""Get the name of the window currently captured"""
 		source_settings = obs.obs_source_get_settings(self.source)
 		value = obs.obs_data_get_string(source_settings, self.window_key)
 		obs.obs_data_release(source_settings)
 		return value
 
 	def set_window(self, window):
-		"""Set the window currently captured"""
+		"""Set the window to be captured"""
 		source_settings = obs.obs_data_create()
 		obs.obs_data_set_string(source_settings, self.window_key, window)
 		obs.obs_source_update(self.source, source_settings)
@@ -159,58 +158,62 @@ class WindowCapture:
 		obs.obs_properties_destroy(properties)
 		return capture_windows
 
-def snapshot(source):
-	"""Take a screenshot of the supplied OBS source"""
-	# We found these examples helpful:
-	# https://github.com/obsproject/obs-websocket/blob/master/src/requesthandler/RequestHandler_Sources.cpp
-	# https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653
+	def snapshot(self):
+		"""Take a screenshot of the supplied OBS source"""
+		# We found these examples helpful:
+		# https://github.com/obsproject/obs-websocket/blob/master/src/requesthandler/RequestHandler_Sources.cpp
+		# https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653
 
-	obs.obs_enter_graphics()
+		obs.obs_enter_graphics()
 
-	width = obs.obs_source_get_width(source)
-	height = obs.obs_source_get_height(source)
+		source = self.source
+		width = obs.obs_source_get_width(source)
+		height = obs.obs_source_get_height(source)
 
-	# Render the video frame, first in video RAM
-	data = None
-	texrender = obs.gs_texrender_create(obs.GS_RGBA, obs.GS_ZS_NONE)
-	if obs.gs_texrender_begin(texrender, width, height):
-		obs.gs_ortho(0.0, float(width), 0.0, float(height), -100.0, 100.0)
-		obs.obs_source_video_render(source)
-		obs.gs_texrender_end(texrender)
+		# Render the video frame, first in video RAM
+		data = None
+		texrender = obs.gs_texrender_create(obs.GS_RGBA, obs.GS_ZS_NONE)
+		if obs.gs_texrender_begin(texrender, width, height):
+			obs.gs_ortho(0.0, float(width), 0.0, float(height), -100.0, 100.0)
+			obs.obs_source_video_render(source)
+			obs.gs_texrender_end(texrender)
 
-		# Copy the frame from the GPU to system RAM
-		stagesurf = obs.gs_stagesurface_create(width, height, obs.GS_RGBA)
-		obs.gs_stage_texture(stagesurf, obs.gs_texrender_get_texture(texrender))
+			# Copy the frame from the GPU to system RAM
+			stagesurf = obs.gs_stagesurface_create(width, height, obs.GS_RGBA)
+			obs.gs_stage_texture(stagesurf, obs.gs_texrender_get_texture(texrender))
 
-		# Get ahold of the copy
-		linesize, rawdata = obs.gs_stagesurface_map(stagesurf)
-		if linesize is not None:
-			#data = bytes(rawdata[:linesize*height])
-			data = bytearray(string_at(rawdata, linesize*height))
-			obs.gs_stagesurface_unmap(stagesurf)
+			# Get ahold of the copy
+			linesize, rawdata = obs.gs_stagesurface_map(stagesurf)
+			if linesize is not None:
+				#data = bytes(rawdata[:linesize*height])
+				data = bytearray(string_at(rawdata, linesize*height))
+				obs.gs_stagesurface_unmap(stagesurf)
 
-		obs.gs_stagesurface_destroy(stagesurf)
-	obs.gs_texrender_destroy(texrender)
+			obs.gs_stagesurface_destroy(stagesurf)
+		obs.gs_texrender_destroy(texrender)
 
-	obs.obs_leave_graphics()
+		obs.obs_leave_graphics()
 
-	if data is None:
-		return None, None, None
-	return data, width, height
+		if data is None:
+			return None, None, None
+		return data, width, height
 
 class ZoomCropper:
 	"""
 	Wrapper for a proxy source which crops a piece out of Zoom Capture.
 	"""
 	def __init__(self, source_name, zoom_source_name, zoom_source):
+		self.source_name = source_name
 		self.prev_crop_box = None
-		# Find the named scene. Create it if it does not exist.
+		# Find the named source. Create it if it does not exist.
 		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
 			self.source = obs.obs_source_create("khplayer-zoom-participant", source_name, None, None)
 
 	def release(self):
+		print("Releasing:", self.source_name)
 		obs.obs_source_release(self.source)
+		self.source = None
 
 	def set_crop(self, crop_box):
 		if crop_box != self.prev_crop_box:
@@ -231,7 +234,7 @@ class ZoomCropper:
 zoom_tracker = ObsZoomTracker()
 
 # The OBS documentation recommends against using this function, but if we
-# use a timer OBS segfaults in the graphics thread.
+# use a timer as the recommend, OBS segfaults in the graphics thread.
 tick_count = 0
 def script_tick(seconds):
 	global tick_count
