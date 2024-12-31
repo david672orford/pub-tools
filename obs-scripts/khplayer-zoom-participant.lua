@@ -4,19 +4,21 @@ bit = require("bit")
 source_def = {}
 source_def.id = "khplayer-zoom-participant"
 source_def.type = obs.OBS_SOURCE_TYPE_INPUT
-source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO, obs.OBS_SOURCE_CUSTOM_DRAW)
+source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO, obs.OBS_SOURCE_CUSTOM_DRAW, obs.OBS_SOURCE_CONTROLLABLE_MEDIA)
 
 source_def.get_name = function()
 	return "Zoom Participant"
 end
 
 source_def.create = function(settings, source)
-	-- print("Source create")
 	local data = {}
+	data.name = obs.obs_source_get_name(source)
+	print("Source create: " .. data.name)
 	data.source = source
 	data.width = 1280
 	data.height = 720
-	data.parent_source = obs.obs_get_source_by_name("Zoom Capture")
+	data.parent_source_name = "Zoom Capture"
+	data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
 	if data.parent_source ~= nil then
    		if obs.obs_source_showing(source) then
 			obs.obs_source_inc_showing(data.parent_source)
@@ -31,7 +33,7 @@ source_def.create = function(settings, source)
 end
 
 source_def.destroy = function(data)
-	-- print("Source destroy")
+	print("Source destroy: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_release(data.parent_source)
 		data.parent_source = nil
@@ -40,9 +42,9 @@ source_def.destroy = function(data)
 end
 
 source_def.show = function(data)
-	-- print("Source showing")
+	print("Source showing: " .. data.name)
 	if data.parent_source == nil then
-		data.parent_source = obs.obs_get_source_by_name("Zoom Capture")
+		data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
 	end
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_showing(data.parent_source)
@@ -50,21 +52,21 @@ source_def.show = function(data)
 end
 
 source_def.hide = function(data)
-	-- print("Source hidden")
+	print("Source hidden: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_dec_showing(data.parent_source)
 	end
 end
 
 source_def.activate = function(data)
-	-- print("Source activated")
+	print("Source activated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_active(data.parent_source)
 	end
 end
 
 source_def.deactivate = function(data)
-	-- print("Source deactivated")
+	print("Source deactivated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_dec_active(data.parent_source)
 	end
@@ -97,7 +99,7 @@ source_def.get_properties = function(data)
 end
 
 source_def.update = function(data, settings)
-	-- print("Source update")
+	print("Source update: " .. data.name)
 	data.enabled = obs.obs_data_get_bool(settings, "enabled")
 	data.crop_x = obs.obs_data_get_int(settings, "crop_x")
 	data.crop_y = obs.obs_data_get_int(settings, "crop_y")

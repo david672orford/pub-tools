@@ -93,7 +93,7 @@ class ObsScript:
 	def __init__(self, debug=False):
 		self.debug = debug
 		self._install_callbacks(inspect.currentframe().f_back.f_globals)
-		self._finished_loading = False
+		self.finished_loading = False
 		self._deferred_on_gui_change = None
 
 	#===================================================================
@@ -204,32 +204,45 @@ class ObsScript:
 
 		self.on_load(self._pythonize_settings(raw_settings))
 
-		# Watch frontend events until OBS finishes loading. We dare not leave
-		# this handler installed since it creates lockups when scripts switch
-		# scenes. See: https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
-		def on_event(event):
+		# Wait until the flag is set which indicates that OBS has finished loading
+		# everything (including the scenes). Once it is set, call on_finished_loading().
+		# If script_update() was called in the mean time, there will be settings in
+		# self._deferred_on_gui_change. Dispatch then using self.on_gui_change().
+		def wait_for_finished_loading():
+			if self.finished_loading:
+				obs.remove_current_callback()
+				self.on_finished_loading()
+				if self._deferred_on_gui_change is not None:
+					self.on_gui_change(self._deferred_on_gui_change)
+					self._deferred_on_gui_change = None
+		obs.timer_add(wait_for_finished_loading, 100)
+
+		# Watch frontend events until OBS finishes loading and set the flag
+		# tested above. Then remove the handler. We adopted this cautious
+		# approach because the frontend event handler tends to cause crashes.
+		# See:
+		# https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
+		# Timers set in the frontend event handler also seem to provoke "No
+		# active script, report this to Lain" errors which is why we stopped
+		# using self.enqueue() here and went with the polling timer above.
+		def on_frontend_event(event):
 			if self.debug:
 				print("*** event:", event)
 			if event == obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
 				if self.debug:
 					print("*** finished loading")
-				self.enqueue(self.run_on_finished_loading)
-				obs.obs_frontend_remove_event_callback(on_event)
-		obs.obs_frontend_add_event_callback(on_event)
-
-	def run_on_finished_loading(self):
-		if not self._finished_loading:
-			self._finished_loading = True
-			self.on_finished_loading()
-			if self._deferred_on_gui_change is not None:
-				self.on_gui_change(self._deferred_on_gui_change)
-				self._deferred_on_gui_change = None
+				obs.obs_frontend_remove_event_callback(on_frontend_event)
+				self.finished_loading = True
+		obs.obs_frontend_add_event_callback(on_frontend_event)
 
 	# Called just before settings screen is displayed to build the GUI
 	def _script_properties(self):	# why not settings?
 		if self.debug:
 			print("*** script_properties()")
-		self.run_on_finished_loading()		# in case script loaded after start
+		if not self.finished_loading:
+			if self.debug:
+				print("*** First load or reload, setting finished_loading")
+			self.finished_loading = True
 		self.on_before_gui()
 		self._apply_widget_values(self.raw_settings)
 		props = obs.obs_properties_create()
@@ -263,7 +276,7 @@ class ObsScript:
 		settings = self._pythonize_settings(raw_settings)
 		if self.debug:
 			print("*** settings:", settings)
-		if self._finished_loading:
+		if self.finished_loading:
 			self.on_gui_change(settings)
 		else:
 			self._deferred_on_gui_change = settings
@@ -329,8 +342,8 @@ class ObsScript:
 
 	def enqueue(self, funct):
 		def funct_wrapper():
-			funct()
 			obs.remove_current_callback()
+			funct()
 		obs.timer_add(funct_wrapper, 100)
 
 #=============================================================================

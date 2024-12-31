@@ -210,9 +210,9 @@ class ZoomCropper:
 		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
 			self.source = obs.obs_source_create("khplayer-zoom-participant", source_name, None, None)
+		handler = obs.obs_source_get_signal_handler(self.source)
 
 	def release(self):
-		print("Releasing:", self.source_name)
 		obs.obs_source_release(self.source)
 		self.source = None
 
