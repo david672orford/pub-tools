@@ -1,5 +1,10 @@
-# Create a virtual audio cable to connect the output of OBS to the microphone
-# input of Zoom. We also connect the microphone and speakers to this cable.
+# Create a virtual audio cable using Pipewire
+# This cable connects the output of OBS to the microphone input of Zoom.
+# We also connect the microphone and speakers to this cable.
+# Layout looks like this:
+#                           Microphone[capture] ---v
+# OBS[output] ---> [playback]To-Zoom[monitor] ---> [input]From-OBS[capture] ---> [input]Zoom
+#                                   |---> [playback]Speakers
 
 import sys, os, types, re
 from subprocess import run, PIPE
@@ -8,18 +13,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-if sys.platform == "linux":
-	from .pipewire import Patchbay
-else:
-	class Patchbay:
-		dummy = True
-		nodes = []
-		def load(self):
-			pass
-
-patchbay = Patchbay()
-
 def create_cable(patchbay):
+	"""Create the virtual cable nodes and connect them together"""
 	for name, media_class in (
 			("From-OBS", "Audio/Source/Virtual"),
 			("To-Zoom", "Audio/Sink"),
@@ -47,18 +42,19 @@ def create_cable(patchbay):
 	return []
 
 def destroy_cable(patchbay):
-	for name in ("From-OBS", "To-Zoom"):
+	"""Delete the virtual cable nodes"""
+	for name in ("To-Zoom", "From-OBS"):
 		logger.info("Destroying %s", name)
 		node = patchbay.find_node(name=name)
-		run(["pw-cli", "destroy", str(node.id)], check=True)
+		if node is None:
+			logger.info("Node \"{%s}\" does not exist", name)
+		else:
+			logger.info("Destroying node {%d} ({%s})", node.id, name)
+			# FIXME: Deleting From-OBS observed to delete To-Zoom as well! Why?
+			run(["pw-cli", "destroy", str(node.id)], check=True)
 
-# Connect Microphone and Speakers to virtual audio cable like so:
-#
-#                           Microphone[capture] ---v
-# OBS[output] ---> [playback]To-Zoom[monitor] ---> [input]From-OBS[capture] ---> [input]Zoom
-#                                   |---> [playback]Speakers
-#
 def connect_peripherals(patchbay, config):
+	"""Connect Microphone and Speakers to virtual audio cable"""
 	failures = []
 
 	from_obs = patchbay.find_node(name="From-OBS")
@@ -99,7 +95,7 @@ def connect_peripherals(patchbay, config):
 		to_zoom_output = to_zoom.outputs[0]
 		speakers = patchbay.find_node(name=config["speakers"])
 		if speakers is None:
-			logger.warning("Selected speakers are not connected")
+			failures.append("Selected speakers are not connected")
 		else:
 			speaker_inputs = speakers.inputs[:]
 			for link in to_zoom_output.links[:]:
@@ -114,6 +110,7 @@ def connect_peripherals(patchbay, config):
 	return failures
 
 def connect_obs(patchbay):
+	"""Connect OBS audio monitor streams to virtual cable"""
 	failures = []
 
 	virtual_cable_node = patchbay.find_node(name="To-Zoom")
@@ -138,12 +135,13 @@ def connect_obs(patchbay):
 	return failures
 
 def connect_zoom(patchbay, config):
+	"""Connect Zoom input to virtual cable, output to speakers"""
 	failures = []
 
 	zoom_input_node = patchbay.find_node(name="ZOOM VoiceEngine", media_class="Stream/Input/Audio")
 	if zoom_input_node is None:
 		# Switched from warning to info because it just means we started OBS before Zoom.
-		# If we leave it as a warning, OBS pops of the script log.
+		# If we were to leave it as a warning, OBS would open the script log window.
 		#logger.warning("Zoom input node not found")
 		logger.info("Zoom input node not found")
 	else:
@@ -196,6 +194,7 @@ def connect_zoom(patchbay, config):
 	return failures
 
 def connect_all(patchbay, config):
+	"""Connect microphone, OBS, Zoom, and speakers as described in config provided"""
 	if getattr(patchbay, "dummy", False):
 		return ["Not implemented"]
 	if config is None:
@@ -206,4 +205,3 @@ def connect_all(patchbay, config):
 	failures.extend(connect_obs(patchbay))
 	failures.extend(connect_zoom(patchbay, config))
 	return failures
-

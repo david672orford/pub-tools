@@ -9,7 +9,8 @@ activate()
 
 from obs_wrap import ObsScript, ObsWidget
 from config import get_config, put_config
-from app.subapps.khplayer.utils.virtual_cable import patchbay, connect_all, destroy_cable
+from app.subapps.khplayer.utils.pipewire import Patchbay
+from app.subapps.khplayer.utils.virtual_cable import connect_all, destroy_cable
 
 class ObsVirtualAudioCable(ObsScript):
 	"""
@@ -22,6 +23,7 @@ class ObsVirtualAudioCable(ObsScript):
 		self.config = None
 		self.microphone_options = []
 		self.speakers_options = []
+		self.patchbay = Patchbay()
 
 		# Define script configuration GUI
 		self.gui = [
@@ -41,8 +43,8 @@ class ObsVirtualAudioCable(ObsScript):
 		self.config = get_config("PERIPHERALS")
 		if self.debug:
 			print("config:", self.config)
-		patchbay.load()
-		connect_all(patchbay, self.config)
+		self.patchbay.load()
+		connect_all(self.patchbay, self.config)
 		#obs.obs_frontend_add_tools_menu_item("Reconnect Audio", self.on_button)
 
 	def on_before_gui(self):
@@ -50,10 +52,10 @@ class ObsVirtualAudioCable(ObsScript):
 		self.config = get_config("PERIPHERALS")
 		if self.debug:
 			print("on_gui()", self.config)
-		patchbay.load()
+		self.patchbay.load()
 		self.microphone_options = []
 		self.speakers_options = []
-		for node in patchbay.nodes:
+		for node in self.patchbay.nodes:
 			if node.media_class == "Audio/Source":
 				self.microphone_options.append((node.name, node.nick if node.nick else node.name))
 			if node.media_class == "Audio/Sink" and node.name != "To-Zoom":
@@ -69,12 +71,12 @@ class ObsVirtualAudioCable(ObsScript):
 		"""Reconnect Audio button pressed"""
 		print("Reconnect Audio")
 		put_config("PERIPHERALS", self.config)
-		patchbay.load()
-		connect_all(patchbay, self.config)
+		self.patchbay.load()
+		connect_all(self.patchbay, self.config)
 
 	def on_unload(self):
 		"""Script is about to be unloaded"""
-		patchbay.load()
-		destroy_cable(patchbay)
+		self.patchbay.load()
+		destroy_cable(self.patchbay)
 
 ObsVirtualAudioCable(debug=False)

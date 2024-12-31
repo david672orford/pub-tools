@@ -27,16 +27,13 @@
 {% endmacro %}
 
 {% block main %}
-
-<form action="save-config" method="POST">
-<section class="bordered-box">
-{% if vcable %}
-{{lib.render_select(_("Microphone"), "microphone", vcable.peripherals.get("microphone"), vcable.microphones)}}
-{{lib.render_select(_("Speakers"), "speakers", vcable.peripherals.get("speakers"), vcable.speakers)}}
-<button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
-{% endif %}
-<a href=".?action=reset"><button class="reload">{{_("Arrange Nodes")}}</button></a>
-</section>
+<form action="reconnect" method="POST">
+	<section class="bordered-box">
+		{{lib.render_select(_("Microphone"), "microphone", devices.peripherals.get("microphone"), devices.microphones)}}
+		{{lib.render_select(_("Speakers"), "speakers", devices.peripherals.get("speakers"), devices.speakers)}}
+		<button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
+		<a href=".?action=reset"><button class="reload">{{_("Arrange Nodes")}}</button></a>
+	</section>
 </form>
 
 <div id="patchbay" class="patchbay patchbay-loading">
@@ -76,5 +73,4 @@ if(!document.documentElement.hasAttribute("data-turbo-preview"))
 	setTimeout(function() { init_patchbay(links) }, 100);
 	}
 </script>
-
 {% endblock %}

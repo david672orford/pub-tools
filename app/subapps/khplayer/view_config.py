@@ -8,7 +8,7 @@ import logging
 from .views import blueprint
 from . import menu
 from ...utils.babel import gettext as _
-from .utils.virtual_cable import patchbay
+from .utils.pipewire import Patchbay
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ menu.append((_("Config"), "/config/"))
 
 @blueprint.route("/config/")
 def page_config():
+	patchbay = Patchbay()
 	patchbay.load()
 	return render_template(
 		"khplayer/config.html",

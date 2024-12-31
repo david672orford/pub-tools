@@ -41,7 +41,7 @@ SECRET_KEY = "__secret_key_here__"
 # False - Disable
 # True - Enable
 # "virtual-cable" - Enable and enable virtual cable controls
-#PATCHBAY = "cable"
+#PATCHBAY = "virtual-cable"
 
 # Assign OBS source names to V4L2 devices
 # To see the device names:

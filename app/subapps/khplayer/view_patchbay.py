@@ -6,13 +6,18 @@ from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config, merge_config
 from . import menu
 from .views import blueprint
-from .utils.virtual_cable import patchbay, connect_all
+from .utils.pipewire import Patchbay
+
+if current_app.config["PATCHBAY"] == "virtual-cable":
+	from .utils.virtual_cable import connect_all
+else:
+	from .utils.virtual_camera_audio import connect_all
 
 logger = logging.getLogger(__name__)
 
 menu.append((_("Audio"), "/patchbay/"))
 
-class VirtualCableControls:
+class AudioDevices:
 	"""Backend for GUI controls of virtual audio cable"""
 	def __init__(self, patchbay):
 		self.peripherals = get_config("PERIPHERALS")
@@ -82,13 +87,9 @@ class Positioner:
 
 @blueprint.route("/patchbay/")
 def page_patchbay():
+	patchbay = Patchbay()
 	patchbay.load()
 	#patchbay.print()
-
-	if current_app.config["PATCHBAY"] == "virtual-cable":
-		vcable = VirtualCableControls(patchbay)
-	else:
-		vcable = None
 
 	if request.args.get("action") == "reset":
 		node_positions = {}
@@ -98,7 +99,7 @@ def page_patchbay():
 
 	positioner = Positioner()
 	for node in patchbay.nodes:
-		if "Audio" in node.media_class:
+		if "Audio" in node.media_class and not node.is_vu_meter:
 			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
 			if position is not None:
 				positioner.record_node(node, position)
@@ -108,18 +109,19 @@ def page_patchbay():
 
 	return render_template("khplayer/patchbay.html",
 		patchbay = patchbay,
-		vcable = vcable,
+		devices = AudioDevices(patchbay),
 		node_positions = node_positions,
 		top = ".."
 		)
 
-@blueprint.route("/patchbay/save-config", methods=["POST"])
-def page_patchbay_save_config():
+@blueprint.route("/patchbay/reconnect", methods=["POST"])
+def page_patchbay_reconnect():
 	config = {
 		"microphone": request.form.get("microphone"),
 		"speakers": request.form.get("speakers"),
 		}
 	put_config("PERIPHERALS", config)
+	patchbay = Patchbay()
 	patchbay.load()
 	for failure in connect_all(patchbay, config):
 		flash(failure)
@@ -136,6 +138,7 @@ def page_patchbay_save_node_pos():
 @blueprint.route("/patchbay/create-link", methods=["POST"])
 def page_patchbay_create_link():
 	data = request.json
+	patchbay = Patchbay()
 	patchbay.load()
 	patchbay.create_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
@@ -143,6 +146,7 @@ def page_patchbay_create_link():
 @blueprint.route("/patchbay/destroy-link", methods=["POST"])
 def page_patchbay_destroy_link():
 	data = request.json
+	patchbay = Patchbay()
 	patchbay.load()
 	patchbay.destroy_link(int(data['output_port_id']), int(data['input_port_id']))
 	return ""
