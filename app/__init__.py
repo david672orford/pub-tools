@@ -56,7 +56,7 @@ def create_app():
 		OBS_BROWSER_DOCK_SCALE = 1.0,	# font size when running on OBS browser dock
 		CAMERA_NAME_OVERRIDES = {},		# friendly names of V4L cameras
 		VIDEO_REMOTES = {},				# remote video feeds using VDO.Ninja
-		PATCHBAY = "virtual-cable",
+		PATCHBAY = True,				# show the Patchbay tab (if supported)
 		SLIDES_DIR = os.path.abspath(os.path.join(app.instance_path, "slides")),
 		)
 
