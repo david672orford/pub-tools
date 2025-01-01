@@ -3,10 +3,11 @@
 ## Bugs
 
 * Click on thumbnail in scenes list (sometimes) does nothing.
-  (This is likely after a refresh.)
+  (This is likely true only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a video? (See no90)
 * Still problems with DND of song from pub producing browser source
   rather than downloading the video
+* flask cable commands call logger.info(), but no output is produced
 
 ## Easy Improvements
 

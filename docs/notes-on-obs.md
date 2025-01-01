@@ -54,7 +54,7 @@ The above has about three seconds of latency. To get down to about half a second
 * Save the settings
 * Press **Start Recording**
 
-## OBS-Websocket Documentation
+## OBS-Websocket
 
 OBS-Websocket is a plugin for OBS (now included in the official packages) which allows an external
 program to learn its state and control it. Controlling OBS through a websocket is often easier
@@ -63,6 +63,7 @@ than writing a plugging or a script to run inside OBS.
 * [Github Site](https://github.com/obsproject/obs-websocket)
 * [Protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md)
 * [Plugin Example](https://github.com/obsproject/obs-websocket/blob/eed8a49933786383d11f4868a4e5604a9ee303c6/lib/example/simplest-plugin.c)
+* [OBS-Web](https://github.com/Niek/obs-web) -- a remote control which uses OBS-Websocket
 
 Requests missing from OBS-Websocket:
 
@@ -122,10 +123,11 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/) -- Write video filters in shader language
 * [Background Removal](https://github.com/occ-ai/obs-backgroundremoval) -- Works, but not as well as Zoom's implementation
 * [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- Crashes
-* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which do unusual things
+* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which perform interesting and unusual functions
 * [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
 * [Source Clone](https://obsproject.com/forum/resources/source-clone.1632/) [Github](https://github.com/exeldro/obs-source-clone) -- Clone sources to allow different filters, clone current or previous scene
 * [jrDockie](https://obsproject.com/forum/resources/jrdockie-save-and-load-window-and-dock-layouts.1955/) [Github](https://github.com/dcmouser/obsPlugins/tree/main/jr/jrdockie) -- Load and save browser dock sets. Has OBS-Websocket integration.
+
 ## Audio Output
 
 OBS has an internal audio mixer. The output of this mixer is used when
@@ -138,13 +140,14 @@ of quite a number of users.
 * [Idea: Additional 'Aux Send' / monitor channel, or 'Virtual Audio Output'](https://ideas.obsproject.com/posts/965/additional-aux-send-monitor-channel-or-virtual-audio-output)
 * [PR: Virtual Camera Audio in Linux](https://github.com/obsproject/obs-studio/pull/8171) -- Uses ALSA loopback device
 * [PR: linux-pulseaudio: Implement audio output](https://github.com/obsproject/obs-studio/pull/10495) -- Our implementation of audio output for Linux
+* [PR: OBS Pipewire Audio Capture](https://github.com/dimtpap/obs-pipewire-audio-capture) -- Might be a good place to add audio output
 
-## OBS Bugs and Feature Requests we are Following
+## OBS Bugs We Are Following
 
 * [Bug: Under OBS 30.0.0 CreateScene reverses the order of sequentially added scenes](https://github.com/obsproject/obs-websocket/issues/1181)
 * [Bug: Disappearing Docks](https://www.reddit.com/r/obs/comments/114lnoj/disappearing_docks_how_do_i_get_them_back/)
 * [Bug: Crash in File Picker](https://github.com/obsproject/obs-browser/issues/384)
-* Bug: DND of file into browser dock does nothing, but URL works
+* Bug: DND of file into browser dock does nothing, but DND of URL works
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)

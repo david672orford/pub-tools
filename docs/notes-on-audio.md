@@ -7,6 +7,7 @@ Pipewire.
 ## Audio in General
 
 * [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
+* [FFaudio](https://github.com/stsaz/ffaudio) -- Cross-platform audio library
 
 ## Pipewire
 
@@ -65,6 +66,7 @@ PulseAudio documentation and programming examples are still useful.
 * [Virtual Audio Cable in Pulseaudio](https://unix.stackexchange.com/questions/576785/redirecting-pulseaudio-sink-to-a-virtual-source) -- See Christopher Donham's answer
 * [Virtual Devices in Wireplumber](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Virtual-devices)
 * [PipeWire how-to: uncomplicated loopbacks](https://sorrel.sh/blog/pipewire-how-to-static-loopbacks/)
+* [How to use the command 'pw-loopback' (with examples)](https://commandmasters.com/commands/pw-loopback-linux/)
 
 ## Other Recipies
 
