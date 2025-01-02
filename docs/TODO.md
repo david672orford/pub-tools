@@ -4,10 +4,10 @@
 
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely true only after a refresh or the thumbnail.)
-* Why no thumbnail if slide folder contains only a video? (See no90)
-* Still problems with DND of song from pub producing browser source
-  rather than downloading the video
+* Why no thumbnail if slide folder contains only a video? (See talk no90)
+* DND of song from pub still produces browser source rather than downloading the video
 * flask cable commands call logger.info(), but no output is produced
+* patchbay: it is possible to drop a node onto ian input provoking an error in the javascript console
 
 ## Easy Improvements
 

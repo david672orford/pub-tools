@@ -31,6 +31,8 @@ on how audio should be routed between inputs, outputs, and applications.
 
 * [Wireplumber Documentation](https://pipewire.pages.freedesktop.org/wireplumber/)
 * [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
+* [Wireplumber in Arch Linux Wiki](https://wiki.archlinux.org/title/WirePlumber)
+* [WirePlumber, the PipeWire session manager](https://www.collabora.com/news-and-blog/blog/2020/05/07/wireplumber-the-pipewire-session-manager/)
 
 ### Pipewire Programming Examples
 

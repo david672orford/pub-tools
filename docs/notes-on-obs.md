@@ -2,6 +2,7 @@
 
 * [OBS Main Site](https://obsproject.com/)
 * [OBS Github Site](https://github.com/obsproject/obs-studio)
+* [OBS Discord Channel](https://discord.com/channels/348973006581923840/636682839382949888)
 * [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
 * [Build Instructions for Linux](https://github.com/obsproject/obs-studio/wiki/build-instructions-for-linux)
 * [Building on Debian (from forum)](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
