@@ -26,6 +26,7 @@ parser = ArgumentParser(
 	)
 parser.add_argument("--debug", action="store_true")
 parser.add_argument("--debug-requests", action="store_true")
+parser.add_argument("--use-reloader", action="store_true")
 parser.add_argument("--listen-addr", default="127.0.0.1")
 parser.add_argument("--listen-port", type=int, default=5000)
 options = parser.parse_args()
@@ -43,5 +44,8 @@ if options.debug_requests:
 app = create_app()
 run_simple(
 	options.listen_addr, options.listen_port,
-	app, request_handler=CleanlogWSGIRequestHandler, threaded=True
+	app,
+	request_handler = CleanlogWSGIRequestHandler,
+	threaded = True,
+	use_reloader = options.use_reloader,
 	)
