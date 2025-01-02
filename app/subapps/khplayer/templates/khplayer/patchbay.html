@@ -7,24 +7,33 @@
 <script src="{{ url_for('.static', filename='patchbay.js')}}"></script>
 {% endblock %}
 
+{% macro render_node_group(group) %}
+<div class="node-group" id="node-group-{{group.nodes[0].id}}" data-key="{{ group.name }}-{{ group.name_serial }}" style="{{group.style}}">
+{%- for node in group.nodes -%}
+	{{ render_node(node) }}
+{%- endfor %}
+</div>
+{%- endmacro %}
+
 {% macro render_node(node) %}
-<div id="node-{{node.id}}" class="node" data-key="{{ node.name }}-{{ node.name_serial }}" style="{{node.style}}">
+<div class="node" id="node-{{node.id}}" data-key="{{ node.name }}-{{ node.name_serial }}" style="{{node.style}}">
+	<div class="node-id">{{ node.id }}</div>
 	<div class="node-name">{{ node.label }}</div>
 	<div class="node-media-class">{{ node.media_class }}</div>
 	<div class="node-body">
 		<div class="node-inputs">
-			{% for input in node.inputs %}
-			<div id="port-{{input.id}}" class="port">{{ input.id }} {{ input.name }}</div>
-			{% endfor %}
+			{%- for input in node.inputs %}
+			<div id="port-{{input.id}}" class="port">{{ input.name }} <span class="port-id">{{ input.id }}</span></div>
+			{%- endfor %}
 		</div>
 		<div class="node-outputs">
-			{% for output in node.outputs %}
-			<div id="port-{{output.id}}" class="port">{{ output.name }} {{ output.id }}</div>
-			{% endfor %}
+			{%- for output in node.outputs %}
+			<div id="port-{{output.id}}" class="port"><span class="port-id">{{ output.id }}</span> {{ output.name }}</div>
+			{%- endfor %}
 		</div>
 	</div>
 </div>
-{% endmacro %}
+{%- endmacro %}
 
 {% block main %}
 <form action="reconnect" method="POST">
@@ -36,7 +45,7 @@
 	</section>
 </form>
 
-<div id="patchbay" class="patchbay patchbay-loading">
+<div id="patchbay" class="patchbay loading">
 <svg>
 	<defs>
 		<marker
@@ -53,22 +62,22 @@
 		<path class="link-curve" marker-end="url(#arrowhead)">
 	</svg>
 </template>
-{% for node in patchbay.nodes %}
-{% if "Audio" in node.media_class and not node.is_vu_meter %}
-{{ render_node(node) }}
-{% endif %}
-{% endfor %}
+{% for node in nodes -%}
+	{%- if node.__class__.__name__ == "NodeGroup" -%}
+		{{ render_node_group(node) }}
+	{% else -%}
+		{{ render_node(node) }}
+	{% endif -%}
+{%- endfor -%}
 </div>
 
 <script>
 if(!document.documentElement.hasAttribute("data-turbo-preview"))
 	{
 	var links = [
-	{% for link in patchbay.links %}
-	{% if not link.input_port.node.is_vu_meter %}
+	{%- for link in patchbay.audio_links %}
 	[{{link.output_port.id}}, {{link.input_port.id}}],
-	{% endif %}
-	{% endfor %}
+	{% endfor -%}
 	];
 	setTimeout(function() { init_patchbay(links) }, 100);
 	}

@@ -35,13 +35,13 @@
 </header>
 
 <div id="flashes">
-{% with messages = get_flashed_messages() %}
-	{% if messages %}
-		{% for message in messages %}
+{% with messages = get_flashed_messages() -%}
+	{%- if messages -%}
+		{%- for message in messages -%}
 			<div class="flash">{{ message }}</div>
-		{% endfor %}
-	{% endif %}
-{% endwith %}
+		{%- endfor %}
+	{%- endif -%}
+{%- endwith -%}
 </div>
 
 <main>

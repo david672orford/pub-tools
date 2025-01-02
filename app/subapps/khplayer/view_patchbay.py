@@ -25,9 +25,9 @@ class AudioDevices:
 		self.speakers = []
 		for node in patchbay.nodes:
 			if node.media_class == "Audio/Source":
-				self.microphones.append((node.name, node.nick if node.nick else node.name))
+				self.microphones.append((node.name, node.description or node.nick or node.name))
 			elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
-				self.speakers.append((node.name, node.nick if node.nick else node.name))
+				self.speakers.append((node.name, node.description or node.nick or node.name))
 
 class Positioner:
 	"""Automatically position nodes in patchbay"""
@@ -98,19 +98,20 @@ def page_patchbay():
 		node_positions = get_config("Patchbay Node Positions")
 
 	positioner = Positioner()
-	for node in patchbay.nodes:
-		if "Audio" in node.media_class and not node.is_vu_meter:
-			position = node_positions.get("%s-%d" % (node.name, node.name_serial))
-			if position is not None:
-				positioner.record_node(node, position)
-			else:
-				position = positioner.place_node(node)
-			node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
+	nodes = []
+	for node in patchbay.grouped_audio_nodes:
+		position = node_positions.get("%s-%d" % (node.name, node.name_serial))
+		if position is not None:
+			positioner.record_node(node, position)
+		else:
+			position = positioner.place_node(node)
+		node.style = "position: absolute; left: %dpx; top: %dpx" % tuple(position)
+		nodes.append(node)
 
 	return render_template("khplayer/patchbay.html",
 		patchbay = patchbay,
 		devices = AudioDevices(patchbay),
-		node_positions = node_positions,
+		nodes = nodes,
 		top = ".."
 		)
 

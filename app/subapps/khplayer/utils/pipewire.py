@@ -9,6 +9,20 @@ class Device:
 		self.nick = props.get("device.nick")
 		self.description = props.get("device.description")
 
+class NodeGroup:
+	def __init__(self, nodes):
+		self.nodes = nodes
+		self.style = None
+	@property
+	def name(self):
+		return self.nodes[0].name
+	@property
+	def name_serial(self):
+		return self.nodes[0].name_serial
+	@property
+	def media_class(self):
+		return self.nodes[0].media_class
+
 class Node:
 	"""Pipewire node with its input and output ports"""
 	def __init__(self, item, props):
@@ -49,6 +63,14 @@ class Node:
 				if port.name == name:
 					return port
 		return None
+
+	def set_mute(self, mute):
+		assert type(mute) is bool
+		subprocess.run(("wpctl", "set-mute", str(self.id), "1" if mute else "0"), check=True)
+
+	def set_volume(self, volume):
+		assert type(volume) is float
+		subprocess.run(("wpctl", "set-volume", str(self.id), str(volume)), check=True)
 
 	def __repr__(self):
 		return "<Node id=%d nick=%s name=%s media_class=%s inputs=%s outputs=%s>" % (
@@ -149,13 +171,6 @@ class Patchbay:
 
 		self.nodes = self.nodes_by_id.values()
 
-	def print(self):
-		for node in self.nodes:
-			if "Audio" in node.media_class:
-				print(node)
-		for link in self.links:
-			print(link)
-
 	def _add_device(self, device):
 		self.devices_by_id[device.id] = device
 		self.devices.append(device)
@@ -179,6 +194,41 @@ class Patchbay:
 		link.input_port.remove_link(link)
 		link.output_port.remove_link(link)
 		self.links.remove(link)
+
+	def print(self):
+		for node in self.nodes:
+			if "Audio" in node.media_class:
+				print(node)
+		for link in self.links:
+			print(link)
+
+	@property
+	def audio_nodes(self):
+		for node in self.nodes:
+			if "Audio" in node.media_class and not node.is_vu_meter:
+				yield node
+
+	@property
+	def audio_links(self):
+		for link in self.links:
+			node = link.input_port.node
+			if "Audio" in node.media_class and not node.is_vu_meter:
+				yield link
+
+	@property
+	def grouped_audio_nodes(self):
+		groups = defaultdict(list)
+		for node in self.audio_nodes:
+			if "OBS" in node.label:
+				key = "OBS"
+			else:
+				key = node.label
+			groups[key].append(node)
+		for group in groups.values():
+			if len(group) > 1:
+				yield NodeGroup(sorted(group, key=lambda item: item.label))
+			else:
+				yield group[0]
 
 	def find_node(self, **kwargs):
 		"""Find the node specified by attributes"""

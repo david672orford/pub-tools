@@ -12,13 +12,13 @@
 </span>
 {% endmacro %}
 
-{% macro render_select(label, name, value, options, class="") %}
-<span class="form-field">
-	<label for="{{name}}">{{label}}</label>
-	<select id="{{name}}" name="{{name}}"{% if class %} class="{{class}}"{%endif%}>
-		{% for ovalue, odisplay in options %}
-		<option value="{{ovalue}}"{% if ovalue == value %} selected{%endif%}>{{odisplay}}</option>
-		{% endfor %}
-	</select>
-</span>
-{% endmacro %}
+{% macro render_select(label, name, value, options, class="") -%}
+		<span class="form-field">
+			<label for="{{name}}">{{label}}</label>
+			<select id="{{name}}" name="{{name}}"{% if class %} class="{{class}}"{%endif%}>
+				{%- for ovalue, odisplay in options %}
+				<option value="{{ovalue}}"{% if ovalue == value %} selected{%endif%}>{{odisplay}}</option>
+				{%- endfor %}
+			</select>
+		</span>
+{%- endmacro %}

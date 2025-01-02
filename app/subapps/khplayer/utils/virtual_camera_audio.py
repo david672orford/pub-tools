@@ -1,22 +1,24 @@
 import logging
 
-from ...utils.babel import gettext as _
+from ....utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
 def link_nodes(patchbay, source, sink):
+	logger.info("Make sure %s is linked to %s", source.name, sink.name)
 	i = 0
 	for output in source.outputs:
 		linked = False
 		for link in output.links:
-			if link.input_port is zoom_input[i]:
-				logger.info("%s already linked to zoom", source.name)
+			if link.input_port is sink.inputs[i]:
+				logger.info("%s already linked to %s", source.name, sink.name)
 				linked = True
 			else:
 				logger.info("Unlinking %s from %s", source.name, link.input_port.node.name)
 				patchbay.destroy_link(link=link)
-			if not linked:
-				logger.info("Linking %s to %s", source.name, sink.name)
+		if not linked:
+			logger.info("Linking %s to %s", source.name, sink.name)
+			patchbay.create_link(source.outputs[i], sink.inputs[i])
 		i += 1
 
 def connect_all(patchbay, config):
@@ -42,9 +44,9 @@ def connect_all(patchbay, config):
 				obs_input = node
 		elif node.name == "OBS-Monitor":
 			obs_monitors.append(node)
-		elif node.name == "OBS Virtual Camera":
+		elif node.name == "obs-vcam":
 			if node.media_class == "Audio/Source":
-				vcam = node
+				obs_vcam = node
 		elif node.name == "ZOOM VoiceEngine":
 			if node.media_class == "Stream/Input/Audio":
 				zoom_input = node
@@ -62,13 +64,17 @@ def connect_all(patchbay, config):
 	if zoom_input is None:
 		failures.append(_("Zoom not running (audio input not found)"))
 	if zoom_output is None:
-		failures.append("Zoom not running (audio output not found)"))
+		failures.append(_("Zoom not running (audio output not found)"))
 
 	if len(failures) == 0:
-		link_nodes(patchbay, obs_input, microphone)
+		link_nodes(patchbay, microphone, obs_input)
 		link_nodes(patchbay, obs_vcam, zoom_input)
 		for obs_monitor in obs_monitors:
 			link_nodes(patchbay, obs_monitor, speakers)
 		link_nodes(patchbay, zoom_output, speakers)
+
+		for node in (zoom_output, speakers):
+			node.set_mute(False)
+			node.set_volume(1.0)
 
 	return failures

@@ -26,6 +26,7 @@ def page_config():
 
 @blueprint.route("/config/save", methods=["POST"])
 def page_config_save():
+	patchbay = Patchbay()
 	patchbay.load()
 	data = request.form.to_dict()
 	rules = []

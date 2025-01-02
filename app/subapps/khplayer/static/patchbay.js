@@ -35,7 +35,7 @@ function init_patchbay(links) {
 			let start_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
 
 			let end_x;
-			let end_y;	
+			let end_y;
 			if(this.end_el != null)
 				{
 				/* Find the middle of the left edge of the audio input. */
@@ -69,7 +69,7 @@ function init_patchbay(links) {
 			}
 		}
 
-	/* User is dragging a <div> which represents a Pipewire node */
+	/* User is dragging a <div> which represents a Pipewire node (or node group) */
 	function on_node_dragstart(e)
 		{
 		const node = e.target;
@@ -81,7 +81,7 @@ function init_patchbay(links) {
 		prev_cursor_y = e.pageY;
 
 		drag_links = [];
-		const outputs = node.getElementsByClassName("node-outputs")[0].children;
+		const outputs = node.querySelectorAll(".node-outputs > *");
 		for(let i=0; i < outputs.length; i++)
 			{
 			let output = parseInt(outputs[i].id.split("-")[1]);
@@ -91,7 +91,7 @@ function init_patchbay(links) {
 					drag_links.push(links[i2]);
 				}
 			}
-		const inputs = node.getElementsByClassName("node-inputs")[0].children;
+		const inputs = node.querySelectorAll(".node-inputs > *");
 		for(let i=0; i < inputs.length; i++)
 			{
 			let input = parseInt(inputs[i].id.split("-")[1]);
@@ -215,7 +215,7 @@ function init_patchbay(links) {
 		e.dataTransfer.setDragImage(dummy_image, 0, 0);
 		temp_link = new LinkDrawer(e.target, null);
 		temp_link.path.style.pointerEvents = "none";
-		
+
 		e.target.addEventListener("drag", on_port_drag);
 		e.target.addEventListener("dragend", on_port_dragend);
 		}
@@ -278,25 +278,31 @@ function init_patchbay(links) {
 		link_action("create-link", output_port_id, input_port_id);
 		}
 
-	/* Connect everything up */
+	/* Make the node groups draggable */
+	let node_groups = document.getElementsByClassName("node-group");
+	for(let i=0; i<node_groups.length; i++)
+		{
+		let node_group = node_groups[i];
+		node_group.setAttribute("draggable", "true");
+		node_group.addEventListener("dragstart", on_node_dragstart);
+		}
+
+	/* Make the nodes draggable */
 	let nodes = document.getElementsByClassName("node");
 	for(let i=0; i<nodes.length; i++)
 		{
 		let node = nodes[i];
 		//console.log(i, node.offsetLeft, node.offsetTop);
 
-		node.setAttribute("draggable", "true");
-		node.addEventListener("dragstart", on_node_dragstart);
+		if (node.style.position == "absolute")
+			{
+			node.setAttribute("draggable", "true");
+			node.addEventListener("dragstart", on_node_dragstart);
+			}
 
 		/* Needed by Firefox but commented out because Firefox has other problems. */
 		/*patchbay.addEventListener("dragenter", (e) => { e.preventDefault() });
 		patchbay.addEventListener("dragleave", (e) => { e.preventDefault() });*/
-
-		if(node.style.left == "")
-			{
-			node.style.left = node.offsetLeft + "px";
-			node.style.top = node.offsetTop + "px";
-			}
 
 		let inputs = node.getElementsByClassName("node-inputs")[0].getElementsByClassName("port");
 		for(let i=0; i<inputs.length; i++)
@@ -315,7 +321,8 @@ function init_patchbay(links) {
 			}
 		}
 
-	document.getElementById("patchbay").classList.remove("patchbay-loading");
+	/* Release the nodes to assume their positions */
+	document.getElementById("patchbay").classList.remove("loading");
 
 	/* Draw (possibly curved) arrows to represent the links */
 	for(let i=0; i<links.length; i++)
@@ -323,4 +330,3 @@ function init_patchbay(links) {
 		draw_link(i);
 		}
 }
-

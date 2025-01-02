@@ -12,16 +12,31 @@
 	position: absolute;
 	z-index: 2;
 	}
+.patchbay .node-group {
+	border: thin dotted black;
+	padding: 0px 4px;
+	z-index: 4;
+	}
+.patchbay .node-group > DIV {
+	display: block;
+	margin: 4px 0;
+	}
 .patchbay .node {
-	position: absolute;
 	display: inline-block;
+	position: relative;
 	border: thin solid black;
 	background-color: #f0fff0;
 	z-index: 3;
 	}
-.patchbay .patchbay.patchbay-loading .node {
+.patchbay.loading .node {
 	margin: 1em;
 	position: static;
+	}
+.patchbay .node-id {
+	position: absolute;
+	left: 1px;
+	top: 1px;
+	font-size: 50%;
 	}
 .patchbay .node-name, .node-media-class {
 	text-align: center;
@@ -32,26 +47,28 @@
 	display: flex;
 	justify-content: space-between;
 	}
-.patchbay .node-inputs > DIV {
+.patchbay DIV.port {
 	background-color: white;
 	border: solid black;
-	border-width: 1px 1px 1px 0;
-	border-radius: 0 10px 10px 0;
-	margin: 2px 2px 2px 0;
 	padding: 2px 3px;
 	white-space: nowrap;
+	}
+.patchbay SPAN.port-id {
+	font-size: 50%;
+	vertical-align: top;
+	}
+.patchbay .node-inputs > DIV {
+	border-width: 1px 1px 1px 0;
+	border-radius: 0 5px 5px 0;
+	margin: 2px 2px 2px 0;
 	}
 .patchbay .node-inputs > DIV.highlight {
 	background-color: #c0c0c0;
 	}
 .patchbay .node-outputs > DIV {
-	background-color: white;
-	border: solid black;
 	border-width: 1px 0 1px 1px;
-	border-radius: 10px 0 0 10px;
+	border-radius: 5px 0 0 5px;
 	margin: 2px 0 2px 2px;
-	padding: 2px 3px;
-	white-space: nowrap;
 	}
 .patchbay .node-outputs > DIV:hover {
 	background-color: #c0c0c0;
@@ -74,4 +91,3 @@
 	overflow: visible;
 	fill: red;
 	}
-
