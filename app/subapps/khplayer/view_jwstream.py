@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 import os
 import re
 import csv
@@ -111,7 +111,15 @@ def page_jwstream_save_config():
 @blueprint.route("/jwstream/update-stream-urls", methods=["POST"])
 def page_jwstream_update_urls():
 	"""Pull a list of URLs from a configured source"""
-	response = requests.get(current_app.config["JWSTREAM_UPDATES"])
+
+	update_url = current_app.config["JWSTREAM_UPDATES"]
+	parsed = urlparse(update_url)
+	if parsed.netloc == "docs.google.com":
+		m = re.match(r"^/spreadsheets/d/([^/]+)/edit$", parsed.path)
+		if m:
+			update_url = f"https://docs.google.com/spreadsheets/d/{m.group(1)}/export?format=csv"
+
+	response = requests.get(update_url)
 	urls = []
 	for row in csv.DictReader(response.text.splitlines()):
 		urls.append(row.get("URL"))
