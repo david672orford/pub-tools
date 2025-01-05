@@ -1,4 +1,4 @@
-"""Do screen capture on Zoom"""
+"""Use window capture on Zoom to get video of individual participants"""
 
 import os
 import sys
@@ -22,6 +22,7 @@ class ObsZoomTracker(ObsScript):
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+		self.paused = True
 		self.source_name = "Zoom Capture"
 		self.cropper_names = (
 			"Zoom Participant 0",
@@ -39,6 +40,7 @@ class ObsZoomTracker(ObsScript):
 				value=lambda: self.capture.get_window(),
 				options=lambda: self.capture.get_window_options(),
 				),
+			ObsWidget("bool", "paused", "Pause Tracking", default_value=False),
 			ObsWidget("bool", "exclude_first_box", "Exclude First Box", default_value=True),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
@@ -61,8 +63,9 @@ class ObsZoomTracker(ObsScript):
 	def on_gui_change(self, settings):
 		"""When a setting is changed in the GUI"""
 		if self.debug:
-			print("GUI change: capture_window is now:", settings.capture_window)
+			print("GUI change:", settings)
 		self.capture.set_window(settings.capture_window)
+		self.paused = settings.paused
 		self.tracker.set_exclude_first_box(settings.exclude_first_box)
 		self.debug = settings.debug
 		self.tracker.debug = settings.debug
@@ -77,6 +80,8 @@ class ObsZoomTracker(ObsScript):
 
 	def track(self):
 		"""Time to get a screenshot and adjust the cropping"""
+		if self.paused:
+			return
 		if self.capture is not None and obs.obs_source_showing(self.capture.source):
 			if not self.last_showing:
 				if self.debug:
@@ -111,22 +116,22 @@ class WindowCapture:
 	"""Wrapper for an OBS input which does screen capture on an application window"""
 
 	def __init__(self, source_name):
-		self.source = obs.obs_get_source_by_name(source_name)
 		if sys.platform == "win32":
 			self.input_kind = "window_capture"
 			self.window_key = "window"
+			self.cursor_key = "cursor"
 		else:
 			self.input_kind = "xcomposite_input"
 			self.window_key = "capture_window"
+			self.cursor_key = "show_cursor"
+		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
 			self.source = obs.obs_source_create(self.input_kind, source_name, None, None)
 		source_settings = obs.obs_data_create()
+		obs.obs_data_set_bool(source_settings, self.cursor_key, False)
 		if sys.platform == "win32":
-			obs.obs_data_set_bool(source_settings, "cursor", False)
 			obs.obs_data_set_int(source_settings, "priority", 1)	# Window title must match
 			obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
-		else:
-			obs.obs_data_set_bool(source_settings, "show_cursor", False)
 		obs.obs_source_update(self.source, source_settings)
 		obs.obs_data_release(source_settings)
 
@@ -135,7 +140,7 @@ class WindowCapture:
 		self.source = None
 
 	def get_window(self):
-		"""Get the name of the window currently captured"""
+		"""Get window currently being captured"""
 		source_settings = obs.obs_source_get_settings(self.source)
 		value = obs.obs_data_get_string(source_settings, self.window_key)
 		obs.obs_data_release(source_settings)
@@ -152,12 +157,20 @@ class WindowCapture:
 		"""Get the list of windows available for capturing"""
 		properties = obs.obs_get_source_properties(self.input_kind)
 		property = obs.obs_properties_get(properties, self.window_key)
-		capture_windows = []
+		current_value = self.get_window()
+		current_name = current_value.split("\r\n")[1] if "\r\n" in current_value else current_value
+		current_value_found = False
+		available_windows = []
 		for i in range(obs.obs_property_list_item_count(property)):
-			option = obs.obs_property_list_item_string(property, i)
-			capture_windows.append((option, option.split("\r\n")[1]))
+			option_name = obs.obs_property_list_item_name(property, i)
+			option_value = obs.obs_property_list_item_string(property, i)
+			available_windows.append((option_value, option_name))
+			if option_value == current_value:
+				current_value_found = True
 		obs.obs_properties_destroy(properties)
-		return capture_windows
+		if not current_value_found:
+			available_windows.insert(0, (current_value, current_name))
+		return available_windows
 
 	def snapshot(self):
 		"""Take a screenshot of the supplied OBS source"""

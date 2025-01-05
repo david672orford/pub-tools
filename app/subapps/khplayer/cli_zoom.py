@@ -37,5 +37,12 @@ def cmd_zoom_setup():
 @click.argument("filename")
 def cmd_zoom_tracker_test(filename):
 	"""Run the tracker on a screenshot file and show result"""
-	from .utils.zoom_tracker import tracker_test
-	tracker_test(filename)
+	from .utils.zoom_tracker_tests import tracker_test_image
+	tracker_test_image(filename)
+
+@cli_zoom.command("track")
+def cmd_zoom_track():
+	"""Run the Zoom tracker from outside OBS through OBS-Websocket"""
+	from .utils.zoom_tracker_tests import tracker_track
+	tracker_track()
+
