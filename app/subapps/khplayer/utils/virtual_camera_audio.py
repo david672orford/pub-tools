@@ -82,9 +82,9 @@ def connect_all(patchbay, config):
 	if zoom_output is not None:
 		link_nodes(patchbay, zoom_output, speakers)
 
-		for node in (obs_vcam, zoom_output, speakers) + obs_monitors:
-			if node is not None:
-				node.set_mute(False)
-				node.set_volume(1.0)
+	for node in [obs_vcam, zoom_output, speakers] + obs_monitors:
+		if node is not None:
+			node.set_mute(False)
+			node.set_volume(1.0)
 
 	return failures
