@@ -99,24 +99,26 @@ def cmd_obs_setup():
 			pass
 
 	print("General configuration...")
-	user_config = obs_config.get_user_config()
-	user_config["General"]["ConfirmOnExit"] = "false"
-	user_config["BasicWindow"]["SideDocks"] = "true"
-	user_config["BasicWindow"]["ProjectorAlwaysOnTop"] = "true"
-	user_config["BasicWindow"]["CloseExistingProjectors"] = "true"
-	user_config.set("BasicWindow", "ExtraBrowserDocks", json.dumps([
+	config = obs_config.get_config()
+	config["General"]["ConfirmOnExit"] = "false"
+	config["BasicWindow"]["SideDocks"] = "true"
+	config["BasicWindow"]["ProjectorAlwaysOnTop"] = "true"
+	config["BasicWindow"]["CloseExistingProjectors"] = "true"
+	config.set("BasicWindow", "ExtraBrowserDocks", json.dumps([
 		{
 			"title": "KH Player",
 			"url": "http://localhost:5000/khplayer/",
 			"uuid": uuid.uuid4().hex,
 		}
 		]))
-	user_config["BasicWindow"]["geometry"] = "AdnQywADAAAAAAAAAAAAJAAABSIAAANiAAAAAwAAADwAAAUfAAADXwAAAAAAAAAACZoAAAADAAAAPAAABR8AAANf"
-	user_config["BasicWindow"]["DockState"] = "AAAA/wAAAAD9AAAAAgAAAAAAAAJHAAAC6/wCAAAAAfsAAAAsAEsASAAgAFAAbABhAHkAZQByAF8AZQB4AHQAcgBhAEIAcgBvAHcAcwBlAHIBAAAAFwAAAusAAABQAP///wAAAAMAAALSAAAA/PwBAAAABvsAAAAUAHMAYwBlAG4AZQBzAEQAbwBjAGsAAAAA7QAAAJgAAACYAP////sAAAAWAHMAbwB1AHIAYwBlAHMARABvAGMAawEAAAJLAAAAoAAAAJgA////+wAAABIAbQBpAHgAZQByAEQAbwBjAGsBAAAC7wAAAO4AAADeAP////sAAAAeAHQAcgBhAG4AcwBpAHQAaQBvAG4AcwBEAG8AYwBrAAAAAq4AAADsAAAAggD////7AAAAGABjAG8AbgB0AHIAbwBsAHMARABvAGMAawEAAAPhAAABPAAAAScA////+wAAABIAcwB0AGEAdABzAEQAbwBjAGsCAAADbwAAAk8AAAK8AAAAyAAAAtIAAAHrAAAAAQAAAAIAAAABAAAAAvwAAAAA"
+	config["BasicWindow"]["geometry"] = "AdnQywADAAAAAAAAAAAAJAAABSIAAANiAAAAAwAAADwAAAUfAAADXwAAAAAAAAAACZoAAAADAAAAPAAABR8AAANf"
+	config["BasicWindow"]["DockState"] = "AAAA/wAAAAD9AAAAAgAAAAAAAAJHAAAC6/wCAAAAAfsAAAAsAEsASAAgAFAAbABhAHkAZQByAF8AZQB4AHQAcgBhAEIAcgBvAHcAcwBlAHIBAAAAFwAAAusAAABQAP///wAAAAMAAALSAAAA/PwBAAAABvsAAAAUAHMAYwBlAG4AZQBzAEQAbwBjAGsAAAAA7QAAAJgAAACYAP////sAAAAWAHMAbwB1AHIAYwBlAHMARABvAGMAawEAAAJLAAAAoAAAAJgA////+wAAABIAbQBpAHgAZQByAEQAbwBjAGsBAAAC7wAAAO4AAADeAP////sAAAAeAHQAcgBhAG4AcwBpAHQAaQBvAG4AcwBEAG8AYwBrAAAAAq4AAADsAAAAggD////7AAAAGABjAG8AbgB0AHIAbwBsAHMARABvAGMAawEAAAPhAAABPAAAAScA////+wAAABIAcwB0AGEAdABzAEQAbwBjAGsCAAADbwAAAk8AAAK8AAAAyAAAAtIAAAHrAAAAAQAAAAIAAAABAAAAAvwAAAAA"
 	if sys.platform == "win32":
-		user_config.set("Python", "Path64bit", os.path.join(current_app.root_path, "..", "python"))
-	user_config["Appearance"]["Theme"] = "com.obsproject.Yami.Light"
-	obs_config.save_user_config(user_config)
+		config.set("Python", "Path64bit", os.path.join(current_app.root_path, "..", "python"))
+	if not "Appearance" in config:
+		config["Appearance"] = {}
+	config["Appearance"]["Theme"] = "com.obsproject.Yami.Light"
+	obs_config.save_config(config)
 
 	print("Adding scripts to scene collection...")
 	scenes = obs_config.get_scene_collection("KH Player")

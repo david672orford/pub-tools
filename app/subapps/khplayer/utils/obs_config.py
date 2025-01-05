@@ -31,24 +31,27 @@ class ObsConfig:
 	def enable_websocket(self):
 		filename = self.websocket_config_filename()
 		temp_filename = f"{filename}.tmp"
-		with open(obs_websocket_configfile) as fh:
+		with open(filename) as fh:
 			config = json.load(fh)
 		config["server_enabled"] = True
 		with open(temp_filename, "w") as fh:
 			json.dump(config, fh, indent=4, ensure_ascii=False)
 		self.safe_replace(filename, temp_filename)
 
-	def userconfig_filename(self):
-		return os.path.join(self.obs_dir, "user.ini")
+	def config_filename(self):
+		filename = os.path.join(self.obs_dir, "user.ini")
+		if os.path.exists(filename):
+			return filename
+		return os.path.join(self.obs_dir, "global.ini")
 
-	def get_user_config(self):
+	def get_config(self):
 		config = ConfigParser(strict=False)
 		config.optionxform = str
-		config.read(self.userconfig_filename())
+		config.read(self.config_filename())
 		return config
 
-	def save_user_config(self, config):
-		filename = self.userconfig_filename()
+	def save_config(self, config):
+		filename = self.config_filename()
 		temp_filename = f"{filename}.tmp"
 		with open(temp_filename, "w") as fh:
 			config.write(fh, space_around_delimiters=False)
