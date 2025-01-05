@@ -8,7 +8,7 @@
 * DND of song from pub still produces browser source rather than downloading the video
 * flask cable commands call logger.info(), but no output is produced
 * patchbay: it is possible to drop a node onto an input provoking an error in the javascript console
-* filesytemencoding problems when started from khplayer-server.py
+* filesytemencoding problems when started from khplayer-server.py (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 
 ## Easy Improvements
 
@@ -25,10 +25,10 @@
 ## Hard Stuff
 
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
-* Send scene reorder events to other browsers
+* Send scene reorder events to other (all) browsers
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 * Auto-create yeartext slide (would need to find the current yeartext somewhere on JW.ORG)
-* Add face recognition to the Zoom cropper. References:
+* Add face recognition to the Zoom cropper
 
 ## Reference for Possible Future Projects
 
