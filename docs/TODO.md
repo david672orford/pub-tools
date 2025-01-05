@@ -7,7 +7,8 @@
 * Why no thumbnail if slide folder contains only a video? (See talk no90)
 * DND of song from pub still produces browser source rather than downloading the video
 * flask cable commands call logger.info(), but no output is produced
-* patchbay: it is possible to drop a node onto ian input provoking an error in the javascript console
+* patchbay: it is possible to drop a node onto an input provoking an error in the javascript console
+* filesytemencoding problems when started from khplayer-server.py
 
 ## Easy Improvements
 

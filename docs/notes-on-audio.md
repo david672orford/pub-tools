@@ -9,6 +9,10 @@ Pipewire.
 * [Audio API Quick Start Guide](https://habr.com/en/articles/663352/) -- Includes examples for playing and recording in PulseAudio
 * [FFaudio](https://github.com/stsaz/ffaudio) -- Cross-platform audio library
 
+## ALSA
+
+
+
 ## Pipewire
 
 Pipewire is a new audio server which (as of late 2024) is steadily replacing
@@ -30,7 +34,6 @@ Wireplumber is a Pipewire "session manager". This means that it makes decisions 
 on how audio should be routed between inputs, outputs, and applications.
 
 * [Wireplumber Documentation](https://pipewire.pages.freedesktop.org/wireplumber/)
-* [Wireplumber Docs](https://pipewire.pages.freedesktop.org/wireplumber/index.html)
 * [Wireplumber in Arch Linux Wiki](https://wiki.archlinux.org/title/WirePlumber)
 * [WirePlumber, the PipeWire session manager](https://www.collabora.com/news-and-blog/blog/2020/05/07/wireplumber-the-pipewire-session-manager/)
 
@@ -70,7 +73,7 @@ PulseAudio documentation and programming examples are still useful.
 * [PipeWire how-to: uncomplicated loopbacks](https://sorrel.sh/blog/pipewire-how-to-static-loopbacks/)
 * [How to use the command 'pw-loopback' (with examples)](https://commandmasters.com/commands/pw-loopback-linux/)
 
-## Other Recipies
+## Other Recipes
 
 * [Rename Devices in Pipewire](https://unix.stackexchange.com/questions/648666/rename-devices-in-pipewire)
 * [How to Disable Audio Devices in Pipewire / Wireplumber](https://gist.github.com/gtirloni/4384f4de6f4d3fda8446b04057ca5f9d)

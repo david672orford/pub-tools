@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 import sys
 from venv_tool import activate
-activate(dist_packages=True)
+activate(dist_packages=False)
 from flask.cli import main
 sys.exit(main())
