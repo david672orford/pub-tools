@@ -4,7 +4,7 @@ from ....utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
-def link_nodes(patchbay, source, sink):
+def link_nodes(patchbay, source, sink, exclusive=False):
 	logger.info("Make sure %s is linked to %s", source.name, sink.name)
 	i = 0
 	for output in source.outputs:
@@ -20,6 +20,13 @@ def link_nodes(patchbay, source, sink):
 			logger.info("Linking %s to %s", source.name, sink.name)
 			patchbay.create_link(source.outputs[i], sink.inputs[i])
 		i += 1
+	if exclusive:
+		i = 0
+		for input in sink.inputs:
+			for link in input.links:
+				if not link.output_port is source.outputs[i]:
+					logger.info("Removing spurious link from %s to %s", link.output_port.node.name, sink.name)
+			i += 1
 
 def connect_all(patchbay, config):
 	"""Connect microphone, OBS, Zoom, and speakers as described in config provided"""
@@ -66,15 +73,18 @@ def connect_all(patchbay, config):
 	if zoom_output is None:
 		failures.append(_("Zoom not running (audio output not found)"))
 
-	if len(failures) == 0:
-		link_nodes(patchbay, microphone, obs_input)
-		link_nodes(patchbay, obs_vcam, zoom_input)
-		for obs_monitor in obs_monitors:
-			link_nodes(patchbay, obs_monitor, speakers)
+	if obs_input is not None:
+		link_nodes(patchbay, microphone, obs_input, exclusive=True)
+	if obs_vcam is not None and zoom_input is not None:
+		link_nodes(patchbay, obs_vcam, zoom_input, exclusive=True)
+	for obs_monitor in obs_monitors:
+		link_nodes(patchbay, obs_monitor, speakers)
+	if zoom_output is not None:
 		link_nodes(patchbay, zoom_output, speakers)
 
-		for node in (zoom_output, speakers):
-			node.set_mute(False)
-			node.set_volume(1.0)
+		for node in (obs_vcam, zoom_output, speakers) + obs_monitors:
+			if node is not None:
+				node.set_mute(False)
+				node.set_volume(1.0)
 
 	return failures
