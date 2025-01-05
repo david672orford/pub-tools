@@ -17,6 +17,7 @@
 	<table class="borders full-width">
 		<thead>
 			<tr>
+				<th>ID</th>
 				<th>{{gettext("Device")}}</th>
 				<th>{{gettext("Nick")}}</th>
 				<th>{{gettext("Description")}}</th>
@@ -24,11 +25,14 @@
 		</thead>
 		<tbody>
 			{% for device in patchbay.devices %}
+			{% if device.media_class == "Audio/Device" %}
 			<tr>
+				<td>{{device.id}}</td>
 				<td>{{device.name.split(".",1)[1]}}</td>
 				<td><input class="nick" name="device-{{device.id}}-nick" value="{{device.nick}}"></td>
 				<td><input class="description" name="device-{{device.id}}-description" value="{{device.description}}"</td>
 			</tr>
+			{% endif %}
 			{% endfor %}
 		</tbody>
 	</table>
@@ -39,6 +43,7 @@
 	<table class="borders full-width">
 		<thead>
 			<tr>
+				<th>ID</th>
 				<th>{{gettext("Media Class")}}</th>
 				<th>{{gettext("Device")}}</th>
 				<th>{{gettext("Nick")}}</th>
@@ -49,6 +54,7 @@
 			{% for node in patchbay.nodes %}
 			{% if node.media_class.startswith("Audio/") %}
 			<tr>
+				<td>{{node.id}}</td>
 				<td>{{node.media_class}}</td>
 				<td>{{node.name.split(".",1)[1]}}</td>
 				<td><input class="nick" name="node-{{node.id}}-nick" value="{{node.nick}}"></td>

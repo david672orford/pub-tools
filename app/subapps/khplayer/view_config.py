@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect
 import re
 import os
+import json
 import subprocess
 from time import sleep
 import logging
@@ -41,26 +42,23 @@ def page_config_save():
 				name = patchbay.nodes_by_id[id].name
 			nick = value
 			description = data[f"{obj_type}-{id}-description"]
-			rule = """
-table.insert(alsa_monitor.rules, {
-	matches = {
-		{
-			{ "_OBJ_TYPE_.name", "equals", "_NAME_" },
-		},
-	},
-    apply_properties = {
-		["_OBJ_TYPE_.nick"] = "_NICK_",
-		["_OBJ_TYPE_.description"] = "_DESCRIPTION_"
-	},
-})
-""".lstrip().replace("_OBJ_TYPE_",obj_type).replace("_NAME_",name).replace("_NICK_",nick).replace("_DESCRIPTION_",description)
-			rules.append(rule)
-
-	configdir = os.path.join(os.environ["HOME"], ".config", "wireplumber", "main.lua.d")
-	configfile = os.path.join(configdir, "51-alsa-rename.lua")
+			rules.append({
+				"matches": [
+					{ "node.name": name }
+					],
+				"actions": {
+					"update-props": {
+						"node.nick": nick,
+						"node.description": description,
+					}
+				}
+			})
+	configdir = os.path.join(os.environ["HOME"], ".config", "wireplumber", "wireplumber.conf.d")
+	configfile = os.path.join(configdir, "99-alsa-rename.conf")
 	os.makedirs(configdir, exist_ok=True)
 	with open(configfile, "w") as fh:
-		fh.write("\n".join(rules))
+		fh.write('\"monitor.alsa.rules\": ')
+		json.dump(rules, fh, indent=2)
 
 	subprocess.run(["systemctl", "--user", "restart", "wireplumber"], check=True)
 	sleep(2)

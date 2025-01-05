@@ -5,6 +5,7 @@ from collections import defaultdict
 class Device:
 	def __init__(self, item, props):
 		self.id = item["id"]
+		self.media_class = props["media.class"]
 		self.name = props["device.name"]
 		self.nick = props.get("device.nick")
 		self.description = props.get("device.description")
