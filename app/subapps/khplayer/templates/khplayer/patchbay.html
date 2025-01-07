@@ -16,10 +16,15 @@
 {%- endmacro %}
 
 {% macro render_node(node) %}
-<div class="node" id="node-{{node.id}}" data-key="{{ node.name }}-{{ node.name_serial }}" style="{{node.style}}">
+<div class="node state-{{node.state}}{% if node.muted %} node-muted{% endif %}" id="node-{{node.id}}" data-key="{{ node.name }}-{{ node.name_serial }}" style="{{node.style}}">
 	<div class="node-id">{{ node.id }}</div>
-	<div class="node-name">{{ node.label }}</div>
-	<div class="node-media-class">{{ node.media_class }}</div>
+	<div class="node-header">
+		<div class="node-name">{{ node.label }}</div>
+		<div class="node-media-class">{{ node.media_class }}</div>
+		{% if node.name == "OBS-Monitor" and node.media_name %}
+		<div class="node-media-name">{{ node.media_name }}</div>
+		{% endif %}
+	</div>
 	<div class="node-body">
 		<div class="node-inputs">
 			{%- for input in node.inputs %}

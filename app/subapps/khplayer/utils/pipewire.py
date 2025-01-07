@@ -9,6 +9,13 @@ class Device:
 		self.name = props["device.name"]
 		self.nick = props.get("device.nick")
 		self.description = props.get("device.description")
+	def __repr__(self):
+		return "<Device id=%d nick=%s name=%s media_class=%s>" % (
+			self.id,
+			self.nick,
+			self.name,
+			self.media_class,
+			)
 
 class NodeGroup:
 	def __init__(self, nodes):
@@ -26,7 +33,7 @@ class NodeGroup:
 
 class Node:
 	"""Pipewire node with its input and output ports"""
-	def __init__(self, item, props):
+	def __init__(self, item, info, props):
 		self.id = item["id"]
 		self.name = props["node.name"]
 		self.name_serial = None
@@ -39,6 +46,12 @@ class Node:
 				break
 		else:
 			self.media_class = ""
+		self.media_name = props.get("media.name")
+		self.state = info.get("state")
+		try:
+			self.muted = info["params"]["Props"][0]["mute"]
+		except KeyError:
+			self.mute = False
 		self.inputs = []
 		self.outputs = []
 
@@ -160,7 +173,7 @@ class Patchbay:
 			if item["type"] == "PipeWire:Interface:Device":
 				self._add_device(Device(item, props))
 			elif item["type"] == "PipeWire:Interface:Node":
-				self._add_node(Node(item, props))
+				self._add_node(Node(item, info, props))
 			elif item["type"].endswith("PipeWire:Interface:Port"):
 				self._add_port(Port(item, info, props, self.nodes_by_id[props["node.id"]]))
 			elif item["type"].endswith("PipeWire:Interface:Link"):
@@ -197,10 +210,11 @@ class Patchbay:
 		self.links.remove(link)
 
 	def print(self):
-		for node in self.nodes:
-			if "Audio" in node.media_class:
-				print(node)
-		for link in self.links:
+		for device in self.devices:
+			print(device)
+		for node in self.audio_nodes:
+			print(node)
+		for link in self.audio_links:
 			print(link)
 
 	@property

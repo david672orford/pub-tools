@@ -29,30 +29,41 @@ def page_config():
 def page_config_save():
 	patchbay = Patchbay()
 	patchbay.load()
+	#patchbay.print()
+
 	data = request.form.to_dict()
 	rules = []
-	for name, value in data.items():
-		m = re.match(r"^([^-]+)-(\d+)-nick$", name)
+	for key, value in data.items():
+		m = re.match(r"^([^-]+)-(\d+)-nick$", key)
 		if m:
 			obj_type = m.group(1)
 			id = int(m.group(2))
-			if obj_type == "device":
-				name = patchbay.devices_by_id[id].name
-			else:
-				name = patchbay.nodes_by_id[id].name
-			nick = value
-			description = data[f"{obj_type}-{id}-description"]
+			print(obj_type)
+			obj = patchbay.devices_by_id[id] if obj_type == "device" else patchbay.nodes_by_id[id]
+			nick = value.strip()
+			description = data[f"{obj_type}-{id}-description"].strip()
+			disabled = data.get(f"{obj_type}-{id}-disabled")
+			monitor_disabled = data.get(f"{obj_type}-{id}-monitor-disabled")
+			props = {}
+			if nick:
+				props[f"{obj_type}.nick"] = nick
+			if description:
+				props[f"{obj_type}.description"] = description
+			if disabled:
+				props[f"{obj_type}.disabled"] = True
+			# FIXME: none of these attempts work
+			#if monitor_disabled:
+			#	props["node.features.audio.monitor-ports"] = False
+			#	#props["item.features.monitor"] = False
 			rules.append({
 				"matches": [
-					{ "node.name": name }
-					],
+				 	{ f"{obj_type}.name": obj.name }
+				],
 				"actions": {
-					"update-props": {
-						"node.nick": nick,
-						"node.description": description,
-					}
+					"update-props": props
 				}
 			})
+
 	configdir = os.path.join(os.environ["HOME"], ".config", "wireplumber", "wireplumber.conf.d")
 	configfile = os.path.join(configdir, "99-alsa-rename.conf")
 	os.makedirs(configdir, exist_ok=True)

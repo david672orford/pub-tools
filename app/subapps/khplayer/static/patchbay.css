@@ -32,16 +32,30 @@
 	margin: 1em;
 	position: static;
 	}
+.patchbay .node.state-suspended {
+	color: #808080;
+	}
 .patchbay .node-id {
 	position: absolute;
 	left: 1px;
 	top: 1px;
 	font-size: 50%;
 	}
-.patchbay .node-name, .node-media-class {
+.patchbay .node-header DIV {
 	text-align: center;
 	font-weight: bold;
 	padding: 1px 10px;
+	}
+.patchbay .node-name {
+	}
+.patchbay .node.node-muted .node-name {
+	text-decoration: line-through;
+	}
+.patchbay .node-media-class {
+	font-size: 70%;
+	}
+.patchbay .node-media-name {
+	font-size: 70%;
 	}
 .patchbay .node-body {
 	display: flex;

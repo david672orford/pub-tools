@@ -18,9 +18,10 @@
 		<thead>
 			<tr>
 				<th>ID</th>
-				<th>{{gettext("Device")}}</th>
+				<th>{{gettext("Device Name")}}</th>
 				<th>{{gettext("Nick")}}</th>
 				<th>{{gettext("Description")}}</th>
+				<th>{{gettext("Disable")}}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -29,8 +30,9 @@
 			<tr>
 				<td>{{device.id}}</td>
 				<td>{{device.name.split(".",1)[1]}}</td>
-				<td><input class="nick" name="device-{{device.id}}-nick" value="{{device.nick}}"></td>
-				<td><input class="description" name="device-{{device.id}}-description" value="{{device.description}}"</td>
+				<td><input class="nick" name="device-{{device.id}}-nick" value="{{device.nick|default('')}}"></td>
+				<td><input class="description" name="device-{{device.id}}-description" value="{{device.description|default('')}}"</td>
+				<td><input class="disabled" type="checkbox" name="device-{{device.id}}-disabled" value="1"></td>
 			</tr>
 			{% endif %}
 			{% endfor %}
@@ -45,9 +47,11 @@
 			<tr>
 				<th>ID</th>
 				<th>{{gettext("Media Class")}}</th>
-				<th>{{gettext("Device")}}</th>
+				<th>{{gettext("Node Name")}}</th>
 				<th>{{gettext("Nick")}}</th>
 				<th>{{gettext("Description")}}</th>
+				<th>{{gettext("Disable")}}</th>
+				<th>{{gettext("Disable Monitor")}}</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -59,6 +63,8 @@
 				<td>{{node.name.split(".",1)[1]}}</td>
 				<td><input class="nick" name="node-{{node.id}}-nick" value="{{node.nick}}"></td>
 				<td><input class="description" name="node-{{node.id}}-description" value="{{node.description}}"></td>
+				<td><input class="disabled" type="checkbox" name="node-{{node.id}}-disabled" value="1"></td>
+				<!-- <td><input class="disabled" type="checkbox" name="node-{{node.id}}-monitor-disabled" value="1"></td> -->
 			</tr>
 			{% endif %}
 			{% endfor %}
