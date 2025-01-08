@@ -56,7 +56,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 				),
 			ObsWidget("bool", "start_vcam", "Start Virtual Camera", default_value=True),
 			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
-			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.0),
+			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=6.0),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
