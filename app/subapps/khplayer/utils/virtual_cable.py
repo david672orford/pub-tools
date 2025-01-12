@@ -47,9 +47,9 @@ def destroy_cable(patchbay):
 		logger.info("Destroying %s", name)
 		node = patchbay.find_node(name=name)
 		if node is None:
-			logger.info("Node \"{%s}\" does not exist", name)
+			logger.info("Node \"%s\" does not exist", name)
 		else:
-			logger.info("Destroying node {%d} ({%s})", node.id, name)
+			logger.info("Destroying node %d (%s)", node.id, name)
 			# FIXME: Deleting From-OBS observed to delete To-Zoom as well! Why?
 			run(["pw-cli", "destroy", str(node.id)], check=True)
 

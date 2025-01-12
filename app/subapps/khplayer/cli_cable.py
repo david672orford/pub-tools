@@ -2,7 +2,8 @@ from flask import current_app
 from flask.cli import AppGroup
 
 from .utils.pipewire import Patchbay
-from .utils.virtual_cable import create_cable, destroy_cable, connect_peripherals, connect_obs, connect_zoom
+from .utils.virtual_cable import create_cable, destroy_cable, \
+	connect_peripherals, connect_obs, connect_zoom, connect_all
 from ...utils.config import get_config
 
 cli_cable = AppGroup("cable", help="Virtual Audio Cable in Pipewire")
