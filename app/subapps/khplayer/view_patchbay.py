@@ -29,60 +29,46 @@ class AudioDevices:
 			elif node.media_class == "Audio/Sink" and node.name != "To-Zoom":
 				self.speakers.append((node.name, node.description or node.nick or node.name))
 
+class PositionerColumn:
+	"""Definition of a patchbay column"""
+	def __init__(self, x:int, step:int):
+		self.x = x
+		self.y = 0
+		self.step = step
+
 class Positioner:
 	"""Automatically position nodes in patchbay"""
 	def __init__(self):
-		class PositionerColumn:
-			def __init__(self, x, step, reservations=[]):
-				self.x = x
-				self.y = 0
-				self.step = step
-				self.reservations = {}
-				for reservation in reservations:
-					self.reservations[reservation] = self.y
-					self.y += self.step
 		self.columns = {
 			"Left": PositionerColumn(10, 85),
-			"Center": PositionerColumn(300, 150, reservations=["ZOOM VoiceEngine", "To-Zoom", "From-OBS"]),
+			"Center": PositionerColumn(300, 150),
 			"Right": PositionerColumn(750, 110),
 			}
 
 	def get_node_column(self, node):
 		cl = node.media_class.split("/")
-		if node.name == "ZOOM VoiceEngine":
-			column_name = {
-				"Output": "Center",
-				"Input": "Right",
-				}.get(cl[1])
-		elif node.name == "To-Zoom":
+		if node.name.startswith("OBS"):
 			column_name = "Center"
-		elif node.media_class == "Stream/Output/Audio":		# OBS outputs
-			column_name = "Left"
-		elif len(cl) == 2 and cl[0] == "Audio":
-			column_name = {
-				"Source": "Left",		# Audio/Source (microphone)
-				"Sink": "Right",		# Audio/Sink (speakers)
-				}.get(cl[1], "Center")
 		else:
-			column_name = "Center"
-
-		#print(node, column_name)
+			column_name = {
+				"Audio/Source": "Left",				# Microphone
+				"Audio/Sink": "Right",				# Speakers
+				"Stream/Output/Audio": "Center",	# Player
+				"Stream/Input/Audio": "Center",		# Recorder
+				}.get(node.media_class, "Center")
 		return self.columns[column_name]
 
 	def record_node(self, node, position):
+		"""Save the new position of a node after drag-and-drop"""
 		column = self.get_node_column(node)
 		x, y = position
 		column.y = y + column.step
 
 	def place_node(self, node):
+		"""Select an intitial X, Y position for a node"""
 		column = self.get_node_column(node)
-		reservation = column.reservations.get(node.name)
-		#print("reservtion:", reservation)
-		if reservation is not None:
-			y = reservation
-		else:
-			y = column.y
-			column.y += column.step
+		y = column.y
+		column.y += column.step
 		return column.x, y
 
 @blueprint.route("/patchbay/")
