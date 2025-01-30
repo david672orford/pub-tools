@@ -14,6 +14,7 @@ scene_name_prefixes = {
 	"audio": "▷",
 	"video": "▷",
 	"image": "□ ",
+	"pdf": "□ ",
 	}
 
 # Add a scene which plays a video from JW.ORG
@@ -88,7 +89,7 @@ def load_video_file(scene_name:str, video_file:str, thumbnail_file:str=None, sub
 			skiplist = skiplist,
 			)
 	except ObsError as e:
-		flash(_("OBS: %s") % str(e))	
+		flash(_("OBS: %s") % str(e))
 		progress_callback(_("✘ Loading of video failed."), last_message=close, cssclass="error")
 	else:
 		progress_callback(_("✔ Video has been loaded."), last_message=close, cssclass="success")
@@ -120,15 +121,19 @@ def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, ski
 	else:
 		progress_callback(_("✔ Image has been loaded."), last_message=close, cssclass="success")
 
-# Generic loader for files supplied by user
-def load_media_file(scene_name:str, media_file:str, mimetype:str, skiplist:str=None, close:bool=True):
-	major_mimetype = mimetype.split("/")[0]
-	scene_name_prefix = scene_name_prefixes[major_mimetype]
+def load_media_file(scene_name:str, media_file:str, mimetype:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+	"""Generic loader for files supplied by user"""
+	if mimetype == "application/pdf":
+		mediatype = "pdf"
+	else:
+		mediatype = mimetype.split("/")[0]
+	scene_name_prefix = scene_name_prefixes[mediatype]
 	try:
 		obs.add_media_scene(
 			scene_name_prefix + " " + scene_name,
-			major_mimetype,
+			mediatype,
 			media_file,
+			thumbnail = thumbnail_file,
 			skiplist = skiplist,
 			)
 	except ObsError as e:
@@ -214,5 +219,3 @@ def load_meeting_media_item(item:MeetingMediaItem):
 		load_image_url(item.title, item.media_url, thumbnail_url=item.thumbnail_url, close=False)
 	else:
 		raise AssertionError("Unhandled case")
-
-

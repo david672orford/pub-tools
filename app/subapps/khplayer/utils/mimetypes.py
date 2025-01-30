@@ -6,4 +6,5 @@ extmap = {
 	".svg": "image/svg+xml",
 	".mp4": "video/mp4",
 	".m4v": "video/mp4",
+	".pdf": "application/pdf",
 	}

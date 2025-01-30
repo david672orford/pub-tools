@@ -238,7 +238,7 @@ def page_scenes_upload():
 	files = request.files.getlist("files")				# Get the Werkzeug FileStorage object
 	for file in files:
 		progress_callback(_("Loading local file \"%s\" (%s)...") % (file.filename, file.mimetype), cssclass="heading")
-		if file.mimetype.split("/")[0] not in scene_name_prefixes:
+		if file.mimetype.split("/")[0] not in scene_name_prefixes and file.mimetype != "application/pdf":
 			progress_callback(_("Unsupported file type: \"%s\" (%s)") % (file.filename, file.mimetype), cssclass="error")
 			continue
 		save_as = make_media_cachefile_name(file.filename, file.mimetype)

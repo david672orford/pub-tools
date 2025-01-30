@@ -16,7 +16,7 @@
 # Reportedly you can embed a folder view in an <iframe> using one of these URLs:
 #  https://drive.google.com/embeddedfolderview?id={id}#list
 #  https://drive.google.com/embeddedfolderview?id={id}#grid
-# 
+#
 import os, json, re, base64, codecs
 import os.path
 from time import time
@@ -118,21 +118,21 @@ class GDriveClient:
 				# Image file
 				elif file[3].startswith("image/"):
 					if thumbnails:
-						thumbnail_url = self._make_thumbnail_data_url(
-							# This is what the web interface uses:
-							#  f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
-							# But this gives the original aspect ratio:
-							f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
-							)
+						thumbnail_url = self._make_thumbnail_data_url(id)
 					self.image_files.append(GFile(file, thumbnail_url))
 
 				# Video file
 				elif file[3].startswith("video/"):
 					# Disabled because the thumbnail is the first frame of the video which tends to be all black.
 					#if thumbnails:
-					#	thumbnail_url = self._make_thumbnail_data_url(
-					#		f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
-					#		)
+					#	thumbnail_url = self._make_thumbnail_data_url(id)
+					self.image_files.append(GFile(file, thumbnail_url))
+
+				# PDF Document
+				elif file[3] == "application/pdf":
+					# FIXME: Disabled because this is a data URL is a data URL and .download_thumbnail() will fail
+					#if thumbnails:
+					#	thumbnail_url = self._make_thumbnail_data_url(id)
 					self.image_files.append(GFile(file, thumbnail_url))
 
 				# Other file types (which we skip)
@@ -142,7 +142,7 @@ class GDriveClient:
 	def list_folders(self):
 		"""Get the list of objects representing the subfolders"""
 		return self.folders
-		
+
 	def list_image_files(self):
 		"""Get the list of objects representing the images files"""
 		return self.image_files
@@ -179,11 +179,14 @@ class GDriveClient:
 		os.rename(save_as + ".tmp", save_as)
 		return save_as
 
-	def _make_thumbnail_data_url(self, url):
+	def _make_thumbnail_data_url(self, id):
+		# This is what the web interface uses:
+		# url = f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
+		# But this gives the original aspect ratio:
+		url = f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
 		response = self.session.get(url)
 		thumbnail_url = "data:{mimetype};base64,{data}".format(
 			mimetype = response.headers.get("Content-Type","").split(";")[0],
 			data = base64.b64encode(response.content).decode("utf-8"),
 			)
 		return thumbnail_url
-

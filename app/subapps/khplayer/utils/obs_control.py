@@ -223,6 +223,15 @@ class ObsControl(ObsControlBase):
 				"height": 720,
 				"css": "",
 				}
+		elif media_type == "pdf":
+			input_kind = "browser_source"
+			input_setting = {
+				"is_local_file": True,
+				"local_file": media_file,
+				"width": 1280,
+				"height": 720,
+				"css": "",
+				}
 		else:
 			raise AssertionError("Unsupported media_type: %s" % media_type)
 
@@ -232,7 +241,7 @@ class ObsControl(ObsControlBase):
 		# Add a new scene. (Naming naming conflicts will be resolved.)
 		scene_uuid = self.create_scene(
 			scene_name,
-			make_unique=True,
+			make_unique = True,
 			pos = self.select_scene_pos(skiplist=skiplist),
 			)["sceneUuid"]
 
@@ -323,9 +332,17 @@ class ObsControl(ObsControlBase):
 			i += 1
 		return result
 
+	def add_existing_source(self, scene_uuid, source_name):
+		"""Add an existing OBS source to a scene"""
+		scene_item_id = self.create_scene_item(
+			scene_uuid = scene_uuid,
+			source_name = source_name,
+			)
+		return scene_item_id
+
 	def add_camera_source(self, scene_uuid, camera_dev):
 		"""
-		Create an OBS source for the configured camera, if it does not
+		Create an OBS source for the specified camera, if it does not
 		exist already, and add it to the specified scene.
 		"""
 		camera_dev, camera_name = camera_dev.split(" ",1)
@@ -361,14 +378,6 @@ class ObsControl(ObsControlBase):
 				"show_cursor": False,
 				"capture_window": capture_window,
 				}
-			)
-		return scene_item_id
-
-	def add_existing_source(self, scene_uuid, source_name):
-		"""Add an existing OBS source as a scene item"""
-		scene_item_id = self.create_scene_item(
-			scene_uuid = scene_uuid,
-			source_name = source_name,
 			)
 		return scene_item_id
 

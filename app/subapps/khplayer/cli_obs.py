@@ -17,6 +17,8 @@ from rich.table import Table
 
 from .utils.controllers import obs, ObsError
 from .utils.obs_config import ObsConfig
+from .utils.yeartext import get_yeartext, create_yeartext_scene
+from ...utils.babel import gettext as _
 
 cli_obs = AppGroup("obs", help="Control OBS Studio")
 
@@ -270,12 +272,14 @@ def cmd_get_special_inputs():
 @click.argument("scene_name")
 @click.argument("input_kind")
 @click.argument("input_name")
-def cmd_obs_create_input(scene_name, input_kind, input_name):
+@click.argument("input_settings")
+def cmd_obs_create_input(scene_name, input_kind, input_name, input_settings):
 	"""Create a new input in a specified scene"""
 	response = obs.request("CreateInput", {
 		"sceneName": scene_name,
 		"inputKind": input_kind,
 		"inputName": input_name,
+		"inputSettings": json.loads(input_settings),
 		})
 	print_json(response["responseData"])
 
@@ -424,3 +428,13 @@ def cmd_obs_stop_vcam():
 	"""Start the virtual camera"""
 	obs.set_virtual_camera_status(True)
 
+#=============================================================================
+# Create a scene with the yeartext (provided on the command line)
+#=============================================================================
+
+@cli_obs.command("create-yeartext")
+@click.argument("lines")
+def cmd_create_yeartext(lines):
+	"""Add a scene with the specified text"""
+	get_yeartext()
+	#create_yeartext_scene(lines)
