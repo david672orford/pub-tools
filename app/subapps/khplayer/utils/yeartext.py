@@ -1,21 +1,49 @@
 from datetime import date
+from zipfile import ZipFile
+import re
+from time import sleep
+
 from flask import current_app
+from icecream import ic
 
 from .controllers import obs, ObsError
 from ....jworg.publications import PubFinder
+from ....jworg.epub import EpubLoader
+from ....utils.babel import gettext as _
+from .httpfile import HttpFile
+
+def create_yeartext_scene():
+	yeartext = get_yeartext()
+	lines = split_yeartext(yeartext)
+	create_text_scene(lines)
 
 def get_yeartext():
+	"""Download the January Watchtower (Study Edition) and extract yeartext"""
 	year = date.today().year
-	print("year:", year)
 	pub_finder = PubFinder(language=current_app.config["PUB_LANGUAGE"])
-	for pub in pub_finder.search("magazines/", {
-		"pubFilter": "wp",
-		"contentLanguageFilter": pub_finder.language,
-		"yearFilter": str(year),
-		}):
-		print(pub)
+	epub_url = pub_finder.get_epub_url("w", f"{year}01")
+	fh = HttpFile(epub_url, debug=False)
+	zipfh = ZipFile(fh)
+	epub = EpubLoader(zipfh)
+	#print("\n".join(map(str, epub.opf.toc)))
+	xml = epub.load_html(epub.opf.toc[0].href)
+	return xml.xpath(".//p[@id='p6']")[0].text_content()
 
-def create_yeartext_scene(lines):
+def split_yeartext(yeartext):
+	m = re.match(r"^(.+)\s+(\([^\)]+\)\.?)$", yeartext)
+	text, cite = m.groups()
+	center = int(len(text) / 2)
+	left_space = text.rindex(" ", 0, center)
+	left_cost = (center - left_space) * 1.5		# looks worse
+	right_space = text.index(" ", center)
+	right_cost = (right_space - center)
+	ic(text, len(text), center, left_space, right_space, left_cost, right_cost)
+	if left_cost < right_cost:
+		return text[:left_space], text[left_space+1:], cite
+	else:
+		return text[:right_space], text[right_space+1:], cite
+
+def create_text_scene(lines):
 	frame_width = 1280
 	frame_height = 720
 	logo_size = 110
@@ -24,7 +52,6 @@ def create_yeartext_scene(lines):
 	logo_y = frame_height - logo_size - logo_margin
 	text_font_size = 48
 	text_line_spacing = 48 * 1.5
-	lines = lines.split("\n")
 
 	scene_uuid = obs.create_scene(_("* Yeartext"))["sceneUuid"]
 

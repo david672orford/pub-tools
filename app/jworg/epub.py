@@ -1,7 +1,7 @@
 # EPUB Loader
 # https://en.wikipedia.org/wiki/EPUB
 
-import zipfile
+from zipfile import ZipFile
 from lxml import etree as ET
 from lxml.builder import E
 import lxml.html
@@ -14,11 +14,13 @@ namespaces = {
 	'xhtml':'http://www.w3.org/1999/xhtml',
 	}
 
-# Read information out of an Epub file.
 class EpubLoader:
+	"""Read information out of an Epub file"""
 	def __init__(self, filename, toc_range=None):
-		self.filename = filename
-		self.epub = zipfile.ZipFile(filename)
+		if hasattr(filename, "read"):
+			self.zipfh = filename
+		else:
+			self.zipfh = ZipFile(filename)
 
 		# Get the path to the OPF file out of META-INF/container.xml.
 		# Set the rootdir to its dirname.
@@ -32,8 +34,8 @@ class EpubLoader:
 	# Open one of the files withing the Epub file.
 	# Return a handle and the file size.
 	def open(self, filename):
-		file_info = self.epub.getinfo("%s/%s" % (self.rootdir, filename))
-		return (self.epub.open(file_info), file_info.file_size)
+		file_info = self.zipfh.getinfo("%s/%s" % (self.rootdir, filename))
+		return (self.zipfh.open(file_info), file_info.file_size)
 
 	# Open one of the files within the Epub file.
 	# Parse it as XML and return an entity tree.
@@ -122,4 +124,3 @@ if __name__ == "__main__":
 		print(item)
 	for item in epub.opf.toc:
 		print(item)
-

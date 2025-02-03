@@ -68,6 +68,11 @@ class HttpFile(Seekable):
 		self._total_read += len(data)
 		return data
 
+	def seek(self, offset, whence=0):
+		if whence == 2 and self._file_size is None:
+			self._request_range(start = 0, end = 0)
+		return super().seek(offset, whence)
+
 	def read(self, size:int=None):
 		if self.debug:
 			print(f"HttpFile read {self._pos} {size}")
@@ -139,7 +144,7 @@ class FileCache(Seekable):
 					print("middle block:", blocknum)
 				blocks.append(self._get_block(blocknum))
 			blocks.append(self._get_block(b2)[:b2last+1])
-			data = b"".join(blocks)	
+			data = b"".join(blocks)
 
 		assert len(data) == size, "FileCache read(%d) yielded %d bytes" % (size, len(data))
 		self._pos += size
@@ -190,7 +195,7 @@ class FileRange(Seekable):
 		data = self._fh.read(size)
 		assert len(data) == size
 		self._pos += size
-		return data	
+		return data
 
 # Add a function to ZipFile to open an embedded zip file, provided it does
 # not use additional compression.
@@ -209,7 +214,7 @@ class EmbeddedZipMixin:
 		assert info.compress_type == ZIP_STORED
 		zipfile = FileRange(self.fh,
 			offset = info.header_offset + len(info.FileHeader()),
-			size = info.file_size, 
+			size = info.file_size,
 			)
 
 		if self.debug:
@@ -229,7 +234,7 @@ class LocalZip(ZipFile, EmbeddedZipMixin):
 	def close(self):
 		self.fh.close()
 
-# Subclass ZipFile from the Python Standard Library so that we can 
+# Subclass ZipFile from the Python Standard Library so that we can
 # read zip files over HTTP rather than from the file system.
 class RemoteZip(ZipFile, EmbeddedZipMixin):
 	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
@@ -239,4 +244,3 @@ class RemoteZip(ZipFile, EmbeddedZipMixin):
 		super().__init__(self.fh)
 	def close(self):
 		self.fh.close()
-

@@ -5,6 +5,7 @@
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
+* Straighten out the downloading of PDF thumbnails from Gdrive
 * patchbay: it is possible to drop a node onto an input provoking an error in the javascript console
 * filesytemencoding problems when started from khplayer-server.py (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Some Gdrive sharing URL's not acceptable for pulling JW Stream URL lists?
@@ -14,9 +15,6 @@
 * Listen address and port setting in khplayer-server.py
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
-* Logging:
-  * **flask cable** commands call logger.info(), but no output is produced
-  * CLI support for enabling debugging per module
 * Progress bar for Gdrive downloads. This will require knowing the file size. (make sure this is finished)
 * Validate configuration. Possible libraries:
     * https://docs.python-cerberus.org/
@@ -25,11 +23,12 @@
 
 ## Hard Stuff
 
+* Figure out to set up logging better:
+  * **flask cable** commands call logger.info(), but no output is produced
+  * CLI support for enabling debugging per module
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
 * Send scene reorder events to other (all) browsers
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
-* Auto-create yeartext slide (would need to find the current yeartext somewhere on JW.ORG)
-* Add face recognition to the Zoom cropper
 
 ## Reference for Possible Future Projects
 

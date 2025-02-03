@@ -1,6 +1,4 @@
-#=============================================================================
-# CLI for loading lists of publications and media from JW.ORG
-#=============================================================================
+"""CLI for loading lists of publications and media from JW.ORG"""
 
 import os
 from datetime import date, timedelta

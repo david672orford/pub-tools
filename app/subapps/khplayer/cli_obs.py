@@ -17,7 +17,7 @@ from rich.table import Table
 
 from .utils.controllers import obs, ObsError
 from .utils.obs_config import ObsConfig
-from .utils.yeartext import get_yeartext, create_yeartext_scene
+from .utils.yeartext import create_yeartext_scene
 from ...utils.babel import gettext as _
 
 cli_obs = AppGroup("obs", help="Control OBS Studio")
@@ -433,8 +433,6 @@ def cmd_obs_stop_vcam():
 #=============================================================================
 
 @cli_obs.command("create-yeartext")
-@click.argument("lines")
-def cmd_create_yeartext(lines):
-	"""Add a scene with the specified text"""
-	get_yeartext()
-	#create_yeartext_scene(lines)
+def cmd_create_yeartext():
+	"""Get the current yeartext and put it in a scene"""
+	create_yeartext_scene()
