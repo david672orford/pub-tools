@@ -40,7 +40,17 @@
 				{% if image_file.thumbnail_url %}
 				<img src="{{image_file.thumbnail_url}}">
 				{% endif %}
-				<div class="caption">{% if image_file.mimetype and image_file.mimetype.startswith("image/") %}{{_("image")}}{%else%}{{_("video")}}{%endif%}</div>
+				<div class="caption">
+					{%- if image_file.mimetype -%}
+						{%- if image_file.mimetype.startswith("image/") -%}
+							{{- _("image") -}}
+						{%- elif image_file.mimetype.startswith("video/") -%}
+							{{- _("video") -}}
+						{%- elif image_file.mimetype == "application/pdf" %}
+							{{- _("document") -}}
+						{%- endif -%}
+					{%- endif -%}
+				</div>
 			</div>
 			<div class="bottom-bar">
 				<input type="checkbox" name="selected" value="{{ image_file.id }}" checked>

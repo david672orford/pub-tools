@@ -41,8 +41,7 @@ class LocalDriveClient:
 			self.file_size = file.stat().st_size
 			self.thumbnail_data = None
 
-			if thumbnail:
-				print(file)
+			if thumbnail and self.mimetype.startswith("image/"):
 				image = Image.open(file.path)
 				image.thumbnail((184, 105))
 				save_to = io.BytesIO()
@@ -70,7 +69,13 @@ class LocalDriveClient:
 		return None
 
 	def download_thumbnail(self, file, save_as):
-		return None
+		if file.thumbnail_data is None:
+			return None
+		save_as = os.path.splitext(save_as)[0] + ".jpg"
+		with open(save_as + ".tmp", "wb") as fh:
+			fh.write(file.thumbnail_data)
+		os.rename(save_as + ".tmp", save_as)
+		return save_as
 
 	def download_file(self, file, save_as, callback=None):
 		return os.path.join(self.path, file.id)

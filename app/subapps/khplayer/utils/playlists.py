@@ -22,7 +22,7 @@ from .mimetypes import extmap
 # * .jwlplaylist file: one playlist of images and video links listed in PlaylistItem DB table
 # * .jwpub file: each document (generally a talk) a folder containing its multimedia items
 class ZippedPlaylist:
-	def __init__(self, path_to:list, path_within:list, zip_reader, zip_filename:str, client_class, cachedir="cache", debuglevel=10):
+	def __init__(self, path_to:list, path_within:list, zip_reader, zip_filename:str, client_class, cachedir="cache", debuglevel=0):
 		self.path_to = path_to
 		self.path = path_within						# path to folder within zipfile
 		self.zip_reader = zip_reader				# Zipfile compatible object
@@ -447,11 +447,11 @@ class ZippedPlaylist:
 		if self.debuglevel > 0:
 			print("media file search pattern:", pattern)
 		for gfile in self.parent_reader.list_image_files():
-			if self.debuglevel > 0:
+			if self.debuglevel > 1:
 				print("  candidate file:", gfile.filename)
 			if fnmatch(gfile.filename, pattern):
 				if self.debuglevel > 0:
-					print(" Match!")
+					print(f" Match: {gfile.filename}")
 				return gfile
 		else:
 			if self.debuglevel > 0:

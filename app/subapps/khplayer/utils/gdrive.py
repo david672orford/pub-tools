@@ -165,12 +165,11 @@ class GDriveClient:
 		return file.id
 
 	def download_thumbnail(self, file, save_as):
-		if file.thumbnail_url is None:
+		if file.thumbnail_data is None:
 			return None
 		save_as = os.path.splitext(save_as)[0] + ".jpg"
-		response = self.session.get(file.thumbnail_url)
 		with open(save_as + ".tmp", "wb") as fh:
-			fh.write(response.read())
+			fh.write(file.thumbnail_data)
 		os.rename(save_as + ".tmp", save_as)
 		return save_as
 
