@@ -28,35 +28,21 @@ import lxml.html
 
 logger = logging.getLogger(__name__)
 
-class GFile:
-	def __init__(self, file, thumbnail_url):
-		self.id = file[0]
-		self.title = file[2]
-		self.filename = file[2]
-		self.mimetype = file[3]
-		self.file_size = file[13]
-		self.thumbnail_url = thumbnail_url
-
-class IterAsFile:
-	def __init__(self, iterator):
-		self.iterator = iterator
-	def read(self, size=None):
-		chunk = next(self.iterator, None)
-		if chunk is None:
-			return ""
-		return chunk
-
 class GDriveClient:
-	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
+	def __init__(self, path_to:list, path_within:list, thumbnails:bool=False, cachedir:str="cache", debug:bool=False):
 		self.folder_id = path_to[-1]
 		self.cachedir = cachedir
+		self.thumbnails = thumbnails
 		self.debug = debug
 
 		# Put the ID into a sharing URL and retrieve the HTML page
-		url = f"https://drive.google.com/drive/folders/{self.folder_id}?usp=sharing"
 		self.session = requests.Session()
+		url = f"https://drive.google.com/drive/folders/{self.folder_id}?usp=sharing"
 		response = self.session.get(url, stream=True)
-		root = lxml.etree.parse(IterAsFile(response.iter_content()), parser=lxml.etree.HTMLParser(encoding=response.encoding)).getroot()
+		root = lxml.etree.parse(
+			self.IterAsFile(response.iter_content()),
+			parser = lxml.etree.HTMLParser(encoding=response.encoding),
+			).getroot()
 
 		# If debugging mode is on, save the HTML page to a file in the current directory
 		if self.debug:
@@ -109,35 +95,63 @@ class GDriveClient:
 				if self.debug:
 					print("gdrive file:", file[0], file[2], file[3], file[13])
 				id = file[0]
-				thumbnail_url = None
 
 				# Subfolder
 				if file[3] in ("application/vnd.google-apps.folder", "application/zip", "application/x-zip"):
-					self.folders.append(GFile(file, thumbnail_url))
+					self.folders.append(self.GFile(file, None))
 
 				# Image file
 				elif file[3].startswith("image/"):
-					if thumbnails:
-						thumbnail_url = self._make_thumbnail_data_url(id)
-					self.image_files.append(GFile(file, thumbnail_url))
+					self.image_files.append(self.GFile(file, self))
 
 				# Video file
 				elif file[3].startswith("video/"):
-					# Disabled because the thumbnail is the first frame of the video which tends to be all black.
-					#if thumbnails:
-					#	thumbnail_url = self._make_thumbnail_data_url(id)
-					self.image_files.append(GFile(file, thumbnail_url))
+					# Thumbnail disabled because it is the first frame which is generally black
+					self.image_files.append(self.GFile(file, None))
 
 				# PDF Document
 				elif file[3] == "application/pdf":
-					# FIXME: Disabled because this is a data URL is a data URL and .download_thumbnail() will fail
-					#if thumbnails:
-					#	thumbnail_url = self._make_thumbnail_data_url(id)
-					self.image_files.append(GFile(file, thumbnail_url))
+					self.image_files.append(self.GFile(file, self))
 
 				# Other file types (which we skip)
 				else:
 					pass
+
+	class GFile:
+		def __init__(self, file, client):
+			self.id = file[0]
+			self.title = file[2]
+			self.filename = file[2]
+			self.mimetype = file[3]
+			self.file_size = file[13]
+			self.thumbnail_data = None
+
+			if client is not None and client.thumbnails is not None:
+				# This is what the web interface uses:
+				# url = f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
+				# But this gives the original aspect ratio:
+				url = f"https://lh3.googleusercontent.com/u/0/d/{self.id}=w400"
+				response = client.session.get(url)
+				self.thumbnail_data = response.content
+
+		@property
+		def thumbnail_url(self):
+			if self.thumbnail_data is None:
+				return None
+			return "data:{mimetype};base64,{data}".format(
+				mimetype = "image/jpeg",
+				data = base64.b64encode(self.thumbnail_data).decode("utf-8"),
+				)
+
+	class IterAsFile:
+		"""Wrap an iterator so we can call .read() on it"""
+		def __init__(self, iterator):
+			self.iterator = iterator
+		def read(self, size=None):
+			chunk = next(self.iterator, None)
+			if chunk is None:
+				return ""
+			return chunk
 
 	def list_folders(self):
 		"""Get the list of objects representing the subfolders"""
@@ -178,15 +192,3 @@ class GDriveClient:
 						last_callback = now
 		os.rename(save_as + ".tmp", save_as)
 		return save_as
-
-	def _make_thumbnail_data_url(self, id):
-		# This is what the web interface uses:
-		# url = f"https://lh3.googleusercontent.com/u/0/d/{id}=w400-h380-p-k-rw-v1-nu-iv1"
-		# But this gives the original aspect ratio:
-		url = f"https://lh3.googleusercontent.com/u/0/d/{id}=w400"
-		response = self.session.get(url)
-		thumbnail_url = "data:{mimetype};base64,{data}".format(
-			mimetype = response.headers.get("Content-Type","").split(";")[0],
-			data = base64.b64encode(response.content).decode("utf-8"),
-			)
-		return thumbnail_url

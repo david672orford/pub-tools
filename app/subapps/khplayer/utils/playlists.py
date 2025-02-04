@@ -22,26 +22,6 @@ from .mimetypes import extmap
 # * .jwlplaylist file: one playlist of images and video links listed in PlaylistItem DB table
 # * .jwpub file: each document (generally a talk) a folder containing its multimedia items
 class ZippedPlaylist:
-	class PlaylistItem:
-		def __init__(self, id, title, filename, mimetype=None, file_size=None, thumbnail=(None,None)):
-			self.id = id
-			self.title = title
-			self.filename = filename
-			self.mimetype = mimetype
-			self.file_size = file_size
-			self.thumbnail_data = thumbnail[0]
-			self.thumbnail_mimetype = thumbnail[1]
-		@property
-		def thumbnail_url(self):
-			if self.thumbnail_data is None:
-				return None
-			return "data:{mimetype};base64,{data}".format(
-				mimetype = self.thumbnail_mimetype,
-				data = base64.b64encode(self.thumbnail_data).decode("utf-8"),
-				)
-		def __str__(self):
-			return f"<PlaylistItem id={self.id} title={repr(self.title)} filename={repr(self.filename)} file_size={repr(self.file_size)}>"
-
 	def __init__(self, path_to:list, path_within:list, zip_reader, zip_filename:str, client_class, cachedir="cache", debuglevel=10):
 		self.path_to = path_to
 		self.path = path_within						# path to folder within zipfile
@@ -73,6 +53,39 @@ class ZippedPlaylist:
 		else:
 			raise AssertionError("Unsupported playlist format")
 
+	class PlaylistItem:
+		def __init__(self, id, title, filename, mimetype=None, file_size=None, thumbnail=(None,None,None)):
+			self.id = id
+			self.title = title
+			self.filename = filename
+			self.mimetype = mimetype			# None for folders
+			self.file_size = file_size			# None for folders
+
+			self.thumbnail_data = None
+			(zip_reader, filename, self.thumbnail_mimetype) = thumbnail
+			if self.thumbnail_mimetype is not None and self.thumbnail_mimetype.startswith("image/"):
+				self.thumbnail_data = zip_reader.read(filename)
+				if len(self.thumbnail_data) > 12000:
+					image = Image.open(io.BytesIO(self.thumbnail_data))
+					# Scale to our thumbnail.large size
+					image.thumbnail((184, 105))
+					# Save as JPEG. Why do we need to set quality so high?
+					save_to = io.BytesIO()
+					image.save(save_to, format="jpeg", quality=85)
+					self.thumbnail_data = save_to.getvalue()
+					self.thumbnail_mimetype = "image/jpeg"
+
+		@property
+		def thumbnail_url(self):
+			if self.thumbnail_data is None:
+				return None
+			return "data:{mimetype};base64,{data}".format(
+				mimetype = self.thumbnail_mimetype,
+				data = base64.b64encode(self.thumbnail_data).decode("utf-8"),
+				)
+		def __str__(self):
+			return f"<PlaylistItem id={self.id} title={repr(self.title)} filename={repr(self.filename)} file_size={repr(self.file_size)}>"
+
 	def list_folders(self):
 		"""Called from the Jinja2 template to get the list of folders to display"""
 		return self.folders
@@ -101,7 +114,7 @@ class ZippedPlaylist:
 		if id.startswith("gdrive:"):
 			id = id[7:]
 			for gfile in self.parent_reader.list_image_files():
-				if gfile.id == id: 
+				if gfile.id == id:
 					return self.parent_reader.download_file(gfile, save_as, callback=callback)
 			else:
 				raise AssertionError("File not found in parent Gdrive folder")
@@ -149,7 +162,7 @@ class ZippedPlaylist:
 					print("zip path_elements:", path_elements)
 
 				# Is this a file which is a direct child of the searched folder?
-				# If it is a supported image, included it in the list of images.
+				# If it is a file of a supported type, included it in the list of images.
 				if len(path_elements) == 1:
 					filename = path_elements[0]
 					if mimetype := extmap.get(os.path.splitext(filename)[1]):
@@ -159,10 +172,11 @@ class ZippedPlaylist:
 							filename = filename,
 							mimetype = mimetype,
 							file_size = file.file_size,
-							thumbnail = self._make_thumbnail(self.zip_reader, file.filename, mimetype),
+							thumbnail = (self.zip_reader, file.filename, mimetype),
 							))
-						print(self.files[-1])
-						print()
+						if self.debuglevel > 0:
+							print(self.files[-1])
+							print()
 
 				# Is this a file which is a grandchild of the search folder?
 				# If we have not yet included this folder in the list of subfolders
@@ -176,10 +190,11 @@ class ZippedPlaylist:
 								id = search_folder + dirname,
 								title = dirname,
 								filename = dirname,
-								thumbnail = self._make_thumbnail(self.zip_reader, file.filename, mimetype),
+								thumbnail = (self.zip_reader, file.filename, mimetype),
 								))
-							print(self.folders[-1])
-							print()
+							if self.debuglevel > 0:
+								print(self.folders[-1])
+								print()
 						folders_included.add(dirname)
 
 	# Load image list from a playlist shared from JW Library (.jwlplaylist).
@@ -205,7 +220,8 @@ class ZippedPlaylist:
 						left join Location using(LocationId);
 					"""):
 				row = dict(row)
-				print("jwlplaylist item:", json.dumps(row, indent=4, ensure_ascii=False))
+				if self.debuglevel > 0:
+					print("jwlplaylist item:", json.dumps(row, indent=4, ensure_ascii=False))
 
 				# Image file inside the playlist zip
 				#
@@ -261,10 +277,11 @@ class ZippedPlaylist:
 					mimetype = mimetype,
 					file_size = file_size,
 					# Both images and videos have thumbnails in the zip
-					thumbnail = self._make_thumbnail(self.zip_reader, row["ThumbnailFilePath"], "image/jpeg"),
+					thumbnail = (self.zip_reader, row["ThumbnailFilePath"], "image/jpeg"),
 					))
-				print(self.files[-1])
-				print()
+				if self.debuglevel > 0:
+					print(self.files[-1])
+					print()
 
 	# Load image list from a JWPUB file such as the Public Talk Media Playlist (S-34mp_U.jwpub)
 	def _load_jwpub_playlist(self, manifest):
@@ -294,14 +311,16 @@ class ZippedPlaylist:
 							group by Document.DocumentId
 						"""):
 					row = dict(row)
-					print("jwpub document item:", json.dumps(row, indent=4, ensure_ascii=False))
+					if self.debuglevel > 0:
+						print("jwpub document item:", json.dumps(row, indent=4, ensure_ascii=False))
 					self.folders.append(self.PlaylistItem(
 						id = row["DocumentId"],
 						title = row["Title"],
 						filename = row["Title"],	# FIXME
-						thumbnail = self._make_thumbnail(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"]),
+						thumbnail = (contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"]),
 						))
-					print(self.folders[-1])
+					if self.debuglevel > 0:
+						print(self.folders[-1])
 
 			# Numberically-named subdirectories each contains the media for a talk
 			else:
@@ -323,7 +342,8 @@ class ZippedPlaylist:
 							where Document.DocumentId = ?
 						""", (docid,)):
 					row = dict(row)
-					print("jwpub playlist item:", json.dumps(row, indent=4, ensure_ascii=False))
+					if self.debuglevel > 0:
+						print("jwpub playlist item:", json.dumps(row, indent=4, ensure_ascii=False))
 					assert row["DocumentId"] == docid
 
 					# .jwpub files specify the mimetype for both images and video
@@ -374,10 +394,11 @@ class ZippedPlaylist:
 						filename = filename,
 						mimetype = row["MimeType"],
 						file_size = file_size,
-						thumbnail = self._make_thumbnail(contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"])
+						thumbnail = (contents, row["ThumbnailFilePath"], row["ThumbnailMimeType"]),
 						))
-					print(self.files[-1])
-					print()
+					if self.debuglevel > 0:
+						print(self.files[-1])
+						print()
 
 	def _find_embedded_file(self, zip_reader, row):
 		try:
@@ -404,7 +425,6 @@ class ZippedPlaylist:
 
 			# Check our list of videos from JW Broadcasting
 			lank = f"pub-{row['KeySymbol']}_{row['Track']}_VIDEO"
-			print("test lank:", lank)
 			if Videos.query.filter_by(lank=lank).first():
 				return "https://www.jw.org/finder?" + urlencode({"lank": lank})
 
@@ -424,32 +444,16 @@ class ZippedPlaylist:
 		if self.parent_reader is None:
 			self.parent_reader = self.client_class(self.path_to[:-1], [], cachedir=self.cachedir)
 		pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
-		print("media file search pattern:", pattern)
+		if self.debuglevel > 0:
+			print("media file search pattern:", pattern)
 		for gfile in self.parent_reader.list_image_files():
-			print("  candidate file:", gfile.filename)
+			if self.debuglevel > 0:
+				print("  candidate file:", gfile.filename)
 			if fnmatch(gfile.filename, pattern):
-				print(" Match!")
+				if self.debuglevel > 0:
+					print(" Match!")
 				return gfile
 		else:
-			print(" No match")
+			if self.debuglevel > 0:
+				print(" No match")
 		return None
-
-	# For all playlist formats
-	# Read an image from the zip file and save it for use as a data URL
-	# If it is large, scale it down first.
-	@staticmethod
-	def _make_thumbnail(zip_reader, filename, mimetype):
-		if mimetype is None or not mimetype.startswith("image/"):
-			return (None, None)
-		data = zip_reader.read(filename)
-		if len(data) > 12000:
-			image = Image.open(io.BytesIO(data))
-			# Scale to our thumbnail.large size
-			image.thumbnail((184, 105))
-			# Save as JPEG. Why do we need to set quality so high?
-			save_to = io.BytesIO()
-			image.save(save_to, format="jpeg", quality=85)
-			data = save_to.getvalue()
-			mimetype = "image/jpeg"
-		return (data, mimetype)
-

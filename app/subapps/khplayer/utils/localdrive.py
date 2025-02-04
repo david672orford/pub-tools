@@ -7,15 +7,6 @@ from ....utils.babel import gettext as _
 from .mimetypes import extmap
 from .httpfile import LocalZip
 
-class LocalFile:
-	def __init__(self, file, mimetype, thumbnail_url=None):
-		self.id = file.name
-		self.title = file.name
-		self.filename = file.name
-		self.mimetype = mimetype
-		self.file_size = file.stat().st_size
-		self.thumbnail_url = thumbnail_url
-
 class LocalDriveClient:
 	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
 		assert len(path_to) > 0
@@ -35,28 +26,42 @@ class LocalDriveClient:
 		for file in os.scandir(self.path):
 			basename, ext = os.path.splitext(file.name)
 			if file.is_dir():
-				self.folders.append(LocalFile(file, None))
+				self.folders.append(self.LocalFile(file, None))
 			elif ext in {".zip", ".jwlplaylist", ".jwpub"}:
-				self.folders.append(LocalFile(file, "application/zip"))
+				self.folders.append(self.LocalFile(file, "application/zip"))
 			elif (mimetype := extmap.get(ext)):
-				thumbnail_url = self.make_thumbnail(self.path, file.name, mimetype)
-				self.image_files.append(LocalFile(file, mimetype, thumbnail_url=thumbnail_url))
+				self.image_files.append(self.LocalFile(file, mimetype, thumbnail=True))
 
-	def make_thumbnail(self, folder_path, filename, mimetype):
-		if not mimetype.startswith("image/"):
-			return None
-		path = os.path.join(folder_path, filename)
-		image = Image.open(path)
-		image.thumbnail((184, 105))
-		save_to = io.BytesIO()
-		image.save(save_to, format="jpeg", quality=85)
-		encoded_data = base64.b64encode(save_to.getvalue()).decode("utf-8")
-		return f"data:image/jpeg;base64,{encoded_data}"
+	class LocalFile:
+		def __init__(self, file, mimetype, thumbnail:bool=False):
+			self.id = file.name
+			self.title = file.name
+			self.filename = file.name
+			self.mimetype = mimetype
+			self.file_size = file.stat().st_size
+			self.thumbnail_data = None
+
+			if thumbnail:
+				print(file)
+				image = Image.open(file.path)
+				image.thumbnail((184, 105))
+				save_to = io.BytesIO()
+				image.save(save_to, format="jpeg", quality=85)
+				self.thumbnail_data = save_to.getvalue()
+
+		@property
+		def thumbnail_url(self):
+			if self.thumbnail_data is None:
+				return None
+			return "data:{mimetype};base64,{data}".format(
+				mimetype = "image/jpeg",
+				data = base64.b64encode(self.thumbnail_data).decode("utf-8"),
+				)
 
 	def list_folders(self):
 		"""Get the list of objects representing the subfolders"""
 		return self.folders
-		
+
 	def list_image_files(self):
 		"""Get the list of objects representing the images files"""
 		return self.image_files
@@ -69,4 +74,3 @@ class LocalDriveClient:
 
 	def download_file(self, file, save_as, callback=None):
 		return os.path.join(self.path, file.id)
-
