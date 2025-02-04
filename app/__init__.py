@@ -6,6 +6,8 @@ from importlib import import_module
 from flask import Flask, session
 import logging
 
+from jsonschema import validate as jsonschema_validate
+
 from .utils.background import turbo
 from .utils.babel import init_babel, compile_babel_catalogs
 
@@ -30,13 +32,13 @@ def create_app():
 	app.config.from_mapping(
 		APP_DISPLAY_NAME = "Pub Tools",
 		FLASK_ADMIN_FLUID_LAYOUT = True,
-		THEME = None,
-		UI_LANGUAGE = None,
 
-		# Database and cache settings
+		# Database settings
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
+
+		# Cache settings
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		MEDIA_CACHEDIR = os.path.join(app.instance_path, "media-cache"),
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
@@ -49,8 +51,12 @@ def create_app():
 			#"admin",
 			],
 
-		# KH Player Settings
+		# Settings for all subapps
+		UI_LANGUAGE = None,				# language of the user interface
 		PUB_LANGUAGE = None,			# language in which to load publications from JW.ORG
+
+		# Settings for the KH Player subapp
+		THEME = None,					# TODO: implement in other subapps
 		SUB_LANGUAGE = None,			# choose language to enable video subtitles
 		VIDEO_RESOLUTION = "720p",		# resolution of videos from JW.ORG
 		OBS_BROWSER_DOCK_SCALE = 1.0,	# font size when running on OBS browser dock
@@ -63,22 +69,14 @@ def create_app():
 	# Overlay with configuration from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# FIXME: There must be a better way to verify the integrity of the configuration
-	assert type(app.config["UI_LANGUAGE"]) in(str, type(None))
-	assert type(app.config["PUB_LANGUAGE"]) in (str, type(None))
-	assert type(app.config["SUB_LANGUAGE"]) in (str, type(None))
-	assert app.config["VIDEO_RESOLUTION"] in ("240p", "360p", "480p", "720p")
-	assert type(app.config["OBS_BROWSER_DOCK_SCALE"]) is float
-	assert type(app.config["CAMERA_NAME_OVERRIDES"]) is dict
-	assert type(app.config["VIDEO_REMOTES"]) is dict
-	assert app.config["PATCHBAY"] in (False, True, "virtual-cable")
-
-	# Default language settings
+	# Apply default language settings
 	if app.config["UI_LANGUAGE"] is None:
 		try:
+			# If we are running under OBS, get the locale from OBS
 			import obspython as obs
 			app.config["UI_LANGUAGE"] = obs.obs_get_locale().split("-")[0]
-		except ImportError:
+		except ImportError:		# not running under OBS
+			# Get locale from the user's login session
 			import locale
 			lang = locale.getlocale()[0].split("_")[0]
 			if sys.platform == "win32":		# FIXME: this is a temporary hack to get things working
@@ -89,6 +87,92 @@ def create_app():
 			app.config["UI_LANGUAGE"] = lang
 	if app.config["PUB_LANGUAGE"] is None:
 		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
+
+	# Validate the final configuration using jsonschema
+	# https://github.com/python-jsonschema/jsonschema
+    # https://json-schema.org/learn/getting-started-step-by-step
+	jsonschema_validate(instance=app.config, schema = {
+		"type": "object",
+		"properties": {
+			"APP_DISPLAY_NAME": { "type": "string" },
+			"FLASK_ADMIN_FLUID_LAYOUT": { "type": "boolean" },
+			"SQLALCHEMY_DATABASE_URI": { "type": "string", "format": "uri" },
+			"SQLALCHEMY_TRACK_MODIFICATIONS": { "type": "boolean" },
+			"SQLALCHEMY_ECHO": { "type": "boolean" },
+			"WHOOSH_PATH": { "type": "string" },
+			"MEDIA_CACHEDIR": { "type": "string" },
+			"GDRIVE_CACHEDIR": { "type": "string" },
+			"SECRET_KEY": {
+				"type": "string",
+				"minLength": 16,
+			},
+			"ENABLED_SUBAPPS": {
+				"type": "array",
+				"minItems": 1,
+				"items": {
+					"type": "string",
+					"enum": ["khplayer", "toolbox", "epubs", "admin"],
+				},
+			},
+			"THEME": {
+				"type": ["string", "null"],
+				"enum": ["basic-light", "basic-dark", "colorful", None],
+			},
+			"UI_LANGUAGE": {
+				"type": "string",
+				"minLength": 2,
+				"maxLength": 2,
+			},
+			"PUB_LANGUAGE": {
+				"type": "string",
+				"minLength": 2,
+				"maxLength": 2,
+			},
+			"SUB_LANGUAGE": {
+				"type": ["string", "null"],
+				"minLength": 2,
+				"maxLength": 2,
+			},
+			"VIDEO_RESOLUTION": {
+				"type": "string",
+				"enum": ["240p", "360p", "480p", "720p"],
+			},
+			"OBS_BROWSER_DOCK_SCALE": {
+				"type": "number",
+				"minimum": 1.0,
+				"maximum": 5.0,
+			},
+			"PATCHBAY": {
+				"enum": [False, True, "virtual-cable"],
+			},
+			"CAMERA_NAME_OVERRIDES": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "string",
+					"minLength": 1,
+				}
+			},
+			"VIDEO_REMOTES": {
+				"type": "object",
+				"additionalProperties": {
+					"type": "object",
+					"properties": {
+						"view": {
+							"type": "string",
+						},
+					},
+					"required": ["view"],
+					"additionalProperties": False,
+				},
+				"JWSTREAM_UPDATES": {
+					"type": "string",
+					"format": "uri",
+				}
+			},
+		},
+		# Disabled because Flask inserts many config items of its own
+		#"additionalProperties": False,
+	})
 
 	# Init DB
 	with app.app_context():

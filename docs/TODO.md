@@ -15,11 +15,7 @@
 * Listen address and port setting in khplayer-server.py
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
-* Progress bar for Gdrive downloads. This will require knowing the file size. (make sure this is finished)
-* Validate configuration. Possible libraries:
-    * https://docs.python-cerberus.org/
-    * https://github.com/python-jsonschema/jsonschema
-    * https://json-schema.org/learn/getting-started-step-by-step
+* Progress bar for Gdrive downloads. This will require knowing the file size. (may already be done)
 
 ## Hard Stuff
 
