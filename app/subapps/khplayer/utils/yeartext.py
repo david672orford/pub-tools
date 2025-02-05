@@ -15,7 +15,7 @@ from .httpfile import HttpFile
 def create_yeartext_scene():
 	yeartext = get_yeartext()
 	lines = split_yeartext(yeartext)
-	create_text_scene(lines)
+	return create_text_scene(lines)
 
 def get_yeartext():
 	"""Download the January Watchtower (Study Edition) and extract yeartext"""
@@ -37,7 +37,7 @@ def split_yeartext(yeartext):
 	left_cost = (center - left_space) * 1.5		# looks worse
 	right_space = text.index(" ", center)
 	right_cost = (right_space - center)
-	ic(text, len(text), center, left_space, right_space, left_cost, right_cost)
+	#ic(text, len(text), center, left_space, right_space, left_cost, right_cost)
 	if left_cost < right_cost:
 		return text[:left_space], text[left_space+1:], cite
 	else:
@@ -53,7 +53,12 @@ def create_text_scene(lines):
 	text_font_size = 48
 	text_line_spacing = 48 * 1.5
 
-	scene_uuid = obs.create_scene(_("* Yeartext"))["sceneUuid"]
+	try:
+		scene_uuid = obs.create_scene(_("* Yeartext"))["sceneUuid"]
+	except ObsError as e:
+		if e.code == 601:
+			return False
+		raise
 
 	seq = 1
 	y = (frame_height - (len(lines) * text_line_spacing)) / 2
@@ -116,3 +121,5 @@ def create_text_scene(lines):
 		"positionX": logo_x + 10,
 		"positionY": logo_y + 5,
 		})
+
+	return True

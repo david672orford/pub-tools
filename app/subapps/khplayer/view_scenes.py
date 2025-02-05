@@ -16,6 +16,7 @@ from .utils.cameras import list_cameras
 from .utils.zoom import zoom_tracker_loaded, find_second_window
 from .utils.controllers import meeting_loader
 from .utils.html_extractor import HTML
+from .utils.yeartext import create_yeartext_scene
 
 logger = logging.getLogger(__name__)
 
@@ -203,6 +204,10 @@ def page_scenes_submit():
 			case "add-remote":
 				settings = current_app.config["VIDEO_REMOTES"][action[1]]
 				obs.create_source_scene("* %s" % action[1], "remote", settings)
+
+			case "add-yeartext":
+				if not create_yeartext_scene():
+					async_flash(_("Scene already exists"))
 
 			case "add-empty":
 				obs.create_scene(_("* New Scene"), make_unique=True)
