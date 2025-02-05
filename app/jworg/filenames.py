@@ -10,5 +10,6 @@ def jworg_filename_category(filename):
 		return "image"
 	elif re.match(r"^[a-zA-Z0-9]+[_-].+_r\d+P\.mp4$", filename):	# mwbv_U_202111_03_r480P.mp4
 		return "video"
+	elif re.match(r"^[a-z]+_[A-Z].+\.pdf$", filename):				# g_U_202411.pdf
+		return "pdf"
 	return None
-

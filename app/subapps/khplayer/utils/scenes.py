@@ -5,7 +5,8 @@ from urllib.parse import urlparse, parse_qsl, unquote
 
 from ....jworg.meetings import MeetingMediaItem
 from ....utils.babel import gettext as _
-from ....utils.background import flash, progress_callback, progress_response
+from ....utils.background import flash, progress_callback, progress_response, async_flash
+from ....utils.media_cache import make_media_cachefile_name
 from .controllers import meeting_loader, obs, ObsError
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,6 @@ scene_name_prefixes = {
 	"audio": "▷",
 	"video": "▷",
 	"image": "□ ",
-	"pdf": "□ ",
 	}
 
 # Add a scene which plays a video from JW.ORG
@@ -121,18 +121,20 @@ def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, ski
 	else:
 		progress_callback(_("✔ Image has been loaded."), last_message=close, cssclass="success")
 
-def load_media_file(scene_name:str, media_file:str, mimetype:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
-	"""Generic loader for files supplied by user"""
-	if mimetype == "application/pdf":
-		mediatype = "pdf"
-	else:
-		mediatype = mimetype.split("/")[0]
-	scene_name_prefix = scene_name_prefixes[mediatype]
+# Add a scene which displays a PDF file
+#def load_pdf_url(scene_name:str, url:str, thumbnail_url:str=None, skiplist:str=None, close:bool=True):
+#	progress_callback(_("Loading document \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
+#	pdf_file = meeting_loader.download_media(url, callback=progress_callback)
+#	load_pdf_file(scene_name, pdf_file, None, skiplist, close)
+
+def load_pdf_file(scene_name:str, pdf_file:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+	if scene_name is None:
+		scene_name = url.rsplit("/",1)[-1]
 	try:
 		obs.add_media_scene(
-			scene_name_prefix + " " + scene_name,
-			mediatype,
-			media_file,
+			"▤ " + scene_name,
+			"pdf",
+			pdf_file,
 			thumbnail = thumbnail_file,
 			skiplist = skiplist,
 			)
@@ -151,7 +153,7 @@ def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None,
 	if scene_name is None or thumbnail_url is None:
 		metadata = meeting_loader.get_webpage_metadata(url)
 	if scene_name is None:
-		scene_name = metadata.title
+		scene_name = metadata.title or _("Untitled Webpage")
 	if thumbnail_url is None:
 		thumbnail_url = metadata.thumbnail_url
 	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
@@ -171,7 +173,7 @@ def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None,
 	else:
 		progress_callback(_("✔ Webpage has been loaded."), last_message=close, cssclass="success")
 
-# Add a scene which displays text
+# Add a scene which displays user-supplied text
 # scene_name -- name of scene to create in OBS
 # text -- the text to display
 def load_text(scene_name, text):
@@ -206,7 +208,28 @@ def load_text(scene_name, text):
 
 	return progress_response(_("✔ Text has been added."), last_message=True, cssclass="success")
 
+# Download a media file and add a scene
+def load_media_url(scene_name:str, url:str, mimetype:str, thumbnail_url:str=None, skiplist:str=None, close:bool=True):
+	filename = os.path.basename(unquote(urlparse(url).path))
+	save_as = make_media_cachefile_name(filename, mimetype)
+	progress_callback(_("Loading \"{url}\"...").format(url=url), cssclass="heading")
+	meeting_loader.download_media(url, cachefile=save_as, callback=progress_callback)
+	load_media_file(filename, save_as, mimetype, close=True)
+
+# Load a file which is already downloaded
+# This is used for drag-and-drop and playlists
+def load_media_file(scene_name:str, media_file:str, mimetype:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+	if mimetype.startswith("video/"):
+		load_video_file(scene_name, media_file, thumbnail_file=thumbnail_file, close=close, skiplist=skiplist)
+	elif mimetype.startswith("image/"):
+		load_image_file(scene_name, media_file, thumbnail_file=thumbnail_file, skiplist=skiplist, close=close)
+	elif mimetype == "application/pdf":
+		load_pdf_file(scene_name, media_file, thumbnail_file=thumbnail_file, skiplist=skiplist, close=close)
+	else:
+		raise NotImplementedError()
+
 def load_meeting_media_item(item:MeetingMediaItem):
+	"""Load a media item from the Meeting Workbook or Watchtower"""
 	assert isinstance(item, MeetingMediaItem)
 	logger.info("Loading media item: %s", repr(item))
 	if item.media_type == "web":		# HTML page

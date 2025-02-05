@@ -118,8 +118,8 @@ class ObsControl(ObsControlBase):
 			self._scene_pos[scene_name] = pos
 		return super().create_scene(scene_name, make_unique=make_unique)
 
-	# Return the index of the first scene the name of which does not
-	# begin with any of the characters in skiplist.
+	# Return the index of the first scene with a name which does
+	# not begin with any of the characters in skiplist.
 	def select_scene_pos(self, skiplist:str=None):
 		if skiplist is None:
 			return None

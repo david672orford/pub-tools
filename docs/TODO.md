@@ -5,7 +5,6 @@
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
-* Straighten out the downloading of PDF thumbnails from Gdrive
 * patchbay: it is possible to drop a node onto an input provoking an error in the javascript console
 * filesytemencoding problems when started from khplayer-server.py (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Some Gdrive sharing URL's not acceptable for pulling JW Stream URL lists?
@@ -23,7 +22,7 @@
   * **flask cable** commands call logger.info(), but no output is produced
   * CLI support for enabling debugging per module
 * Incorporate [Linkture](https://github.com/erykjj/linkture)
-* Send scene reorder events to other (all) browsers
+* When the user change the position of a scene by dragging and dropping send custom event to the other browsers to they can move it too
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 
 ## Reference for Possible Future Projects

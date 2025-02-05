@@ -106,7 +106,7 @@ class GDriveClient:
 
 				# Video file
 				elif file[3].startswith("video/"):
-					# Thumbnail disabled because it is the first frame which is generally black
+					# Thumbnail disabled because it is the first frame which is generally black in videos from JW.ORG
 					self.image_files.append(self.GFile(file, None))
 
 				# PDF Document

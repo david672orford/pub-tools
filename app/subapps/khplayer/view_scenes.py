@@ -11,7 +11,7 @@ from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
 from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, \
-	load_webpage, load_text, load_meeting_media_item, load_media_file
+	load_webpage, load_text, load_meeting_media_item, load_media_url
 from .utils.cameras import list_cameras
 from .utils.zoom import zoom_tracker_loaded, find_second_window
 from .utils.controllers import meeting_loader
@@ -141,9 +141,9 @@ def page_scenes_move_scene():
 @blueprint.route("/scenes/submit", methods=["POST"])
 def page_scenes_submit():
 	logger.debug("scenes submit: %s", request.form)
+	action = request.form.get("action", "scene").split(":",1)
 	try:
-		# Button press
-		action = request.form.get("action", "scene").split(":",1)
+		# Which button was pressed?
 		match action[0]:
 
 			# User clicked on a scene. Switch to it.
@@ -252,6 +252,7 @@ def page_scenes_add_url():
 	return add_url(request.form["add-url"])
 
 def add_url(url):
+	print(f"add_url({repr(url)})")
 	def background_loader():
 		sleep(1)
 
@@ -262,13 +263,6 @@ def add_url(url):
 			if meeting_loader.get_video_metadata(url):
 				load_video_url(None, url)
 				return
-
-			# FIXME: We shouldn't need this
-			# Featured video URL
-			#if (m := re.match(r"[^/]+/mediaitems/FeaturedLibraryVideos/([^/]+)$", url_obj.fragment)):
-			#	media_url = "https://www.jw.org/finder?lank=" + m.group(1)
-			#	load_video_url(None, media_url)
-			#	return
 
 			page = meeting_loader.get_webpage_metadata(url)
 			if page.player is not None:
@@ -281,12 +275,9 @@ def add_url(url):
 			progress_callback(_("Fetching headers of \"%s\"...") % unquote(url))
 			# HEAD times out on JW.ORG, so excluded
 			response = meeting_loader.head(url)
-			mimetype = response.headers.get("Content-Type").split(";")[0]
-			if mimetype.split("/")[0] in scene_name_prefixes:
-				filename = os.path.basename(unquote(urlparse(url).path))
-				save_as = make_media_cachefile_name(filename, mimetype)
-				meeting_loader.download_media(url, cachefile=save_as, callback=progress_callback)
-				load_media_file(filename, save_as, mimetype, close=True)
+			mimetype = response.headers.get("Content-Type").split(";")[0].lower()
+			if mimetype.split("/")[0] in scene_name_prefixes or mimetype == "application/pdf":
+				load_media_url(None, url, mimetype)
 				return
 
 		# Anything else gets displayed in a webview.

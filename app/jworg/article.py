@@ -84,4 +84,3 @@ class Article:
 		# Remove the section which has the page images
 		#for el in self.article_tag.xpath(".//div[@id='docSubImg']"):
 		#	el.getparent().remove(el)
-

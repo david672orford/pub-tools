@@ -37,6 +37,9 @@ class GzipResponseWrapper:
 	@property
 	def headers(self):
 		return self.response.headers
+	@property
+	def status(self):
+		return self.response.status
 
 class Fetcher:
 	user_agent = "Mozilla/5.0"
@@ -154,7 +157,12 @@ class Fetcher:
 			cachefile = os.path.join(self.cachedir, os.path.basename(urlparse(url).path))
 		if not os.path.exists(cachefile):
 			response = self.get(url)
-			total_expected = int(response.headers.get("Content-Length"))
+			assert response.status == 200, response.status
+			total_expected = response.headers.get("Content-Length")
+			if total_expected is not None:		# PDF files observed to lack
+				total_expected = int(total_expected)
+			else:
+				logger.warning("%s has no Content-Length")
 			with open(cachefile + ".tmp", "wb") as fh:
 				total_recv = 0
 				last_callback = 0
@@ -165,7 +173,7 @@ class Fetcher:
 					fh.write(chunk)
 					total_recv += len(chunk)
 					logger.debug("%d byte chunk, %s of %s bytes received", len(chunk), total_recv, total_expected)
-					if callback:
+					if callback and total_expected is not None:
 						now = time()
 						if (now - last_callback) >= 0.5 or total_recv == total_expected:
 							callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=total_expected)
@@ -400,4 +408,3 @@ class Fetcher:
 					}
 
 		return {}
-
