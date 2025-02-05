@@ -158,7 +158,7 @@ class ObsScript:
 			elif widget.type == "float":
 				setattr(settings, widget.name, obs.obs_data_get_double(raw_settings, widget.name))
 			elif widget.type in ("text", "select"):
-				setattr(settings, widget.name, obs.obs_data_get_string(raw_settings, widget.name))
+				setattr(settings, widget.name, obs.obs_data_get_string(raw_settings, widget.name).strip())
 			elif widget.type != "button":
 				raise AssertionError("Undefined widget type: %s" % widget.type)
 		return settings
@@ -189,7 +189,7 @@ class ObsScript:
 		for widget in self.gui:
 			if widget.type == "bool":
 				obs.obs_data_set_default_bool(raw_settings, widget.name, widget.default_value)
-			elif widget.type == "bool":
+			elif widget.type == "int":
 				obs.obs_data_set_default_int(raw_settings, widget.name, widget.default_value)
 			elif widget.type == "float":
 				obs.obs_data_set_default_double(raw_settings, widget.name, widget.default_value)

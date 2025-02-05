@@ -11,7 +11,6 @@
 
 ## Easy Improvements
 
-* Listen address and port setting in khplayer-server.py
 * Verify cache cleaning policy and file categorization
 * Add cleaners for gdrive-cache and flask-cache
 * Progress bar for Gdrive downloads. This will require knowing the file size. (may already be done)

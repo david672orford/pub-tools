@@ -44,13 +44,17 @@ class KHPlayer(ObsScript):
 
 		# Define script configuration GUI
 		self.gui = [
+			ObsWidget("text", "listen_address", "Listen Address", default_value="127.0.0.1"),
+			ObsWidget("int", "listen_port", "Listen Port", default_value=5000, min=1024, max=65535, step=1),
 			ObsWidget("bool", "enable", "Enable Server", default_value=False),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
-		# Instantiante the KH Player app and prepare to serve it.
+		# Instantiate the KH Player app and prepare to serve it.
 		self.app = create_app()
 		self.enable = False		# should the HTTP server be running?
+		self.listen_address = "127.0.0.1"
+		self.listen_port = 5000
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
 		self.logger = logging.getLogger("app")
@@ -67,9 +71,11 @@ class KHPlayer(ObsScript):
 				self.logger.setLevel(logging.WARN)
 			self.debug = settings.debug
 
-		if settings.enable != self.enable:
+		if settings.enable != self.enable or settings.listen_address != self.listen_address or settings.listen_port != self.listen_port:
 			self.logger.debug("enable changed from %s to %s", self.enable, settings.enable)
 			self.enable = settings.enable
+			self.listen_address = settings.listen_address
+			self.listen_port = settings.listen_port
 			self.apply_server_thread_state()
 
 	def on_unload(self):
@@ -91,12 +97,10 @@ class KHPlayer(ObsScript):
 
 		if self.enable:
 			self.logger.debug("Starting server...")
-			#listen_address = "127.0.0.1"
-			listen_address = "0.0.0.0"
-			listen_port = 5000
 			try:
 				self.server = make_server(
-					listen_address, port = listen_port,
+					self.listen_address,
+					port = self.listen_port,
 					app = self.app,
 					request_handler = CleanlogWSGIRequestHandler,
 					threaded = True
