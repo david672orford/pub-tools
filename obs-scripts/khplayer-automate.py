@@ -185,7 +185,11 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		def action():
 			if return_to_previous and self.previous_scene is not None:
 				self.set_scene(self.previous_scene)
-			run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
+			# TODO: add Windows support
+			try:
+				run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
+			except FileNotFoundError:
+				print("pactl not found")
 		self.enqueue(action)
 
 class MediaStopper:
