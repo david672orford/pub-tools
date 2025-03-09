@@ -19,10 +19,12 @@ meeting_loader = MeetingLoader(
 from .obs_control import ObsControl, ObsError
 from .obs_config import ObsConfig
 
+# Read connection parameters for OBS-Websocket from config.py.
+# Fall back to parameters read directly from OBS config file.
 obs_websocket_config = current_app.config.get("OBS_WEBSOCKET")
 if obs_websocket_config is None:
 	obs_config = ObsConfig()
-	obs_websocket_config = obs_config.default_websocket_config()
+	obs_websocket_config = obs_config.websocket_config()
 
 obs = ObsControl(config = obs_websocket_config)
 

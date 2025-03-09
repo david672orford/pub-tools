@@ -15,7 +15,7 @@ class ObsConfig:
 	def websocket_config_filename(self):
 		return os.path.join(self.obs_dir, "plugin_config", "obs-websocket", "config.json")
 
-	def default_websocket_config(self):
+	def websocket_config(self):
 		filename = self.websocket_config_filename()
 		if os.path.exists(filename):
 			with open(filename) as fh:
@@ -29,6 +29,7 @@ class ObsConfig:
 		return None
 
 	def enable_websocket(self):
+		"""Enable the OBS-Websocket plugin"""
 		filename = self.websocket_config_filename()
 		temp_filename = f"{filename}.tmp"
 		with open(filename) as fh:

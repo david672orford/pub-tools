@@ -6,6 +6,7 @@
   (This is likely the case only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
 * patchbay: it is possible to drop a node onto an input provoking an error in the javascript console
+* patchbay: nodes jump slightly on reload
 * filesytemencoding problems when started from khplayer-server.py (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Some Gdrive sharing URL's not acceptable for pulling JW Stream URL lists?
 

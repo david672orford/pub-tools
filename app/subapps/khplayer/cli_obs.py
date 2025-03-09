@@ -8,6 +8,7 @@ import json
 from time import sleep
 import uuid
 import subprocess
+import logging
 
 from flask import current_app
 from flask.cli import AppGroup
@@ -34,12 +35,17 @@ def print_json(data):
 @cli_obs.command("setup")
 def cmd_obs_setup():
 	"""Set up OBS to work well with KH Player"""
+	logging.basicConfig(level=logging.DEBUG)
 
 	obs_config = ObsConfig()
 
+	websocket_config = obs_config.websocket_config()
+	if websocket_config is None:
+		print("No OBS configuration found")
+		return
+
 	print("Enabling OBS-Websocket...")
-	enabled = obs_config.default_websocket_config().get("obs_websocket_enabled", False)
-	if not enabled:
+	if not websocket_config.get("obs_websocket_enabled", False):
 		obs_config.enable_websocket()
 
 	print("Starting OBS...")
@@ -412,6 +418,13 @@ def cmd_obs_save_source_screenshot(source_name):
 def cmd_obs_get_video_settings():
 	"""Get the output video resolution and other settings"""
 	print_json(obs.get_video_settings())
+
+@cli_obs.command("set-video-settings")
+@click.argument("settings")
+def cmd_obs_set_video_settings(settings):
+	logging.basicConfig(level=logging.DEBUG)
+	settings = json.loads(settings)
+	obs.set_video_settings(settings)
 
 @cli_obs.command("get-output-list")
 def cmd_obs_get_output_list():

@@ -238,6 +238,7 @@ class ObsControlBase:
 			self.connect()
 		self.responses[message["d"]["requestId"]] = ObsResponsePending
 		try:
+			logger.debug("Sending: %s", str(message))
 			self.ws.send(json.dumps(message))
 		except Exception as e:
 			self.close()

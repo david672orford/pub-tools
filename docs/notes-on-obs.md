@@ -7,6 +7,7 @@
 * [Build Instructions for Linux](https://github.com/obsproject/obs-studio/wiki/build-instructions-for-linux)
 * [Building on Debian (from forum)](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
 * [Checking out Pull Requests](https://stackoverflow.com/questions/27567846/how-can-i-check-out-a-github-pull-request-with-git#30584951)
+* [Debian OBS Studio Build Mini-HOWTO](https://obsproject.com/forum/threads/debian-obs-studio-build-mini-howto.169680/)
 
 ## OBS Studio Installation
 
@@ -28,24 +29,26 @@ browser sources.
 * [How to Use OBS with Zoom](https://www.eigenmagic.com/2020/04/22/how-to-use-obs-studio-with-zoom/) -- Instruction for connecting OBS and Zoom using a V4L virtual camera on Ubuntu Linux
 * [VDO.Ninja](https://docs.vdo.ninja/) -- Browser-based videoconferencing designed for integration with OBS
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
+* [SRT Protocol Streaming Guide](https://obsproject.com/kb/srt-protocol-streaming-guide)
 
 ### SRT Instructions
 
-* Create a media source
-* Turn off **Local file**
-* Turn off **Restart playback when source becomes active**
-* Set **Input** to an SRT URL such as srt://192.168.0.1:4000?mode=listener
-* Set the **Input format** to "mpegts"
+* On Receiving end
+    * Create a media source
+    * Turn off **Local file**
+    * Turn off **Restart playback when source becomes active**
+    * Set **Input** to an SRT URL such as srt://192.168.0.1:4000?mode=listener
+    * Set the **Input format** to "mpegts"
 * Go to the other OBS and open settings
-* Under **Stream** change the **Service** to Custom
-* Set the **Server** to an SRT URL such as srt://192.168.6.251:4000
-* Save settings
-* Press **Start Streaming**
+    * Under **Stream** change the **Service** to Custom
+    * Set the **Server** to an SRT URL such as srt://192.168.6.251:4000
+    * Save settings
+    * Press **Start Streaming**
 
 The above has about three seconds of latency. To get down to about half a second:
 
-* Go to settings **Output**
-* Change the **Output mode** to Custom
+* Go to **Settings**, **Output** on the sender
+* Change the **Output Mode** to Custom
 * Switch to the **Recording** tab
 * Change **FFmpeg Output Type** to Output to URL
 * Set the **File path or URL** to the caller URL used above
@@ -153,6 +156,7 @@ of quite a number of users.
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
 * [Lua: Deadlocks in scripts that implement video sources and call obs_enter_graphics](https://github.com/obsproject/obs-studio/issues/6674)
+* [WHIP/WebRTC support missing on linux release](https://github.com/obsproject/obs-studio/issues/9484)
 
 ## Notes from Programming in OBS
 
