@@ -422,7 +422,6 @@ def cmd_obs_get_video_settings():
 @cli_obs.command("set-video-settings")
 @click.argument("settings")
 def cmd_obs_set_video_settings(settings):
-	logging.basicConfig(level=logging.DEBUG)
 	settings = json.loads(settings)
 	obs.set_video_settings(settings)
 
