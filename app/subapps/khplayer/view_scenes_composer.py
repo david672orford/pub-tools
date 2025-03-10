@@ -223,18 +223,20 @@ class Padded:
 
 # Face Detection
 # Takes a snapshot of the indicated scene, finds the face, and computes
-# and returns a view box for the speaker.
-#
+# and returns a bust (head-and-shoulders) view box for the speaker.
 # This uses:
 #   https://pypi.org/project/face-recognition/
 # The initial experimental code was more ambitious and may be of value later:
 #   https://github.com/david672orford/pub-tools/blob/v0.8/app/subapps/khplayer/cli_obs.py
-# There you can find:
-#  * Alternative implementation using Batch-Face
+# The experimental code included:
+#  * An alternative implementation using Batch-Face
 #  * Attempts to infer a head-and-shoulders box from the face bbox
 #  * Smooth panning and zooming of the OBS transform to the selected crop box
 def find_face(scene_uuid, id, source_uuid):
-	backoff = 2.2
+	frame_width = 1280
+	frame_height = 720
+	bust_forehead_allowance = 0.7
+	bust_breast_allowance = 1.0
 
 	from face_recognition import load_image_file, face_locations
 
@@ -246,33 +248,53 @@ def find_face(scene_uuid, id, source_uuid):
 	image = load_image_file(tempfile)
 	image_height, image_width = image.shape[:2]
 
+	# Get bounding boxes of faces
 	faces = face_locations(image)
+	print("faces:", faces)
+
+	# If at least one face was found,
 	if len(faces) > 0:
-		print("faces:", faces)
 		top, right, bottom, left = faces[0]
-		print(f"horizontal extent: {left} -- {right}")
-		print(f"vertical extent: {top} -- {bottom}")
+		print(f"face horizontal extent: {left} -- {right}")
+		print(f"face vertical extent: {top} -- {bottom}")
 
 		face_width = right - left
 		face_height = bottom - top
-		print("face dimensions:", face_width, face_height)
+		print(f"face dimensions: {face_width} {face_height}")
 
-		face_x = (left + right) / 2
-		face_y = (top + bottom) / 2
-		print("face center pos:", face_x, face_y)
+		# Face bbox encloses the eyes, nose, and mouth. Expand above and below
+		# by an amound found generally sufficient to include the forhead above
+		# and the top of the breast below.
+		bust_top = max(top - face_height * bust_forehead_allowance, 0)
+		bust_bottom = min(bottom + face_height * bust_breast_allowance, frame_height)
+		bust_height = bust_bottom - bust_top
+		print(f"bust vertical extent: {bust_top} -- {bust_bottom} ({bust_height})")
 
-		free_left = left
-		free_right = image_width - right
-		print("horizontal distance to image edges:", free_left, free_right)
+		# Find the center of this expanded bounding box on which we will center the crop frame.
+		x = (left + right) / 2
+		y = (bust_top + bust_bottom) / 2
+		print(f"bust center pos: {x} {y}")
+
+		# Find the space to be cropped off the frame above and below.
+		free_top = bust_top
+		free_bottom = image_height - bust_bottom
+		print(f"vertical distances to bust edges: {free_top} {free_bottom}")
+
+		# Find the space to be cropped off the left and right assuming a 16:9 frame.
+		half_bust_frame_width = bust_height * frame_width / frame_height / 2
+		print(f"half bust frame width: {half_bust_frame_width}")
+		free_left = max(x - half_bust_frame_width, 0)
+		free_right = max(frame_width - x - half_bust_frame_width, 0)
+		print(f"horizontal distances to edges of framed bust: {free_left} {free_right}")
+
+		# Compute X and Y shift slider positions
 		x = free_left / (free_left + free_right)
-
-		free_top = top
-		free_bottom = image_height - bottom
 		y = free_top / (free_top + free_bottom)
+		print(f"Shifts: {x} {y}")
 
 		return (
-			int(x * 100),									# X
-			int((1.0 - y) * 100),							# Y (inverted)
-			max(image_height / face_height / backoff, 1.0)	# Zoom
+			int(x * 100),								# X
+			int((1.0 - y) * 100),						# Y (inverted)
+			max(frame_height / bust_height, 1.0)		# Zoom
 			)
 	return None
