@@ -416,12 +416,13 @@ def cmd_obs_save_source_screenshot(source_name):
 
 @cli_obs.command("get-video-settings")
 def cmd_obs_get_video_settings():
-	"""Get the output video resolution and other settings"""
+	"""Get the canvas and output video resolutions and framerate"""
 	print_json(obs.get_video_settings())
 
 @cli_obs.command("set-video-settings")
 @click.argument("settings")
 def cmd_obs_set_video_settings(settings):
+	"""Set the canvas and output video resolutions and framerate"""
 	settings = json.loads(settings)
 	obs.set_video_settings(settings)
 
