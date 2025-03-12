@@ -1,4 +1,5 @@
 #! /bin/sh
+# Make a compiled copy of the application including only necessary files
 set -eu
 
 mkdir -p build/app

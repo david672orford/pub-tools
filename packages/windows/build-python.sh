@@ -1,6 +1,10 @@
 #! /bin/sh
+# Download and configure Python and required packages
 set -eu
 
+WINE=/opt/wine-stable/bin/wine
+
+# Download Python, Get-PIP, and Dlib wheel
 mkdir -p download
 cd download
 for url in \
@@ -16,6 +20,7 @@ for url in \
 	done
 cd ..
 
+# Unpack Python
 mkdir -p build/python
 cd build/python
 unzip ../../download/python-3.12.8-embed-amd64.zip
@@ -26,28 +31,31 @@ sys.path.insert(-1, sys.path[-1] + ".zip")
 HERE
 echo "import site" >>python312._pth
 
-# Install dependencies
-# Tested with Wine 10.0-rc1
-wine python.exe ../../download/get-pip.py
-wine python.exe -m pip install setuptools
+# Install packages named in requirements.txt.
+# Tested with Wine 10.0 (wine-stable in Ubuntu 24.04)
+$WINE python.exe ../../download/get-pip.py
+$WINE python.exe -m pip install setuptools
 if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
 	then
-	wine python.exe -m pip install ../../download/dlib-19.24.99-cp312-cp312-win_amd64.whl
+	$WINE python.exe -m pip install ../../download/dlib-19.24.99-cp312-cp312-win_amd64.whl
 	fi
-wine python.exe -m pip install -r ../../../../requirements.txt --no-warn-script-location
+$WINE python.exe -m pip install -r ../../../../requirements.txt --no-warn-script-location
 
-# Slim down
-wine python.exe -m pip uninstall -y setuptools
-rm -r Scripts Include
-find Lib/site-packages -name '*.dist-info' | grep -v werkzeug | xargs rm -r
+# Slim down by removing unneeded scripts, C include files, tests, and metadata.
+#$WINE python.exe -m pip uninstall -y setuptools
+find Lib/site-packages -name '*.dist-info' | grep -v werkzeug | grep -v pymorphy3_dicts_ru | grep -v face_recognition | xargs rm -r
 find Lib/site-packages -name __pycache__ | xargs rm -rf
-find Lib/site-packages -name 'test*' -type d | xargs rm -r
+find Lib/site-packages -name 'test*' -type d | xargs rm -rf
+rm -r Scripts Include
 rm -r Lib/site-packages/lxml/includes
 
-# Compile
+# Compile Python source files
 python3 -m compileall -b Lib/site-packages
 find Lib/site-packages -name '*.py' | xargs rm
 
+# Move as many packages as we can into a zip file.
+# File access in Windows is much slower than in Linux, so this
+# speeds up startup.
 cd Lib
 mkdir tmp
 cd site-packages
@@ -71,7 +79,6 @@ for i in \
 		proxy_tools \
 		pycparser \
 		pygments \
-		pymorphy3 \
 		requests \
 		rich \
 		typing_extensions.pyc \
@@ -94,6 +101,7 @@ if [ ! -d Lib ]
 	exit 1
 	fi
 
+# Create a list of files to include in the MSI.
 find . -type f \
 	| wixl-heat --prefix "./" \
 		--component-group Python \

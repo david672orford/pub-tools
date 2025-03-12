@@ -48,7 +48,7 @@ class ObsConfig:
 	def get_config(self):
 		config = ConfigParser(strict=False)
 		config.optionxform = str
-		config.read(self.config_filename())
+		config.read(self.config_filename(), encoding="utf-8-sig")
 		return config
 
 	def save_config(self, config):

@@ -49,7 +49,11 @@ def cmd_obs_setup():
 		obs_config.enable_websocket()
 
 	print("Starting OBS...")
-	obs_handle = subprocess.Popen(["obs"])
+	if sys.platform == "win32":
+		obs_cmd = ["cmd", "/c", "c:/ProgramData/Microsoft/Windows/Start Menu/Programs/OBS Studio/OBS Studio (64bit).lnk"]
+	else:
+		obs_cmd = ["obs"]
+	obs_handle = subprocess.Popen(obs_cmd)
 
 	while True:
 		try:
@@ -98,6 +102,15 @@ def cmd_obs_setup():
 	except ModuleNotFoundError:
 		print("Module ewmh not found")
 
+	if sys.platform == "win32":
+		subprocess.run(["taskkill", "/IM", "obs64.exe"])
+	elif sys.platform == "linux":
+		from ewmh import EWMH
+		wm = EWMH()
+		for window in wm.getClientList():
+			if window.get_wm_class()[0] == "obs":
+				wm.setCloseWindow(window)
+
 	while(obs_handle.returncode is None):
 		print("Now please close OBS.")
 		try:
@@ -138,7 +151,7 @@ def cmd_obs_setup():
 			("khplayer-zoom-tracker.py", {}),
 		):
 		scripts.append({
-			"path": os.path.join(current_app.root_path, "..", "obs-scripts", filename),
+			"path": os.path.normpath(os.path.join(current_app.root_path, "..", "obs-scripts", filename)).replace("\\","/"),
 			"settings": settings,
 			})
 	scenes["modules"]["scripts-tool"] = scripts

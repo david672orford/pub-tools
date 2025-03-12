@@ -297,4 +297,5 @@ def find_face(scene_uuid, id, source_uuid):
 			int((1.0 - y) * 100),						# Y (inverted)
 			max(frame_height / bust_height, 1.0)		# Zoom
 			)
+
 	return None

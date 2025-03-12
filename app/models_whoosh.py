@@ -17,6 +17,7 @@ from whoosh.qparser import QueryParser
 from .models import VideoCategories, Videos
 
 # Dictionary-based stemmer for Russian
+# Imported and instantiated on first use
 def morpher():
 	if not hasattr(morpher, "obj"):
 		#from pymorphy2 import MorphAnalyzer

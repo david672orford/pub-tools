@@ -70,7 +70,7 @@ And install it:
 
 ## Building MSI Packages
 
-* https://wiki.gnome.org/msitools/HowTo/CreateMSI
+* https://wiki.gnome.org/msitools/HowTo/CreateMSI (No shortcut)
 * https://www.firegiant.com/docs/wix/v3/tutorial/
 * https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with
 
@@ -83,4 +83,3 @@ And install it:
 ## Powershell
 
 * https://serverfault.com/questions/877548/how-to-download-an-archive-and-extract-it-without-saving-the-archive-to-disk-usi
-
