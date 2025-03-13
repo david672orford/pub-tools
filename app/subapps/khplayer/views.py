@@ -33,7 +33,6 @@ from . import view_jwstream
 from . import view_songbook
 from . import view_slides
 from . import view_videos
-if sys.platform == "linux":
-	if current_app.config["PATCHBAY"]:
-		from . import view_patchbay
-	from . import view_config
+if sys.platform == "linux" and current_app.config["PATCHBAY"]:
+	from . import view_patchbay
+	from . import view_patchbay_config

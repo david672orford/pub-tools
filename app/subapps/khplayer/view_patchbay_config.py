@@ -13,19 +13,17 @@ from .utils.pipewire import Patchbay
 
 logger = logging.getLogger(__name__)
 
-menu.append((_("Config"), "/config/"))
-
-@blueprint.route("/config/")
+@blueprint.route("/patchbay/config/")
 def page_config():
 	patchbay = Patchbay()
 	patchbay.load()
 	return render_template(
-		"khplayer/config.html",
+		"khplayer/patchbay_config.html",
 		patchbay = patchbay,
 		top = ".."
 		)
 
-@blueprint.route("/config/save", methods=["POST"])
+@blueprint.route("/patchbay/config/save", methods=["POST"])
 def page_config_save():
 	patchbay = Patchbay()
 	patchbay.load()
