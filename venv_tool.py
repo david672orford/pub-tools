@@ -24,8 +24,14 @@ def activate(dist_packages=False):
 		sys.prefix = sys.exec_prefix = os.path.abspath(venv_dir)
 
 		# Drop packages added by the Linux distribution from the path
-		if not dist_packages:
-			sys.path = list(filter(lambda item: not item.endswith("/dist-packages"), sys.path))
+		clean_path = []
+		dist_path = []
+		for item in sys.path:
+			if item.endswith("/dist-packages"):
+				dist_path.append(item)
+			else:
+				clean_path.append(item)
+		sys.path = clean_path
 
 		# Add packages from the virtual environment to the path
 		import site
@@ -34,6 +40,9 @@ def activate(dist_packages=False):
 		else:
 			site_packages = os.path.join(sys.prefix, f"lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages")
 		site.addsitedir(site_packages)
+
+		if dist_packages:
+			sys.path.extend(dist_path)
 
 	#print(sys.path)
 

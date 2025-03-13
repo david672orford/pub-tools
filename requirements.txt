@@ -25,7 +25,8 @@ websocket-client==1.8.0
 ewmh==0.1.6; sys_platform != "win32"
 
 # Used by pub-tools script
-pywebview==5.3.2
+#pywebview==5.3.2
+pywebview==5.4
 
 # For printing and debugging
 rich==13.9.4

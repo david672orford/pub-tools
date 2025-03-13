@@ -12,6 +12,7 @@ Required for --gui-toolkit qt:
 from venv_tool import activate
 activate(dist_packages=True)
 
+import os
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import webview
 from threading import Thread
@@ -56,6 +57,11 @@ webview.start(
 	# qt: small unless we set QT_SCALE_FACTOR=2, no button padding
 	# gtk: patchbay does not work
 	gui = options.gui_toolkit,
+	icon = os.path.join(
+		os.path.dirname(__file__),
+		"icons",
+		(options.subapp if options.subapp is not None else "pub-tools") + ".svg"
+		),
 	)
 logging.info("Webview has exited.")
 
