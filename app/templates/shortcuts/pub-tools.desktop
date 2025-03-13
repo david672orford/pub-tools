@@ -3,8 +3,8 @@ Version=1.0
 Encoding=UTF-8
 Type=Application
 Name={{name}}
-{% if chromium -%}
-Exec=/usr/bin/chromium-browser --app=http://localhost:5000/{{subapp}}/
+{% if use_chrome -%}
+Exec={{chrome_path}} --app=http://localhost:5000/{{subapp}}/
 {%- else -%}
 Exec={{pub_tools}} --subapp={{subapp}}
 {%- endif %}

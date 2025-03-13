@@ -26,7 +26,7 @@ msi:
 
 build-icons:
 	mkdir -p build/icons; \
-	for icon in pub-tools khplayer epub; \
+	for icon in pub-tools khplayer epubs; \
 		do \
 		for size in 16 32 48 64; \
 			do \

@@ -18,15 +18,25 @@ def init_app(app):
 
 @cli_shortcuts.command("pub-tools")
 @click.option("--start-menu", is_flag=True, help="Place in start menu rather than on desktop")
-@click.option("--chromium", is_flag=True, help="Use Chromium browser rather than Pywebview")
+@click.option("--use-chrome", is_flag=True, help="Use Chrome or Chromium browser rather than Pywebview")
 @click.argument("subapp")
-def cmd_shortcuts_pub_tools(start_menu, chromium, subapp):
+def cmd_shortcuts_pub_tools(start_menu, use_chrome, subapp):
 	"""Create shortcut to a pub-tools subapp"""
+	chrome_path = None
+	if use_chrome:
+		for item in ("/usr/bin/chromium-browser", "google-chrome"):
+			if os.path.exists(item):
+				chrome_path = item
+				break
+		else:
+			print("Neither Chromium nor Chrome found")
+			return
 	with current_app.app_context():
 		root =  os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 		shortcut = render_template(
 			"shortcuts/pub-tools.desktop",
-			chromium = chromium,
+			use_chrome = use_chrome,
+			chrome_path = chrome_path,
 			pub_tools = os.path.join(root, "pub-tools"),
 			icons = os.path.join(root, "icons"),
 			name = current_app.blueprints[subapp].display_name,

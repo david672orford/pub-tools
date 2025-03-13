@@ -13,7 +13,7 @@
 
         <Icon Id="PubtoolsIcon" SourceFile="build/icons/pub-tools.ico"/>
         <Icon Id="KhplayerIcon" SourceFile="build/icons/khplayer.ico"/>
-        <Icon Id="EpubIcon" SourceFile="build/icons/epub.ico"/>
+        <Icon Id="EpubsIcon" SourceFile="build/icons/epubs.ico"/>
         <Property Id="ARPPRODUCTICON" Value="PubtoolsIcon" />
 
 		<Upgrade Id="$(var.ProductUpgradeCode)">
@@ -44,7 +44,7 @@
 							/>
 					<Shortcut Id="EpubShortcut"
 							Name="Epub Viewer"
-							Icon="EpubIcon"
+							Icon="EpubsIcon"
 							Description="Epub viewer for JW.ORG"
 							Target="[INSTALLDIR]python\pythonw.exe"
 							Arguments="pub-tools --subapp=epubs"
