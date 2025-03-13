@@ -1,12 +1,12 @@
-#=============================================================================
-# CLI for managing the media cache
-#=============================================================================
+"""CLI for managing the media cache"""
 
 from flask import current_app
 from flask.cli import AppGroup
 from collections import defaultdict
 from time import time
-import os, re, logging
+import os
+import re
+import logging
 
 from rich.console import Console
 from rich.table import Table

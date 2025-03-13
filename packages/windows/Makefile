@@ -30,7 +30,7 @@ build-icons:
 		do \
 		for size in 16 32 48 64; \
 			do \
-			$(RSVG_CONVERT) -w $${size} -h $${size} ../../launchers/$${icon}.svg -o build/icons/$${icon}-$${size}x$${size}.png; \
+			$(RSVG_CONVERT) -w $${size} -h $${size} ../../icons/$${icon}.svg -o build/icons/$${icon}-$${size}x$${size}.png; \
 			done; \
 		$(ICOTOOL) -c -o build/icons/$$icon.ico build/icons/$${icon}-*x*.png; \
 		rm build/icons/$${icon}-*x*.png; \

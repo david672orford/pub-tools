@@ -1,7 +1,0 @@
-[Desktop Entry]
-Version=1.0
-Type=Application
-Terminal=false
-Name=KH Player
-Exec=/home/kh/pub-tools/pub-tools --subapp=khplayer
-Icon=/home/kh/pub-tools/launchers/khplayer.svg

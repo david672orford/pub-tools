@@ -45,11 +45,11 @@
        height="33.866665"
        x="0"
        y="0" /><path
-       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#e3dbdb;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="m 31.749999,11.90625 1e-6,19.843749 H 2.1166667 V 11.90625 Z"
        id="path330"
        sodipodi:nodetypes="ccccc" /><path
-       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#deaa87;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"
        d="M 33.072917,11.90625 16.933333,2.6458333 0.79375,11.90625 Z"
        id="path10580"
        sodipodi:nodetypes="cccc" /><g
@@ -79,7 +79,7 @@
          id="nyt_x5F_exporter_x5F_info"
          display="none">
 </g></g><rect
-       style="fill:none;stroke:#333333;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#5599ff;stroke:#333333;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round"
        id="rect10431"
        width="15.875"
        height="9.260417"
@@ -87,7 +87,7 @@
        y="13.229166"
        rx="3.1433103e-08"
        ry="0.10583334" /><path
-       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#666666;stroke:#808080;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 20.994069,15.169221 3.96875,2.645833 -3.96875,2.645833 z"
        id="path10433"
        sodipodi:nodetypes="cccc" /></g></svg>

@@ -1,0 +1,17 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Type=Application
+Name={{name}}
+{% if chromium -%}
+Exec=/usr/bin/chromium-browser --app=http://localhost:5000/{{subapp}}/
+{%- else -%}
+Exec={{pub_tools}} --subapp={{subapp}}
+{%- endif %}
+Icon={{icons}}/{{subapp}}.svg
+Terminal=false
+{%- if subapp == "khplayer" -%}
+Categories=AudioVideo;Video;Spirituality
+{% elif subapp == "epubs" -%}
+Categories=Education;Viewer
+{%- endif %}
