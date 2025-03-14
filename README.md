@@ -8,7 +8,7 @@ OBS Studio which turn it into a media player for use at congregation meetings.
 
 To install on Ubuntu and other Debian-family Linuxes:
 
-    $ sudo apt-get install git cmake pulseaudio-utils python3-pip python3-venv
+    $ sudo apt-get install git cmake pulseaudio-utils python3-pip python3-venv fonts-roboto
     $ git clone https://github.com/david672orford/pub-tools.git
     $ cd pub-tools
     $ ./venv_tool.py --create
