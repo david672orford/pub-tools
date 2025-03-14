@@ -24,11 +24,11 @@ parser = ArgumentParser(
 	description = __doc__,
 	formatter_class = RawDescriptionHelpFormatter,
 	)
+parser.add_argument("--listen-addr", default="127.0.0.1")
+parser.add_argument("--listen-port", type=int, default=5000)
 parser.add_argument("--debug", action="store_true")
 parser.add_argument("--debug-requests", action="store_true")
 parser.add_argument("--use-reloader", action="store_true")
-parser.add_argument("--listen-addr", default="127.0.0.1")
-parser.add_argument("--listen-port", type=int, default=5000)
 options = parser.parse_args()
 
 logging.basicConfig(

@@ -26,8 +26,12 @@ parser = ArgumentParser(
 	formatter_class = RawDescriptionHelpFormatter,
 	)
 parser.add_argument("--subapp", default=None, help="Choose the top-level directory")
+parser.add_argument("--gui-toolkit", default="gtk", help="Select gtk or qt (defaults to gtk)")
 parser.add_argument("--no-server", action="store_true", help="Don't run own instance of the Pub Tools server")
-parser.add_argument("--gui-toolkit", default="gtk", help="Select gtk or qt")
+parser.add_argument("--listen-addr", default="127.0.0.1", help="Set listen address (defaults to 127.0.0.1)")
+parser.add_argument("--listen-port", type=int, default=0, help="Set listen port (defaults to auto-assigned)")
+parser.add_argument("--width", type=int, default=1200, help="Set window width")
+parser.add_argument("--height", type=int, default=900, help="Set window height")
 parser.add_argument("--debug", action="store_true", help="Enabling devtools, verbose logging")
 options = parser.parse_args()
 
@@ -37,21 +41,56 @@ logging.basicConfig(
 	datefmt = '%H:%M:%S'
 	)
 
+# Disabled because does not respect target="_blank"
+#webview.settings['OPEN_EXTERNAL_LINKS_IN_BROWSER'] = False
+
 server = server_thread = None
 if not options.no_server:
 	logging.info("Starting embedded web server...")
-	server = make_server("127.0.0.1", port=5000, app=create_app(), threaded=True)
+	server = make_server(
+		options.listen_addr, port = options.listen_port,
+		app = create_app(),
+		threaded = True,
+		)
 	server_thread = Thread(target=lambda: server.serve_forever())
 	server_thread.daemon = True
 	server_thread.start()
 
-logging.info("Starting webview...")
-webview.create_window(
-	title = "Pub-Tools",
-	url = "http://localhost:5000/" + ((options.subapp + "/") if options.subapp else ""),
-	width = 1200,
-	height = 900,
+url = "http://localhost:{port}/".format(port=server.socket.getsockname()[1])
+title = "Pub-Tools"
+if options.subapp is not None:
+	url = "{base}{subapp}/".format(base=url, subapp=options.subapp)
+print("URL:", url)
+
+logging.info("Creating webview...")
+window = webview.create_window(
+	title = title,
+	url = url,
+	width = options.width,
+	height = options.height,
 	)
+
+def on_title(title):
+	"""Page title change handler"""
+	print("Title:", title)
+	if title != "Pub-Tools":
+		title = "Pub-Tools - " + title
+	window.title = title
+
+def on_loaded(window):
+	"""Page loaded handler"""
+	title = window.dom.get_elements("title")[0].text
+	on_title(title)
+	window.evaluate_js("""
+		document.documentElement.addEventListener("turbo:render", function(event) {
+			pywebview.api.on_title(document.getElementsByTagName("title")[0].textContent);
+			});
+		""")
+
+window.expose(on_title)
+window.events.loaded += on_loaded
+
+logging.info("Starting webview main loop...")
 webview.start(
 	debug = options.debug,
 	# qt: small unless we set QT_SCALE_FACTOR=2, no button padding
@@ -60,7 +99,7 @@ webview.start(
 	icon = os.path.join(
 		os.path.dirname(__file__),
 		"icons",
-		(options.subapp if options.subapp is not None else "pub-tools") + ".svg"
+		(options.subapp or "pub-tools") + ".svg"
 		),
 	)
 logging.info("Webview has exited.")
