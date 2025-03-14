@@ -1,7 +1,6 @@
 import os
 import sys
 import uuid
-import platform
 from importlib import import_module
 from flask import Flask, session
 import logging
