@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Type=Application
+Name={{name}}
+Exec={{web_browser}} {{url}}
+Icon={{icons}}/web-browser.svg
+Terminal=false
+Categories=Network
