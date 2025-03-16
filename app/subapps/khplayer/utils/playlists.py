@@ -28,7 +28,6 @@ class ZippedPlaylist:
 		self.zip_reader = zip_reader				# Zipfile compatible object
 		self.zip_filename = zip_filename			# filename of the .zip file
 		self.client_class = client_class
-		self.cachedir = cachedir					# directory into which to download media files
 		self.debuglevel = debuglevel
 
 		self.folder_name = None
@@ -442,7 +441,7 @@ class ZippedPlaylist:
 	# Find a file in the Gdrive folder which contains the current zipped playlist
 	def _find_neighbor_file(self, row):
 		if self.parent_reader is None:
-			self.parent_reader = self.client_class(self.path_to[:-1], [], cachedir=self.cachedir)
+			self.parent_reader = self.client_class(self.path_to[:-1], [])
 		pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
 		if self.debuglevel > 0:
 			print("media file search pattern:", pattern)

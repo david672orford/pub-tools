@@ -140,7 +140,6 @@ def get_fs_client(path:str):
 	#print(f"top={repr(top)}, path_to={path_to}, zip_filename={repr(zip_filename)}, path_within={path_within}")
 
 	if path_to[0] is not None:
-		media_cachedir = current_app.config["MEDIA_CACHEDIR"]
 		gdrive_cachedir = current_app.config["GDRIVE_CACHEDIR"]
 
 		# If the ID is a zip file, build the Gdrive download URL and open it as a remote playlist.
@@ -159,7 +158,6 @@ def get_fs_client(path:str):
 				zip_reader = zip_reader,
 				zip_filename = zip_filename,
 				client_class = client_class,
-				cachedir = media_cachedir,
 				)
 
 		# Otherwise it is a Gdrive folder
@@ -168,7 +166,6 @@ def get_fs_client(path:str):
 				path_to,
 				path_within,
 				thumbnails = True,
-				cachedir = media_cachedir,
 				)
 	else:
 		client = None

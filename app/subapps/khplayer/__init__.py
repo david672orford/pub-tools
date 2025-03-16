@@ -14,7 +14,7 @@ def init_app(app, url_prefix):
 	blueprint.cache.init_app(app, {
 		#"CACHE_TYPE": "SimpleCache",
 		"CACHE_TYPE": "FileSystemCache",
-		"CACHE_DIR": os.path.join(app.instance_path, "flask-cache"),
+		"CACHE_DIR": os.path.join(app.instance_path, "cache", "flask"),
 		})
 	app.register_blueprint(blueprint, url_prefix=url_prefix)
 

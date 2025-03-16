@@ -2,9 +2,11 @@ import os
 import sys
 import uuid
 from importlib import import_module
-from flask import Flask, session
+from glob import glob
+from shutil import rmtree
 import logging
 
+from flask import Flask, session
 from jsonschema import validate as jsonschema_validate
 
 from .utils.background import turbo
@@ -39,8 +41,8 @@ def create_app():
 
 		# Cache settings
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
-		MEDIA_CACHEDIR = os.path.join(app.instance_path, "media-cache"),
-		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "gdrive-cache"),
+		MEDIA_CACHEDIR = os.path.join(app.instance_path, "cache", "media"),
+		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "cache", "gdrive"),
 
 		# Pub Tools includes several subapps which can be enabled or disabled
 		ENABLED_SUBAPPS = [
@@ -204,10 +206,19 @@ def create_app():
 
 	# Create the directory to which we download media.
 	if not os.path.exists(app.config["MEDIA_CACHEDIR"]):
-		old_media_cachedir = os.path.join(app.instance_path, "cache")
-		if os.path.isdir(old_media_cachedir):
+		old_media_cachedir = os.path.join(app.instance_path, "media-cache")
+		if os.path.exists(old_media_cachedir):
+			logger.info("Moving media cache %s -> %s", old_media_cachedir, app.config["MEDIA_CACHEDIR"])
 			os.rename(old_media_cachedir, app.config["MEDIA_CACHEDIR"])
 		else:
-			os.mkdir(app.config["MEDIA_CACHEDIR"])
+			os.makedirs(app.config["MEDIA_CACHEDIR"])
+
+	if not os.path.exists(app.config["GDRIVE_CACHEDIR"]):
+		os.makedirs(app.config["GDRIVE_CACHEDIR"])
+
+	# Remove cache directories from old versions of Pub-Tools
+	for old_cache in glob(f"{app.instance_path}/*-cache"):
+		logger.info("Deleting old cache dir %s", old_cache)
+		rmtree(old_cache)
 
 	return app

@@ -29,9 +29,8 @@ import lxml.html
 logger = logging.getLogger(__name__)
 
 class GDriveClient:
-	def __init__(self, path_to:list, path_within:list, thumbnails:bool=False, cachedir:str="cache", debug:bool=False):
+	def __init__(self, path_to:list, path_within:list, thumbnails:bool=False, debug:bool=False):
 		self.folder_id = path_to[-1]
-		self.cachedir = cachedir
 		self.thumbnails = thumbnails
 		self.debug = debug
 
@@ -174,7 +173,7 @@ class GDriveClient:
 		return save_as
 
 	def download_file(self, file, save_as, callback=None):
-		"""Download file identified by GFile obj to cachedir"""
+		"""Download file identified by GFile obj"""
 		url = f"https://drive.google.com/uc?export=download&id={file.id}"
 		response = self.session.get(url, stream=True)
 		with open(save_as + ".tmp", "wb") as fh:

@@ -8,7 +8,7 @@ from .mimetypes import extmap
 from .httpfile import LocalZip
 
 class LocalDriveClient:
-	def __init__(self, path_to:list, path_within:list, thumbnails=False, cachedir="cache", debug=False):
+	def __init__(self, path_to:list, path_within:list, thumbnails=False, debug=False):
 		assert len(path_to) > 0
 		assert len(path_within) == 0
 		self.debug = debug

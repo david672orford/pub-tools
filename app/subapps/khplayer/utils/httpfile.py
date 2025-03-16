@@ -92,8 +92,8 @@ class HttpFile(Seekable):
 			print(f"HttpFile close: {self._request_count} requests read {self._total_read} of {self._file_size} bytes ({percent}%)")
 		self.session = None
 
-# Disk cache which we can wrap around HttpFile
 class FileCache(Seekable):
+	"""Disk cache which we can wrap around HttpFile"""
 	blocksize = 256 * 1024
 	def __init__(self, fh, cachedir, cachekey, debug=False):
 		self.fh = fh
@@ -180,8 +180,8 @@ class FileCache(Seekable):
 			json.dump({"file-size": self._file_size}, fh)
 		self.fh.close()
 
-# A seekable file-like object which represents a byte range offset into another file-like object
 class FileRange(Seekable):
+	"""A seekable file-like object which represents a byte range offset into another file-like object"""
 	def __init__(self, fh, offset, size):
 		self._fh = fh
 		self._offset = offset
@@ -197,9 +197,11 @@ class FileRange(Seekable):
 		self._pos += size
 		return data
 
-# Add a function to ZipFile to open an embedded zip file, provided it does
-# not use additional compression.
 class EmbeddedZipMixin:
+	"""
+	Add a function to ZipFile to open an embedded zip file, provided
+	it does not use additional compression.
+	"""
 	def open_zipfile(self, filename):
 		"""Open an embedded zip file"""
 		if self.debug:
@@ -225,8 +227,8 @@ class EmbeddedZipMixin:
 			print("Wrapped.")
 		return zipfile
 
-# Same interface as RemoteZip, but for local file access.
 class LocalZip(ZipFile, EmbeddedZipMixin):
+	"""Same interface as RemoteZip, but for local file access."""
 	def __init__(self, path, debug=False):
 		self.fh = open(path, "rb")
 		self.debug = debug
@@ -234,9 +236,11 @@ class LocalZip(ZipFile, EmbeddedZipMixin):
 	def close(self):
 		self.fh.close()
 
-# Subclass ZipFile from the Python Standard Library so that we can
-# read zip files over HTTP rather than from the file system.
 class RemoteZip(ZipFile, EmbeddedZipMixin):
+	"""
+	Subclass ZipFile from the Python Standard Library so that we can
+	read zip files over HTTP rather than from the file system.
+	"""
 	def __init__(self, url, cachedir=None, cachekey=None, debug=False):
 		self.debug = debug
 		self.fh = HttpFile(url, debug=debug)
