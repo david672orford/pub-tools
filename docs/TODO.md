@@ -10,7 +10,7 @@
 * patchbay: nodes jump slightly on reload
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
-* Yeartext slide uses fonts not available on Windows.
+* Yeartext slide creation not implemented using Windows text source and fonts.
 * Yeartext slide uses Roboto font which is not necessarily installed on
   Ubuntu. Use fc-list to detect problem.
 * Playing video in pywebview requires packages which are not necessarily
@@ -22,22 +22,21 @@
 * Highlight current meeting
 * Progress bar for Gdrive downloads. This will require knowing the file size.
   (may already be done)
+* Cancel spotlight in Zoom when Zoom scene becomes active.
 
 ## Hard Stuff
 
-* Figure out to set up logging better:
+* Figure out how to set up logging better:
   * **flask cable** commands call logger.info(), but no output is produced
   * CLI support for enabling debugging per module
-* Incorporate [Linkture](https://github.com/erykjj/linkture)
+* Load Bible verses. Could incorporate [Linkture](https://github.com/erykjj/linkture).
 * When the user change the position of a scene by dragging and dropping send
   custom event to the other browsers to they can move it too
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 
-## Reference for Possible Future Projects
+## Reference for Future Automation Projects
 
-* https://basilchackomathew.medium.com/face-recognition-in-python-a-comprehensive-guide-960a48436d0f
-* https://stackoverflow.com/questions/384759/how-do-i-convert-a-pil-image-into-a-numpy-array#384926
-* https://towardsdatascience.com/lightning-fast-video-reading-in-python-c1438771c4e6
+* [Lightning Fast Video Reading in Python](https://towardsdatascience.com/lightning-fast-video-reading-in-python-c1438771c4e6)
 * [FFmpeg Scene selection : extracting iframes and detecting scene change](https://www.bogotobogo.com/FFMpeg/ffmpeg_thumbnails_select_scene_iframe.php)
 * [Audio-Visual Speaker Detection](https://medium.com/@siddheshdeshpande/audio-visual-active-speaker-detection-on-video-for-ai-tools-dc297443f0be)
 * [Speaker Identification](https://speechbrain.readthedocs.io/en/latest/tutorials/basics/what-can-i-do-with-speechbrain.html)
