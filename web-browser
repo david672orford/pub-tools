@@ -5,7 +5,9 @@ from venv_tool import activate
 activate(dist_packages=True)
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
 import webview
+import webview.menu as wm
 
 parser = ArgumentParser(
 	description = __doc__,
@@ -33,7 +35,15 @@ def on_loaded(window):
 	window.title = window.dom.get_elements("title")[0].text
 window.events.loaded += on_loaded
 
+menu = (
+	wm.Menu("Navigation", [
+		wm.MenuAction("Back", lambda: window.run_js("history.back()")),
+		wm.MenuAction("Forward", lambda: window.run_js("history.forward()")),
+		]),
+	)
+
 webview.start(
 	debug = options.debug,
 	gui = options.gui_toolkit,
+	menu = menu,
 	)
