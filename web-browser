@@ -11,11 +11,12 @@ parser = ArgumentParser(
 	description = __doc__,
 	formatter_class = RawDescriptionHelpFormatter,
 	)
-parser.add_argument("--gui-toolkit", default="gtk", help="Select gtk or qt (defaults to gtk)")
+parser.add_argument("--gui-toolkit", default="qt", help="Select gtk or qt (defaults to qt)")
 parser.add_argument("--width", type=int, default=1200, help="Set window width")
 parser.add_argument("--height", type=int, default=900, help="Set window height")
 parser.add_argument("--x", type=int, default=None, help="Set window X coordinate")
 parser.add_argument("--y", type=int, default=None, help="Set window Y coordinate")
+parser.add_argument("--debug", action="store_true", help="Enabling devtools, verbose logging")
 parser.add_argument("url", help="URL of site to open")
 options = parser.parse_args()
 print("options:", options)
@@ -32,4 +33,7 @@ def on_loaded(window):
 	window.title = window.dom.get_elements("title")[0].text
 window.events.loaded += on_loaded
 
-webview.start(gui = options.gui_toolkit)
+webview.start(
+	debug = options.debug,
+	gui = options.gui_toolkit,
+	)

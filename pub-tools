@@ -26,7 +26,7 @@ parser = ArgumentParser(
 	formatter_class = RawDescriptionHelpFormatter,
 	)
 parser.add_argument("--subapp", default=None, help="Choose the top-level directory")
-parser.add_argument("--gui-toolkit", default="gtk", help="Select gtk or qt (defaults to gtk)")
+parser.add_argument("--gui-toolkit", default="qt", help="Select gtk or qt (defaults to qt)")
 parser.add_argument("--no-server", action="store_true", help="Don't run own instance of the Pub Tools server")
 parser.add_argument("--listen-addr", default="127.0.0.1", help="Set listen address (defaults to 127.0.0.1)")
 parser.add_argument("--listen-port", type=int, default=0, help="Set listen port (defaults to auto-assigned)")
@@ -97,8 +97,8 @@ window.events.loaded += on_loaded
 logging.info("Starting webview main loop...")
 webview.start(
 	debug = options.debug,
-	# qt: small unless we set QT_SCALE_FACTOR=2, no button padding
 	# gtk: patchbay does not work
+	# qt: small unless we set QT_SCALE_FACTOR=2, no button padding
 	gui = options.gui_toolkit,
 	icon = os.path.join(
 		os.path.dirname(__file__),

@@ -3,7 +3,11 @@ Version=1.0
 Encoding=UTF-8
 Type=Application
 Name={{name}}
+{% if chrome_path -%}
+Exec={{chrome_path}} --app={{url}}
+{%- else -%}
 Exec={{web_browser}} {{url}}
+{%- endif %}
 Icon={{icons}}/web-browser.svg
 Terminal=false
 Categories=Network

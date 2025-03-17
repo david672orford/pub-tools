@@ -3,7 +3,7 @@ Version=1.0
 Encoding=UTF-8
 Type=Application
 Name={{name}}
-{% if use_chrome -%}
+{% if chrome_path -%}
 Exec={{chrome_path}} --app=http://localhost:5000/{{subapp}}/
 {%- else -%}
 Exec={{pub_tools}} --subapp={{subapp}}

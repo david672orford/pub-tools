@@ -23,21 +23,11 @@ def init_app(app):
 @click.argument("subapp")
 def cmd_shortcut_pub_tools(start_menu, use_chrome, subapp):
 	"""Create shortcut to a pub-tools subapp"""
-	chrome_path = None
-	if use_chrome:
-		for item in ("/usr/bin/chromium-browser", "google-chrome"):
-			if os.path.exists(item):
-				chrome_path = item
-				break
-		else:
-			print("Neither Chromium nor Chrome found")
-			return
 	with current_app.app_context():
 		root =  os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 		shortcut = render_template(
 			"shortcuts/pub-tools.desktop",
-			use_chrome = use_chrome,
-			chrome_path = chrome_path,
+			chrome_path = find_chrome() if use_chrome else None,
 			pub_tools = os.path.join(root, "pub-tools"),
 			icons = os.path.join(root, "icons"),
 			name = current_app.blueprints[subapp].display_name,
@@ -69,15 +59,17 @@ def cmd_shortcut_zoom(start_menu, name, url):
 
 @cli_shortcut.command("web-browser")
 @click.option("--start-menu", is_flag=True, help="Place in start menu rather than on desktop")
+@click.option("--use-chrome", is_flag=True, help="Use Chrome or Chromium browser rather than Pywebview")
 @click.argument("name")
 @click.argument("url")
-def cmd_shortcut_web_browser(start_menu, name, url):
+def cmd_shortcut_web_browser(start_menu, use_chrome, name, url):
 	"""Create shortcut to a Zoom meeting"""
 	root =  os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 	hash = shake_128(url.encode("utf8")).hexdigest(4)
 	with current_app.app_context():
 		shortcut = render_template(
 			"shortcuts/web-browser.desktop",
+			chrome_path = find_chrome() if use_chrome else None,
 			name = name,
 			url = url,
 			web_browser = os.path.join(root, "web-browser"),
@@ -86,6 +78,13 @@ def cmd_shortcut_web_browser(start_menu, name, url):
 	print(shortcut)
 	with open(os.path.join(get_install_dir(start_menu), f"web-browser-{hash}.desktop"), "w") as fh:
 		fh.write(shortcut)
+
+def find_chrome():
+	for item in ("/usr/bin/chromium-browser", "google-chrome"):
+		if os.path.exists(item):
+			return item
+	else:
+		raise AssertionError("Neither Chromium nor Chrome found")
 
 def get_install_dir(start_menu:bool):
 	if start_menu:
