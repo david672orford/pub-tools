@@ -1,4 +1,4 @@
-import os.path
+import os
 
 from flask import current_app, request, session, render_template, redirect
 from time import sleep
@@ -251,6 +251,8 @@ def find_face(scene_uuid, id, source_uuid):
 	# Get bounding boxes of faces
 	faces = face_locations(image)
 	print("faces:", faces)
+
+	os.unlink(tempfile)
 
 	# If at least one face was found,
 	if len(faces) > 0:

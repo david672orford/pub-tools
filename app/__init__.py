@@ -43,6 +43,7 @@ def create_app():
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		MEDIA_CACHEDIR = os.path.join(app.instance_path, "cache", "media"),
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "cache", "gdrive"),
+		FLASK_CACHEDIR = os.path.join(app.instance_path, "cache", "flask"),
 
 		# Pub Tools includes several subapps which can be enabled or disabled
 		ENABLED_SUBAPPS = [
