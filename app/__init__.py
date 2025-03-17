@@ -38,9 +38,9 @@ def create_app():
 		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
+		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "pub-tools.whoosh"),
 
 		# Cache settings
-		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "whoosh"),
 		MEDIA_CACHEDIR = os.path.join(app.instance_path, "cache", "media"),
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "cache", "gdrive"),
 		FLASK_CACHEDIR = os.path.join(app.instance_path, "cache", "flask"),
@@ -57,7 +57,7 @@ def create_app():
 		UI_LANGUAGE = None,				# language of the user interface
 		PUB_LANGUAGE = None,			# language in which to load publications from JW.ORG
 
-		# Settings for the KH Player subapp
+		# Additional settings for the KH Player subapp
 		THEME = None,					# TODO: implement in other subapps
 		SUB_LANGUAGE = None,			# choose language to enable video subtitles
 		VIDEO_RESOLUTION = "720p",		# resolution of videos from JW.ORG
@@ -68,10 +68,10 @@ def create_app():
 		SLIDES_DIR = os.path.abspath(os.path.join(app.instance_path, "slides")),
 		)
 
-	# Overlay with configuration from instance/config.py
+	# Overlay default configuration above with values from instance/config.py
 	app.config.from_pyfile("config.py")
 
-	# Apply default language settings
+	# If UI_LANGUAGE is still unset, get default from environment
 	if app.config["UI_LANGUAGE"] is None:
 		try:
 			# If we are running under OBS, get the locale from OBS
@@ -87,6 +87,8 @@ def create_app():
 					"Russian":"ru",
 					}[lang]
 			app.config["UI_LANGUAGE"] = lang
+
+	# If publication language for KH Player is still unset, make same as UI language
 	if app.config["PUB_LANGUAGE"] is None:
 		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
 
@@ -207,6 +209,7 @@ def create_app():
 
 	# Create the directory to which we download media.
 	if not os.path.exists(app.config["MEDIA_CACHEDIR"]):
+		# TEMPORARY: If it is in the old location, move it.
 		old_media_cachedir = os.path.join(app.instance_path, "media-cache")
 		if os.path.exists(old_media_cachedir):
 			logger.info("Moving media cache %s -> %s", old_media_cachedir, app.config["MEDIA_CACHEDIR"])
@@ -214,12 +217,14 @@ def create_app():
 		else:
 			os.makedirs(app.config["MEDIA_CACHEDIR"])
 
-	if not os.path.exists(app.config["GDRIVE_CACHEDIR"]):
-		os.makedirs(app.config["GDRIVE_CACHEDIR"])
-
-	# Remove cache directories from old versions of Pub-Tools
+	# TEMPORARY: Remove remaining cache directories from old versions of Pub-Tools
 	for old_cache in glob(f"{app.instance_path}/*-cache"):
 		logger.info("Deleting old cache dir %s", old_cache)
 		rmtree(old_cache)
+
+	# TEMPORARY: Remove Whoosh indexes which use the old naming scheme.
+	for old_whoosh in glob(f"{app.instance_path}/whoosh-*"):
+		logger.info("Deleting old Whoosh dir %s", old_whoosh)
+		rmtree(old_whoosh)
 
 	return app

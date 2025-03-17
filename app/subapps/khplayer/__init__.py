@@ -6,6 +6,10 @@ menu = []
 
 def init_app(app, url_prefix):
 
+	# Create the cache of fragments of zip files from Google Drive
+	if not os.path.exists(app.config["GDRIVE_CACHEDIR"]):
+		os.makedirs(app.config["GDRIVE_CACHEDIR"])
+
 	app.jinja_env.globals["menu"] = menu
 	app.jinja_env.filters["runningtime"] = time_to_str
 	app.jinja_env.globals["get_theme"] = get_theme

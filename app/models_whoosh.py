@@ -38,13 +38,15 @@ class BaseWhooshIndex:
 		if not os.path.exists(self.whoosh_path):
 			os.mkdir(self.whoosh_path)
 
-		if clear or not exists_in(self.whoosh_path, indexname=self.indexname):
-			create_in(self.whoosh_path, self.schema, indexname=self.indexname)
+		indexname = self.indexname + "-" + current_app.config["PUB_LANGUAGE"]
+		if clear or not exists_in(self.whoosh_path, indexname=indexname):
+			create_in(self.whoosh_path, self.schema, indexname=indexname)
 
 	def open(self):
 		with warnings.catch_warnings():
 			warnings.simplefilter("ignore", category=SyntaxWarning)
-			index = open_dir(self.whoosh_path, indexname=self.indexname)
+			indexname = self.indexname + "-" + current_app.config["PUB_LANGUAGE"]
+			index = open_dir(self.whoosh_path, indexname=indexname)
 		return index
 
 	@property
@@ -150,7 +152,6 @@ class IllustrationIndex(BaseWhooshIndex):
 		with index.searcher() as searcher:
 			return searcher.stored_fields(docnum)
 
-config = current_app.config
-whoosh_path = config["WHOOSH_PATH"] + "-" + config["PUB_LANGUAGE"]
+whoosh_path = current_app.config["WHOOSH_PATH"]
 video_index = VideoIndex(whoosh_path)
 illustration_index = IllustrationIndex(whoosh_path)
