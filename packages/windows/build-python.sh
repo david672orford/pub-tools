@@ -24,6 +24,8 @@ cd ..
 mkdir -p build/python
 cd build/python
 unzip ../../download/python-3.12.8-embed-amd64.zip
+
+# Configure sys.path
 cat - <<HERE >sitecustomize.py
 import sys
 sys.path.insert(0, "")
@@ -97,7 +99,7 @@ rm -r tmp
 cd ..
 if [ ! -d Lib ]
 	then
-	echo "Assertion failed"
+	echo "Assertion failed: not at expected level"
 	exit 1
 	fi
 
