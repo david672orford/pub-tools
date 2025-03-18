@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 
 class ObsWidget:
+	"""Representation of a GUI widget on the script's configuration screen"""
 	def __init__(self, type, name, display_name, value=None, min=None, max=None, step=1, default_value=None, options=None, callback=None):
 		self.type = type
 		self.name = name
@@ -17,40 +18,46 @@ class ObsWidget:
 		self.callback = callback
 
 class ObsSettings:
+	"""Wrapper for an OBS settings object"""
+
 	def __str__(self):
 		return str(self.__dict__)
 
 class ObsScene:
+	"""Wrapper for an OBS scene object"""
+
 	def __init__(self, scene):
 		self.scene = scene
 
-	# Name of scene as seen by user
 	@property
 	def name(self):
+		"""Name of scene as seen by user"""
 		return obs.obs_source_get_name(self.scene)
 
 class ObsSource:
+	"""Wrapper for an OBS source object"""
+
 	def __init__(self, source):
 		self.source = obs.calldata_source(source, "source")
 
-	# The source type such as "source_ffmpeg" or "source_vlc"
 	@property
 	def id(self):
+		"""The source type such as \"source_ffmpeg\" or \"source_vlc\""""
 		return obs.obs_source_get_id(self.source)
 
-	# Unique ID
 	@property
 	def uuid(self):
+		"""Unique ID"""
 		return obs.obs_source_get_uuid(self.source)
 
-	# The name of the source as seen by the user
 	@property
 	def name(self):
+		"""The name of the source as seen by the user"""
 		return obs.obs_source_get_name(self.source)
 
-	# An object to which we attach signal handlers to this source
 	@property
 	def signal_handler(self):
+		"""An object to which we attach signal handlers to this source"""
 		return obs.obs_source_get_signal_handler(self.source)
 
 	@property
@@ -61,33 +68,33 @@ class ObsSource:
 		obs.obs_data_release(raw_settings)
 		return settings
 
-	# Duration of recording in milliseconds
 	@property
 	def duration(self):
+		"""Duration of recording in milliseconds"""
 		return obs.obs_source_media_get_duration(self.source)
 
-	# Playhead position in milliseconds from the start
 	@property
 	def time(self):
+		"""Playhead position in milliseconds from the start"""
 		return obs.obs_source_media_get_time(self.source)
 
-	# Halt playback
 	def stop(self):
+		"""Halt playback"""
 		obs.obs_source_media_stop(self.source)
 
 	def __str__(self):
 		return f"<ObsSource id={self.id} name={repr(self.name)} uuid={self.uuid}>"
 
-# For iterating the scene and source lists
 @contextmanager
 def freeing(source_list):
+	"""For iterating the scene and source lists"""
 	try:
 		yield source_list
 	finally:
 		obs.source_list_release(source_list)
 
-# Derive your OBS script class from this
 class ObsScript:
+	"""Derive your OBS script class from this"""
 	gui = []
 
 	def __init__(self, debug=False):
@@ -139,13 +146,13 @@ class ObsScript:
 
 	# Install OBS callback functions in the global namespace of the calling module
 	def _install_callbacks(self, g):
-		g['script_description'] = lambda: self.__doc__
-		g['script_load'] = lambda settings: self._script_load(settings)
-		g['script_unload'] = lambda: self._script_unload()
-		g['script_save'] = lambda settings: self._script_save(settings)
-		g['script_defaults'] = lambda settings: self._script_defaults(settings)
-		g['script_properties'] = lambda: self._script_properties()
-		g['script_update'] = lambda settings: self._script_update(settings)
+		g["script_description"] = lambda: self.__doc__
+		g["script_load"] = lambda settings: self._script_load(settings)
+		g["script_unload"] = lambda: self._script_unload()
+		g["script_save"] = lambda settings: self._script_save(settings)
+		g["script_defaults"] = lambda settings: self._script_defaults(settings)
+		g["script_properties"] = lambda: self._script_properties()
+		g["script_update"] = lambda settings: self._script_update(settings)
 
 	# Turn the C settings list into an array of ObsSetting objects
 	def _pythonize_settings(self, raw_settings):

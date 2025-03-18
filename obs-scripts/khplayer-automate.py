@@ -2,11 +2,13 @@
 Automate startup and certain aspects of the playing of videos
 """
 
-import os, sys, re
+import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
-from obs_wrap import ObsScript, ObsScriptSourceEventsMixin, ObsWidget
+
+import re
 from subprocess import run
 import obspython as obs
+from obs_wrap import ObsScript, ObsScriptSourceEventsMixin, ObsWidget
 
 class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	"""
@@ -45,7 +47,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		self.playing_sources = set()			# sources currently playing video
 		self.previous_scene = None				# switch to this when playback stops
 
-		# Define script configuration GUI
+		# Define this script's configuration GUI
 		self.gui = [
 			ObsWidget("select", "screen", "Projector Screen", default_value="", options=[
 						["", "Not set"],
@@ -66,11 +68,17 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			yield (scene.name, scene.name)
 
 	def on_gui_change(self, settings):
-		"""Accept settings from the script configuration GUI"""
+		"""Accept settings from this script's configuration GUI"""
 		self.yeartext_scene = settings.yeartext_scene
 		self.stopper.end_trim = settings.end_trim
+		self.debug = settings.debug
+		self.stopper.debug = settings.debug
 		if settings.start_vcam:
-			obs.obs_frontend_start_virtualcam()
+			# Call from timer to prevent lockups during OBS startup
+			def callback():
+				obs.obs_frontend_start_virtualcam()
+				obs.remove_current_callback()
+			obs.timer_add(callback, 1)
 		else:
 			obs.obs_frontend_stop_virtualcam()
 		if settings.screen != "":
@@ -78,6 +86,8 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	def on_finished_loading(self):
 		"""OBS startup complete, scenes are loaded, switch to yeartext scene"""
+		if self.debug:
+			print("OBS startup complete, switching to yeartext scene")
 		self.set_scene(self.yeartext_scene)
 
 	def on_scene_activate(self, scene_name):
@@ -162,9 +172,9 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	def is_from_jworg(self, source):
 		"""Does the filename of this video suggest it is a video from JW.ORG?"""
+
 		# Find the source filename
 		settings = source.settings
-		print("Source settings:", settings)
 		if source.id == "ffmpeg_source":
 			filename = settings["local_file"]
 		elif source.id == "vlc_source":
@@ -173,7 +183,12 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 			filename = ""
 
 		# *_480P.mp4, *_720P.mp4, etc.
-		return re.search(r"_r\d+P\.mp4$", filename) is not None
+		from_jworg = re.search(r"_r\d+P\.mp4$", filename) is not None
+
+		if self.debug:
+			print(f"is_from_jworg({source.name}): filename={filename} from_jworg={from_jworg}")
+
+		return from_jworg
 
 	def act(self, mute, return_to_previous):
 		"""
@@ -185,7 +200,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		def action():
 			if return_to_previous and self.previous_scene is not None:
 				self.set_scene(self.previous_scene)
-			# TODO: add Windows support
+			# TODO: add Windows implementation of muting
 			try:
 				run(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", "1" if mute else "0"])
 			except FileNotFoundError:
@@ -237,7 +252,10 @@ class MediaStopper:
 		if self.debug:
 			print(f"Stopper cancel({source})")
 		if self.source is not None and source.uuid == self.source.uuid:
+			print("Stopper canceled")
 			self._cancel()
+		else:
+			print("No match, stopper not canceled")
 
 	def _cancel(self):
 		if self.timer_running:
@@ -254,4 +272,4 @@ class DummySource:
 	uuid = "dummy_source"
 	settings = {}
 
-ObsAutomate()
+automate = ObsAutomate(debug=True)
