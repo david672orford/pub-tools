@@ -84,24 +84,36 @@ OBS embeds Lua and Python interpreters. Scripts written in these language can au
 tasks, be sources and sinks of video and audio, and perform filtering. Python scripts
 do not generally run fast enough to process video, but Lua scripts do.
 
-* [Python/Lua Scripting](https://docs.obsproject.com/scripting) -- Description of the functions which a script should apply and how it calls the C API
-* [API Reference](https://docs.obsproject.com/reference-core-objects) -- Scripts call this C API through wrappers
-* [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting) -- Wiki page with more information about the funtions a script must provide
-* [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API) -- Examples of using the API from Python
-* [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua) -- Examples of using the API from Lua
-* [Tips and Tricks for Lua Scripts](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/) -- OBS Forum thread
+* [Python/Lua Scripting](https://docs.obsproject.com/scripting) --
+  Description of the functions which a script should supply and how it
+  should call the C API
+* [API Reference](https://docs.obsproject.com/reference-core-objects) --
+  Scripts call this C API through wrappers
+* [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting) --
+  Wiki page with more information about the funtions a script must provide
+* [Python Scripting Cheatsheet](https://github.com/upgradeQ/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API) --
+  Examples of using the API from Python
+* [Cheat Sheet for Creating Scenes and Scene Items Functions in Lua](https://github.com/Chriscodinglife/get-started-with-lua) --
+  Examples of using the API from Lua
+* [Tips and Tricks for Lua Scripts](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/) --
+  OBS Forum thread
 
 ### Example OBS Scripts
 
-* [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/) -- Place for people to post their scripts
-* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) -- Framework for attaching Lua scripts to sources. Includes some interesting examples.
-* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake) -- Animate the scene item transform in Python or Lua
+* [Scripts Forum](https://obsproject.com/forum/resources/categories/scripts.5/) --
+  Place for people to post their scripts
+* [OBS-Libre-Macros](https://github.com/upgradeQ/obs-libre-macros) --
+  Framework for attaching Lua scripts to sources. Includes some interesting examples.
+* [Scripting Tutorial Source Shake](https://obsproject.com/wiki/Scripting-Tutorial-Source-Shake) --
+  Animate the scene item transform in Python or Lua
 * Video filters written in LUA and shader language
     * [Scripting Tutorial Halftone Filter](https://obsproject.com/wiki/Scripting-Tutorial-Halftone-Filter)
     * [Pan Zoom Rotate Filter](https://obsproject.com/forum/resources/pan-zoom-rotate.1489/)
     * [RGB Adjustment Filter](https://obsproject.com/forum/resources/rgb-adjustment-tool-filter.1642/ )
-* [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) -- Solid color video source using drawing commands
-* [JW Timer](https://github.com/lucidokr/obs-jw-timer/) -- Countdown timer in a text source
+* [Lua Color Source](https://obsproject.com/forum/resources/lua-color-source.717/) --
+  Solid color video source using drawing commands
+* [JW Timer](https://github.com/lucidokr/obs-jw-timer/) --
+  Countdown timer in a text source
 * [Projector Hotkeys](https://obsproject.com/forum/resources/projector-hotkeys.1197/) [Github](https://github.com/DavidKMagnus/projector-hotkeys) -- Create new hotkey actions
 * Screenshotting
     * [Advanced Filename Formatter](https://github.com/Penwy/adv-ff)
