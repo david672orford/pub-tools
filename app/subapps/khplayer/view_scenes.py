@@ -11,7 +11,7 @@ from . import menu
 from .views import blueprint
 from .utils.controllers import obs, ObsError
 from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, \
-	load_webpage, load_text, load_meeting_media_item, load_media_url
+	load_webpage, load_text, load_meeting_media_item, load_media_url, load_media_file
 from .utils.cameras import list_cameras
 from .utils.zoom import zoom_tracker_loaded, find_second_window
 from .utils.controllers import meeting_loader
