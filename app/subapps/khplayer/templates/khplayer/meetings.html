@@ -16,14 +16,14 @@
 {% for week in weeks %}
 <tr>
 	<td>{{week.week_of()}}</td>
-	<td>
+	<td{% if week.year == now_year and week.week == now_week and not now_weekend %} class="circled"{% endif %}>
 		{%if week.mwb_docid%}
 		<a href="{{week.mwb_docid}}/?title={{(week.week_of() + ' ' + gettext('Life and Ministry'))|urlencode}}">
 			{{gettext("Life and Ministry")}}
 		</a>
 		{%endif%}
 	</td>
-	<td>
+	<td{% if week.year == now_year and week.week == now_week and now_weekend %} class="circled"{% endif %}>
 		{%if week.watchtower_docid%}
 		<a href="{{week.watchtower_docid}}/?title={{(week.week_of() + ' ' + gettext('Watchtower'))|urlencode}}">
 			{{gettext("Watchtower")}}

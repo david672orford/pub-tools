@@ -2,10 +2,7 @@ from flask import current_app, render_template, request, redirect, stream_with_c
 from datetime import date
 from time import sleep
 from sqlalchemy import or_, and_
-from datetime import date
-from threading import Thread
 from dataclasses import asdict
-from markupsafe import escape
 import traceback
 import logging
 
@@ -27,11 +24,22 @@ menu.append((_("Meetings"), "/meetings/"))
 @blueprint.route("/meetings/")
 def page_meetings():
 	weeks = Weeks.query
+
+	now_year, now_week, now_weekday = date.today().isocalendar()
+
+	# Unless "all" is in the query string, limit to current and future weeks
 	if not request.args.get("all", False):
-		now_year, now_week, now_weekday = date.today().isocalendar()
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
+
 	weeks = weeks.order_by(Weeks.year, Weeks.week)
-	return render_template("khplayer/meetings.html", weeks=weeks.all(), top="..")
+	return render_template(
+		"khplayer/meetings.html",
+		weeks = weeks.all(),
+		now_year = now_year,
+		now_week = now_week,
+		weekend = now_weekday in (0, 6),
+		top="..",
+		)
 
 # Target for "Load More Weeks" button at bottom of upcoming meetings list
 @blueprint.route("/meetings/update", methods=["POST"])
@@ -141,7 +149,7 @@ def get_meeting_media(docid):
 		return
 
 	# Use the meeting loader to download the article and scan it for media
-	# such as videos and illustrations. This is an iterator, so we can 
+	# such as videos and illustrations. This is an iterator, so we can
 	# yield items as they are obtained. Also save them in a list for the cache.
 	media = []
 	for item in meeting_loader.extract_media(meeting_loader.meeting_url(docid), callback=progress_callback):
@@ -160,4 +168,3 @@ def load_meeting_media(title, items):
 	for item in items:
 		load_meeting_media_item(item)
 	progress_callback(_("✔ All requested media have been loaded."), last_message=True, cssclass="success")
-

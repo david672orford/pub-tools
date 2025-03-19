@@ -313,6 +313,12 @@ TABLE.borders {
 	border-collapse: collapse;
 	margin-bottom: .3em;
 	}
+TABLE.borders.full-width {
+		width: 100%;
+		}
+TABLE.borders.medium-width {
+		width: 40em;
+		}
 TABLE.borders TH, TABLE.borders TD {
 	border: thin solid #808080;
 	text-align: left;
@@ -325,11 +331,11 @@ TABLE.borders TH {
 	}
 TABLE.borders TD {
 	}
-TABLE.borders.full-width {
-	width: 100%;
+TABLE.borders TD:has(a:hover) {
+	background-color: #f0f0f0;
 	}
-TABLE.borders.medium-width {
-	width: 40em;
+TABLE.borders TD.circled {
+	border: solid red 2px;
 	}
 TABLE.borders BUTTON.add {
 	width: 1.5em;
