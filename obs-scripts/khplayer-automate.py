@@ -92,15 +92,11 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 	def on_scene_activate(self, scene_name):
 		"""Activate a dummy source when Yeartext scene becomes active"""
-		if self.debug:
-			print("Scene activated:", scene_name)
 		if scene_name == self.yeartext_scene:
 			self.video_add(DummySource())
 
 	def on_scene_deactivate(self, scene_name):
 		"""Deactivate dummy source when Yeartext scene ceases to be active"""
-		if self.debug:
-			print("Scene deactivated:", scene_name)
 		if scene_name == self.yeartext_scene:
 			self.video_remove(DummySource(), return_to_previous=False)
 		self.previous_scene = scene_name
@@ -137,7 +133,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def video_add(self, source):
 		"""Add a video to the list of those playing"""
 		if self.debug:
-			print("video_add(%s)" % source)
+			print("video_add(%s)" % source.name)
 		name = source.name
 		if not name in self.playing_sources:
 			self.playing_sources.add(name)
@@ -156,7 +152,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	def video_remove(self, source, return_to_previous=True):
 		"""Remove a video from the list of those playing"""
 		if self.debug:
-			print("video_remove(%s, return_to_previous=%s)" % (source, return_to_previous))
+			print("video_remove(%s, return_to_previous=%s)" % (source.name, return_to_previous))
 
 		name = source.name
 		if name in self.playing_sources:
@@ -242,25 +238,22 @@ class MediaStopper:
 		if self.debug:
 			print("Position: %s of %s" % (source.time/1000.0, source.duration/1000.0))
 			print("remaining:", remaining/1000.0)
-			print("stop after:", remaining/1000.0)
 		if remaining > 0:
 			obs.timer_add(self.callback, remaining)
 			self.timer_running = True
 
 	def cancel(self, source):
 		"""Called when the list of playing videos changes"""
+		match = self.source is not None and source.uuid == self.source.uuid
 		if self.debug:
-			print(f"Stopper cancel({source})")
-		if self.source is not None and source.uuid == self.source.uuid:
-			print("Stopper canceled")
+			print(f"Stopper cancel({source.name}): match={match}")
+		if match:
 			self._cancel()
-		else:
-			print("No match, stopper not canceled")
 
 	def _cancel(self):
 		if self.timer_running:
 			if self.debug:
-				print(f"Stopping timer for {self.source}")
+				print(f"Stopping timer for {self.source.name}")
 			obs.timer_remove(self.callback)
 			self.timer_running = False
 		self.source = None
