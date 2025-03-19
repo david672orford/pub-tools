@@ -4,9 +4,7 @@ import os
 from datetime import date, timedelta
 from time import sleep
 import logging
-import json
 from dataclasses import asdict
-import re
 
 from flask import current_app
 from flask.cli import AppGroup
