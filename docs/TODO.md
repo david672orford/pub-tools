@@ -19,7 +19,6 @@
 
 ## Easy Improvements
 
-* Highlight current meeting
 * Progress bar for Gdrive downloads. This will require knowing the file size.
   (may already be done)
 * Cancel spotlight in Zoom when Zoom scene becomes active.

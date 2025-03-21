@@ -334,8 +334,12 @@ TABLE.borders TD {
 TABLE.borders TD:has(a:hover) {
 	background-color: #f0f0f0;
 	}
-TABLE.borders TD.circled {
+TABLE.borders TD.circled A {
+	display: block;
 	border: solid red 2px;
+	border-radius: .7em;
+	padding: .15em;
+	margin: calc(-.15em - 2px);
 	}
 TABLE.borders BUTTON.add {
 	width: 1.5em;
