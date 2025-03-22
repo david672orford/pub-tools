@@ -15,12 +15,13 @@ def cmd_zoom_setup():
 	"""Perform initial setup of Zoom to work with KHPlayer"""
 
 	zoom_configfile = os.path.join(os.environ["HOME"], ".config", "zoomus.conf")
-	tmpfile = "." + zoom_configfile
+	tmpfile = zoom_configfile + ".tmp"
 	backup_file = zoom_configfile + "~"
 
 	# Load Zoom's configuration
-	config = ConfigParser()
-	config.read(zoom_configfile)
+	config = ConfigParser(strict=False)
+	config.optionxform = str
+	config.read(zoom_configfile, encoding="utf-8-sig")
 
 	# https://askubuntu.com/questions/1388053/what-are-all-of-the-available-zoomus-conf-options
 	config.set("General", "showSystemTitlebar", "true")
