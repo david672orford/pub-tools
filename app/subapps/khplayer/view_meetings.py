@@ -37,7 +37,7 @@ def page_meetings():
 		weeks = weeks.all(),
 		now_year = now_year,
 		now_week = now_week,
-		weekend = now_weekday in (0, 6),
+		now_weekend = now_weekday in (0, 6),
 		top="..",
 		)
 

@@ -322,7 +322,7 @@ TABLE.borders.medium-width {
 TABLE.borders TH, TABLE.borders TD {
 	border: thin solid #808080;
 	text-align: left;
-	padding: .3em;
+	padding: .4em;
 	}
 TABLE.borders.selection TH:first-child, TABLE.borders.selection TD:first-child {
 	width: 1px;
