@@ -1,18 +1,38 @@
-# Notes on Streaming to TV
+# Notes on Streaming From OBS to TV
 
-## MediaMTX
+## Setting Up RTSP Server Perl
 
-https://github.com/bluenviron/mediamtx
+Install RTSP Server Perl:
 
-### Working in OBS Stream Mode
+    $ sudo apt install rtsp-server-perl
 
-* srt://localhost:8890/?streamid=publish:obs (2-3 seconds)
+Change /etc/default/rtsp-server-perl to:
 
-### Working in OBS Record Mode
+    CLIENT_PORT=8554
+    CLIENT_BIND=192.168.6.10
+    SERVER_PORT=5554
+    SERVER_BIND=127.0.0.1
+    LOG_LEVEL=3
+    EXTRA_OPTS=""
 
-* rtsp://localhost:8554/obs (< 1 second)
+Restart:
+
+    $ sudo systemctl restart rtsp-server-perl.service
+
+Start streaming from OBS:
+
+* Go to **Settings**, **Output**
+* Switch the **Output Mode** to Custom
+* Select the **Recording** tab
+* Switch **Type** to **Custom Output (FFmpeg)**
+* Switch **FFmpeg Output Type** to Output to URL
+* Set the **File path or URL** to rtsp://localhost:5554/obs
+* Set the **Container Format** to rtsp
+* Press **Start Recording**
 
 ## Chromecast
+
+So far we have not figured out how to stream from OBS to a Chromecast. These notes are from our attempt.
 
 * VLC can stream V4L2 to Chromecast, but with a delay of around a minute
 * [Google Cast](https://en.wikipedia.org/wiki/Google_Cast)
@@ -23,6 +43,8 @@ https://github.com/bluenviron/mediamtx
 * [Cast.js Chromecast Sender Library](https://github.com/castjs/castjs)
 * [Cast All The Things](https://github.com/skorokithakis/catt)
 
-## FFMpeg
+## References
 
-* https://ffmpeg.org/ffmpeg-protocols.html
+* [RTSP Server Perl](https://metacpan.org/dist/RTSP-Server)
+* [MediaMTX](https://github.com/bluenviron/mediamtx) -- See notes for setting up OBS
+* [FFmpeg Protocol Documentation](https://ffmpeg.org/ffmpeg-protocols.html)

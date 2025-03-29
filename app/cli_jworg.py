@@ -472,6 +472,9 @@ def cmd_download_epubs(pub_code):
 		for issue in PeriodicalIssues.query.filter_by(pub_code=pub_code).filter(PeriodicalIssues.epub_filename==None):
 			print(f"issue: {issue.pub_code} {issue.issue_code}")
 			epub_url = pub_finder.get_epub_url(issue.pub_code, issue.issue_code)
+			if epub_url is None:
+				print("  No Epub")
+				continue
 			download_epub(pub_finder, issue, epub_url)
 	else:
 		for book in Books.query.filter_by(pub_code=pub_code).filter(Books.epub_filename==None).filter(Books.formats.contains("epub")):

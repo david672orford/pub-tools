@@ -15,7 +15,8 @@
   Ubuntu. Use fc-list to detect problem.
 * Playing video in pywebview requires packages which are not necessarily
   installed in Ubuntu. See
-  https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video
+  https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video May include: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+* Meeting tab current date and weekend/midweek seems to be on GMT
 
 ## Easy Improvements
 

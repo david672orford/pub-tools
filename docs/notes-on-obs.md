@@ -31,7 +31,7 @@ browser sources.
 * [Send SRT Video from OBS to OBS without a Server](https://youtu.be/eDgZ-IqvCJc?si=jGq48syIcpUk4IIL) -- SRT is a streaming format which can connect programs
 * [SRT Protocol Streaming Guide](https://obsproject.com/kb/srt-protocol-streaming-guide)
 
-### SRT Instructions
+### OBS-to-OBS Streaming Using SRT
 
 * On Receiving end
     * Create a media source
@@ -50,6 +50,7 @@ The above has about three seconds of latency. To get down to about half a second
 * Go to **Settings**, **Output** on the sender
 * Change the **Output Mode** to Custom
 * Switch to the **Recording** tab
+* Set **Type** to **Custom Output (FFmpeg)**
 * Change **FFmpeg Output Type** to Output to URL
 * Set the **File path or URL** to the caller URL used above
 * Set the **Container Format** to mpegts
