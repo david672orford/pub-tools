@@ -5,7 +5,7 @@ import re
 import io
 import sqlite3
 import os.path
-from tempfile import NamedTemporaryFile
+from tempfile import mkstemp
 from zipfile import ZipFile
 from urllib.parse import urlencode
 import json
@@ -202,10 +202,13 @@ class ZippedPlaylist:
 
 		# The playlist is in a Sqlite DB. We extract it to a temporary file and open it.
 		dbfile = self.zip_reader.read("userData.db")
-		with NamedTemporaryFile() as fh:
-			fh.write(dbfile)
-			fh.flush()
-			conn = sqlite3.connect(fh.name)
+
+		tempfile_name = conn = None
+		try:
+			tempfile, tempfile_name = mkstemp(suffix=".db")
+			with os.fdopen(tempfile, "wb") as fh:
+				fh.write(dbfile)
+			conn = sqlite3.connect(tempfile_name)
 			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
 
@@ -282,6 +285,12 @@ class ZippedPlaylist:
 					print(self.files[-1])
 					print()
 
+		finally:
+			if conn is not None:
+				conn.close()
+			if tempfile_name is not None:
+				os.unlink(tempfile_name)
+
 	# Load image list from a JWPUB file such as the Public Talk Media Playlist (S-34mp_U.jwpub)
 	def _load_jwpub_playlist(self, manifest):
 		publication = manifest["publication"]
@@ -291,10 +300,12 @@ class ZippedPlaylist:
 
 		# The playlist is in a Sqlite DB. We extract it to a temporary file and open it.
 		dbfile = contents.read(publication["fileName"])
-		with NamedTemporaryFile() as fh:
-			fh.write(dbfile)
-			fh.flush()
-			conn = sqlite3.connect(fh.name)
+		tempfile_name = conn = None
+		try:
+			tempfile, tempfile_name = mkstemp(suffix=".db")
+			with os.fdopen(tempfile, "wb") as fh:
+				fh.write(dbfile)
+			conn = sqlite3.connect(tempfile_name)
 			conn.row_factory = sqlite3.Row
 			cur = conn.cursor()
 
@@ -398,6 +409,11 @@ class ZippedPlaylist:
 					if self.debuglevel > 0:
 						print(self.files[-1])
 						print()
+		finally:
+			if conn is not None:
+				conn.close()
+			if tempfile_name is not None:
+				os.unlink(tempfile_name)
 
 	def _find_embedded_file(self, zip_reader, row):
 		try:
