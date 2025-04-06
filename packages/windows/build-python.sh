@@ -20,12 +20,12 @@ for url in \
 	done
 cd ..
 
-# Unpack Python
+echo "Unpacking Python..."
 mkdir -p build/python
 cd build/python
 unzip ../../download/python-3.12.8-embed-amd64.zip
 
-# Configure sys.path
+echo "Configure sys.path..."
 cat - <<HERE >sitecustomize.py
 import sys
 sys.path.insert(0, "")
@@ -35,6 +35,7 @@ echo "import site" >>python312._pth
 
 # Install packages named in requirements.txt.
 # Tested with Wine 10.0 (wine-stable in Ubuntu 24.04)
+echo "Installing required Python packages..."
 $WINE python.exe ../../download/get-pip.py
 $WINE python.exe -m pip install setuptools
 if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
@@ -44,20 +45,27 @@ if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
 $WINE python.exe -m pip install -r ../../../../requirements.txt --no-warn-script-location
 
 # Slim down by removing unneeded scripts, C include files, tests, and metadata.
-#$WINE python.exe -m pip uninstall -y setuptools
+echo "Removing unnecessary package files..."
+$WINE python.exe -m pip uninstall -y setuptools
+rm -r Lib/site-packages/pip
+rm -r Scripts Include
 find Lib/site-packages -name '*.dist-info' | grep -v werkzeug | grep -v pymorphy3_dicts_ru | grep -v face_recognition | xargs rm -r
 find Lib/site-packages -name __pycache__ | xargs rm -rf
 find Lib/site-packages -name 'test*' -type d | xargs rm -rf
-rm -r Scripts Include
+find Lib/site-packages -name '*.h' | xargs rm -f
+find Lib/site-packages -name '*.pxi' | xargs rm -f
+find Lib/site-packages -name 'include' | xargs rm -rf
 rm -r Lib/site-packages/lxml/includes
 
-# Compile Python source files
+# Compile Python source files to .pyc files and remove them.
+echo "Compiling Python source code..."
 python3 -m compileall -b Lib/site-packages
 find Lib/site-packages -name '*.py' | xargs rm
 
 # Move as many packages as we can into a zip file.
 # File access in Windows is much slower than in Linux, so this
 # speeds up startup.
+echo "Packing packages into zipfile..."
 cd Lib
 mkdir tmp
 cd site-packages
@@ -104,9 +112,12 @@ if [ ! -d Lib ]
 	fi
 
 # Create a list of files to include in the MSI.
+echo "Creating manifest..."
 find . -type f \
 	| wixl-heat --prefix "./" \
 		--component-group Python \
 		--var var.PythonBuildDir \
 		--directory-ref PYTHONINSTALLDIR \
 		>../heat-python.wxs
+
+echo "Done."
