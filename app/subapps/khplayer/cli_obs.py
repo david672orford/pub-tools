@@ -222,7 +222,7 @@ def cmd_create_scene(scene_name):
 @click.argument("scene_name")
 def cmd_obs_get_scene_item_list(scene_name):
 	"""Show the items in the specified scene"""
-	table = Table(show_header=True, title="Scene Items", show_lines=False)
+	table = Table(show_header=True, title=f"Items in Scene \"{scene_name}\"", show_lines=False)
 	for col in (
 			"Idx",
 			"ID",
@@ -252,7 +252,7 @@ def cmd_obs_get_scene_item_list(scene_name):
 			"sourceUuid",
 			#"sceneItemTransform",
 			)])
-		Console().print(table)
+	Console().print(table)
 
 @cli_obs.command("get-scene-item-transform")
 @click.argument("scene_name")
