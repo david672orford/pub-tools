@@ -5,17 +5,16 @@
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
-* patchbay: it is possible to drop a node onto an input provoking an error in
-  the javascript console
-* patchbay: nodes jump slightly on reload
 * Yeartext slide uses Roboto font which is not necessarily installed on
   Ubuntu. Use fc-list to detect problem.
-* Opening Yeartext scene in Layout messes it up.
 * Playing video in pywebview requires packages which are not necessarily
   installed in Ubuntu. (See
   https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video) Required may include: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 * Meeting tab current date and weekend/midweek seems to be on GMT
 * Exception thrown on expired Jwstream links.
+* patchbay glitches:
+  * It is possible to drop a node onto an input provoking an error in the javascript console
+  * Nodes jump slightly on reload
 
 ## Finish Windows Port
 

@@ -73,6 +73,10 @@ def page_scenes_composer(scene_uuid):
 			if scene_item["sceneItemTransform"]["sourceWidth"] == 0:
 				continue
 
+			# PTZ not appropriate for text or color sources
+			if scene_item["inputKind"].split("_")[0] in ("text", "color"):
+				continue
+
 			# In order to do pseudo-PTZ we need to first make sure each item is scaled to bounds.
 			xform = scene_item["sceneItemTransform"]
 			if xform["boundsType"] == "OBS_BOUNDS_NONE":
