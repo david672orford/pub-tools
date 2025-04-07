@@ -8,20 +8,23 @@
 * patchbay: it is possible to drop a node onto an input provoking an error in
   the javascript console
 * patchbay: nodes jump slightly on reload
-* Problems with Unicode filenames on Windows when started from khplayer-server.py.
-  (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
-* Yeartext slide creation not implemented using Windows text source and fonts.
 * Yeartext slide uses Roboto font which is not necessarily installed on
   Ubuntu. Use fc-list to detect problem.
+* Opening Yeartext scene in Layout messes it up.
 * Playing video in pywebview requires packages which are not necessarily
-  installed in Ubuntu. See
-  https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video May include: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
+  installed in Ubuntu. (See
+  https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video) Required may include: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
 * Meeting tab current date and weekend/midweek seems to be on GMT
+* Exception thrown on expired Jwstream links.
+
+## Finish Windows Port
+
+* Fallback to running OBS from install location if no shortcut
+* Problems with Unicode filenames on Windows when started from khplayer-server.py.
+  (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 
 ## Easy Improvements
 
-* Progress bar for Gdrive downloads. This will require knowing the file size.
-  (may already be done)
 * Cancel spotlight in Zoom when Zoom scene becomes active.
 
 ## Hard Stuff

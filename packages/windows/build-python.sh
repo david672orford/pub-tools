@@ -118,6 +118,7 @@ find . -type f \
 		--component-group Python \
 		--var var.PythonBuildDir \
 		--directory-ref PYTHONINSTALLDIR \
+		--win64 \
 		>../heat-python.wxs
 
 echo "Done."

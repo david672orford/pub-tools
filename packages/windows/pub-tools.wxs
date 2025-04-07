@@ -15,66 +15,92 @@
         <Icon Id="EpubsIcon" SourceFile="build/icons/epubs.ico"/>
         <Property Id="ARPPRODUCTICON" Value="PubtoolsIcon" />
 
-        <MajorUpgrade Schedule="afterInstallInitialize"
-        	DowngradeErrorMessage="A newer version of this software is already installed."
-	        AllowDowngrades="no"/>
+        <MajorUpgrade
+	        AllowDowngrades="no"
+			AllowSameVersionUpgrades="yes"
+			DowngradeErrorMessage="A newer version of this software is already installed."
+        	/>
         <Property Id="REINSTALLMODE" Value="amus" />
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
+
+			<!-- Where things are installed -->
+			<Directory Id="ProgramFiles64Folder">
+				<!-- Components listed in heat-app.wxs go in the "Pub-Tools" subdirectory -->
         		<Directory Id="INSTALLDIR" Name="Pub-Tools">
-          			<Directory Id="PYTHONINSTALLDIR" Name="python" />
+          			<!-- Components listed in heat-python.wxs go into "python" subdirectory -->
+             		<Directory Id="PYTHONINSTALLDIR" Name="python" />
+            		<!-- Components listed in heat-ffmpeg.wxs go into "ffmpeg" subdirector -->
+          			<Directory Id="FFMPEGINSTALLDIR" Name="ffmpeg" />
           		</Directory>
-          		<Directory Id="StartMenuFolder" />
 			</Directory>
+
+			<!-- Start Menu -->
+			<Directory Id="ProgramMenuFolder">
+				<!-- Our Start Menu shortcuts go in this folder -->
+				<Directory Id="ProgramMenuSubfolder" Name="Pub Tools" />
+			</Directory>
+
 		</Directory>
 
-		<DirectoryRef Id="StartMenuFolder">
-			<Directory Id="ProgramMenuSubfolder" Name="Pub Tools">
-				<Component Id="ApplicationShortcuts" Guid="f38c6004-2066-4d2f-a836-78076d9f1d82">
-					<Shortcut Id="KhplayerShortcut"
-							Name="KH Player"
-							Description="Download media from JW.ORG"
-							Icon="KhplayerIcon"
-							Target="[INSTALLDIR]python\pythonw.exe"
-							Arguments="pub-tools --subapp=khplayer"
-							WorkingDirectory="INSTALLDIR"
-							/>
-					<Shortcut Id="EpubShortcut"
-							Name="Epub Viewer"
-							Icon="EpubsIcon"
-							Description="Epub viewer for JW.ORG"
-							Target="[INSTALLDIR]python\pythonw.exe"
-							Arguments="pub-tools --subapp=epubs"
-							WorkingDirectory="INSTALLDIR"
-							/>
-					<Shortcut Id="ObsSetupShortcut"
-							Name="OBS Setup"
-							Description="Set up OBS Studio for use with KH Player"
-							Target="[INSTALLDIR]python\python.exe"
-							Arguments="flask obs setup"
-							WorkingDirectory="INSTALLDIR"
-							/>
-					<Shortcut Id="EditConfShortcut"
-							Name="Edit Config"
-							Description="Open the Pub-Tools configuration file in Notepad"
-							Target="[SystemFolder]notepad.exe"
-							Arguments="%LOCALAPPDATA%\Pub-Tools\config.py"
-							WorkingDirectory="INSTALLDIR"
-							/>
-					<RegistryValue Root="HKCU" Key="Software\Nuhub\Pub-Tools" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
-				</Component>
-			</Directory>
+		<!-- Contents of the Pub Tools Start Menu folder -->
+		<DirectoryRef Id="ProgramMenuSubfolder">
+			<Component Id="StartMenuShortcuts" Guid="f38c6004-2066-4d2f-a836-78076d9f1d82">
+				<Shortcut Id="PubToolsShortcut"
+						Name="Pub Tools"
+						Description="View and download publications from JW.ORG"
+						Icon="PubtoolsIcon"
+						Target="[INSTALLDIR]python\pythonw.exe"
+						Arguments="pub-tools"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<Shortcut Id="KhplayerShortcut"
+						Name="KH Player"
+						Description="Download media from JW.ORG into OBS Studio for playing at meetings"
+						Icon="KhplayerIcon"
+						Target="[INSTALLDIR]python\pythonw.exe"
+						Arguments="pub-tools --subapp=khplayer"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<Shortcut Id="EpubShortcut"
+						Name="Epub Viewer"
+						Description="Download and read epub files from JW.ORG"
+						Icon="EpubsIcon"
+						Target="[INSTALLDIR]python\pythonw.exe"
+						Arguments="pub-tools --subapp=epubs"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<Shortcut Id="ObsSetupShortcut"
+						Name="OBS Setup"
+						Description="Set up OBS Studio for use with KH Player"
+						Target="[INSTALLDIR]python\python.exe"
+						Arguments="flask obs setup"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<Shortcut Id="ZoomSetupShortcut"
+						Name="Zoom Setup"
+						Description="Set up Zoom for use with KH Player"
+						Target="[INSTALLDIR]python\python.exe"
+						Arguments="flask zoom setup"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<Shortcut Id="EditConfShortcut"
+						Name="Edit Config"
+						Description="Open the Pub-Tools configuration file in Notepad"
+						Target="[SystemFolder]notepad.exe"
+						Arguments="%LOCALAPPDATA%\Pub-Tools\config.py"
+						WorkingDirectory="INSTALLDIR"
+						/>
+				<RegistryValue Root="HKCU" Key="Software\Nuhub\Pub-Tools" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+			</Component>
 		</DirectoryRef>
 
-		<InstallExecuteSequence>
-			<RemoveExistingProducts After="InstallValidate"/>
-		</InstallExecuteSequence>
-
+		<!-- List of components to install -->
 		<Feature Id="DefaultFeature" Level="1">
 			<ComponentGroupRef Id="Pub-Tools"/>
 			<ComponentGroupRef Id="Python"/>
-			<ComponentRef Id="ApplicationShortcuts" />
+			<ComponentGroupRef Id="FFmpeg"/>
+			<ComponentRef Id="StartMenuShortcuts" />
 		</Feature>
 	</Product>
 </Wix>

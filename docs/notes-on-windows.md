@@ -70,9 +70,14 @@ And install it:
 
 ## Building MSI Packages
 
-* https://wiki.gnome.org/msitools/HowTo/CreateMSI (No shortcut)
-* https://www.firegiant.com/docs/wix/v3/tutorial/
-* https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with
+* [WiX Toolset v3 Manual](https://www.firegiant.com/wix3/)
+* MSI Tools (WiX compatible tools from the GNOME project)
+  * [MSI Tools](https://wiki.gnome.org/msitools/)
+  * [MSI Tools on Github](https://github.com/GNOME/msitools)
+  * [Beginner's guide to MSI creation](https://wiki.gnome.org/msitools/HowTo/CreateMSI)
+* [WiX for the impatient](http://www.p-nand-q.com/programming/windows/wix/) -- Three blog articles
+* [A quick introduction: Create an MSI installer with WiX](https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with) -- Good example with Start Menu
+* [Real-World Example: WiX/MSI Application Installer](https://helgeklein.com/blog/real-world-example-wix-msi-application-installer/)
 
 ## Running from a Zip
 

@@ -25,4 +25,5 @@ find . -type f \
 		--component-group Pub-Tools \
 		--var var.AppBuildDir \
 		--directory-ref INSTALLDIR \
+		--win64 \
 		>../heat-app.wxs

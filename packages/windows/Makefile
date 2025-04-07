@@ -23,16 +23,23 @@ build/heat-python.wxs: build-python.sh
 	rm -rf build/python
 	./build-python.sh
 
+build/heat-ffmpeg.wxs: build-ffmpeg.sh
+	rm -rf build/ffmpeg
+	./build-ffmpeg.sh
+
 # Combine the previously compiled Python runtime and application into an MSI installer
-msi: build/heat-python.wxs
+msi: build/heat-python.wxs build/heat-ffmpeg.wxs
 	rm -rf build/app
 	./build-app.sh
 	wixl -vv \
 		-o pub-tools.msi \
 		-D AppBuildDir=build/app \
 		-D PythonBuildDir=build/python \
-		-D ProductVersion=0.9.8 \
-		pub-tools.wxs build/heat-app.wxs build/heat-python.wxs
+		-D FFmpegBuildDir=build/ffmpeg \
+		-D ProductVersion=0.9.27 \
+		-D Win64=yes \
+		--arch x64 \
+		pub-tools.wxs build/heat-app.wxs build/heat-python.wxs build/heat-ffmpeg.wxs
 
 # Copy the MSI installer to where our test Windows VM can see it.
 install: msi
