@@ -2,6 +2,7 @@ from datetime import date
 from zipfile import ZipFile
 import re
 from time import sleep
+import sys
 
 from flask import current_app
 from icecream import ic
@@ -46,12 +47,38 @@ def split_yeartext(yeartext):
 def create_text_scene(lines):
 	frame_width = 1280
 	frame_height = 720
+
 	logo_size = 110
 	logo_margin = 70
 	logo_x = frame_width - logo_size - logo_margin
 	logo_y = frame_height - logo_size - logo_margin
-	text_font_size = 48
-	text_line_spacing = 48 * 1.5
+	logo_text_shift = 10
+
+	# FIXME: Can we check what fonts are installed? It should be
+	# possible to enumerate them as input options.
+	if sys.platform == "linux":
+		text_font = {
+			"face": "Liberation Serif",
+			"style": "Bold",
+			"size": 48,
+			}
+		logo_font = {
+			"face": "Roboto Condensed",
+			"style": "Regular",
+			"size": 72,
+			}
+	else:
+		text_font = {
+			"face": "Times New Roman",
+			"style": "Regular",
+			"size": 55,
+			}
+		logo_font = {
+			"face": "Arial",
+			"style": "Regular",
+			"size": 65,
+			}
+	text_line_spacing = text_font["size"] * 1.5
 
 	try:
 		scene_uuid = obs.create_scene(_("* Yeartext"))["sceneUuid"]
@@ -68,16 +95,12 @@ def create_text_scene(lines):
 			input_name = f"Yeartext Line {seq}",
 			input_kind = "text_ft2_source_v2",
 			input_settings = {
-				"font": {
-					"face": "Liberation Serif",
-					"style": "Bold",
-					"size": text_font_size,
-					},
+				"font": text_font,
 				"text": line,
 				}
 			)
-		xform = obs.get_scene_item_transform(scene_uuid=scene_uuid, scene_item_id=result["sceneItemId"])
 		sleep(0.5)
+		xform = obs.get_scene_item_transform(scene_uuid=scene_uuid, scene_item_id=result["sceneItemId"])
 		obs.set_scene_item_transform(scene_uuid, result["sceneItemId"], {
 			"positionX": (frame_width - xform["width"]) / 2,
 			"positionY": y,
@@ -101,7 +124,7 @@ def create_text_scene(lines):
 		"positionY": logo_y,
 		})
 
-	# JW Logo
+	# JW Logo Lettering
 	result = obs.create_unique_input(
 		scene_uuid = scene_uuid,
 		input_name = "JW Logo",
@@ -109,17 +132,15 @@ def create_text_scene(lines):
 		input_settings = {
 			"color1": 4278190080,		# black
 			"color2": 4278190080,
-			"font": {
-				"face": "Roboto Condensed",
-				"style": "Regular",
-				"size": 72,
-				},
+			"font": logo_font,
 			"text": "JW",
 			}
 		)
+	sleep(0.5)
+	xform = obs.get_scene_item_transform(scene_uuid=scene_uuid, scene_item_id=result["sceneItemId"])
 	obs.set_scene_item_transform(scene_uuid, result["sceneItemId"], {
-		"positionX": logo_x + 10,
-		"positionY": logo_y + 5,
+		"positionX": logo_x + ((logo_size - xform["width"]) / 2),
+		"positionY": logo_y + ((logo_size - xform["height"]) / 2) - logo_text_shift,
 		})
 
 	return True
