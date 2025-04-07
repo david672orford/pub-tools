@@ -7,7 +7,7 @@ import subprocess
 import logging
 
 import requests
-from flask import current_app, Blueprint, render_template, request, redirect
+from flask import current_app, Blueprint, render_template, request, redirect, flash
 
 from ... import turbo
 from ...utils.background import progress_callback, progress_response, run_thread, flash
@@ -23,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 menu.append((_("JW Stream"), "/jwstream/"))
 
+# These strings will show up in the metadata from JW Stream.
+# Listed here so that they will get translated.
 (
 	# Languages
 	_("Russian"),
@@ -41,6 +43,7 @@ menu.append((_("JW Stream"), "/jwstream/"))
 )
 
 def jwstream_channels(config=None):
+	"""Cached list of JW Stream channels"""
 	if config is None:
 		config = get_config("JW_STREAM")
 	time_now = int(time())
@@ -119,7 +122,12 @@ def page_jwstream_update_urls():
 		if m:
 			update_url = f"https://docs.google.com/spreadsheets/d/{m.group(1)}/export?format=csv"
 
-	response = requests.get(update_url)
+	try:
+		response = requests.get(update_url)
+	except Exception as e:
+		flash(_("Unable to update stream URLs: %s") % str(e))
+		return redirect(".?action=configuration")
+
 	urls = []
 	for row in csv.DictReader(response.text.splitlines()):
 		urls.append(row.get("URL"))
@@ -193,7 +201,14 @@ def page_jwstream_clip(token, id):
 		clip_title = "%s %s-%s" % (event.title, clip_start, clip_end)
 
 	# Spawn a background thread to download it and create the scene when the download is done.
-	media_file = os.path.join(current_app.config["MEDIA_CACHEDIR"], "jwstream-%s-%s-%s.mp4" % (id, clip_start, clip_end))
+	media_file = os.path.join(
+		current_app.config["MEDIA_CACHEDIR"],
+		"jwstream-%s-%s-%s.mp4" % (
+			id,
+			clip_start.replace(":",""),		# colons not allowed on Windows
+			clip_end.replace(":",""),
+			)
+		)
 	logger.debug("Downloading clip \"%s\" from %s to %s of \"%s\" in file %s" % (clip_title, clip_start, clip_end, event.title, media_file))
 	run_thread(lambda: download_clip(clip_title, event, media_file, clip_start, clip_end, clip_duration))
 
@@ -204,13 +219,20 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 	"""Background task to download video clip from JW Stream"""
 	progress_callback(_("Downloading clip..."), cssclass="heading")
 
+	# Suppress terminal window on Microsoft Windows
+	try:
+		creationflags = subprocess.CREATE_NO_WINDOW
+	except AttributeError:
+		creationflags = 0
+
 	# Request a download URL with access token
 	video_url = event.get_download_url()
 
 	# Use FFMpeg to download the part of the video file we need. This is possible
 	# because FFMpeg can take a URL as input and the server supports range requests.
 	cmd = [
-		"ffmpeg", "-nostats", "-loglevel", "0", "-progress", "pipe:1",
+		current_app.config["FFMPEG"],
+			"-nostats", "-loglevel", "0", "-progress", "pipe:1",
 			"-i", video_url,
 			"-ss", clip_start,
 			"-to", clip_end,
@@ -218,7 +240,11 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 			"-y", media_file
 		]
 	logger.info("Download cmd: %s", cmd)
-	ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE, encoding="utf-8", errors="replace")
+	ffmpeg = subprocess.Popen(
+		cmd,
+		stdout=subprocess.PIPE, encoding="utf-8", errors="replace",
+		creationflags=creationflags,
+		)
 	for line in ffmpeg.stdout:
 		logger.debug("Output: %s", line)
 		m = re.match(r"out_time_us=(\d+)", line)
@@ -235,9 +261,10 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 		progress_callback(_("✘ Extraction of clip failed!"), cssclass="error")
 
 	else:
+		# Use FFmpeg to save a frame of the video to a JPEG file for use as a thumbnail.
 		thumbnail = re.sub(r"\.[^\.]*$", ".jpg", media_file)
 		cmd = [
-			"ffmpeg",
+			current_app.config["FFMPEG"],
 			"-ss", "0:%02d" % min(clip_duration / 2, 30),
 			"-i", media_file,
 			"-frames:v", "1",
@@ -245,9 +272,13 @@ def download_clip(clip_title, event, media_file, clip_start, clip_end, clip_dura
 			"-y", thumbnail,
 			]
 		logger.info("Thumbnail cmd: %s", cmd)
-		subprocess.run(cmd, check=True)
+		subprocess.run(
+			cmd,
+			check=True,
+			creationflags=creationflags,
+			)
 
-
+		# Add the video and thumbnail as a scene in OBS.
 		try:
 			obs.add_media_scene("▷" + " " + clip_title,
 				"video", media_file, thumbnail=thumbnail,

@@ -1,4 +1,5 @@
 import os
+from re import I
 import sys
 import uuid
 from importlib import import_module
@@ -45,6 +46,9 @@ def create_app():
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "cache", "gdrive"),
 		FLASK_CACHEDIR = os.path.join(app.instance_path, "cache", "flask"),
 
+		# Utilities
+		FFMPEG = None,
+
 		# Pub Tools includes several subapps which can be enabled or disabled
 		ENABLED_SUBAPPS = [
 			"khplayer",
@@ -70,6 +74,14 @@ def create_app():
 
 	# Overlay default configuration above with values from instance/config.py
 	app.config.from_pyfile("config.py")
+
+	# Set the path to ffmpeg, if the user didn't set it in config.py.
+	if app.config["FFMPEG"] is None:
+		if sys.platform == "win32":
+			app.config["FFMPEG"] = os.path.join(sys.exec_prefix, "..", "ffmpeg", "bin", "ffmpeg.exe")
+		else:
+			app.config["FFMPEG"] = "/usr/bin/ffmpeg"
+		logger.info("FFmpeg: %s", app.config["FFMPEG"])
 
 	# If UI_LANGUAGE is still unset, get default from environment
 	if app.config["UI_LANGUAGE"] is None:
@@ -106,6 +118,7 @@ def create_app():
 			"WHOOSH_PATH": { "type": "string" },
 			"MEDIA_CACHEDIR": { "type": "string" },
 			"GDRIVE_CACHEDIR": { "type": "string" },
+			"FFMPEG": { "type": "string" },
 			"SECRET_KEY": {
 				"type": "string",
 				"minLength": 16,
