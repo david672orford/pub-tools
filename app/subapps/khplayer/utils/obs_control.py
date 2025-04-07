@@ -340,18 +340,19 @@ class ObsControl(ObsControlBase):
 			)
 		return scene_item_id
 
-	def add_camera_source(self, scene_uuid, camera_dev):
+	def add_camera_source(self, scene_uuid, camera):
 		"""
 		Create an OBS source for the specified camera, if it does not
 		exist already, and add it to the specified scene.
 		"""
-		camera_dev, camera_name = camera_dev.split(" ",1)
-		scene_item_id = self.create_input_with_reuse(
-			scene_uuid = scene_uuid,
-			input_name = camera_name,
-			input_kind = "v4l2_input",
+		camera_name, input_kind, device_id = camera
+		if input_kind == "dshow_input":			# Windows
 			input_settings = {
-				"device_id": camera_dev,
+				"video_device_id": device_id,
+				}
+		else:									# Linux
+			input_settings = {
+				"device_id": device_id,
 				"input": 0,
 				"pixelformat": 1196444237,		# Motion-JPEG
 				#"pixelformat": 875967048,		# H.264
@@ -362,6 +363,11 @@ class ObsControl(ObsControlBase):
 				"timeout_frames": 30,			# Default of 5 is too short for some cameras, leads to continuous restarts
 				"buffering": False,
 				}
+		scene_item_id = self.create_input_with_reuse(
+			scene_uuid = scene_uuid,
+			input_name = camera_name,
+			input_kind = input_kind,
+			input_settings = input_settings,
 			)
 		return scene_item_id
 

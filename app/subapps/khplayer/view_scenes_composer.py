@@ -1,8 +1,10 @@
 import os
+from time import sleep
+import json
+from urllib.parse import unquote
+import logging
 
 from flask import current_app, request, session, render_template, redirect
-from time import sleep
-import logging
 
 from .views import blueprint
 from ...utils.babel import gettext as _
@@ -110,9 +112,9 @@ def page_scenes_composer_add_source(scene_uuid):
 				obs.set_scene_item_index(scene_uuid, int(request.form["scene_item_id"]), int(action[1]))
 
 			case "add-camera":
-				camera_dev = request.form.get("camera")
-				if camera_dev is not None:
-					obs.add_camera_source(scene_uuid, camera_dev)
+				camera = request.form.get("camera")
+				if camera is not None:
+					obs.add_camera_source(scene_uuid, json.loads(unquote(camera)))
 
 			case "add-zoom":
 				if zoom_tracker_loaded():

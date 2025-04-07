@@ -1,7 +1,10 @@
 from flask import current_app, Blueprint, render_template, request, redirect
 from time import sleep
 from urllib.parse import urlparse, parse_qs, unquote
-import os, re, json, logging
+import os
+import re
+import json
+import logging
 
 from ...utils.background import turbo, progress_callback, progress_response, \
 	run_thread, flash, async_flash
@@ -176,9 +179,9 @@ def page_scenes_submit():
 				return redirect(".?action=add-scene")
 
 			case "add-camera":
-				camera_dev = request.form.get("camera")
-				if camera_dev is not None:
-					obs.create_source_scene(_("* Camera"), "camera", camera_dev)
+				camera = request.form.get("camera")
+				if camera is not None:
+					obs.create_source_scene(_("* Camera"), "camera", json.loads(unquote(camera)))
 
 			case "add-zoom":
 				if zoom_tracker_loaded():
