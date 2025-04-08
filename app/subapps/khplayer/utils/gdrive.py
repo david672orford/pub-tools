@@ -30,8 +30,9 @@ logger = logging.getLogger(__name__)
 
 class GDriveClient:
 	def __init__(self, path_to:list, path_within:list, thumbnails:bool=False, debug:bool=False):
-		self.folder_id = path_to[-1]
-		self.thumbnails = thumbnails
+		self.folder_id = path_to[-1]	# Google Drive folder ID is last element of the path
+		assert len(path_within) == 0
+		self.thumbnails = thumbnails	# Should we download thumbnails and included them in response objects?
 		self.debug = debug
 
 		# Put the ID into a sharing URL and retrieve the HTML page

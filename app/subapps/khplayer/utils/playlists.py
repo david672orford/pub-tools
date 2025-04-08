@@ -1,3 +1,5 @@
+"""Open media playlists stored in zip files"""
+
 import os
 import json
 import base64
@@ -13,7 +15,7 @@ from fnmatch import fnmatch
 from hashlib import md5
 from PIL import Image
 
-from ....models import Videos
+#from ....models import Videos
 from .mimetypes import extmap
 
 # Reader for zip files which may contain one or more playlists
@@ -395,7 +397,10 @@ class ZippedPlaylist:
 						id = self._make_video_id(row)
 						filename = row["FilePath"]
 						if not filename:
-							filename = "pub-%s-%d" % (row["KeySymbol"], row["Track"])
+							if row["MepsDocumentId"] is not None:
+								filename = "docid-%s-%d" % (row["MepsDocumentId"], row["Track"])
+							else:
+								filename = "pub-%s-%d" % (row["KeySymbol"], row["Track"])
 						file_size = None
 
 					self.files.append(self.PlaylistItem(
@@ -421,27 +426,25 @@ class ZippedPlaylist:
 		except KeyError:
 			return None
 
-	# For .jwlplaylist and .jwpub playlists
 	# Given a row from the playlist's Sqlite DB, return a JW.ORG sharing URL.
-	#
-	# Items which are multimedia attachments to a print publication may not
-	# have their own sharing URL, so we leave the hostname out to show it is
-	# not an actual JW.ORG sharing URL.
+	# For use with .jwlplaylist and .jwpub playlists
 	def _make_video_id(self, row):
 
+		assert row["Track"] is not None and row["Track"] >= 1
+
 		# A video on a standalone player page identified by the MEPS ID of that page
-		if row["MepsDocumentId"] and row["Track"]:
+		if row["MepsDocumentId"]:
 			return "https://www.jw.org/finder?" + urlencode({
 				"lank": f"docid-{row['MepsDocumentId']}_{row['Track']}_VIDEO",
 				})
 
 		# A video as a media item of a songbook or talk outline
-		if row["KeySymbol"] and row["Track"]:
+		if row["KeySymbol"]:
 
 			# Check our list of videos from JW Broadcasting
 			lank = f"pub-{row['KeySymbol']}_{row['Track']}_VIDEO"
-			if Videos.query.filter_by(lank=lank).first():
-				return "https://www.jw.org/finder?" + urlencode({"lank": lank})
+			#if Videos.query.filter_by(lank=lank).first():
+			return "https://www.jw.org/finder?" + urlencode({"lank": lank})
 
 			# Make a sharing URL and hope for the best
 			query = {

@@ -22,6 +22,8 @@
 
 ## Easy Improvements
 
+* Progress when media file downloaded from inside playlist on Google Drive.
+  (Downloading an MP4 file from the Google Drive itself does now progress.)
 * Cancel spotlight in Zoom when Zoom scene becomes active.
 
 ## Hard Stuff

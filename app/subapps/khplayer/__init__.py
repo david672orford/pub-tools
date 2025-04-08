@@ -37,3 +37,6 @@ def init_app(app, url_prefix):
 
 	from .cli_zoom import cli_zoom
 	app.cli.add_command(cli_zoom)
+
+	from .cli_slides import cli_slides
+	app.cli.add_command(cli_slides)

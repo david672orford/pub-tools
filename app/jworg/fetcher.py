@@ -310,7 +310,10 @@ class Fetcher:
 			try:
 				thumbnail_url = media["images"]["wss"]["sm"]		# 16:9 aspect ratio, occassionally missing
 			except KeyError:
-				thumbnail_url = media["images"]["lss"]["lg"]		# 2:1 aspect ratio
+				try:
+					thumbnail_url = media["images"]["lss"]["lg"]	# 2:1 aspect ratio
+				except KeyError:
+					thumbnail_url = None
 
 			subtitles_url = None
 			for variant in media["files"]:

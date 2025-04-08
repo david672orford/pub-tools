@@ -1,6 +1,7 @@
 import os
 import io
 import base64
+
 from PIL import Image
 
 from ....utils.babel import gettext as _
@@ -8,6 +9,7 @@ from .mimetypes import extmap
 from .httpfile import LocalZip
 
 class LocalDriveClient:
+	"""Load playlists from a local directory. Same interfaces as GDriveClient."""
 	def __init__(self, path_to:list, path_within:list, thumbnails=False, debug=False):
 		assert len(path_to) > 0
 		assert len(path_within) == 0
@@ -18,6 +20,7 @@ class LocalDriveClient:
 		else:
 			self.folder_name = path_to[-1]
 
+		# Guard against attempts to escape the root.
 		self.path = os.path.abspath(os.path.join(*path_to))
 		assert self.path == path_to[0] or self.path.startswith(path_to[0] + "/")
 
