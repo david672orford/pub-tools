@@ -7,10 +7,8 @@
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
 * Yeartext slide uses Roboto font which is not necessarily installed on
   Ubuntu. Use fc-list to detect problem.
-* Playing video in pywebview requires packages which are not necessarily
-  installed in Ubuntu. (See
-  https://askubuntu.com/questions/1350001/how-to-use-gstreamer-to-play-an-mp4-video) Required may include: gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly
-* Meeting tab current date and weekend/midweek seems to be on GMT
+* Playing video in pywebview doesn't work on some Ubuntu machines. Why?
+* Meeting tab current date and weekend/midweek seems to be on GMT. Or is it?
 * Exception thrown on expired Jwstream links.
 * patchbay glitches:
   * It is possible to drop a node onto an input provoking an error in the javascript console

@@ -27,7 +27,7 @@ def page_meetings():
 
 	now_year, now_week, now_weekday = date.today().isocalendar()
 
-	# Unless "all" is in the query string, limit to current and future weeks
+	# Unless "all" is in the query string, limit to the current and future weeks.
 	if not request.args.get("all", False):
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 

@@ -4,7 +4,7 @@ import sys
 import uuid
 from importlib import import_module
 from glob import glob
-from shutil import rmtree
+from shutil import rmtree, which
 import logging
 
 from flask import Flask, session
@@ -46,9 +46,6 @@ def create_app():
 		GDRIVE_CACHEDIR = os.path.join(app.instance_path, "cache", "gdrive"),
 		FLASK_CACHEDIR = os.path.join(app.instance_path, "cache", "flask"),
 
-		# Utilities
-		FFMPEG = None,
-
 		# Pub Tools includes several subapps which can be enabled or disabled
 		ENABLED_SUBAPPS = [
 			"khplayer",
@@ -65,6 +62,7 @@ def create_app():
 		THEME = None,					# TODO: implement in other subapps
 		SUB_LANGUAGE = None,			# choose language to enable video subtitles
 		VIDEO_RESOLUTION = "720p",		# resolution of videos from JW.ORG
+		FFMPEG = None,
 		OBS_BROWSER_DOCK_SCALE = 1.0,	# font size when running on OBS browser dock
 		CAMERA_NAME_OVERRIDES = {},		# friendly names of V4L cameras
 		VIDEO_REMOTES = {},				# remote video feeds using VDO.Ninja
@@ -74,14 +72,6 @@ def create_app():
 
 	# Overlay default configuration above with values from instance/config.py
 	app.config.from_pyfile("config.py")
-
-	# Set the path to ffmpeg, if the user didn't set it in config.py.
-	if app.config["FFMPEG"] is None:
-		if sys.platform == "win32":
-			app.config["FFMPEG"] = os.path.join(sys.exec_prefix, "..", "ffmpeg", "bin", "ffmpeg.exe")
-		else:
-			app.config["FFMPEG"] = "/usr/bin/ffmpeg"
-		logger.info("FFmpeg: %s", app.config["FFMPEG"])
 
 	# If UI_LANGUAGE is still unset, get default from environment
 	if app.config["UI_LANGUAGE"] is None:
@@ -100,9 +90,22 @@ def create_app():
 					}[lang]
 			app.config["UI_LANGUAGE"] = lang
 
+	# Set the ffmpeg command, if the user didn't set it in config.py.
+	if app.config["FFMPEG"] is None:
+		if sys.platform == "win32":
+			package_ffmpeg = os.path.join(os.path.dirname(__file__), "..", "ffmpeg", "bin", "ffmpeg.exe")
+			if os.path.exists(package_ffmpeg):
+				app.config["FFMPEG"] = package_ffmpeg
+		if app.config["FFMPEG"] is None:
+			app.config["FFMPEG"] = which("ffmpeg")
+
 	# If publication language for KH Player is still unset, make same as UI language
 	if app.config["PUB_LANGUAGE"] is None:
 		app.config["PUB_LANGUAGE"] = app.config["UI_LANGUAGE"]
+
+	logger.info("FFMPEG: %s", app.config["FFMPEG"])
+	logger.info("UI_LANGUAGE: %s", app.config["UI_LANGUAGE"])
+	logger.info("PUB_LANGUAGE: %s", app.config["PUB_LANGUAGE"])
 
 	# Validate the final configuration using jsonschema
 	# https://github.com/python-jsonschema/jsonschema
@@ -118,7 +121,6 @@ def create_app():
 			"WHOOSH_PATH": { "type": "string" },
 			"MEDIA_CACHEDIR": { "type": "string" },
 			"GDRIVE_CACHEDIR": { "type": "string" },
-			"FFMPEG": { "type": "string" },
 			"SECRET_KEY": {
 				"type": "string",
 				"minLength": 16,
@@ -154,6 +156,9 @@ def create_app():
 				"type": "string",
 				"enum": ["240p", "360p", "480p", "720p"],
 			},
+			"FFMPEG": {
+				"type": "string",
+			},
 			"OBS_BROWSER_DOCK_SCALE": {
 				"type": "number",
 				"minimum": 1.0,
@@ -181,7 +186,7 @@ def create_app():
 					"required": ["view"],
 					"additionalProperties": False,
 				},
-				"JWSTREAM_UPDATES": {
+			"JWSTREAM_UPDATES": {
 					"type": "string",
 					"format": "uri",
 				}

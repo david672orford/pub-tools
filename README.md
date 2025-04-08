@@ -8,7 +8,7 @@ OBS Studio which turn it into a media player for use at congregation meetings.
 
 To install on Ubuntu and other Debian-family Linuxes:
 
-    $ sudo apt-get install git cmake pulseaudio-utils python3-pip python3-venv fonts-roboto
+    $ sudo apt-get install git make python3-pip python3-venv pulseaudio-utils ffmpeg fonts-roboto
     $ git clone https://github.com/david672orford/pub-tools.git
     $ cd pub-tools
     $ ./venv_tool.py --create
@@ -17,6 +17,7 @@ To install for Development on Microsoft Windows:
 
     > winget install --id Git.Git -e --source winget --scope user
     > winget install -e --id Python.Python.3.12 --scope user
+    > winget install winget install Gyan.FFmpeg.Essentials
     (Close and re-open the terminal)
     > cd Desktop
     > git clone https://github.com/david672orford/pub-tools.git
