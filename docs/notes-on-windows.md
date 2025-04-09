@@ -88,3 +88,20 @@ And install it:
 ## Powershell
 
 * https://serverfault.com/questions/877548/how-to-download-an-archive-and-extract-it-without-saving-the-archive-to-disk-usi
+
+## Porting from Linux to Windows
+
+* File names are case-sensitive in Linux, but case-insensitive in Windows
+* On Unix the path separator is /, on Windows it is either / or \
+* Colons are not allowed in file names on Windows (except as part of the drive letter)
+* Working with large numbers of small files (such as Python modules) is much more expensive on Windows
+* On Linux ffmpeg is likely to be installed and in the path, but not in Windows
+* On Linux it is highly likely that Python 3 will be installed, but not in Windows
+* Linux follows the Desktop Entry Specification for start menu items, Windows uses its own LNK format
+* On Linux menu icons may be in PNG or SVG format. In Windows they must be in ICO format.
+* On Linux 3rd-party programs are installed in /opt. On Windows they are installed in c:\Program Files.
+* On Linux per-user application data is stored in $HOME/.config and $HOME/.local while on Windows
+  it is stored in $HOME/AppData.
+* On Linux and Windows use diferent locale name formats. Examples from locale.getlocale():
+  * Linux: ('en_US', 'UTF-8')
+  * Windows: ('English_United States', '1252')

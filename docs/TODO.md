@@ -5,10 +5,7 @@
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh or the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
-* Yeartext slide uses Roboto font which is not necessarily installed on
-  Ubuntu. Use fc-list to detect problem.
 * Playing video in pywebview doesn't work on some Ubuntu machines. Why?
-* Meeting tab current date and weekend/midweek seems to be on GMT. Or is it?
 * Exception thrown on expired Jwstream links.
 * patchbay glitches:
   * It is possible to drop a node onto an input provoking an error in the javascript console
@@ -16,7 +13,6 @@
 
 ## Finish Windows Port
 
-* Fallback to running OBS from install location if no shortcut
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 

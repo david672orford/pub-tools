@@ -50,10 +50,13 @@ def cmd_obs_setup():
 
 	print("Starting OBS...")
 	if sys.platform == "win32":
-		obs_cmd = ["cmd", "/c", "c:/ProgramData/Microsoft/Windows/Start Menu/Programs/OBS Studio/OBS Studio (64bit).lnk"]
+		#obs_cmd = ["cmd", "/c", "c:/ProgramData/Microsoft/Windows/Start Menu/Programs/OBS Studio/OBS Studio (64bit).lnk"]
+		obs_cmd = ["c:/Program Files/obs-studio/bin/64bit/obs64.exe"]
+		obs_cwd = "c:/Program Files/obs-studio/bin/64bit"
 	else:
 		obs_cmd = ["obs"]
-	obs_handle = subprocess.Popen(obs_cmd)
+		obs_cwd = None
+	obs_handle = subprocess.Popen(obs_cmd, cwd=obs_cwd)
 
 	while True:
 		try:

@@ -83,8 +83,8 @@ def create_app():
 			# Get locale from the user's login session
 			import locale
 			lang = locale.getlocale()[0].split("_")[0]
-			if sys.platform == "win32":		# FIXME: this is a temporary hack to get things working
-				lang = {
+			if sys.platform == "win32":
+				lang = {			 # FIXME: this translation table is a temporary hack to get things working
 					"English":"en",
 					"Russian":"ru",
 					}[lang]

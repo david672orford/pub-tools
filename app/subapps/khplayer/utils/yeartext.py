@@ -3,8 +3,9 @@ from zipfile import ZipFile
 import re
 from time import sleep
 import sys
+from subprocess import run
 
-from flask import current_app
+from flask import current_app, flash
 from icecream import ic
 
 from .controllers import obs, ObsError
@@ -54,9 +55,12 @@ def create_text_scene(lines):
 	logo_y = frame_height - logo_size - logo_margin
 	logo_text_shift = 10
 
-	# FIXME: Can we check what fonts are installed? It should be
-	# possible to enumerate them as input options.
 	if sys.platform == "linux":
+		for fontname in ("Liberation Serif", "Roboto Condensed"):
+			result = run(("fc-list", "-q", fontname))
+			if result.returncode != 0:
+				flash(_("Required font \"%s\" is not installed.") % fontname)
+				return
 		text_font = {
 			"face": "Liberation Serif",
 			"style": "Bold",
@@ -67,7 +71,7 @@ def create_text_scene(lines):
 			"style": "Regular",
 			"size": 72,
 			}
-	else:
+	else:				# Windows
 		text_font = {
 			"face": "Times New Roman",
 			"style": "Regular",
