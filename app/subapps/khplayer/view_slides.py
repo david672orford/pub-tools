@@ -14,7 +14,7 @@ from .utils.scenes import load_video_url, load_video_file, load_image_file, load
 from .utils.controllers import obs, ObsError
 from .utils.slides_localdrive import LocalDriveClient
 from .utils.slides_gdrive import GDriveClient
-from .utils.slides_zipfile import ZippedPlaylist
+from .utils.slides_playlist import ZippedPlaylist
 from .utils.httpfile import RemoteZip, LocalZip
 
 logger = logging.getLogger(__name__)

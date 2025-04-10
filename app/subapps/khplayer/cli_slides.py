@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from .utils.slides_localdrive import LocalDriveClient
-from .utils.slides_zipfile import ZippedPlaylist
+from .utils.slides_playlist import ZippedPlaylist
 from .utils.httpfile import LocalZip
 
 cli_slides = AppGroup("slides", help="Test Slides backends")
