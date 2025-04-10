@@ -1,3 +1,5 @@
+"""Open slides, videos, and playlists stored in zip files"""
+
 import os
 import io
 import base64
@@ -34,6 +36,9 @@ class LocalDriveClient:
 				self.folders.append(self.LocalFile(file, "application/zip"))
 			elif (mimetype := extmap.get(ext)):
 				self.image_files.append(self.LocalFile(file, mimetype, thumbnail=True))
+
+	def __str__(self):
+		return f"<LocalDriveClient folder_name={repr(self.folder_name)} path={repr(self.path)}>"
 
 	class LocalFile:
 		def __init__(self, file, mimetype, thumbnail:bool=False):

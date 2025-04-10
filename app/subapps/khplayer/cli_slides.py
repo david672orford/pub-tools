@@ -10,9 +10,9 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from .utils.localdrive import LocalDriveClient
+from .utils.slides_localdrive import LocalDriveClient
+from .utils.slides_zipfile import ZippedPlaylist
 from .utils.httpfile import LocalZip
-from .utils.playlists import ZippedPlaylist
 
 cli_slides = AppGroup("slides", help="Test Slides backends")
 

@@ -36,7 +36,7 @@ def create_app():
 		FLASK_ADMIN_FLUID_LAYOUT = True,
 
 		# Database settings
-		SQLALCHEMY_DATABASE_URI = 'sqlite:///%s/pub-tools.db' % os.path.abspath(app.instance_path),
+		SQLALCHEMY_DATABASE_URI = "sqlite:///%s/pub-tools.db" % os.path.abspath(app.instance_path),
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "pub-tools.whoosh"),

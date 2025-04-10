@@ -1,3 +1,5 @@
+"""Open slides, videos, and playlists stored on Google Drive"""
+
 #
 # Simple client for downloading files from Google Drive. Does not log in. To
 # use it you create a sharing URL (to share with "anyone with the link") and
@@ -17,6 +19,7 @@
 #  https://drive.google.com/embeddedfolderview?id={id}#list
 #  https://drive.google.com/embeddedfolderview?id={id}#grid
 #
+
 import os, json, re, base64, codecs
 import os.path
 from time import time

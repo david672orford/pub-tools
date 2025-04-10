@@ -12,9 +12,9 @@ from . import menu
 from .views import blueprint
 from .utils.scenes import load_video_url, load_video_file, load_image_file, load_media_file
 from .utils.controllers import obs, ObsError
-from .utils.localdrive import LocalDriveClient
-from .utils.gdrive import GDriveClient
-from .utils.playlists import ZippedPlaylist
+from .utils.slides_localdrive import LocalDriveClient
+from .utils.slides_gdrive import GDriveClient
+from .utils.slides_zipfile import ZippedPlaylist
 from .utils.httpfile import RemoteZip, LocalZip
 
 logger = logging.getLogger(__name__)
@@ -145,9 +145,15 @@ def get_fs_client(path:str):
 		# If the ID is a zip file, build the Gdrive download URL and open it as a remote playlist.
 		if zip_filename is not None:
 			if client_class is GDriveClient:
-				url = f"https://drive.google.com/uc?id={folder_id}"
-				#url = f"https://lh3.googleusercontent.com/{folder_id}"
-				print("Zip URL:", url)
+
+				# This works unless the file is too big for the Gdrive virus scanner.
+				#url = f"https://drive.google.com/uc?id={folder_id}"
+
+				# Bypasses the file-too-big-to-scan page.
+				# See https://stackoverflow.com/questions/14728038/disabling-the-large-file-notification-from-google-drive#answer-79408695
+				url = f"https://drive.usercontent.google.com/download?export=download&confirm=t&id={folder_id}"
+
+				logger.info("Zip URL:", url)
 				zip_reader = RemoteZip(url, cachekey=path_to[-1], cachedir=gdrive_cachedir)
 			else:
 				zip_reader = LocalZip(os.path.join(*path_to))

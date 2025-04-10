@@ -11,7 +11,6 @@ from tempfile import mkstemp
 from zipfile import ZipFile
 from urllib.parse import urlencode
 import json
-from fnmatch import fnmatch
 from hashlib import md5
 from PIL import Image
 
@@ -37,6 +36,9 @@ class ZippedPlaylist:
 		self.folders = []
 		self.parent_reader = None
 
+		if self.debuglevel > 0:
+			print(str(self))
+
 		try:
 			manifest = json.loads(self.zip_reader.read("manifest.json"))
 		except KeyError:
@@ -53,6 +55,9 @@ class ZippedPlaylist:
 			self._load_jwpub_playlist(manifest)
 		else:
 			raise AssertionError("Unsupported playlist format")
+
+	def __str__(self):
+		return f"<ZippedPlaylist path_to={repr(self.path_to)} path={repr(self.path)} zip_reader={repr(self.zip_reader)} zip_filename={repr(self.zip_filename)} client_class={repr(self.client_class)} debuglevel={repr(self.debuglevel)}>"
 
 	class PlaylistItem:
 		def __init__(self, id, title, filename, mimetype=None, file_size=None, thumbnail=(None,None,None)):
@@ -461,13 +466,14 @@ class ZippedPlaylist:
 	def _find_neighbor_file(self, row):
 		if self.parent_reader is None:
 			self.parent_reader = self.client_class(self.path_to[:-1], [])
-		pattern = f"{row['KeySymbol']}_*_{row['Track']:02}_r*P.mp4"
+			print("parent reader:", self.parent_reader)
+		pattern = re.compile(f"^{row['KeySymbol']}_[A-Z]+_0*{row['Track']}_r\\d+P\\.mp4$")
 		if self.debuglevel > 0:
 			print("media file search pattern:", pattern)
 		for gfile in self.parent_reader.list_image_files():
 			if self.debuglevel > 1:
 				print("  candidate file:", gfile.filename)
-			if fnmatch(gfile.filename, pattern):
+			if pattern.match(gfile.filename):
 				if self.debuglevel > 0:
 					print(f" Match: {gfile.filename}")
 				return gfile
