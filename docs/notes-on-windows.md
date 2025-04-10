@@ -10,11 +10,9 @@ These packages proved useful during developement.
 * [Busybox](https://frippery.org/busybox/) -- Small versions of the standard Unix CLI tools
 * [Git](https://git-scm.com/download/win) -- Includes Bash, Vim, etc. in addition to Git
 
-## Python
+## Install Python
 
-### Python.org Installer
-
-* [Python](https://www.python.org/downloads/windows/) -- Official packages
+There are several ways to install Python on Windows.
 
 ### Install Using Winget
 
@@ -29,8 +27,8 @@ and run it under Wine.
 
 Create directory:
 
-    mkdir python-win64
-    cd python-win64
+    mkdir python
+    cd python
 
 Get embeddable Python from [Python Windows installers](https://www.python.org/downloads/windows/)
 and unpack it:
@@ -56,7 +54,19 @@ See:
 * [Setting up python's Windows embeddable distribution (properly)](https://dev.to/fpim/setting-up-python-s-windows-embeddable-distribution-properly-1081)
 * [Unimplemented function KERNEL32.dll.CopyFile2](https://forum.winehq.org/viewtopic.php?t=39119)
 
+## Running Python Code from a Zip File
+
+Opening small files on Windows is slow. We can speed up application startup by
+packing as much of the runtime and application as we can into zip files.
+
+* https://stackoverflow.com/questions/52599007/python3-pkgutil-get-data-usage 
+* https://realpython.com/python-zip-import/
+* https://docs.python.org/3/library/zipimport.html
+
 ## Installing Dlib
+
+Pypy.org does not have precompiled code for Dlib, so we either need to build it
+or get the binaries from elsewhere.
 
 Option 1, Compile from source:
     > winget install cmake
@@ -68,7 +78,7 @@ Option 2, Download wheel from:
 And install it:
     python -m pip install dlib-19.24.99-cp312-cp312-win_amd64.whl
 
-## Building MSI Packages
+## Making MSI Packages
 
 * [WiX Toolset v3 Manual](https://www.firegiant.com/wix3/)
 * MSI Tools (WiX compatible tools from the GNOME project)
@@ -79,17 +89,7 @@ And install it:
 * [A quick introduction: Create an MSI installer with WiX](https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with) -- Good example with Start Menu
 * [Real-World Example: WiX/MSI Application Installer](https://helgeklein.com/blog/real-world-example-wix-msi-application-installer/)
 
-## Running from a Zip
-
-* https://stackoverflow.com/questions/52599007/python3-pkgutil-get-data-usage 
-* https://realpython.com/python-zip-import/
-* https://docs.python.org/3/library/zipimport.html
-
-## Powershell
-
-* https://serverfault.com/questions/877548/how-to-download-an-archive-and-extract-it-without-saving-the-archive-to-disk-usi
-
-## Porting from Linux to Windows
+## Considerations for Porting from Linux to Windows
 
 * File names are case-sensitive in Linux, but case-insensitive in Windows
 * On Unix the path separator is /, on Windows it is either / or \

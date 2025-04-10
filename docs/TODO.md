@@ -10,6 +10,7 @@
 * patchbay glitches:
   * It is possible to drop a node onto an input provoking an error in the javascript console
   * Nodes jump slightly on reload
+* External MP4 files not always loaded into playlists
 
 ## Finish Windows Port
 
@@ -19,7 +20,8 @@
 ## Easy Improvements
 
 * Progress when media file downloaded from inside playlist on Google Drive.
-  (Downloading an MP4 file from the Google Drive itself does now progress.)
+  (Downloading an MP4 file from the Google Drive itself does show progress.
+  Download from within a zip playlist does not seem to.)
 * Cancel spotlight in Zoom when Zoom scene becomes active.
 
 ## Hard Stuff
