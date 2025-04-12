@@ -3,7 +3,7 @@ Version=1.0
 Encoding=UTF-8
 Type=Application
 Name={{name}}
-Exec=/usr/bin/xdg-open zoommtg://zoom.us/join?action=join&confno={confno}?pwd={{pwd}}&uname=%%D0%%97%%D0%%B0%%D0%%BB%%20%%D0%%A6%%D0%%B0%%D1%%80%%D1%%81%%D1%%82%%D0%%B2%%D0%%B0
+Exec=/usr/bin/env QT_ACCESSIBILITY=1 QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1 /usr/bin/xdg-open zoommtg://zoom.us/join?action=join&confno={{confno}}&pwd={{pwd}}&uname=%%D0%%97%%D0%%B0%%D0%%BB%%20%%D0%%A6%%D0%%B0%%D1%%80%%D1%%81%%D1%%82%%D0%%B2%%D0%%B0
 Icon=Zoom
 Terminal=false
 Categories=Network

@@ -3,7 +3,7 @@
 ## Bugs
 
 * Click on thumbnail in scenes list (sometimes) does nothing.
-  (This is likely the case only after a refresh or the thumbnail.)
+  (This is likely the case only after a refresh of the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
 * Playing video in pywebview doesn't work on some Ubuntu machines. Why?
 * Exception thrown on expired Jwstream links.
@@ -18,7 +18,6 @@
 * Progress when media file downloaded from inside playlist on Google Drive.
   (Downloading an MP4 file from the Google Drive itself does show progress.
   Download from within a zip playlist does not seem to.)
-* Cancel spotlight in Zoom when Zoom scene becomes active.
 
 ## Hard Stuff
 

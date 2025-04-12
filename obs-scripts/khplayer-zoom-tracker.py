@@ -9,8 +9,11 @@ activate()
 
 from time import sleep, time
 from ctypes import string_at, byref
+from subprocess import run
+
 from PIL import Image
 import obspython as obs
+
 import gs_stagesurface_map
 from obs_wrap import ObsScript, ObsWidget
 from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker
@@ -34,6 +37,12 @@ class ObsZoomTracker(ObsScript):
 		self.croppers = []
 		self.last_showing = False
 		self.last_snapshot = False
+
+		# External Python script which presses the unspotlight button in Zoom
+		if sys.platform == "linux":
+			self.zoom_unspotlight = os.path.join(os.path.dirname(__file__), ".libs", "zoom-unspotlight.py")
+		else:
+			self.zoom_unspotlight = None
 
 		self.gui = [
 			ObsWidget("select", "capture_window", "Zoom Window",
@@ -87,6 +96,8 @@ class ObsZoomTracker(ObsScript):
 				if self.debug:
 					print("Zoom source now showing")
 				self.last_showing = True
+				if self.zoom_unspotlight is not None:
+					run(self.zoom_unspotlight)
 			data, width, height = self.capture.snapshot()
 			if data is not None:
 				if not self.last_snapshot:

@@ -45,10 +45,10 @@ def cmd_shortcut_zoom(start_menu, name, url):
 	"""Create shortcut to a Zoom meeting"""
 	parsed_url = urlparse(url)
 	confno = parsed_url.path.split("/")[-1]
-	pwd = parse_qs(parsed_url.query).get("pwd")
+	pwd = parse_qs(parsed_url.query).get("pwd")[0]
 	with current_app.app_context():
 		shortcut = render_template(
-			"shortcuts/pub-tools.desktop",
+			"shortcuts/start-meeting.desktop",
 			name = name,
 			confno = confno,
 			pwd = pwd,
