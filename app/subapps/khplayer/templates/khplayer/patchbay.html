@@ -41,17 +41,17 @@
 {%- endmacro %}
 
 {% block main %}
-<form action="reconnect" method="POST">
+<form action="reconnect-audio" method="POST">
 	<section class="bordered-box">
 		{{lib.render_select(_("Microphone"), "microphone", devices.peripherals.get("microphone"), devices.microphones)}}
 		{{lib.render_select(_("Speakers"), "speakers", devices.peripherals.get("speakers"), devices.speakers)}}
 		<button class="connect" type="submit">{{gettext("Reconnect Audio")}}</button>
-		<a href=".?action=reset"><button class="reload">{{_("Arrange Nodes")}}</button></a>
+		<a href=".?action=arrange-nodes"><button class="reload">{{_("Arrange Nodes")}}</button></a>
 		<a href="config/"><button>{{_("Configure Devices")}}</button></a>
 	</section>
 </form>
 
-<div id="patchbay" class="patchbay loading">
+<div id="patchbay" class="patchbay">
 <svg>
 	<defs>
 		<marker

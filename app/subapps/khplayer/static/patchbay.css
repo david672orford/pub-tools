@@ -28,10 +28,6 @@
 	background-color: #f0fff0;
 	z-index: 3;
 	}
-.patchbay.loading .node {
-	margin: 1em;
-	position: static;
-	}
 .patchbay .node.state-suspended {
 	color: #808080;
 	}

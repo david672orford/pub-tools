@@ -11,63 +11,9 @@ function init_patchbay(links) {
 	const dummy_image = document.createElement("img");
 	dummy_image.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-	/* Handles the drawing of one line from an output to an input */
-	class LinkDrawer
-		{
-		constructor(start_el, end_el)
-			{
-			this.start_el = start_el;
-			this.end_el = end_el;
-			this.path = link_template.content.cloneNode(true).querySelector("path");
-			patchbay_svg.appendChild(this.path);
-			if(end_el != null)
-				this.position();
-			}
-
-		position(pos)
-			{
-			let pb_rect = patchbay.getBoundingClientRect();
-			let rect;
-
-			/* Find the middle of the right edge of the audio output. */
-			rect = this.start_el.getBoundingClientRect();
-			let start_x = rect.right - pb_rect.left;
-			let start_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
-
-			let end_x;
-			let end_y;
-			if(this.end_el != null)
-				{
-				/* Find the middle of the left edge of the audio input. */
-				rect = this.end_el.getBoundingClientRect();
-				end_x = rect.left - 5 - pb_rect.left;	/* room for arrowhead tip */
-				end_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
-				}
-			else
-				{
-				end_x = pos[0] - pb_rect.left;
-				end_y = pos[1] - pb_rect.top;
-				}
-
-			/* Get the bounding box of the SVG curve we will draw in patchbay canvas space */
-			const x = Math.min(start_x, end_x);
-			const y = Math.min(start_y, end_y);
-			const width = Math.abs(end_x - start_x);
-			const signed_height = (end_y - start_y);
-			const height = Math.abs(signed_height);
-
-			const cp1x = start_x + (width + height) * 0.5;
-			const cp1y = start_y - (signed_height * .05);
-			const cp2x = end_x - (width + height) * 0.5;
-			const cp2y = end_y + (signed_height * .05);
-			this.path.setAttribute("d", `M ${start_x} ${start_y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${end_x} ${end_y}`);
-			}
-
-		remove()
-			{
-			this.path.remove();
-			}
-		}
+	/*=======================================================================
+	** Draggable nodes
+	**=====================================================================*/
 
 	/* User is dragging a <div> which represents a Pipewire node (or node group) */
 	function on_node_dragstart(e)
@@ -132,7 +78,7 @@ function init_patchbay(links) {
 	function on_node_dragend(e)
 		{
 		const node = e.currentTarget;
-		//console.log("Node Dragend:", node.id);
+		console.log("Node Dragend:", node.id);
 
 		fetch("save-node-pos", {
 			method: "POST",
@@ -144,6 +90,152 @@ function init_patchbay(links) {
 
 		node.removeEventListener("drag", on_node_drag);
 		node.removeEventListener("dragend", on_node_dragend);
+		}
+
+	/*=======================================================================
+	** Draggable node output ports
+	**=====================================================================*/
+
+	/* Start of dragging of a Pipewire output port */
+	function on_port_dragstart(e)
+		{
+		console.log("Port Dragstart:", e.target.id);
+		e.dataTransfer.setData("text/plain", e.target.id);
+		e.stopPropagation();		/* so dragstart won't be called on node */
+
+		e.dataTransfer.setDragImage(dummy_image, 0, 0);
+		temp_link = new LinkDrawer(e.target, null);
+		temp_link.path.style.pointerEvents = "none";
+
+		e.target.addEventListener("drag", on_port_drag);
+		e.target.addEventListener("dragend", on_port_dragend);
+		}
+
+	function on_port_drag(e)
+		{
+		//console.log("Port drag:", e.pageX, e.pageY);
+		if(e.pageX == 0)		/* last event is bad */
+			return;
+		temp_link.position([e.pageX, e.pageY]);
+		}
+
+	function on_port_dragend(e)
+		{
+		console.log("Port Dragend:", e.target.id);
+		e.target.removeEventListener("drag", on_port_drag);
+		e.target.removeEventListener("dragend", on_port_dragend);
+		temp_link.remove()
+		temp_link = null;
+		}
+
+	/* Dragged output port hovering over an input port */
+	function on_port_dragenter(e)
+		{
+		e.target.classList.add("highlight");
+		}
+	function on_port_dragleave(e)
+		{
+		e.target.classList.remove("highlight");
+		}
+
+	/* Dragging over a Pipewire input port */
+	function on_port_dragover(e)
+		{
+		e.preventDefault();
+		e.dataTransfer.dropEffect = "link";
+		}
+
+	/* Dropped on a Pipewire input port in order to complete the link */
+	function on_port_drop(e)
+		{
+		e.preventDefault()
+		e.target.classList.remove("highlight");
+
+		const data = e.dataTransfer.getData("text/plain");
+		if(data == "")
+			{
+			console.log("Node dropt on port");
+			return;
+			}
+		console.log("Port Drop:", data, e.target.id);
+
+		/* Get the Pipewire port ID numbers of the output and input which we should connect. */
+		const output_port_id = data.split("-")[1];
+		const input_port_id = e.target.id.split("-")[1];
+
+		/* FIXME: There must be a better way to do this! */
+		for(let i=0; i < links.length; i++)
+			{
+			let link = links[i];
+			if(link[0] == output_port_id && link[1] == input_port_id)
+				{
+				console.log("Duplicate link!");
+				return;
+				}
+			}
+
+		link_action("create-link", output_port_id, input_port_id);
+		}
+
+	/*=======================================================================
+	** Links between from output nodes to input nodes
+	**=====================================================================*/
+
+	class LinkDrawer
+		{
+		constructor(start_el, end_el)
+			{
+			this.start_el = start_el;
+			this.end_el = end_el;
+			this.path = link_template.content.cloneNode(true).querySelector("path");
+			patchbay_svg.appendChild(this.path);
+			if(end_el != null)
+				this.position();
+			}
+
+		position(pos)
+			{
+			let pb_rect = patchbay.getBoundingClientRect();
+			let rect;
+
+			/* Find the middle of the right edge of the audio output. */
+			rect = this.start_el.getBoundingClientRect();
+			let start_x = rect.right - pb_rect.left;
+			let start_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
+
+			let end_x;
+			let end_y;
+			if(this.end_el != null)
+				{
+				/* Find the middle of the left edge of the audio input. */
+				rect = this.end_el.getBoundingClientRect();
+				end_x = rect.left - 5 - pb_rect.left;	/* room for arrowhead tip */
+				end_y = (rect.bottom + rect.top) / 2 - pb_rect.top;
+				}
+			else
+				{
+				end_x = pos[0] - pb_rect.left;
+				end_y = pos[1] - pb_rect.top;
+				}
+
+			/* Get the bounding box of the SVG curve we will draw in patchbay canvas space */
+			const x = Math.min(start_x, end_x);
+			const y = Math.min(start_y, end_y);
+			const width = Math.abs(end_x - start_x);
+			const signed_height = (end_y - start_y);
+			const height = Math.abs(signed_height);
+
+			const cp1x = start_x + (width + height) * 0.5;
+			const cp1y = start_y - (signed_height * .05);
+			const cp2x = end_x - (width + height) * 0.5;
+			const cp2y = end_y + (signed_height * .05);
+			this.path.setAttribute("d", `M ${start_x} ${start_y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${end_x} ${end_y}`);
+			}
+
+		remove()
+			{
+			this.path.remove();
+			}
 		}
 
 	/* Draw an arrow to represent a Pipewire link */
@@ -205,78 +297,9 @@ function init_patchbay(links) {
 			}
 		}
 
-	/* Start of dragging of a Pipewire output port */
-	function on_port_dragstart(e)
-		{
-		//console.log("Port Dragstart:", e.target.id);
-		e.dataTransfer.setData("text/plain", e.target.id);
-		e.stopPropagation();		/* so dragstart won't be called on node */
-
-		e.dataTransfer.setDragImage(dummy_image, 0, 0);
-		temp_link = new LinkDrawer(e.target, null);
-		temp_link.path.style.pointerEvents = "none";
-
-		e.target.addEventListener("drag", on_port_drag);
-		e.target.addEventListener("dragend", on_port_dragend);
-		}
-
-	function on_port_drag(e)
-		{
-		//console.log("Port drag:", e.pageX, e.pageY);
-		if(e.pageX == 0)		/* last event is bad */
-			return;
-		temp_link.position([e.pageX, e.pageY]);
-		}
-
-	function on_port_dragend(e)
-		{
-		//console.log("Port Dragend:", e.target.id);
-		e.target.removeEventListener("drag", on_port_drag);
-		e.target.removeEventListener("dragend", on_port_dragend);
-		temp_link.remove()
-		temp_link = null;
-		}
-
-	/* Dragged output port hovering over an input port */
-	function on_port_dragenter(e)
-		{
-		e.target.classList.add("highlight");
-		}
-	function on_port_dragleave(e)
-		{
-		e.target.classList.remove("highlight");
-		}
-
-	/* Dragging over a Pipewire input port */
-	function on_port_dragover(e)
-		{
-		e.preventDefault();
-		e.dataTransfer.dropEffect = "link";
-		}
-
-	/* Dropped on a Pipewire inport port in order to complete the link */
-	function on_port_drop(e)
-		{
-		e.preventDefault()
-		e.target.classList.remove("highlight");
-
-		/* Get the Pipewire port ID numbers of the output and input which we should connect. */
-		const output_port_id = e.dataTransfer.getData("text/plain").split("-")[1];
-		const input_port_id = e.target.id.split("-")[1];
-
-		/* FIXME: There must be a better way to do this! */
-		for(let i=0; i < links.length; i++)
-			{
-			let link = links[i];
-			if(link[0] == output_port_id && link[1] == input_port_id)
-				{
-				console.log("Duplicate link!");
-				return;
-				}
-			}
-
-		link_action("create-link", output_port_id, input_port_id);
-		}
+	/*=======================================================================
+	** Initialization
+	**=====================================================================*/
 
 	/* Make the node groups draggable */
 	let node_groups = document.getElementsByClassName("node-group");
@@ -304,6 +327,7 @@ function init_patchbay(links) {
 		/*patchbay.addEventListener("dragenter", (e) => { e.preventDefault() });
 		patchbay.addEventListener("dragleave", (e) => { e.preventDefault() });*/
 
+		/* Make all of the node's input ports drag-and-drop targets. */
 		let inputs = node.getElementsByClassName("node-inputs")[0].getElementsByClassName("port");
 		for(let i=0; i<inputs.length; i++)
 			{
@@ -313,6 +337,7 @@ function init_patchbay(links) {
 			inputs[i].addEventListener("drop", on_port_drop);
 			}
 
+		/* Make all of the node's output ports draggable. */
 		let outputs = node.getElementsByClassName("node-outputs")[0].getElementsByClassName("port");
 		for(let i=0; i<outputs.length; i++)
 			{
@@ -320,9 +345,6 @@ function init_patchbay(links) {
 			outputs[i].addEventListener("dragstart", on_port_dragstart);
 			}
 		}
-
-	/* Release the nodes to assume their positions */
-	document.getElementById("patchbay").classList.remove("loading");
 
 	/* Draw (possibly curved) arrows to represent the links */
 	for(let i=0; i<links.length; i++)

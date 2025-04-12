@@ -1,5 +1,6 @@
-from flask import current_app, render_template, request, redirect
 import logging
+
+from flask import current_app, render_template, request, redirect
 
 from ...utils.background import flash
 from ...utils.babel import gettext as _
@@ -77,12 +78,15 @@ def page_patchbay():
 	patchbay.load()
 	#patchbay.print()
 
-	if request.args.get("action") == "reset":
+	if request.args.get("action") == "arrange-nodes":
 		node_positions = {}
 		put_config("Patchbay Node Positions", node_positions)
 	else:
 		node_positions = get_config("Patchbay Node Positions")
 
+	# Go through the nodes adding style attributes to position them.
+	# Use saved positions where they exist, otherwise automatically
+	# assign positions.
 	positioner = Positioner()
 	nodes = []
 	for node in patchbay.grouped_audio_nodes:
@@ -101,8 +105,8 @@ def page_patchbay():
 		top = ".."
 		)
 
-@blueprint.route("/patchbay/reconnect", methods=["POST"])
-def page_patchbay_reconnect():
+@blueprint.route("/patchbay/reconnect-audio", methods=["POST"])
+def page_patchbay_reconnect_audio():
 	config = {
 		"microphone": request.form.get("microphone"),
 		"speakers": request.form.get("speakers"),

@@ -7,10 +7,6 @@
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
 * Playing video in pywebview doesn't work on some Ubuntu machines. Why?
 * Exception thrown on expired Jwstream links.
-* patchbay glitches:
-  * It is possible to drop a node onto an input provoking an error in the javascript console
-  * Nodes jump slightly on reload
-* External MP4 files not always loaded into playlists
 
 ## Finish Windows Port
 
