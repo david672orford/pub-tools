@@ -2,7 +2,11 @@
 
 ## List Cameras
 
+Using Video4Linux 2 utilities:
+
     $ v4l2-ctl --list-devices
+
+See app/subapps/khplayer/utils/cameras.py for how to do this using the /sys filesystem.
 
 ## Adjust Brightness, Contrast, etc.
 
@@ -41,7 +45,7 @@ You can create a Udev rule like this:
 
     SUBSYSTEMS=="usb", ENV{ID_VENDOR_ID}=="32e4", ENV{ID_MODEL_ID}=="9230", ENV{ID_V4L_PRODUCT}="ELP 2.0 MP Camera"
 
-However, this does not change the name displayed by **v4l2-ctl --list-devices** or seen by OBS. 
+However, this does not change the name displayed by **v4l2-ctl --list-devices** or seen by OBS.
 
 ## Loopback Device
 
@@ -51,4 +55,3 @@ However, this does not change the name displayed by **v4l2-ctl --list-devices** 
 
 * [The Video for Linux API](https://www.kernel.org/doc/html/v4.8/media/uapi/v4l/v4l2.html)
 * [Assign v4l2 device a static name](https://docs.formant.io/docs/assign-v4l2-device-a-static-name)
-

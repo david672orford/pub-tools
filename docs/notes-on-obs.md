@@ -144,6 +144,7 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
 * [Source Clone](https://obsproject.com/forum/resources/source-clone.1632/) [Github](https://github.com/exeldro/obs-source-clone) -- Clone sources to allow different filters, clone current or previous scene
 * [jrDockie](https://obsproject.com/forum/resources/jrdockie-save-and-load-window-and-dock-layouts.1955/) [Github](https://github.com/dcmouser/obsPlugins/tree/main/jr/jrdockie) -- Load and save browser dock sets. Has OBS-Websocket integration.
+* [Scene Notes Dock](https://obsproject.com/forum/resources/scene-notes-dock.1398/) [Github](https://github.com/exeldro/obs-scene-notes-dock) -- stashes notes in a scene's source settings
 
 ## Audio Output
 
