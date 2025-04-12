@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from obs_wrap import ObsScript, ObsWidget
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
+from app.utils.cache_maint import scan_cache
 from app import create_app
 
 logging.basicConfig(
@@ -47,6 +48,7 @@ class KHPlayer(ObsScript):
 			ObsWidget("text", "listen_address", "Listen Address", default_value="127.0.0.1"),
 			ObsWidget("int", "listen_port", "Listen Port", default_value=5000, min=1024, max=65535, step=1),
 			ObsWidget("bool", "enable", "Enable Server", default_value=False),
+			ObsWidget("bool", "clean_cache", "Cache Expiration on Exit", default_value=True),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
@@ -57,6 +59,7 @@ class KHPlayer(ObsScript):
 		self.listen_port = 5000
 		self.thread = None		# HTTP server thread
 		self.server = None		# HTTP server object
+		self.clean_cache = None
 		self.logger = logging.getLogger("app")
 
 	def on_gui_change(self, settings):
@@ -78,10 +81,18 @@ class KHPlayer(ObsScript):
 			self.listen_port = settings.listen_port
 			self.apply_server_thread_state()
 
+		self.clean_cache = settings.clean_cache
+
 	def on_unload(self):
 		"""OBS shutdown"""
+
+		# Shut down the KH Player web server
 		self.enable = False
 		self.apply_server_thread_state()
+
+		if self.clean_cache:
+			with self.app.app_context():
+				scan_cache(clean=True)
 
 	def apply_server_thread_state(self):
 		"""Start or stop the HTTP server thread in accord with the current settings"""
