@@ -62,7 +62,9 @@
 		{% if scene_item.index > 0 %}
 		<button type="submit" class="down" name="action" value="set-index:{{scene_item.index-1}}">{{_("Down")}}</button>
 		{% endif %}
+		{% if face_recognition_available %}
 		<button type="button" class="face" value="{{scene_item.source_uuid}}">{{_("Face")}}</button>
+		{% endif %}
 		<button type="button" class="reset">{{_("Reset")}}</button>
 	</div>
 

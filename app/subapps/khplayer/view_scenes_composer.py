@@ -2,6 +2,7 @@ import os
 from time import sleep
 import json
 from urllib.parse import unquote
+import importlib.util
 import logging
 
 from flask import current_app, request, session, render_template, redirect
@@ -30,6 +31,8 @@ bounds_options = (
 	(320, 360, 0, 0),		# Portrait top-left
 	(320, 360, 960, 360),	# Portrait bottom-right
 	)
+
+face_recognition_available = importlib.util.find_spec("face_recognition")
 
 class SceneItem:
 	def __init__(self, scene_item):
@@ -97,6 +100,7 @@ def page_scenes_composer(scene_uuid):
 		cameras = list_cameras() if request.args.get("action") == "add-source" else None,
 		remotes = current_app.config.get("VIDEO_REMOTES"),
 		bounds_options = bounds_options,
+		face_recognition_available = face_recognition_available,
 		top = "../../../",
 		)
 
