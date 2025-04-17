@@ -13,6 +13,7 @@
   Download from within a zip playlist does not seem to.)
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
+* Close sound settings after save fails
 
 ## Hard Stuff
 
@@ -23,6 +24,7 @@
 * When the user change the position of a scene by dragging and dropping send
   custom event to the other browsers so they can move it too
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
+* Integration with Jitsi Meet
 
 ## OBS Docs to Improve
 

@@ -121,6 +121,7 @@ do not generally run fast enough to process video, but Lua scripts do.
     * [Get source frame data](https://obsproject.com/forum/threads/tips-and-tricks-for-lua-scripts.132256/page-2#post-515653)
     * [Get source frame data FFI](https://github.com/KashouC/OBS-Studio-Python-Scripting-Cheatsheet-obspython-Examples-of-API/blob/master/src/get_source_frame_data_ffi.py)
     * [PR: Typemapping for gs_stagesurface_map added](https://github.com/obsproject/obs-studio/pull/4779)
+* [Websocket and HTTP server for obs lua scripting](https://gist.github.com/littletsu/09b9d3bf581b759e1dfbf40d2275df29)
 
 ## OBS Plugin Development
 

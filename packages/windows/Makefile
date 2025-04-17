@@ -19,7 +19,7 @@ build-icons:
 	done
 
 # Download and configure Python and required packages
-build/heat-python.wxs: build-python.sh
+build/heat-python.wxs: build-python.sh ../../requirements.txt
 	rm -rf build/python
 	./build-python.sh
 
@@ -36,7 +36,7 @@ msi: build/heat-python.wxs build/heat-ffmpeg.wxs
 		-D AppBuildDir=build/app \
 		-D PythonBuildDir=build/python \
 		-D FFmpegBuildDir=build/ffmpeg \
-		-D ProductVersion=0.9.27 \
+		-D ProductVersion=0.9.1 \
 		-D Win64=yes \
 		--arch x64 \
 		pub-tools.wxs build/heat-app.wxs build/heat-python.wxs build/heat-ffmpeg.wxs
