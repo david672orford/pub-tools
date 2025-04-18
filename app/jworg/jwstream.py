@@ -58,8 +58,9 @@ program_types = {
 	"weekendMeeting": "Weekend Meeting",
 	}
 
-# A recording of an event
 class StreamEvent:
+	"""A recording of an event (a meeting or talk)"""
+
 	def __init__(self, requester, event):
 		self.requester = requester
 		self.event = event
@@ -132,6 +133,8 @@ class StreamEvent:
 		return response["presignedUrl"]
 
 class StreamRequester:
+	"""Client for JW Stream"""
+
 	user_agent = "Mozilla/5.0"
 	request_timeout = 30
 
@@ -143,7 +146,7 @@ class StreamRequester:
 		self.country = None
 		self.status = None
 		self.video_info = []
-		self.programs = []
+		self.events = []
 
 		self.config = dict(
 			preview_resolution = 234,
@@ -180,7 +183,7 @@ class StreamRequester:
 		if response.status_code != 201:
 			raise StreamError("auth/login/share failed: %s %s" % (response.status_code, response.text))
 
-		# Get the tokens
+		# Get the access tokens
 		response = self.session.get(
 			"https://stream.jw.org/api/v1/auth/whoami",
 			headers = {
@@ -195,14 +198,20 @@ class StreamRequester:
 		self.session.headers["xsrf-token-stream"] = whoami["xsrfToken"]
 		self.status = whoami["status"]
 
-		# Get info about this link
+		# Get info about this JW Stream sharing link
 		response = self.session.get(
 			"https://stream.jw.org/api/v1/libraryBranch/home/subCategory/theocraticProgram",
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 200:
 			raise StreamError("subCategory/theocraticProgram failed: %s %s" % (response.status_code, response.text))
-		info = response.json()[0]["specialties"][0]
+		data = response.json()
+		logger.debug("theocraticProgram: %s" % json.dumps(data, indent=2))
+		try:
+			info = data[0]["specialties"][0]
+		except (IndexError, KeyError):
+			logger.error("No content: %s" % url)
+			return
 		self.channel_key = info["key"]
 		self.name = info["name"]
 		self.language = meps_language_code_to_name(info["languageCode"])
@@ -215,7 +224,7 @@ class StreamRequester:
 		if self.channel_key is None:
 			return
 
-		# Use the channel key to get a list of the programs
+		# Use the channel key to get a list of the events
 		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % self.channel_key,
 			timeout = self.request_timeout,
 			)
@@ -242,6 +251,7 @@ class StreamRequester:
 		return None
 
 class StreamRequesterContainer(dict):
+	"""Create a client for each JW Stream sharing URL supplied"""
 	def __init__(self, config):
 		for url in config.get("urls","").split():
 			requestor = StreamRequester(url, config)
@@ -261,4 +271,3 @@ if __name__ == "__main__":
 			print("Program name:", event.title)
 			print("Video URL:", event.get_download_url())
 			print("Chapters:", event.chapters)
-

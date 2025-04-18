@@ -4,6 +4,7 @@ import re
 import csv
 from time import sleep, time
 import subprocess
+import traceback
 import logging
 
 import requests
@@ -57,8 +58,8 @@ def jwstream_channels(config=None):
 			jwstream_channels.urls = config.get("urls")
 			jwstream_channels.timestamp = time_now
 		except Exception as e:
-			logger.error(str(e))
-			flash(str(e))
+			logger.error(traceback.format_exc())
+			flash(_("Failure fetching program list: %s" % str(e)))
 			jwstream_channels.handle = {}
 	return jwstream_channels.handle
 
