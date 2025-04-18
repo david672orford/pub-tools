@@ -246,7 +246,7 @@ class ZoomCropper:
 			if crop_box is False:
 				obs.obs_data_set_bool(source_settings, "enabled", False)
 			else:
-				if self.prev_crop_box is False:
+				if self.prev_crop_box in (None, False):
 					obs.obs_data_set_bool(source_settings, "enabled", True)
 				obs.obs_data_set_int(source_settings, "crop_x", crop_box.x)
 				obs.obs_data_set_int(source_settings, "crop_y", crop_box.y)
