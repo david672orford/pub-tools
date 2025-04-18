@@ -1,7 +1,9 @@
+import sys
+import traceback
+import logging
+
 from flask import current_app, Blueprint, request, render_template, redirect
 from flask_caching import Cache
-import sys, traceback
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +25,11 @@ def page_index():
 # getting the necessary context menu to open.
 @blueprint.errorhandler(500)
 def handle_500(error):
-	exception = "".join(traceback.format_exception(*sys.exc_info()))
-	return render_template("khplayer/500.html", top="/khplayer", exception=exception), 500
+	return render_template(
+		"khplayer/500.html",
+		top="/khplayer",
+		exception=traceback.format_exc(),
+		), 500
 
 from . import view_scenes
 from . import view_scenes_composer

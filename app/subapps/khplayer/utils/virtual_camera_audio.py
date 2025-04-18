@@ -67,7 +67,7 @@ def connect_all(patchbay, config):
 	if obs_input is None:
 		failures.append("OBS input not found")
 	if obs_vcam is None:
-		failures.append(_("OBS virtual camera not started"))
+		failures.append(_("OBS virtual camera not started or audio-vcam.lua not installed"))
 	if zoom_input is None:
 		failures.append(_("Zoom not running (audio input not found)"))
 	if zoom_output is None:
