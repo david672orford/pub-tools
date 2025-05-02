@@ -10,7 +10,7 @@ some participants are connected by Zoom.
 
 ## Install OBS Studio
 
-On Ubuntu Linux 22.04 or later:
+On Ubuntu Linux 22.04 or later install OBS Studio from the PPA:
 
     $ sudo add-apt-repository ppa:obsproject/obs-studio
     $ sudo apt install obs-studio
