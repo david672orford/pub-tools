@@ -47,6 +47,15 @@ class StreamError(Exception):
 class StreamConfigError(StreamError):
 	pass
 
+def parse_jwstream_share_url(url):
+	url_obj = urlparse(url)
+	m = re.match(r"^/ts/([0-9a-zA-Z]{10})$", url_obj.path)
+	if m is None:
+		m = re.match(r"^/(\d{4}-\d{4}-\d{4}-\d{4})$", url_obj.path)
+	if url_obj.netloc == "stream.jw.org" and m is not None:
+		return m.group(1)
+	return None
+
 # The JW Stream API gives certain timestamps as decimal strings of the
 # number of milliseconds since the start of the Unix epoch.
 def convert_datetime(milliseconds_since_epoch, fudge=0):
@@ -159,11 +168,9 @@ class StreamRequester:
 			if not res in (234, 360, 540, 720):
 				raise StreamConfigError("Invalid %s_resolution: %s" % (usage, res))
 
-		url_obj = urlparse(url)
-		m = re.match(r"^/ts/([0-9a-zA-Z]{10})$", url_obj.path)
-		if url_obj.netloc != "stream.jw.org" or m is None:
+		self.token = parse_jwstream_share_url(url)
+		if self.token is None:
 			raise StreamConfigError("Not a JW Stream share URL: %s" % url)
-		self.token = m.group(1)
 
 		self.session = requests.Session()
 		self.session.headers.update({

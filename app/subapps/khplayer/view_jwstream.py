@@ -12,7 +12,7 @@ from flask import current_app, Blueprint, render_template, request, redirect, fl
 
 from ... import turbo
 from ...utils.background import progress_callback, progress_response, run_thread, flash
-from ...jworg.jwstream import StreamRequesterContainer
+from ...jworg.jwstream import StreamRequesterContainer, parse_jwstream_share_url
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from . import menu
@@ -82,9 +82,8 @@ class ConfigForm(dict):
 	def validate(self):
 		flashes = 0
 		for url in self["urls"].split():
-			m = re.match(r"^https://stream\.jw\.org/ts/[0-9a-zA-Z]{10}$", url)
-			if m is None:
-				flash(_("Not a JW Stream sharing URL: %s") % url)
+			if parse_jwstream_share_url(url) is None:
+				flash(_("Not a JW Stream share URL: %s") % url)
 				flashes += 1
 		return flashes == 0
 
