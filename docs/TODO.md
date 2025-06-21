@@ -8,10 +8,11 @@
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
 * Face detection sometimes gets horizontal position wrong (difficult to reproduce)
 * Progress when media file downloaded from inside playlist on Google Drive.
-  (Downloading an MP4 file from the Google Drive itself does show progress.
+  (Downloading an MP4 file from the Google Drive itself *does* show progress.
   Download from within a zip playlist does not seem to.)
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
+* Sound from remote feed should be monitored.
 
 ## Hard Stuff
 

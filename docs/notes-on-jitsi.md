@@ -14,3 +14,7 @@
 * [Gajim](https://gajim.org/)
 * [xows](https://github.com/iquercorb/xows) -- XMPP-over-Websocket web client
 * [Movim](https://movim.eu/)
+
+## XMPP
+
+* [Is xmpp any good? Also, let's write a client in tcl, maybe](https://wusspuss.neocities.org/xmpp)
