@@ -42,6 +42,6 @@ Pillow==11.0.0
 jsonschema==4.23.0
 
 # For zooming to face in Scene Composer
-# (Excluded on Win32 for now since it bloats the MSI.)
+# (Excluded on Win32 for now since they bloat the MSI.)
 face-recognition==1.3.0; sys_platform != "win32"
 numpy==1.26.4; sys_platform != "win32"

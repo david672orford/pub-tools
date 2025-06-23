@@ -27,6 +27,7 @@ PulseAudio in popular Linux distributions.
 * [Migrating from PulseAudio to Pipewire](https://gitlab.freedesktop.org/pipewire/pipewire/-/wikis/Migrate-PulseAudio)
 * [Echo Cancel Module](https://docs.pipewire.org/page_module_echo_cancel.html)
 * [Multiple ports simultaneously in PipeWire](https://denilson.sa.nom.br/blog/2023-11-10/pipewire-multiple-ports) -- How to prevent aggregation of multiple output ports into a single device with switchable output
+* [Automatically Link Pipewire Nodes with Wireplumber](https://bennett.dev/auto-link-pipewire-ports-wireplumber/) -- Seems complicated, but may be helpful in keeping things connected.
 
 ### Wireplumber
 

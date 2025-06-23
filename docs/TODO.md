@@ -2,7 +2,7 @@
 
 ## Bugs
 
-* Exception thrown on expired Jwstream links (may be fixed)
+* Exception thrown on expired JW Stream links (may be fixed)
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh of the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
@@ -13,6 +13,11 @@
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Sound from remote feed should be monitored.
+
+## Easy Stuff
+
+* Drop support for old audio cable
+* Provide a way to see and set Wireplumber node priorities
 
 ## Hard Stuff
 
