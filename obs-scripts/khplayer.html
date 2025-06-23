@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>KH Player Loader</title>
+</head>
+<body>
+<p>Loading...</p>
+<script>
+async function wait_for_khplayer(url) {
+	while(true) {
+		let response = await fetch(url);
+		if(response.ok)
+			break;
+		await new Promise(r => setTimeout(r, 100));
+	}
+}
+const url = "http://127.0.0.1:5000/khplayer/";
+wait_for_khplayer(url);
+window.location = url;
+</script>
+</body>
+</html>
