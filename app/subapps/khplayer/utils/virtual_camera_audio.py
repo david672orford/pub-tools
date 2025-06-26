@@ -6,11 +6,12 @@ logger = logging.getLogger(__name__)
 
 def link_nodes(patchbay, source, sink, exclusive=False):
 	logger.info("Make sure %s is linked to %s", source.name, sink.name)
-	i = 0
-	for output in source.outputs:
+	si = 0
+	for output in source.outputs:		# for each channel
 		linked = False
-		for link in output.links:
-			if link.input_port is sink.inputs[i]:
+		di = si % len(sink.inputs)		# if sink is mono, connect L and R to same input
+		for link in output.links:		# for links from this channel
+			if link.input_port is sink.inputs[di]:
 				logger.info("%s already linked to %s", source.name, sink.name)
 				linked = True
 			else:
@@ -18,8 +19,8 @@ def link_nodes(patchbay, source, sink, exclusive=False):
 				patchbay.destroy_link(link=link)
 		if not linked:
 			logger.info("Linking %s to %s", source.name, sink.name)
-			patchbay.create_link(source.outputs[i], sink.inputs[i])
-		i += 1
+			patchbay.create_link(source.outputs[si], sink.inputs[di])
+		si += 1
 	if exclusive:
 		i = 0
 		for input in sink.inputs:
