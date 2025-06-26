@@ -1,4 +1,5 @@
 # To find out what has been kept back:
+# . .venv/bin/activate
 # pip3 list --outdated
 
 # Flask framework, its dependencies, and addons
