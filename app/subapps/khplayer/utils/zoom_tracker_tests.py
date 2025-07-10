@@ -1,3 +1,5 @@
+"""Tests for the Zoom tracker"""
+
 from .zoom_tracker import ZoomTracker
 
 def tracker_test_image(filename):
@@ -6,12 +8,14 @@ def tracker_test_image(filename):
 	from PIL import Image, ImageDraw
 	from .controllers import obs, ObsError
 
+	# Load the screenshot the user supplied into our Zoom tracker
 	img = Image.open(filename)
 	if img.mode != "RGB":
 		img = img.convert("RGB")
-	tracker = ZoomTracker()
+	tracker = ZoomTracker(debug=True)
 	tracker.load_image(img)
 
+	# We will use this to draw a box around the current speaker to show that we have correctly identified him.
 	class BoxDrawer:
 		def __init__(self, img):
 			self.draw = ImageDraw.Draw(img)
@@ -19,18 +23,6 @@ def tracker_test_image(filename):
 			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=(255, 0, 0), width=1)
 	drawer = BoxDrawer(tracker.img)
 
-	gallery = tracker.find_gallery()
-	speaker_box = tracker.find_speaker_box()
-
-	print("Gallery:", gallery)
-	if gallery is not None:
-		print("x2:", gallery.x2)
-		print("width2:", gallery.width2)
-		drawer.draw_box(gallery)
-	print("Speaker box:", speaker_box)
-	if speaker_box is not None:
-		drawer.draw_box(speaker_box)
-	print("Layout:", tracker.layout)
 	print("Speaker indexes:", tracker.speaker_indexes)
 	for box in tracker.layout:
 		drawer.draw_box(box)

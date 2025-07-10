@@ -1,12 +1,17 @@
+"""Track the layout and speaker locations in a Zoom video conference window"""
+
 from struct import pack
 from dataclasses import dataclass
 
 @dataclass
 class CropBox:
+	"""A rectanguler segment of the Zoom video conference window"""
 	x: int
 	y: int
 	width: int
 	height: int
+	x2: int = None
+	width2: int = None
 
 class ZoomTracker:
 	"""
@@ -17,10 +22,11 @@ class ZoomTracker:
 	https://realpython.com/image-processing-with-the-python-pillow-library/
 	"""
 
-	BYTES_PER_PIXEL = 3
-	GREY_BORDER_WIDTH = 5
-	BACKGROUND_COLOR = pack("BBB", 13, 13, 13)
-	SIDEBAR_COLOR = pack("BBB", 255, 255, 255)
+	BYTES_PER_PIXEL = 3										# Red, Green, Blue
+	GREY_BORDER_WIDTH = 5									# within Zoom window (gone in version 6.5.3, but code to account for it left in for now)
+	#BACKGROUND_COLOR = pack("BBB", 13, 13, 13)				# of Zoom window (old color)
+	BACKGROUND_COLOR = pack("BBB", 0x13, 0x16, 0x19)		# of Zoom window (color observed in version 6.5.3)
+	SIDEBAR_COLOR = pack("BBB", 255, 255, 255)				# of Zoom participants list and chat sidebar
 	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# green
 	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# smallest seems to be about 450px wide
 
@@ -36,10 +42,15 @@ class ZoomTracker:
 		self.speaker_indexes.exclude_first_box = exclude_first_box
 
 	def reset_speakers(self):
+		"""Clear present and previous speaker until new detection"""
 		self.speaker_indexes.reset_speakers()
 
 	def load_image(self, img):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
+
+		if self.debug:
+			print("Loading image...")
+
 		assert img.mode == "RGB", f"Unsupported image mode: {img.mode}"
 
 		# Load the screenshot of the Zoom window into self.img and self.data
@@ -49,27 +60,27 @@ class ZoomTracker:
 		# than the width of the image, then a side panel is open. Crop it off.
 		self.sidebar_width = self.measure_sidebar(self.img.height - 5)
 		if self.debug:
-			print("sidebar_width:", self.sidebar_width)
+			print(" Zoom sidebar width:", self.sidebar_width)
 		if self.sidebar_width > 0:
 			self._load_image(self.img.crop((0, 0, self.img.width - self.sidebar_width, self.img.height)))
 
 		# Find the area in the center where the gallery view is
-		gallery = self.find_gallery()
+		self.gallery = self.find_gallery()
 
 		# Look for the green border which indicates who is speaking
-		speaker_box = self.find_speaker_box()
+		self.speaker_box = self.find_speaker_box()
 
 		# If someone is speaking, we know the size of a speaker box
 		# and can work out where all the boxes are.
-		if gallery is not None and speaker_box is not None:
-			self.layout, speaker_index = self.do_layout(gallery, speaker_box)
+		if self.gallery is not None and self.speaker_box is not None:
+			self.layout, speaker_index = self.infer_layout()
 			self.speaker_indexes.set_speaker_index(speaker_index)
 		else:
 			self.layout = []
 
 	def _load_image(self, img):
 		if self.debug:
-			print("Image:", img.format, img.width, img.height, img.mode)
+			print(" Image format:", img.format, img.width, img.height, img.mode)
 		self.img = img
 		self.data = self.img.tobytes()
 		# Multiplier for the y-coordinate to find where a row starts in the
@@ -80,7 +91,10 @@ class ZoomTracker:
 	# and moving up and down until we find all-black rows. Measure
 	# the left margin both at the top and at the level of the last row.
 	# Store the result in instance variables.
-	def find_gallery(self):
+	def find_gallery(self) -> CropBox:
+		if self.debug:
+			print("Finding gallery...")
+
 		# An entire horizontal row of 'black' pixels, minus the very ends which are grayer.
 		BACKGROUND_COLOR_row = (self.img.width - 2 * self.GREY_BORDER_WIDTH) * self.BACKGROUND_COLOR
 
@@ -90,19 +104,26 @@ class ZoomTracker:
 		# Search upward from the middle for the first all-black row. This is the top of the gallery.
 		top = self.data.rfind(BACKGROUND_COLOR_row, 0, middle)
 		if top == -1:
+			if self.debug:
+				print("Gallery: top not found")
 			return None
+		top = self.offset_to_y(top)
+		print(f" top: {top}")
 
 		# Search downward from the middle for the first all-black row. This is the bottom of the gallery.
 		bottom = self.data.find(BACKGROUND_COLOR_row, middle)
 		if bottom == -1:
+			if self.debug:
+				print("Gallery: bottom not found")
 			return None
-
-		# Convert indexes into self.data[] of the top and the bottom of the gallery into y-coordinates
-		top = self.offset_to_y(top)
 		bottom = self.offset_to_y(bottom)
+		if self.debug:
+			print(f" bottom: {bottom}")
 
 		# Measure the left margin at a point near the top of the gallery.
 		left_margin = self.measure_left_margin(top + 50)
+		if self.debug:
+			print(f" left margin: {left_margin}")
 
 		# Compute the image location based on these all-black rows and columns
 		gallery = CropBox(
@@ -116,8 +137,13 @@ class ZoomTracker:
 		# If the number of participant images does not fill the last row,
 		# the row is centered leading to a larger left margin.
 		left_margin = self.measure_left_margin(bottom - 50)
+		if self.debug:
+			print(f" last row left margin: {left_margin}")
 		gallery.x2 = left_margin + 1
 		gallery.width2 = self.img.width - (2 * left_margin) - 2
+
+		if self.debug:
+			print(f" {gallery}")
 
 		return gallery
 
@@ -137,13 +163,16 @@ class ZoomTracker:
 			if self.data.find(self.SIDEBAR_COLOR, offset, offset+self.BYTES_PER_PIXEL) != offset:
 				return width
 			offset -= self.BYTES_PER_PIXEL
-		raise AssertionError("Reached far left without finding end of sidebar")
+		raise AssertionError("Reached far left without finding end of Zoom sidebar")
 
-	def find_speaker_box(self):
+	def find_speaker_box(self) -> CropBox:
 		"""
-		Find the position and size of the green border which surounds
+		Find the position and size of the green border which surrounds
 		the video box of the current speaker
 		"""
+
+		if self.debug:
+			print("Finding speaker box...")
 
 		# Scan down looking for the top border. Bail out if we don't find it.
 		hit1 = self.data.find(self.SPEAKER_BORDER_COLOR_RUN)
@@ -151,7 +180,7 @@ class ZoomTracker:
 			return None
 		x1, y1 = self.offset_to_xy(hit1)
 		if self.debug:
-			print("hit1:", x1, y1)
+			print(f" top found at: ({x1}, {y1})")
 
 		# Scan further down for the bottom border. Bail out if we don't find it.
 		hit2 = self.data.find(self.SPEAKER_BORDER_COLOR_RUN, hit1 + 50 * self.row_length_in_bytes)
@@ -159,11 +188,11 @@ class ZoomTracker:
 			return None
 		x2, y2 = self.offset_to_xy(hit2)
 		if self.debug:
-			print("hit2:", x2, y2)
+			print(f" bottom found at: ({x2}, {y2}")
 
 		border_width = self.measure_border_width(x1, y1)
 		if self.debug:
-			print("border width:", border_width)
+			print(" border width:", border_width)
 		border_corner_radius = border_width * 4
 		border_lr = border_width * self.SPEAKER_BORDER_COLOR
 
@@ -181,9 +210,9 @@ class ZoomTracker:
 		x = x1 - border_corner_radius
 		width = int(height * 16 / 9 + 0.5)
 		if self.debug:
-			print(f"Estimates: x={x}, width={width}")
+			print(f" estimates: x={x}, width={width}")
 
-		# Use our estimates to find the right and left borders and measure their actual positions.
+		# Use our estimates to find the left border and measure its actual position.
 		middle_y = y1 + int(height / 2)
 		FUDGE = 10
 		lb_hit = self.data.find(
@@ -194,8 +223,9 @@ class ZoomTracker:
 		if lb_hit != -1:
 			x = self.offset_to_x(lb_hit)
 		else:
-			print("Failed to find left border")
+			print("Speaker box: Failed to find left border")
 
+		# Use our estimates to find the left border and measure its actual position.
 		rb_hit = self.data.find(
 			border_lr,
 			self.xy_to_offset(x + width - border_width - FUDGE, middle_y),
@@ -204,9 +234,9 @@ class ZoomTracker:
 		if rb_hit != -1:
 			width = int((rb_hit - lb_hit) / self.BYTES_PER_PIXEL + border_width)
 		else:
-			print("Failed to find right border")
+			print("Speaker box: Failed to find right border")
 		if self.debug:
-			print(f"Final: x={x}, width={width}")
+			print(f" final location: x={x}, y={y1}, width={width}, height={height}")
 
 		return CropBox(x, y1, width, height)
 
@@ -218,7 +248,7 @@ class ZoomTracker:
 				return (yscan - y)
 		raise AssertionError("Speaker border implausibly wide")
 
-	def do_layout(self, gallery, speaker_box):
+	def infer_layout(self):
 		"""
 		Given:
 		1) The dimensions of the gallery view
@@ -227,37 +257,38 @@ class ZoomTracker:
 		"""
 
 		FUDGE = 10
-		columns = int((gallery.width+FUDGE) / speaker_box.width)
-		rows = int((gallery.height+FUDGE) / speaker_box.height)
-		if self.debug:
-			print(f"Gallery layout: {columns} x {rows}")
-			print(f"Speaker box: {speaker_box}")
+		columns = int((self.gallery.width+FUDGE) / self.speaker_box.width)
+		rows = int((self.gallery.height+FUDGE) / self.speaker_box.height)
 
-		y = gallery.y
+		if self.debug:
+			print("Speaker layout:")
+			print(f" grid: {columns} x {rows}")
+
+		y = self.gallery.y
 		layout = []
 		speaker_index = None
 		for row in range(rows):
 			if row == (rows - 1):		# last row may not be full
-				x = gallery.x2
-				columns = int(gallery.width2 / speaker_box.width)
+				x = self.gallery.x2
+				columns = int(self.gallery.width2 / self.speaker_box.width)
 			else:
-				x = gallery.x
+				x = self.gallery.x
 			for column in range(columns):
-				if abs(x - speaker_box.x) < 10 and abs(y - speaker_box.y) < 10:
+				if abs(x - self.speaker_box.x) < 10 and abs(y - self.speaker_box.y) < 10:
 					speaker_index = len(layout)
 				layout.append(CropBox(
 					x = x,
 					y = y,
-					width = speaker_box.width,
-					height = speaker_box.height,
+					width = self.speaker_box.width,
+					height = self.speaker_box.height,
 					))
-				x += speaker_box.width
-			y += speaker_box.height
+				x += self.speaker_box.width
+			y += self.speaker_box.height
 
 		if self.debug:
 			for i in range(len(layout)):
-				print(f"layout[{i}] = {repr(layout[i])}")
-			print("speaker_index:", speaker_index)
+				print(f" {i}: {repr(layout[i])}")
+			print(" Current speaker:", speaker_index)
 
 		return layout, speaker_index
 
