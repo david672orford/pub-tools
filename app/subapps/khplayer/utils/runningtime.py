@@ -1,7 +1,9 @@
+"""Convert video durations between seconds and H:M:S format"""
+
 import re
 
 # Convert a time in seconds into a string such as "4:45" or even "1:04:45"
-def time_to_str(seconds):
+def time_to_str(seconds:int) -> str:
 	hours = int(seconds / 3600)
 	seconds = seconds % 3600
 	minutes = int(seconds / 60)
@@ -12,7 +14,7 @@ def time_to_str(seconds):
 		return "%d:%02d" % (minutes, seconds)
 
 # Parse a time string such as "4:45" into seconds
-def parse_time(timestr):
+def parse_time(timestr: str) -> int:
 	elements = timestr.split(":")
 	if not 0 < len(elements) <= 3:
 		raise ValueError
@@ -25,4 +27,3 @@ def parse_time(timestr):
 			raise ValueError
 		seconds = (seconds * 60) + value
 	return seconds
-
