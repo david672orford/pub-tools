@@ -67,20 +67,18 @@ class Article:
 		og_image = self.root.xpath("./head/meta[@property='og:image']")
 		self.thumbnail_url = og_image[0].attrib["content"] if len(og_image) > 0 else None
 
-		# Get the publication ID code from the class of the <article> tag
-		m = re.search(r" pub-(\S+) ", self.article_tag.attrib["class"])
-		assert m, "JW.ORG pub code not found"
-		self.pub_code = m.group(1)
-
-		# And the issue code
-		m = re.search(r" iss-(\S+) ", self.article_tag.attrib["class"])
-		self.issue_code = m.group(1) if m is not None else None
-
-		# And the MEPS document ID
-		m = re.search(r" docId-(\d+) ", self.article_tag.attrib["class"])
-		assert m, "JW.ORG docid not found"
-		self.docid = int(m.group(1))
-
-		# Remove the section which has the page images
-		#for el in self.article_tag.xpath(".//div[@id='docSubImg']"):
-		#	el.getparent().remove(el)
+		# Identify the publication from the <article> tag classes
+		self.pub_code: str = None
+		self.issue_code: str = None
+		self.docid: int = None
+		for item in self.article_tag.attrib["class"].split():
+			item = item.split("-",1)
+			if len(item) == 2:
+				name, value = item
+				match name:
+					case "pub":
+						self.pub_code = value
+					case "iss":
+						self.issue_code = value
+					case "docId":
+						self.docid = int(value)

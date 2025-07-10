@@ -461,6 +461,7 @@ class MeetingLoader(Fetcher):
 
 		# Extract publication code
 		# We may use it below to figure out what we've got.
+		# FIXME: assumes the <a> tag has only this one class
 		pub_code = re.match(r"^pub-(\S+)$", a.attrib.get("class",""))
 		if pub_code is not None:
 			pub_code = pub_code.group(1)
