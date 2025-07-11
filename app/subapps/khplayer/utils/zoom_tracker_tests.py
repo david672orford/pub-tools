@@ -64,8 +64,8 @@ def tracker_track():
 	tracker = ZoomTracker(debug=True)
 	while True:
 		try:
-			print("Getting snapshot of Zoom window...")
-			response = obs.request("SaveSourceScreenshot", {
+			print("Getting screenshot of Zoom window...")
+			obs.request("SaveSourceScreenshot", {
 				"sourceName": zoom_input_name,
 				"imageFilePath": filename,
 				"imageFormat": "png",

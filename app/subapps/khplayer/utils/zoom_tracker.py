@@ -10,6 +10,9 @@ class CropBox:
 	y: int
 	width: int
 	height: int
+
+@dataclass
+class GalleryCropBox(CropBox):
 	x2: int = None
 	width2: int = None
 
@@ -93,7 +96,7 @@ class ZoomTracker:
 	# Store the result in instance variables.
 	def find_gallery(self) -> CropBox:
 		if self.debug:
-			print("Finding gallery...")
+			print("Finding gallery area in Zoom screenshot...")
 
 		# An entire horizontal row of 'black' pixels, minus the very ends which are grayer.
 		BACKGROUND_COLOR_row = (self.img.width - 2 * self.GREY_BORDER_WIDTH) * self.BACKGROUND_COLOR
@@ -126,7 +129,7 @@ class ZoomTracker:
 			print(f" left margin: {left_margin}")
 
 		# Compute the image location based on these all-black rows and columns
-		gallery = CropBox(
+		gallery = GalleryCropBox(
 			x = left_margin + 1,
 			y = top + 1,
 			width = self.img.width - (2 * left_margin) - 2,
@@ -172,11 +175,13 @@ class ZoomTracker:
 		"""
 
 		if self.debug:
-			print("Finding speaker box...")
+			print("Finding speaker box in Zoom screenshot...")
 
 		# Scan down looking for the top border. Bail out if we don't find it.
 		hit1 = self.data.find(self.SPEAKER_BORDER_COLOR_RUN)
 		if hit1 == -1:
+			if self.debug:
+				print("Speaker box top not found")
 			return None
 		x1, y1 = self.offset_to_xy(hit1)
 		if self.debug:
@@ -185,6 +190,8 @@ class ZoomTracker:
 		# Scan further down for the bottom border. Bail out if we don't find it.
 		hit2 = self.data.find(self.SPEAKER_BORDER_COLOR_RUN, hit1 + 50 * self.row_length_in_bytes)
 		if hit2 == -1:
+			if self.debug:
+				print("Speaker box bottom not found")
 			return None
 		x2, y2 = self.offset_to_xy(hit2)
 		if self.debug:
@@ -261,8 +268,8 @@ class ZoomTracker:
 		rows = int((self.gallery.height+FUDGE) / self.speaker_box.height)
 
 		if self.debug:
-			print("Speaker layout:")
-			print(f" grid: {columns} x {rows}")
+			print("Inferring gallery speaker layout...")
+			print(f" Grid dimensions: {columns} x {rows}")
 
 		y = self.gallery.y
 		layout = []
@@ -287,22 +294,25 @@ class ZoomTracker:
 
 		if self.debug:
 			for i in range(len(layout)):
-				print(f" {i}: {repr(layout[i])}")
-			print(" Current speaker:", speaker_index)
+				print(f" Speaker box {i} at: {repr(layout[i])}")
+			print(f" Current speaker box: {speaker_index}")
 
 		return layout, speaker_index
 
 	def do_cropping(self, zoom_scenes):
 		"""Set the crop boxes on the supplied ZoomCropper objects"""
+		if self.debug:
+			print("Setting OBS croppers...")
 		i = 0
 		for speaker_index in self.speaker_indexes:
 			crop = self.layout[speaker_index] if speaker_index is not None and speaker_index < len(self.layout) else False
 			if self.debug:
-				print(f"speaker_indexes[{i}] crop is {crop}")
+				print(f" Zoom Participant {i} -> box={speaker_index}, crop={crop}")
 			zoom_scenes[i].set_crop(crop)
 			i += 1
 
 	def offset_to_xy(self, offset):
+		"""Convert a byte offset into the PIL data array into the (x,y) pixel position"""
 		assert type(offset) is int
 		return (
 			self.offset_to_x(offset),
@@ -318,6 +328,7 @@ class ZoomTracker:
 		return offset // self.row_length_in_bytes
 
 	def xy_to_offset(self, x, y):
+		"""Convert an (x, y) pixel position into an offset into the PIL data array"""
 		assert type(x) is int
 		assert type(y) is int
 		return y * self.row_length_in_bytes + x * self.BYTES_PER_PIXEL
