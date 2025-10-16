@@ -68,7 +68,8 @@ class MeetingLoader(Fetcher):
 		url = self.week_url.format(year=year, week=week)
 		html = self.get_html(url)
 
-		today_items = html.find_class("todayItems")[0]
+		#today_items = html.find_class("todayItems")[0]
+		today_items = html.find_class("today")[0]
 		result = {}
 
 		#------------------------------------------
@@ -88,10 +89,7 @@ class MeetingLoader(Fetcher):
 		watchtower_div = today_items.find_class("pub-w")
 		if len(watchtower_div) > 0:
 			watchtower_div = watchtower_div[0]
-			# Follow the link. The MEPS docId is at the end of the URL to which we are redirected.
-			watchtower_url = urljoin(url, watchtower_div.find_class("itemData")[0].xpath(".//a")[0].attrib["href"])
-			response = self.get(watchtower_url, follow_redirects=False)
-			result["watchtower_docid"] = response.geturl().split('/')[-1]
+			result["watchtower_docid"] = int(re.search(r" docId-(\d+) ", watchtower_div.attrib["class"]).group(1))
 		else:
 			result["watchtower_docid"] = None
 
