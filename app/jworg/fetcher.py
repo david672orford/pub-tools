@@ -1,6 +1,7 @@
 import os, json, re
 from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPErrorProcessor, build_opener
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
+import ssl
 from gzip import GzipFile
 from time import sleep, time
 from functools import cache
@@ -98,8 +99,13 @@ class Fetcher:
 		self.meps_language = iso_language_code_to_meps(language)
 		self.cachedir = cachedir
 		self.last_request_time = 0
+
+		# As of December 2025 fetches of Watchtower articles hang from Windows Python 3.12.
+		context = ssl.create_default_context()
+		context.set_ciphers("HIGH:!aNULL:!MD5:!RC4:!DHE")
+
 		http_handler = HTTPHandler(debuglevel=debuglevel)
-		https_handler = HTTPSHandler(debuglevel=debuglevel)
+		https_handler = HTTPSHandler(debuglevel=debuglevel, context=context)
 		self.opener = build_opener(http_handler, https_handler)
 		self.no_redirects_opener = build_opener(NoRedirects, http_handler, https_handler)
 

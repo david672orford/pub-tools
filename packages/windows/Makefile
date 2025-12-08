@@ -36,7 +36,7 @@ msi: build/heat-python.wxs build/heat-ffmpeg.wxs
 		-D AppBuildDir=build/app \
 		-D PythonBuildDir=build/python \
 		-D FFmpegBuildDir=build/ffmpeg \
-		-D ProductVersion=0.9.1 \
+		-D ProductVersion=0.9.2 \
 		-D Win64=yes \
 		--arch x64 \
 		pub-tools.wxs build/heat-app.wxs build/heat-python.wxs build/heat-ffmpeg.wxs

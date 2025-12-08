@@ -141,9 +141,12 @@ media_column_order = (
 
 @cli_jworg.command("get-meeting-media")
 @click.argument("docid")
-def cmd_get_meeting_media(docid):
+@click.option("--debug", is_flag=True)
+def cmd_get_meeting_media(docid, debug):
 	"""Scrape a meeting article to get the media"""
-	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)
+	if debug:
+		logging.basicConfig(level=logging.DEBUG)
+	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=1 if debug else 0)
 	url = meeting_loader.meeting_url(docid)
 	media = meeting_loader.extract_media(url, callback=basic_callback)
 	print_dict_result_table(map(lambda item: asdict(item), media), "Meeting Media", order=media_column_order)
@@ -151,7 +154,7 @@ def cmd_get_meeting_media(docid):
 @cli_jworg.command("get-article-media")
 @click.argument("url")
 @click.option("--save-as", default=None)
-def cmd_get_article_media(url, save_as):
+def cmd_get_article_media(url, debug, save_as):
 	"""Scrape a supplemental article to get the media"""
 
 	meeting_loader = MeetingLoader(language=current_app.config["PUB_LANGUAGE"], debuglevel=0)

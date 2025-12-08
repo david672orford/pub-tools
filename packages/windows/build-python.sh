@@ -1,14 +1,20 @@
 #! /bin/sh
 # Download and configure Python and required packages
-set -eu
+set -eux
 
+# For running Windows Python on Linux
 WINE=/opt/wine-stable/bin/wine
+
+PYTHON_VERSION=3.12.9
+
+# Wheels not yet available
+#PYTHON_VERSION=3.14.2
 
 # Download Python, Get-PIP, and Dlib wheel
 mkdir -p download
 cd download
 for url in \
-		https://www.python.org/ftp/python/3.12.8/python-3.12.8-embed-amd64.zip \
+		https://www.python.org/ftp/python/$PYTHON_VERSION/python-$PYTHON_VERSION-embed-amd64.zip \
 		https://bootstrap.pypa.io/get-pip.py \
 		https://github.com/z-mahmud22/Dlib_Windows_Python3.x/raw/refs/heads/main/dlib-19.24.99-cp312-cp312-win_amd64.whl
 	do
@@ -21,9 +27,10 @@ for url in \
 cd ..
 
 echo "Unpacking Python..."
+rm -rf build/python
 mkdir -p build/python
 cd build/python
-unzip ../../download/python-3.12.8-embed-amd64.zip
+unzip ../../download/python-$PYTHON_VERSION-embed-amd64.zip
 
 echo "Configure sys.path..."
 cat - <<HERE >sitecustomize.py
@@ -31,17 +38,17 @@ import sys
 sys.path.insert(0, "")
 sys.path.insert(-1, sys.path[-1] + ".zip")
 HERE
-echo "import site" >>python312._pth
+echo "import site" >>python`echo $PYTHON_VERSION | cut -d. -f1,2 --output-delimiter=""`._pth
 
 # Install packages named in requirements.txt.
 # Tested with Wine 10.0 (wine-stable in Ubuntu 24.04)
 echo "Installing required Python packages..."
-$WINE python.exe ../../download/get-pip.py
+$WINE python.exe ../../download/get-pip.py --no-warn-script-location
 $WINE python.exe -m pip install setuptools
-if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
-	then
-	$WINE python.exe -m pip install ../../download/dlib-19.24.99-cp312-cp312-win_amd64.whl
-	fi
+#if grep '^face-recognition==' ../../../../requirements.txt >/dev/null
+#	then
+#	$WINE python.exe -m pip install ../../download/dlib-19.24.99-cp312-cp312-win_amd64.whl
+#	fi
 $WINE python.exe -m pip install -r ../../../../requirements.txt --no-warn-script-location
 
 # Slim down by removing unneeded scripts, C include files, tests, and metadata.
