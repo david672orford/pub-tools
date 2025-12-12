@@ -183,6 +183,12 @@ def cmd_obs_get_hotkey_list():
 # Scenes
 #=============================================================================
 
+@cli_obs.command("set-scene")
+@click.argument("scene_uuid")
+def cmd_obs_set_scene(scene_uuid):
+	"""Change program scene"""
+	obs.set_scene(scene_uuid)
+
 @cli_obs.command("dump-scene-collection")
 def cmd_obs_dump_scene_collection():
 	"""Pretty-print scene collection 'KH Player'"""
