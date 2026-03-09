@@ -295,11 +295,14 @@ class Fetcher:
 		# Examples:
 		#  https://www.jw.org/finder?lank=pub-jwbcov_201505_11_VIDEO&wtlocale=U
 		#  https://www.jw.org/open?lank=pub-mwbv_202103_2_VIDEO&wtlocale=U
-		if "lank" in query:
+		if (lank := query.get("lank")) is not None:
+
+			# MWB for week of February 15, 2026 has a weird lank
+			lank = re.sub(r"_x_VIDEO$", "_1_VIDEO", lank)
 
 			media = self.get_json(self.mediator_items_url.format(
 				meps_language = meps_language,
-				video = query["lank"],
+				video = lank,
 				), query = { "clientType": "www" })
 			if len(media["media"]) < 1:
 				raise FetcherNoMediaError("Video not yet available: %s" % url)
