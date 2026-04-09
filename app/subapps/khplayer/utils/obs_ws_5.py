@@ -1,4 +1,4 @@
-# Client for OBS-Websocket 5.x
+"""Client for OBS-Websocket 5.x"""
 #
 # References:
 # * https://github.com/obsproject/obs-websocket

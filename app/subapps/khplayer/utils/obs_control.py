@@ -1,5 +1,7 @@
-import os, re
-from time import sleep
+"""Higher-level layer above OSB-Websocket API"""
+
+import os
+import re
 from urllib.parse import urlparse, unquote, urlencode
 import logging
 
@@ -21,6 +23,9 @@ class ObsControl(ObsControlBase):
 		self.subscribe("Config", lambda event: self.event(event))
 		self.subscribe("Scenes", lambda event: self.event(event))
 		self.subscribe("Ui", lambda event: self.event(event))
+
+		# Workaround for bug in OBS-Studio 32.1.0
+		self.scene_created_event_dedup:set[str] = set()
 
 	def init_app(self, app):
 		self.app = app
@@ -97,6 +102,10 @@ class ObsControl(ObsControlBase):
 					scenes["currentPreviewSceneUuid"] = None
 					scenes["currentPreviewSceneName"] = None
 			case "SceneCreated":
+				if data["sceneUuid"] in self.scene_created_event_dedup:
+					return
+				self.scene_created_event_dedup.add(data["sceneUuid"])
+
 				scene_name = re.sub(r" \(\d+\)$", "", data["sceneName"])
 				pos = self._scene_pos.pop(scene_name, None)
 				if pos is not None and pos < len(self.scene_list["scenes"]):
@@ -113,14 +122,14 @@ class ObsControl(ObsControlBase):
 			case "SceneNameChanged":
 				self.scene_list["scenes"][self.get_scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
 
-	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int=None):
+	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int|None=None):
 		if pos is not None:
 			self._scene_pos[scene_name] = pos
 		return super().create_scene(scene_name, make_unique=make_unique)
 
-	# Return the index of the first scene with a name which does
+	# Return the index of the first scene the name of which does
 	# not begin with any of the characters in skiplist.
-	def select_scene_pos(self, skiplist:str=None):
+	def select_scene_pos(self, skiplist:str|None=None):
 		if skiplist is None:
 			return None
 		pos = 0
@@ -148,7 +157,7 @@ class ObsControl(ObsControlBase):
 		raise KeyError()
 
 	# Change the position of a scene in the scene list
-	def move_scene(self, uuid, new_index):
+	def move_scene(self, uuid:str, new_index:int):
 		i = self.get_scene_index(uuid)
 		scene = self.scene_list["scenes"].pop(i)
 		self.scene_list["scenes"].insert(new_index, scene)
