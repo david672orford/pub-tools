@@ -13,6 +13,7 @@
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Sound from remote feed should be monitored.
+* S-418mp-26\_U\_001.jwpub has bad video links
 
 ## Easy Stuff
 
