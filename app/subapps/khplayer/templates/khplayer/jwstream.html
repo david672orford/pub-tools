@@ -9,12 +9,13 @@
 
 {% block main %}
 <section>
-<table class="borders medium-width">
+<table class="borders">
 <thead>
 <tr>
 	<th>{{gettext("Channel Name")}}</th>
 	<th>{{gettext("Language")}}</th>
 	<th>{{gettext("Country")}}</th>
+	<th>{{gettext("Expires")}}</th>
 	<th>{{gettext("Status")}}</th>
 </tr>
 </thead>
@@ -24,12 +25,14 @@
 	<td><a href="{{channel.token}}/">{{gettext(channel.name)}}</a></td>
 	<td>{{gettext(channel.language)}}</td>
 	<td>{{gettext(channel.country)}}</td>
+	<td>{{channel.expires.strftime("%Y-%m-%d")}}</td>
 	<td>{{channel.status}}</td>
 </tr>
 {% endfor %}
 {% for i in range(channels|length, 3) %}
 <tr>
 	<td>&nbsp;&nbsp;</td>
+	<td></td>
 	<td></td>
 	<td></td>
 	<td></td>

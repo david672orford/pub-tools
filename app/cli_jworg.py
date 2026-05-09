@@ -21,6 +21,7 @@ from .jworg.meetings import MeetingLoader
 from .jworg.videos import VideoLister
 from .jworg.epub import EpubLoader
 from .jworg.hrange import HighlightRange
+from .jworg.jwstream import StreamRequester
 from .utils.babel import gettext as _
 
 logger = logging.getLogger(__name__)
@@ -529,3 +530,23 @@ def cmd_search_illustrations(q):
 	"""Search illustration captions (for testing)"""
 	illustrations = illustration_index.search(q)
 	print_dict_result_table(illustrations, "Illustration Search Results")
+
+@cli_jworg.command("jwstream")
+@click.argument("url")
+@click.argument("event_id")
+def cmd_jwstream(url, event_id=None):
+	"""Get list of programs from a JW Stream sharing URL"""
+
+	requester = StreamRequester(url, {}, debug=True)
+	for event in requester.list_events():
+		print("Event: %s: %s" % (event.id, event.title))
+
+	if event_id is not None:
+		event = requester.get_event(event_id)
+		if event is None:
+			print("Not found")
+		else:
+			print("Program name:", event.title)
+			print("Video URL:", event.get_download_url())
+			print("Chapters:", event.chapters)
+

@@ -147,12 +147,13 @@ class StreamRequester:
 	user_agent = "Mozilla/5.0"
 	request_timeout = 30
 
-	def __init__(self, url, config, debug=False):
+	def __init__(self, url:str, config, debug=False):
 		self.debug = debug
 		self.channel_key = None
 		self.name = None
 		self.language = None
 		self.country = None
+		self.expires = None
 		self.status = None
 		self.video_info = []
 		self.events = []
@@ -178,7 +179,7 @@ class StreamRequester:
 			"Accept": "application/json",
 			})
 
-		# Use the sharing URL to log in and get the session cookies
+		# Sharing URLs POST to this endpoint to log in and get the session cookies
 		response = self.session.post(
 			"https://stream.jw.org/api/v1/auth/login/share",
 			json = { "token": self.token },
@@ -202,8 +203,9 @@ class StreamRequester:
 			raise StreamError("auth/whoami failed: %s %s" % (response.status_code, response.text))
 
 		whoami = response.json()
-		self.session.headers["xsrf-token-stream"] = whoami["xsrfToken"]
-		self.status = whoami["status"]
+		self.session.headers["xsrf-token-stream"] = self.session.cookies["xsrf-token-stream"]
+		self.expires = date.fromtimestamp(int(whoami["expiresOn"]) / 1000)
+		self.status = "OK" if self.expires > date.today() else "Expired"
 
 		# Get info about this JW Stream sharing link
 		response = self.session.get(
@@ -232,7 +234,8 @@ class StreamRequester:
 			return
 
 		# Use the channel key to get a list of the events
-		response = self.session.get("https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % self.channel_key,
+		response = self.session.get(
+			"https://stream.jw.org/api/v1/libraryBranch/home/vodProgram/specialty/%s" % self.channel_key,
 			timeout = self.request_timeout,
 			)
 		if response.status_code != 200:
@@ -264,17 +267,3 @@ class StreamRequesterContainer(dict):
 			requestor = StreamRequester(url, config)
 			self[requestor.token] = requestor
 
-if __name__ == "__main__":
-	import sys
-	requester = StreamRequester(sys.argv[1], {}, debug=True)
-	for event in requester.list_events():
-		print("Event: %s: %s" % (event.id, event.title))
-
-	if len(sys.argv) > 2:
-		event = requester.get_event(sys.argv[2])
-		if event is None:
-			print("Not found")
-		else:
-			print("Program name:", event.title)
-			print("Video URL:", event.get_download_url())
-			print("Chapters:", event.chapters)
