@@ -11,7 +11,7 @@ click==8.1.7
 itsdangerous==2.2.0
 Jinja2==3.1.6
 Markupsafe==3.0.2
-Werkzeug==3.1.5
+Werkzeug==3.1.6
 # Used to examine DB during development
 #flask_admin==1.6.1
 
