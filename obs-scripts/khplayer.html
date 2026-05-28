@@ -5,17 +5,23 @@
 <body>
 <p>Loading...</p>
 <script>
-async function wait_for_khplayer(url) {
+async function waitForBackend(url) {
 	while(true) {
-		let response = await fetch(url);
-		if(response.ok)
-			break;
-		await new Promise(r => setTimeout(r, 100));
+		console.log("Testing backend...");
+		try {
+			const response = await fetch(url + "isup");
+			if(response.ok) {
+				console.log("Backend is readying.");
+				window.location = url;
+				break;
+				}
+		} catch(error) {
+			console.log("Error:", error);
+		}
+		await new Promise(resolve => setTimeout(resolve, 100));
 	}
 }
-const url = "http://127.0.0.1:5000/khplayer/";
-wait_for_khplayer(url);
-window.location = url;
+waitForBackend("http://127.0.0.1:5000/khplayer/");
 </script>
 </body>
 </html>

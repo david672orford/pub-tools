@@ -2,7 +2,7 @@ import sys
 import traceback
 import logging
 
-from flask import current_app, Blueprint, request, render_template, redirect
+from flask import current_app, Blueprint, request, render_template, redirect, make_response
 from flask_caching import Cache
 
 logger = logging.getLogger(__name__)
@@ -13,9 +13,15 @@ blueprint.blurb = "Download videos and illustrations from JW.ORG and load them i
 
 blueprint.cache = Cache()
 
-# Redirect to default tab
+@blueprint.route("/isup")
+def page_isup():
+	response = make_response("OK")
+	response.headers["Access-Control-Allow-Origin"] = "*"
+	return response
+
 @blueprint.route("/")
 def page_index():
+	"""Redirect to default tab"""
 	return redirect("scenes/")
 
 # Whenever an uncaught exception occurs in a view function Flask returns
