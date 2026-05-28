@@ -5,12 +5,16 @@
 # * https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md
 #
 
-import os.path
-import websocket, json, base64, hashlib
+import os
+import json
+import base64
+import hashlib
 from threading import Thread, current_thread, Lock, Condition
 from time import sleep
 import queue
 import logging
+
+import websocket
 
 logger = logging.getLogger(__name__)
 

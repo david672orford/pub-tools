@@ -204,7 +204,7 @@ class Fetcher:
 		else:
 			logger.debug("=======================================================\n%s", text)
 
-	# Alter the whitespace in the element tree to indent the tabs
+	# Alter the whitespace in the element tree to indent the tags
 	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
 	def indent_html(self, elem, level=0):
 		i = "\n" + level*"  "
@@ -217,8 +217,6 @@ class Fetcher:
 				elem.tail = i
 			for elem in elem:
 				self.indent_html(elem, level+1)
-			if not elem.tail or not elem.tail.strip():
-				elem.tail = i
 		else:
 			if level and (not elem.tail or not elem.tail.strip()):
 				elem.tail = i

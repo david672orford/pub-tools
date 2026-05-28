@@ -18,3 +18,4 @@
 ## XMPP
 
 * [Is xmpp any good? Also, let's write a client in tcl, maybe](https://wusspuss.neocities.org/xmpp)
+* [XEP-0340: COnferences with LIghtweight BRIdging (COLIBRI)](https://xmpp.org/extensions/xep-0340.html)
