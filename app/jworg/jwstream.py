@@ -153,7 +153,7 @@ class StreamRequester:
 		self.name = None
 		self.language = None
 		self.country = None
-		self.expires = None
+		#self.expires = None		# turns out to be the session expiration, not the link expiration
 		self.status = None
 		self.video_info = []
 		self.events = []
@@ -204,8 +204,8 @@ class StreamRequester:
 
 		whoami = response.json()
 		self.session.headers["xsrf-token-stream"] = self.session.cookies["xsrf-token-stream"]
-		self.expires = date.fromtimestamp(int(whoami["expiresOn"]) / 1000)
-		self.status = "OK" if self.expires > date.today() else "Expired"
+		#self.expires = date.fromtimestamp(int(whoami["expiresOn"]) / 1000)
+		#self.status = "OK" if self.expires > date.today() else "Expired"
 
 		# Get info about this JW Stream sharing link
 		response = self.session.get(
