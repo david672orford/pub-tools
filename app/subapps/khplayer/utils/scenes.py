@@ -81,7 +81,7 @@ def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="
 def load_video_file(scene_name:str, video_file:str, thumbnail_file:str=None, subtitle_track:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
 	try:
 		obs.add_media_scene(
-			prefix + " " + scene_name,
+			f"{prefix} {scene_name}",
 			"video",
 			video_file,
 			thumbnail = thumbnail_file,
@@ -110,7 +110,7 @@ def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, ski
 	assert thumbnail_file is None, "not supported yet"
 	try:
 		obs.add_media_scene(
-			"□ " + scene_name,
+			f"□ {scene_name}",
 			"image",
 			image_file,
 			skiplist = skiplist,
@@ -132,7 +132,7 @@ def load_pdf_file(scene_name:str, pdf_file:str, thumbnail_file:str=None, skiplis
 		scene_name = url.rsplit("/",1)[-1]
 	try:
 		obs.add_media_scene(
-			"▤ " + scene_name,
+			f"▤ {scene_name}",
 			"pdf",
 			pdf_file,
 			thumbnail = thumbnail_file,
@@ -166,7 +166,13 @@ def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None,
 
 	progress_callback(_("Loading webpage \"{scene_name}\"...").format(scene_name=scene_name))
 	try:
-		obs.add_media_scene("◯ " + scene_name, "web", url, thumbnail=thumbnail, skiplist=skiplist)
+		obs.add_media_scene(
+			f"◯ {scene_name}",
+			"web",
+			url,
+			thumbnail = thumbnail,
+			skiplist = skiplist
+			)
 	except ObsError as e:
 		flash(_("OBS: %s") % str(e))
 		progress_callback(_("✘ Loading of webpage failed."), last_message=close, cssclass="error")
