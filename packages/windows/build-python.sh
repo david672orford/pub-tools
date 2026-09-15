@@ -102,7 +102,7 @@ for i in \
 		urllib3 \
 		websocket \
 		werkzeug \
-		werkzeug-3.1.3.dist-info \
+		werkzeug-3.1.6.dist-info \
 		whoosh
 	do
 	mv $i ../tmp

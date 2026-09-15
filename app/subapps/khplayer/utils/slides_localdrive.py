@@ -47,7 +47,7 @@ class LocalDriveClient:
 			self.filename = file.name
 			self.mimetype = mimetype
 			self.file_size = file.stat().st_size
-			self.thumbnail_data = None
+			self.thumbnail_data:bytes|None = None
 
 			if thumbnail and self.mimetype.startswith("image/"):
 				image = Image.open(file.path)
@@ -73,17 +73,17 @@ class LocalDriveClient:
 		"""Get the list of objects representing the images files"""
 		return self.image_files
 
-	def make_uuid(self, file):
+	def make_uuid(self, file:LocalFile):
 		return None
 
-	def download_thumbnail(self, file, save_as):
+	def download_thumbnail(self, file:LocalFile, save_as:str) -> str|None:
 		if file.thumbnail_data is None:
 			return None
 		save_as = os.path.splitext(save_as)[0] + ".jpg"
 		with open(save_as + ".tmp", "wb") as fh:
 			fh.write(file.thumbnail_data)
-		os.rename(save_as + ".tmp", save_as)
+		os.replace(save_as + ".tmp", save_as)
 		return save_as
 
-	def download_file(self, file, save_as, callback=None):
+	def download_file(self, file:LocalFile, save_as:str, callback=None) -> str:
 		return os.path.join(self.path, file.id)

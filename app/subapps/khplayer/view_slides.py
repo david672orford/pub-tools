@@ -153,7 +153,7 @@ def get_fs_client(path:str):
 				# See https://stackoverflow.com/questions/14728038/disabling-the-large-file-notification-from-google-drive#answer-79408695
 				url = f"https://drive.usercontent.google.com/download?export=download&confirm=t&id={folder_id}"
 
-				logger.info("Zip URL:", url)
+				logger.info("Zip URL: %s", url)
 				zip_reader = RemoteZip(url, cachekey=path_to[-1], cachedir=gdrive_cachedir)
 			else:
 				zip_reader = LocalZip(os.path.join(*path_to))
@@ -181,7 +181,7 @@ def get_fs_client(path:str):
 # Background thread to download slides
 # Use the supplied file system client instance to download the items
 # with the indicated ID numbers.
-def download_slides(client, selected):
+def download_slides(client, selected) -> None:
 	progress_callback(_("Downloading selected slides..."), cssclass="heading")
 	try:
 		for file in client.list_image_files():

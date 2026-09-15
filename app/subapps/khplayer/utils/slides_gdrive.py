@@ -20,10 +20,14 @@
 #  https://drive.google.com/embeddedfolderview?id={id}#grid
 #
 
-import os, json, re, base64, codecs
-import os.path
-from time import time
+import base64
+import codecs
+import json
 import logging
+import os
+import os.path
+import re
+from time import time
 
 import requests
 import lxml.etree
@@ -127,7 +131,7 @@ class GDriveClient:
 			self.filename = file[2]
 			self.mimetype = file[3]
 			self.file_size = file[13]
-			self.thumbnail_data = None
+			self.thumbnail_data:bytes|None = None
 
 			if client is not None and client.thumbnails is not None:
 				# This is what the web interface uses:
@@ -167,19 +171,27 @@ class GDriveClient:
 	def make_uuid(self, file):
 		return file.id
 
-	def download_thumbnail(self, file, save_as):
+	def download_thumbnail(self, file:GFile, save_as:str) -> str|None:
 		if file.thumbnail_data is None:
 			return None
 		save_as = os.path.splitext(save_as)[0] + ".jpg"
 		with open(save_as + ".tmp", "wb") as fh:
 			fh.write(file.thumbnail_data)
-		os.rename(save_as + ".tmp", save_as)
+		os.replace(save_as + ".tmp", save_as)
 		return save_as
 
-	def download_file(self, file, save_as, callback=None):
+	def download_file(self, file:GFile, save_as:str, callback=None) -> str:
 		"""Download file identified by GFile obj"""
 		url = f"https://drive.google.com/uc?export=download&id={file.id}"
 		response = self.session.get(url, stream=True)
+		# See https://stackoverflow.com/questions/14728038/disabling-the-large-file-notification-from-google-drive#answer-79771996
+		if response.headers["Content-Type"].split(";")[0] == "text/html":
+			id = re.search(r'name="id" value="([^"]+)"', response.text).group(1)
+			confirm = re.search(r'name="confirm" value="([^"]+)"', response.text).group(1)
+			uuid = re.search(r'name="uuid" value="([^"]+)"', response.text).group(1)
+			url = f"https://drive.usercontent.google.com/download?export=download&id={id}&confirm={confirm}&uuid={uuid}"
+			response = self.session.get(url, stream=True)
+			assert response.headers["Content-Type"].split(";")[0] != "text/html"
 		with open(save_as + ".tmp", "wb") as fh:
 			total_recv = 0
 			last_callback = 0
@@ -192,5 +204,5 @@ class GDriveClient:
 					if (now - last_callback) >= 0.5 or total_recv == file.file_size:
 						callback("{total_recv} of {total_expected}", total_recv=total_recv, total_expected=file.file_size)
 						last_callback = now
-		os.rename(save_as + ".tmp", save_as)
+		os.replace(save_as + ".tmp", save_as)
 		return save_as

@@ -105,3 +105,5 @@ And install it:
 * On Linux and Windows use diferent locale name formats. Examples from locale.getlocale():
   * Linux: ('en_US', 'UTF-8')
   * Windows: ('English_United States', '1252')
+* On Windows os.rename() raises FileExistsError if the target already exists.
+  Use os.replace() instead.

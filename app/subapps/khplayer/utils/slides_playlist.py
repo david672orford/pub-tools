@@ -103,17 +103,17 @@ class ZippedPlaylist:
 	def make_uuid(self, file):
 		return self.path_to[-1] + "-" + md5(file.id.encode("utf-8")).hexdigest()
 
-	def download_thumbnail(self, file, save_as):
+	def download_thumbnail(self, file, save_as:str) -> str|None:
 		"""Download thumbnail of specified file alongside save_as, return filename"""
 		if file.thumbnail_data is None:
 			return None
 		save_as = os.path.splitext(save_as)[0] + ".jpg"
 		with open(save_as + ".tmp", "wb") as fh:
 			fh.write(file.thumbnail_data)
-		os.rename(save_as + ".tmp", save_as)
+		os.replace(save_as + ".tmp", save_as)
 		return save_as
 
-	def download_file(self, file, save_as, callback=None):
+	def download_file(self, file, save_as:str, callback=None) -> str:
 		"""Called from view_slides.py to extract a file from the archive"""
 		id = file.id
 
@@ -138,7 +138,7 @@ class ZippedPlaylist:
 						break
 					fh2.write(chunk)
 
-		os.rename(save_as + ".tmp", save_as)
+		os.replace(save_as + ".tmp", save_as)
 
 		return save_as
 
