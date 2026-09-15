@@ -30,6 +30,7 @@ class MakeMediaCachefileName:
 			else:
 				ext = {
 					"image/jpeg": "jpg",
+					"image/png": "png",
 					"video/mp4": "mp4",
 					}[mimetype]
 
@@ -50,4 +51,3 @@ class MakeMediaCachefileName:
 		return cachefile
 
 make_media_cachefile_name = MakeMediaCachefileName()
-
