@@ -1,10 +1,13 @@
-# encoding=utf-8
+"""Client for JW Stream"""
 
-import sys, os, re, json, logging
-import requests
+import sys, os, re, json
 from urllib.parse import urlparse, unquote
 from time import time
 from datetime import datetime, date, timezone
+import logging
+
+import requests
+
 from .wtcodes import meps_language_code_to_name, meps_country_code_to_name
 
 logger = logging.getLogger(__name__)
@@ -47,7 +50,7 @@ class StreamError(Exception):
 class StreamConfigError(StreamError):
 	pass
 
-def parse_jwstream_share_url(url):
+def parse_jwstream_share_url(url:str):
 	url_obj = urlparse(url)
 	m = re.match(r"^/ts/([0-9a-zA-Z]{10})$", url_obj.path)
 	if m is None:
@@ -58,7 +61,7 @@ def parse_jwstream_share_url(url):
 
 # The JW Stream API gives certain timestamps as decimal strings of the
 # number of milliseconds since the start of the Unix epoch.
-def convert_datetime(milliseconds_since_epoch, fudge=0):
+def convert_datetime(milliseconds_since_epoch, fudge=0) -> datetime:
 	timestamp = datetime.fromtimestamp(int(milliseconds_since_epoch) / 1000 + fudge, timezone.utc)
 	return timestamp
 
@@ -71,22 +74,27 @@ class StreamEvent:
 	"""A recording of an event (a meeting or talk)"""
 
 	def __init__(self, requester, event):
+		logger.debug("JW Stream event: %s", json.dumps(event, indent=2))
 		self.requester = requester
 		self.event = event
 		self.id = event["key"]
 		extra = json.loads(event["additionalFields"])
 		program_type = event["categoryProgramType"]
-		if program_type == "publicTalk":
+
+		if "date" in extra:
 			self.datetime = convert_datetime(extra["date"])
-			self.title = "%s %s" % (extra["talkNumber"], extra["themeAndFullName"])
+		elif "startDateRange" in extra:
+			self.datetime = convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date()
 		else:
-			week_of = (
-				convert_datetime(extra["startDateRange"], fudge=(3 * 3600)).date(),
-				convert_datetime(extra["endDateRange"], fudge=(3 * 3600)).date(),
-				)
-			self.datetime = week_of[0]
-			#self.title = "%s thru %s %s" % (week_of[0], week_of[1], program_types.get(program_type, program_type))
+			raise AssertionError("No date")
+
+		if "talkNumber" in extra and "themeAndFullName" in extra:
+			self.title = f"{extra['talkNumber']} {extra['themeAndFullName']}"
+		elif "themeAndFullName" in extra:
+			self.title = extra["themeAndFullName"]
+		else:
 			self.title = program_types.get(program_type, program_type)
+
 		self.duration = int(event["duration"] / 1000)
 		self.language = meps_language_code_to_name(event["languageCode"])
 		self.country = meps_country_code_to_name(event["countryCode"])
@@ -157,6 +165,8 @@ class StreamRequester:
 		self.status = None
 		self.video_info = []
 		self.events = []
+
+		logger.debug("JW Stream channel URL: %s", url)
 
 		self.config = dict(
 			preview_resolution = 234,
@@ -263,7 +273,7 @@ class StreamRequester:
 class StreamRequesterContainer(dict):
 	"""Create a client for each JW Stream sharing URL supplied"""
 	def __init__(self, config):
+		super().__init__()
 		for url in config.get("urls","").split():
 			requestor = StreamRequester(url, config)
 			self[requestor.token] = requestor
-

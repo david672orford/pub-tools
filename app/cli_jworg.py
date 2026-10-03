@@ -533,13 +533,14 @@ def cmd_search_illustrations(q):
 
 @cli_jworg.command("jwstream")
 @click.argument("url")
-@click.argument("event_id")
-def cmd_jwstream(url, event_id=None):
+@click.argument("event_id", required=False)
+def cmd_jwstream(url:str, event_id:str|None=None):
 	"""Get list of programs from a JW Stream sharing URL"""
+	logging.basicConfig(level=logging.DEBUG)
 
 	requester = StreamRequester(url, {}, debug=True)
 	for event in requester.list_events():
-		print("Event: %s: %s" % (event.id, event.title))
+		print(f"Event: {event.id} {event.datetime} {event.title}")
 
 	if event_id is not None:
 		event = requester.get_event(event_id)
@@ -549,4 +550,3 @@ def cmd_jwstream(url, event_id=None):
 			print("Program name:", event.title)
 			print("Video URL:", event.get_download_url())
 			print("Chapters:", event.chapters)
-
