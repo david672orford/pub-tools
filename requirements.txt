@@ -37,7 +37,7 @@ Whoosh==2.7.4
 pymorphy3==2.0.2
 
 # For making image thumbnails and by the Zoom tracker
-Pillow==12.2.0
+Pillow==12.3.0
 
 # Used to validate the configuration
 jsonschema==4.23.0
