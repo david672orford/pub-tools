@@ -26,7 +26,7 @@ scene_name_prefixes = {
 #        (or a local file path starting with "/")
 # prefix -- media-type marker to put in front of scene name
 # close -- this is the last download in this group, close progress
-def load_video_url(scene_name:str, url:str, thumbnail_url:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
+def load_video_url(scene_name:str|None, url:str, thumbnail_url:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
 	loading_video_message = _("Loading video \"{scene_name}\"...")
 
 	if scene_name is not None:

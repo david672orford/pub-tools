@@ -73,9 +73,11 @@ class ZippedPlaylist:
 				self.thumbnail_data = zip_reader.read(filename)
 				if len(self.thumbnail_data) > 12000:
 					image = Image.open(io.BytesIO(self.thumbnail_data))
+					if image.mode != "RGB":
+						image = image.convert("RGB")
 					# Scale to our thumbnail.large size
 					image.thumbnail((184, 105))
-					# Save as JPEG. Why do we need to set quality so high?
+					# Save as JPEG.
 					save_to = io.BytesIO()
 					image.save(save_to, format="jpeg", quality=85)
 					self.thumbnail_data = save_to.getvalue()
