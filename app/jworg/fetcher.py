@@ -306,13 +306,16 @@ class Fetcher:
 				raise FetcherNoMediaError("Video not yet available: %s" % url)
 			media = media["media"][0]
 
-			# If the caller has specified a video resolution, find a suitable file.
+			# If the caller has specified a video resolution, find the cooresponding
+			# file. If the video is not available in the required resolution, take
+			# the last.
 			mp4_url = None
 			if resolution is not None:
 				for variant in media["files"]:
-					if variant.get("mimetype") == "video/mp4" and variant.get("label") == resolution:
+					if variant.get("mimetype") == "video/mp4":
 						mp4_url = variant["progressiveDownloadURL"]
-						break
+						if variant.get("label") == resolution:
+							break
 
 			try:
 				thumbnail_url = media["images"]["wss"]["sm"]		# 16:9 aspect ratio, occassionally missing
