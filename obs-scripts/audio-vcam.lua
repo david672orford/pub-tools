@@ -1,4 +1,4 @@
-# Enable enabled PulseAudio output for virtual camera
+# Enable PulseAudio output for virtual camera
 
 obs = obslua
 saved_settings = nil

@@ -2,42 +2,39 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+scriptdir = os.path.dirname(__file__)
+sys.path.insert(0, os.path.join(scriptdir, ".libs"))
+sys.path.insert(0, os.path.join(scriptdir, ".."))
+
 from venv_tool import activate
 activate()
 
-from threading import Thread
+import threading
 import logging
 
 import obspython as obs
-from werkzeug.serving import make_server
+#from werkzeug.serving import make_server
+from werkzeug.serving import ThreadedWSGIServer
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from obs_wrap import ObsScript, ObsWidget
 from app.utils.clean_logs import CleanlogWSGIRequestHandler
 from app.utils.cache_maint import scan_cache
 from app import create_app
 
-logging.basicConfig(
-	level=logging.WARN,
-	format='%(asctime)s %(levelname)s %(name)s %(message)s',
-	datefmt='%H:%M:%S',
-	stream=sys.stdout,
-	)
-#logging.getLogger("app").addHandler(logging.FileHandler("/tmp/khplayer.log"))
-
-# Disable the default handler because it writes to stderr
-# which causes OBS to open the script log.
-logger = logging.getLogger()
-logger.removeHandler(logger.handlers[0])
+# Disabled because we now do this in khplayer-logging.py
+#logging.basicConfig(
+#	level = logging.INFO,
+#	format = "%(asctime)s %(levelname)s %(name)s %(message)s",
+#	datefmt = "%H:%M:%S",
+#	stream = sys.stdout,
+#	)
 
 class KHPlayer(ObsScript):
 	"""
 	<h2>KH Player—Server</h2>
-	<p>KH Player loads videos and illustrations from JW.ORG. Enable it and
-	point a browser at <a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
+	<p>KH Player loads videos and illustrations from JW.ORG. Enable it and point a browser at
+	<a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
 	"""
 
 	def __init__(self, *args, **kwargs):
@@ -54,13 +51,13 @@ class KHPlayer(ObsScript):
 
 		# Instantiate the KH Player app and prepare to serve it.
 		self.app = create_app()
-		self.enable = False		# should the HTTP server be running?
+		self.enable = False						# should the HTTP server be running?
 		self.listen_address = "127.0.0.1"
 		self.listen_port = 5000
-		self.thread = None		# HTTP server thread
-		self.server = None		# HTTP server object
+		self.thread = None						# HTTP server thread
+		self.server = None						# HTTP server object
 		self.clean_cache = None
-		self.logger = logging.getLogger("app")
+		self.logger = logging.getLogger("app")	# logger of the Flask app
 
 	def on_gui_change(self, settings):
 		"""Accept settings from the script configuration GUI"""
@@ -69,9 +66,8 @@ class KHPlayer(ObsScript):
 				self.logger.setLevel(logging.DEBUG)
 				self.logger.debug("log_level set to DEBUG")
 			else:
-				if self.logger.level != logging.NOTSET:
-					self.logger.debug("log_level set to WARN")
-				self.logger.setLevel(logging.WARN)
+				self.logger.debug("log_level set to INFO")
+				self.logger.setLevel(logging.INFO)
 			self.debug = settings.debug
 
 		if settings.enable != self.enable or settings.listen_address != self.listen_address or settings.listen_port != self.listen_port:
@@ -90,9 +86,12 @@ class KHPlayer(ObsScript):
 		self.enable = False
 		self.apply_server_thread_state()
 
+		# Expire files from the media cache
 		if self.clean_cache:
 			with self.app.app_context():
 				scan_cache(clean=True)
+
+		self.logger.info("Shutdown complete")
 
 	def apply_server_thread_state(self):
 		"""Start or stop the HTTP server thread in accord with the current settings"""
@@ -109,18 +108,29 @@ class KHPlayer(ObsScript):
 		if self.enable:
 			self.logger.debug("Starting server...")
 			try:
-				self.server = make_server(
+				#self.server = make_server(
+				#	self.listen_address,
+				#	port = self.listen_port,
+				#	app = self.app,
+				#	request_handler = CleanlogWSGIRequestHandler,
+				#	threaded = True
+				#	)
+				self.server = MyThreadedWSGIServer(
 					self.listen_address,
-					port = self.listen_port,
-					app = self.app,
-					request_handler = CleanlogWSGIRequestHandler,
-					threaded = True
+					self.listen_port,
+					self.app,
+					CleanlogWSGIRequestHandler,
 					)
-				self.thread = Thread(target=self.server.serve_forever)
+				self.thread = threading.Thread(target=self.server.serve_forever, name="khplayer-server")
 				self.thread.daemon = True
 				self.thread.start()
 				self.logger.debug("Server is running.")
 			except SystemExit:
 				self.logger.error("Server failed to start.")
+
+class MyThreadedWSGIServer(ThreadedWSGIServer):
+	def process_request_thread(self, request, client_address):
+		threading.current_thread().name = "khplayer-server"
+		super().process_request_thread(request, client_address)
 
 khplayer = KHPlayer()

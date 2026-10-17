@@ -1,4 +1,4 @@
-# Enable enabled PulseAudio output
+# Enable PulseAudio output
 
 obs = obslua
 output = nil

@@ -38,7 +38,6 @@ def scan_cache(clean=False, print_summary_table=True):
 			lifetime = 365
 		else:
 			ext = entry.name.split(".")[-1]
-			print(entry.name)
 			category = "Other %s Files" % ext.upper()
 			lifetime = 30
 

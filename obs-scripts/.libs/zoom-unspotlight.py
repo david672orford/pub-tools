@@ -35,7 +35,7 @@ class ControlZoom:
 			if child.getRoleName() == role_name:
 				if child.name in child_names:
 					return child
-		raise NoWidget("%s %s not found in %s" % (role_name, child_id, container))
+		raise NoWidget("%s %s not found in %s" % (role_name, child_names, container))
 
 	def do_action(self, widget, action_name):
 		"""Perform the named AT-SPI action on widget"""

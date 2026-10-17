@@ -42,7 +42,7 @@ class ObsSource:
 
 	@property
 	def id(self):
-		"""The source type such as \"source_ffmpeg\" or \"source_vlc\""""
+		"""The source type such as 'source_ffmpeg' or 'source_vlc'"""
 		return obs.obs_source_get_id(self.source)
 
 	@property
