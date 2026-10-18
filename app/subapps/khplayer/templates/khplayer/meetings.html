@@ -48,5 +48,9 @@
 </form>
 {% endif %}
 
+{% if not show_all_weeks %}
+<p><a href=".?all=true"><button type="button">{{gettext("Show Past Weeks")}}</button></a></p>
+{% endif %}
+
 </section>
 {% endblock %}

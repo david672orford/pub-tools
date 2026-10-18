@@ -28,13 +28,15 @@ def page_meetings():
 	now_year, now_week, now_weekday = date.today().isocalendar()
 
 	# Unless "all" is in the query string, limit to the current and future weeks.
-	if not request.args.get("all", False):
+	show_all_weeks = request.args.get("all", False)
+	if not show_all_weeks:
 		weeks = weeks.filter(or_(Weeks.year > now_year, and_(Weeks.year == now_year, Weeks.week >= now_week)))
 
 	weeks = weeks.order_by(Weeks.year, Weeks.week)
 	return render_template(
 		"khplayer/meetings.html",
 		weeks = weeks.all(),
+		show_all_weeks = show_all_weeks,
 		now_year = now_year,
 		now_week = now_week,
 		now_weekend = now_weekday in (0, 6),
