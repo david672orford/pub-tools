@@ -29,7 +29,7 @@ class WrapOutput:
 
 	def write(self, text):
 		script = self.get_script()
-		self.stdout.write(f":::{script}:{text}\n")
+		#self.stdout.write(f":::{script}:{text}\n")
 		if script is None:
 			self.stdout.write(text)
 			self.stdout.flush()
@@ -52,4 +52,3 @@ logging.basicConfig(
 	datefmt = "%H:%M:%S",
 	stream = sys.stdout,
 	)
-
