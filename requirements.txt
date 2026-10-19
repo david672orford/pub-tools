@@ -11,13 +11,14 @@ click==8.1.7
 itsdangerous==2.2.0
 Jinja2==3.1.6
 Markupsafe==3.0.2
-Werkzeug==3.1.6
+Werkzeug==3.1.9
 # Used to examine DB during development
 #flask_admin==1.6.1
 
 # For web scraping
 requests==2.33.0
 lxml==6.1.0
+types-lxml
 
 # For communicating with the OBS-Websocket plugin
 websocket-client==1.8.0
