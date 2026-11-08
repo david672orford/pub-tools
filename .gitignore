@@ -4,3 +4,4 @@ instance
 *.pot
 *.mo
 .venv
+tests
