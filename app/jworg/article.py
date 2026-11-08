@@ -1,26 +1,30 @@
 import re
 
+from lxml.html import HtmlElement
+
 # Basic information about a web page
 # This is used to:
 # * See whether it is a player page
 # * If not, get the title and thumbnail for the playlist
 class WebpageMetadata:
-	def __init__(self, url, root):
-		self.url = url
-		self.root = root
+	def __init__(self, url:str, root:HtmlElement):
+		assert isinstance(url, str)
+		assert isinstance(root, HtmlElement)
+		self.url:str = url
+		self.root:HtmlElement = root
 
 		el = root.xpath("./head/title")
-		self.title = el[0].text if len(el) > 0 else None
+		self.title:str|None = el[0].text if len(el) > 0 else None
 
 		el = root.xpath(".//h1")
-		self.h1 = el[0].text_content().strip() if len(el) > 0 else None
+		self.h1:str|None = el[0].text_content().strip() if len(el) > 0 else None
 
 		el = root.xpath("./head/meta[@property='og:image']")
-		self.thumbnail_url = el[0].attrib["content"] if len(el) > 0 else None
+		self.thumbnail_url:str|None = el[0].attrib["content"] if len(el) > 0 else None
 
 		# If this looks like an article from JW.ORG, extract the pub code.
-		self.pub_code = None
-		self.player = None
+		self.pub_code:str|None = None
+		self.player:str|None = None
 		article_tag = None
 		if len(el := root.xpath(".//article")) > 0:
 			print("  Found <article> tag")
@@ -45,11 +49,13 @@ class WebpageMetadata:
 # Information about a web page which is expected to be an article from JW.ORG
 # HTML is parsed and main sections identified
 class Article:
-	def __init__(self, url, root):
-		self.url = url
-		self.root = root
+	def __init__(self, url:str, root:HtmlElement):
+		assert isinstance(url, str)
+		assert isinstance(root, HtmlElement)
+		self.url:str = url
+		self.root:HtmlElement = root
 
-		def xpath_one(container, path):
+		def xpath_one(container:HtmlElement, path:str) -> HtmlElement:
 			elements = container.xpath(path)
 			assert len(elements) == 1, f"Expected 1 match for \"{path}\", got {len(elements)}"
 			return elements[0]

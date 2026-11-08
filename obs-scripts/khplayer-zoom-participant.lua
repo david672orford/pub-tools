@@ -50,9 +50,6 @@ end
 
 source_def.show = function(data)
     print("Source showing: " .. data.name)
-	if data.parent_source == nil then
-		data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
-	end
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_showing(data.parent_source)
 	end

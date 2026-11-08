@@ -1,13 +1,18 @@
-import os, json, re
-from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPErrorProcessor, build_opener
+import os
+import json
+import re
+from urllib.request import Request, HTTPHandler, HTTPSHandler, HTTPError, HTTPErrorProcessor, build_opener, OpenerDirector
+from http.client import HTTPResponse
 from urllib.parse import urlparse, parse_qsl, urlencode, unquote
 import ssl
 from gzip import GzipFile
 from time import sleep, time
 from functools import cache
+from typing import override
 import logging
 
 import lxml.html
+from lxml.html import HtmlElement
 
 from ..utils.babel import gettext as _
 from .wtcodes import iso_language_code_to_meps
@@ -21,20 +26,23 @@ class FetcherNoMediaError(FetcherError):
 	pass
 
 class NoRedirects(HTTPErrorProcessor):
-	def http_response(self, request, response):
-		if response.code in (301, 302, 303, 307):
+	@override
+	def http_response(self, request:Request, response:HTTPResponse) -> HTTPResponse:
+		assert isinstance(response, HTTPResponse)
+		if response.status in (301, 302, 303, 307):
 			return response
 		else:
-			return super.http_response(request, response)
+			return super().http_response(request, response)
 
 class GzipResponseWrapper:
-	def __init__(self, response):
-		self.response = response
-		self.gzip = GzipFile(fileobj=response)
-	def read(self, size=None):
+	def __init__(self, response:HTTPResponse):
+		self.response:HTTPResponse = response
+		self.gzip:GzipFile = GzipFile(fileobj=response)
+	def read(self, size:int|None=None):
 		return self.gzip.read(size)
-	def geturl(self):
-		return self.response.geturl()
+	@property
+	def url(self) -> str:
+		return self.response.url
 	@property
 	def headers(self):
 		return self.response.headers
@@ -43,12 +51,12 @@ class GzipResponseWrapper:
 		return self.response.status
 
 class Fetcher:
-	user_agent = "Mozilla/5.0"
+	user_agent:str = "Mozilla/5.0"
 
-	request_timeout = 30
+	request_timeout:int = 30
 
 	# Minimum time between requests (in seconds)
-	min_request_interval = 2.5
+	min_request_interval:float = 2.5
 
 	# This API endpoint is used used to find the media files (MP3, MP4) which go
 	# with a printed publication or the publication itself in downloadable
@@ -75,30 +83,29 @@ class Fetcher:
 	# Note that this API does not provide a thumbnail image (even though
 	# the response seems to have a space for one).
 	#
-	pub_media_url = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
+	pub_media_url:str = "https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS"
 
 	# The Mediator API endpoint is Used for listing videos from JW Broadcasting by category
 	# Query string parameters:
 	# detailed=1 -- list subcategories and videos in this category
 	# clientType=www -- Unknown purpose
-	#mediator_categories_url = "https://data.jw-api.org/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
-	mediator_categories_url = "https://b.jw-cdn.org/apis/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
+	mediator_categories_url:str = "https://b.jw-cdn.org/apis/mediator/v1/categories/{meps_language}/{category}?detailed=1&clientType=www"
 
 	# Used for getting the download link for a video from JW Broadcasting when
 	# we know the language we want and the video's Language Agnostic Natural Key (lank)
-	mediator_items_url = "https://b.jw-cdn.org/apis/mediator/v1/media-items/{meps_language}/{video}"
+	mediator_items_url:str = "https://b.jw-cdn.org/apis/mediator/v1/media-items/{meps_language}/{video}"
 
 	# Page in Watchtower Online Library which gives the study articles for a given week
 	# It is necessary to parse the HTML to get the links to the articles and their docids.
-	week_url = "https://wol.jw.org/en/wol/meetings/r1/lp-e/{year}/{week}"
+	week_url:str = "https://wol.jw.org/en/wol/meetings/r1/lp-e/{year}/{week}"
 
-	def __init__(self, language=None, cachedir=None, debuglevel=0):
+	def __init__(self, language:str|None=None, cachedir:str|None=None, debuglevel:int=0):
 		if language is None:
 			raise FetcherError("Language must be set")
-		self.language = language
-		self.meps_language = iso_language_code_to_meps(language)
-		self.cachedir = cachedir
-		self.last_request_time = 0
+		self.language:str|None = language
+		self.meps_language:str = iso_language_code_to_meps(language)
+		self.cachedir:str|None = cachedir
+		self.last_request_time:float = 0
 
 		# As of December 2025 fetches of Watchtower articles hang from Windows Python 3.12.
 		context = ssl.create_default_context()
@@ -106,19 +113,21 @@ class Fetcher:
 
 		http_handler = HTTPHandler(debuglevel=debuglevel)
 		https_handler = HTTPSHandler(debuglevel=debuglevel, context=context)
-		self.opener = build_opener(http_handler, https_handler)
-		self.no_redirects_opener = build_opener(NoRedirects, http_handler, https_handler)
+		self.opener:OpenerDirector = build_opener(http_handler, https_handler)
+		self.no_redirects_opener:OpenerDirector = build_opener(NoRedirects, http_handler, https_handler)
 
 	# Send an HTTP HEAD request
-	def head(self, url):
+	def head(self, url:str):
 		return self.request(url, method="HEAD")
 
 	# Send an HTTP GET request
-	def get(self, url, **kwargs):
+	def get(self, url:str, **kwargs) -> HTTPResponse|GzipResponseWrapper:
 		return self.request(url, method="GET", **kwargs)
 
 	# Send an HTTP request
-	def request(self, url, query=None, accept="text/html, */*", follow_redirects=True, method="GET"):
+	def request(self, url:str, query:dict[str,str]|None=None, accept:str="text/html, */*", follow_redirects:bool=True, method:str="GET") -> HTTPResponse|GzipResponseWrapper:
+		assert isinstance(url, str)
+		assert isinstance(query, dict) or query is None
 		left_to_wait = (self.min_request_interval - (time() - self.last_request_time))
 		if left_to_wait > 0:
 			sleep(left_to_wait)
@@ -139,24 +148,25 @@ class Fetcher:
 			response = self.opener.open(request, timeout=self.request_timeout)
 		else:
 			response = self.no_redirects_opener.open(request, timeout=self.request_timeout)
+		assert isinstance(response, HTTPResponse)
 		if response.headers.get("Content-Encoding") == "gzip":
 			response = GzipResponseWrapper(response)
 		self.last_request_time = time()
 		return response
 
 	# Send an HTTP GET request and parse the result as HTML.
-	def get_html(self, url, query=None):
+	def get_html(self, url:str, query:dict[str,str]|None=None) -> HtmlElement:
 		response = self.get(url, query=query)
 		return lxml.html.parse(response).getroot()
 
 	# Send an HTTP GET request and parse the result as JSON
-	def get_json(self, url, query=None):
+	def get_json(self, url:str, query:dict[str,str]|None=None):
 		response = self.get(url, query=query, accept="application/json")
 		return json.load(response)
 
 	# Download a video or picture from a URL, store it in the cache
 	# directory, and return its path.
-	def download_media(self, url:str, cachefile:str=None, callback=None):
+	def download_media(self, url:str, cachefile:str|None=None, callback=None):
 		if cachefile is None:
 			if self.cachedir is None:
 				raise FetcherError("Cachedir is not set")
@@ -195,7 +205,7 @@ class Fetcher:
 	# Pretty print a parsed HTML element and its children. We need this because
 	# in a browser JavaScript code transforms the page a bit after it is loaded,
 	# so we can't completely trust what we seen in the browser's debugger.
-	def dump_html(self, el, filename=None):
+	def dump_html(self, el, filename:str|None=None):
 		self.indent_html(el)
 		text = lxml.html.tostring(el, encoding="UNICODE")
 		if filename:
@@ -206,7 +216,7 @@ class Fetcher:
 
 	# Alter the whitespace in the element tree to indent the tags
 	# https://web.archive.org/web/20200130163816/http://effbot.org/zone/element-lib.htm#prettyprint
-	def indent_html(self, elem, level=0):
+	def indent_html(self, elem:HtmlElement, level:int=0):
 		i = "\n" + level*"  "
 		if elem.tag == "span":
 			pass
@@ -233,8 +243,8 @@ class Fetcher:
 	#======================================================================
 
 	# Get the URL of a media file which accompanies a publication
-	def get_pub_media(self, query:dict):
-		logger.debug(f"get_pub_media(query=%s)", query)
+	def get_pub_media(self, query:dict[str,str]):
+		logger.debug("get_pub_media(query=%s)", query)
 		final_query = {
 			"output": "json",
 			"fileformat": query.get("fileformat", "m4v,mp4,3gp,mp3"),
@@ -254,11 +264,11 @@ class Fetcher:
 		return media
 
 	# Find the EPUB download URL of a publication
-	def get_epub_url(self, pub:str, issue:str=None):
+	def get_epub_url(self, pub:str, issue:str|None=None):
 		try:
 			media = self.get_pub_media({
 				"pub": pub,
-				"issue": issue,
+				"issue": issue,		# FIXME: What is issue is None?
 				"fileformat": "EPUB",
 				})
 		except HTTPError as e:
@@ -277,7 +287,7 @@ class Fetcher:
 	# * language -- optional language override, ISO code
 	# Return None if this does not appear to be a link to a video on JW.ORG.
 	@cache
-	def get_video_metadata(self, url:str, resolution:int=None, language:str=None):
+	def get_video_metadata(self, url:str, resolution:int|None=None, language:str|None=None):
 		assert isinstance(url, str)
 
 		query = self.parse_video_url(url)
@@ -303,7 +313,7 @@ class Fetcher:
 				video = lank,
 				), query = { "clientType": "www" })
 			if len(media["media"]) < 1:
-				raise FetcherNoMediaError("Video not yet available: %s" % url)
+				raise FetcherNoMediaError(f"Video not yet available: {url}")
 			media = media["media"][0]
 
 			# If the caller has specified a video resolution, find the cooresponding
@@ -397,19 +407,21 @@ class Fetcher:
 	# The link format has changed:
 	#  https://www.jw.org/open?lank=pub-mwbv_202006_1_VIDEO&wtlocale=U
 	#
-	def parse_video_url(self, url):
+	def parse_video_url(self, url:str) -> dict[str,str]:
 		url_obj = urlparse(url)
 		query = dict(parse_qsl(url_obj.query))
 
 		# Sharing link or link from MWB
-		if url_obj.netloc == "www.jw.org" and url_obj.path in ("/finder", "/open"):
-			if "lank" in query or "docid" in query:
-				return query
+		if url_obj.netloc == "www.jw.org" \
+				and  url_obj.path in ("/finder", "/open") \
+				and ("lank" in query or "docid" in query):
+			return query
 
 		# Old format of links from MWB
-		if url_obj.netloc == "data.jw-api.org" and url_obj.path == "/mediator/finder":
-			if "item" in query:
-				return {"lank": query["item"]}
+		if url_obj.netloc == "data.jw-api.org" \
+				and url_obj.path == "/mediator/finder" \
+				and "item" in query:
+			return {"lank": query["item"]}
 
 		# Is this the URL for the generic LANK player used for featured videos?
 		if url_obj.netloc == "www.jw.org" and url_obj.fragment:
