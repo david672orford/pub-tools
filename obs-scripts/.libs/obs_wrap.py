@@ -97,8 +97,8 @@ class ObsScript:
 	"""Derive your OBS script class from this"""
 	gui = []
 
-	def __init__(self, debug=False):
-		self.debug = debug
+	def __init__(self, debug:bool=False):
+		self.debug:bool = debug
 		self._install_callbacks(inspect.currentframe().f_back.f_globals)
 		self.finished_loading = False
 		self._deferred_on_gui_change = None

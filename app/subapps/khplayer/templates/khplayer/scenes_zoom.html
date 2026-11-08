@@ -1,0 +1,62 @@
+{% set title = gettext("Zoom Selector") %}
+{% extends "khplayer/base.html" %}
+
+{% block header %}
+<h1><a href="../..">&lt; {{title}}</a></h1>
+{% endblock %}
+
+{% block main %}
+<section class="bordered-box">
+	<img src="gallery" usemap="#gallery-map" style="display: block; width: 90%; margin: 0 auto">
+	<map name="gallery-map" id="gallery-map">
+	{% for box in tracker.layout %}
+	<area shape="rect"
+		href="select?pos={{loop.index0}}"
+		alt="Participant {{loop.index}}"
+		coords="{{box.x - tracker.gallery.x}}, {{box.y - tracker.gallery.y}}, {{box.x - tracker.gallery.x + box.width}}, {{box.y - tracker.gallery.y + box.height}}"
+		>
+	{% endfor %}
+	</map>
+</section>
+
+<section class="bordered-box">
+<a href="."><button type="button">Refresh</button></a>
+</section>
+
+<script>
+console.log("Setting up");
+window.addEventListener("turbo:load", function() {
+
+	console.log("Loading imageMapResizer");
+	const resizer_url = "{{ url_for('.static', filename='imageMapResizer.min.js')}}";
+	function resizer_init () {
+		console.log("Initializing imageMapResizer");
+		imageMapResize();
+		}
+	if(document.querySelector(`script[src="${resizer_url}"]`)) {
+		resizer_init();
+	} else {
+		const script = document.createElement("script");
+		script.src = resizer_url;
+		script.async = true;
+		script.onload = resizer_init;
+		document.head.appendChild(script);
+	}
+
+	document.querySelectorAll("area").forEach(area => {
+		console.log("Initializing area:", area);
+		area.addEventListener("click", event => {
+			event.preventDefault();
+			fetch(area.href, {method: "POST"})
+				.then(response => response.json())
+				.then(data => {
+					console.log("Posted:", data);
+				})
+				.catch(error => {
+					console.error("Error:", error);
+				})
+		})
+	});
+});
+</script>
+{% endblock %}

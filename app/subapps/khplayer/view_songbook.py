@@ -5,7 +5,7 @@ import logging
 from flask import current_app, request, session, render_template, redirect
 
 from . import menu
-from .views import blueprint
+from .blueprint import blueprint
 from ...utils.background import progress_callback, progress_response, run_thread, flash
 from ...utils.babel import gettext as _
 from .utils.controllers import meeting_loader, obs, ObsError
@@ -66,4 +66,3 @@ def page_songbook_submit():
 			))
 
 	return progress_response(None)
-

@@ -9,7 +9,7 @@ from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from ...utils.media_cache import make_media_cachefile_name
 from . import menu
-from .views import blueprint
+from .blueprint import blueprint
 from .utils.scenes import load_video_url, load_video_file, load_image_file, load_media_file
 from .utils.controllers import obs, ObsError
 from .utils.slides_localdrive import LocalDriveClient

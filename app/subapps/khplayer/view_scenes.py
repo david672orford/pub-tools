@@ -1,17 +1,17 @@
-from flask import current_app, Blueprint, render_template, request, redirect
-from time import sleep
-from urllib.parse import urlparse, parse_qs, unquote
-import os
-import re
 import json
+import sys
+from time import sleep
+from urllib.parse import urlparse, unquote
 import logging
+
+from flask import current_app, render_template, request, redirect
 
 from ...utils.background import turbo, progress_callback, progress_response, \
 	run_thread, flash, async_flash
 from ...utils.babel import gettext as _
 from ...utils.media_cache import make_media_cachefile_name
 from . import menu
-from .views import blueprint
+from .blueprint import blueprint
 from .utils.controllers import obs, ObsError
 from .utils.scenes import scene_name_prefixes, load_video_url, load_image_url, \
 	load_webpage, load_text, load_meeting_media_item, load_media_url, load_media_file
@@ -39,10 +39,12 @@ def page_scenes():
 		preview_scene_uuid = scenes.get("currentPreviewSceneUuid"),
 		cameras = list_cameras() if request.args.get("action") == "add-scene" else None,
 		remotes = current_app.config.get("VIDEO_REMOTES"),
+		has_zoom_tracker = "khplayer-zoom-tracker" in sys.modules,
 		top = ".."
 		)
 
 def get_scenes_with_thumbnails():
+	"""Retrieve the scene list with thumbnail URLs added"""
 	try:
 		scenes = obs.get_scene_list()
 	except ObsError as e:
@@ -55,7 +57,8 @@ def get_scenes_with_thumbnails():
 
 	return scenes
 
-def get_scene_thumbnail(scene):
+def get_scene_thumbnail(scene) -> str|None:
+	"""Create a numbnail URL for a scene"""
 	try:
 		return obs.get_source_screenshot(scene["sceneUuid"])
 	except ObsError as e:

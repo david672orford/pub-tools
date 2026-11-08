@@ -1,10 +1,12 @@
-from flask import current_app, render_template, request, redirect, abort
+from flask import render_template, request, redirect, abort
 from collections import defaultdict
 from urllib.parse import urlencode
 from markupsafe import escape
 from time import sleep
 import logging
 
+from . import menu
+from .blueprint import blueprint
 from ...models import db, VideoCategories, Videos
 from ...models_whoosh import video_index
 from ...utils.background import progress_callback, progress_response, run_thread
@@ -12,8 +14,6 @@ from ...utils.babel import gettext as _
 from .utils.scenes import load_video_url
 from .utils.controllers import meeting_loader
 from ...cli_jworg import update_videos, update_video_subcategory
-from . import menu
-from .views import blueprint
 
 logger = logging.getLogger(__name__)
 

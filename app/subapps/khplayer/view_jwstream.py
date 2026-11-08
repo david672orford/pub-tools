@@ -16,7 +16,7 @@ from ...jworg.jwstream import StreamRequesterContainer, parse_jwstream_share_url
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config
 from . import menu
-from .views import blueprint
+from .blueprint import blueprint
 from .utils.controllers import obs, ObsError
 from .utils.runningtime import time_to_str, parse_time
 

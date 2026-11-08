@@ -1,3 +1,5 @@
+"""Scenes Tab, Composer"""
+
 import os
 from time import sleep
 import json
@@ -5,9 +7,9 @@ from urllib.parse import unquote
 import importlib.util
 import logging
 
-from flask import current_app, request, session, render_template, redirect
+from flask import current_app, request, render_template, redirect
 
-from .views import blueprint
+from .blueprint import blueprint
 from ...utils.babel import gettext as _
 from ...utils.background import flash
 from .utils.controllers import obs, ObsError

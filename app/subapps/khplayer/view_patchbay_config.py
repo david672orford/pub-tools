@@ -6,8 +6,8 @@ import subprocess
 from time import sleep
 import logging
 
-from .views import blueprint
 from . import menu
+from .blueprint import blueprint
 from ...utils.babel import gettext as _
 from .utils.pipewire import Patchbay
 

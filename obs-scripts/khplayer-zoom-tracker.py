@@ -26,18 +26,18 @@ class ObsZoomTracker(ObsScript):
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.paused = True
-		self.source_name = "Zoom Capture"
+		self.paused:bool = True
+		self.source_name:str = "Zoom Capture"
 		self.cropper_names = (
 			"Zoom Participant 0",
 			"Zoom Participant 1",
 			"Zoom Participant 2",
 			)
-		self.capture = None
-		self.tracker = ZoomTracker(debug=self.debug)
-		self.croppers = []
-		self.last_showing = False
-		self.last_snapshot = False
+		self.capture:WindowCapture|None = None
+		self.tracker:ZoomTracker = ZoomTracker(debug=self.debug)
+		self.croppers:list[ZoomCropper] = []
+		self.last_showing:bool = False
+		self.last_snapshot:bool = False
 
 		# External Python script which presses the unspotlight button in Zoom
 		if sys.platform == "linux":
@@ -66,7 +66,7 @@ class ObsZoomTracker(ObsScript):
 			cropper_name = self.cropper_names[i]
 			if self.debug:
 				print("Creating cropper:", cropper_name)
-			self.croppers.append(ZoomCropper(cropper_name, self.source_name, self.capture.source))
+			self.croppers.append(ZoomCropper(cropper_name))
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
 
@@ -127,7 +127,7 @@ class ObsZoomTracker(ObsScript):
 class WindowCapture:
 	"""Wrapper for an OBS input which does screen capture on an application window"""
 
-	def __init__(self, source_name):
+	def __init__(self, source_name:str):
 		if sys.platform == "win32":
 			self.input_kind = "window_capture"
 			self.window_key = "window"
@@ -234,14 +234,13 @@ class ZoomCropper(ZoomCropperBase):
 	"""
 	Wrapper for a proxy source which crops a piece out of Zoom Capture.
 	"""
-	def __init__(self, source_name, zoom_source_name, zoom_source):
-		self.source_name = source_name
+	def __init__(self, source_name:str):
+		self.source_name:str = source_name
 		self.prev_crop_box = None
 		# Find the named source. Create it if it does not exist.
 		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
 			self.source = obs.obs_source_create("khplayer-zoom-participant", source_name, None, None)
-		handler = obs.obs_source_get_signal_handler(self.source)
 
 	def release(self):
 		obs.obs_source_release(self.source)
@@ -267,7 +266,7 @@ class ZoomCropper(ZoomCropperBase):
 zoom_tracker = ObsZoomTracker()
 
 # The OBS documentation recommends against using this function, but if we
-# use a timer as the recommend, OBS segfaults in the graphics thread.
+# use a timer as they recommend, OBS segfaults in the graphics thread.
 tick_count = 0
 def script_tick(seconds):
 	global tick_count

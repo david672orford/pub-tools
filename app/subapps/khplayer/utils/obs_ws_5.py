@@ -19,7 +19,7 @@ import websocket
 logger = logging.getLogger(__name__)
 
 class ObsError(Exception):
-	def __init__(self, message:str, *, response:dict=None):
+	def __init__(self, message:str, *, response:dict|None=None):
 		super().__init__(message)
 		if response is not None:
 			self.code = response["d"]["requestStatus"]["code"]
@@ -569,7 +569,7 @@ class ObsControlBase:
 		response = self.request("GetInputSettings", params)
 		return response["responseData"]
 
-	def set_input_settings(self, name:str=None, uuid:str=None, settings:dict={}, overlay:bool=True):
+	def set_input_settings(self, name:str|None=None, uuid:str|None=None, settings:dict={}, overlay:bool=True):
 		params = {
 			"inputSettings": settings,
 			"overlay": overlay,
@@ -625,7 +625,7 @@ class ObsControlBase:
 	# Screenshots
 	#=========================================================================
 
-	def get_source_screenshot(self, source_uuid:str, width=96, height=54):
+	def get_source_screenshot(self, source_uuid:str, width:int=96, height:int=54) -> str:
 		"""Return a thumbnail-sized screenshot of the indicated sources as a data URL"""
 		response = self.request("GetSourceScreenshot", {
 			"sourceUuid": source_uuid,
@@ -635,10 +635,10 @@ class ObsControlBase:
 			"imageCompressionQuality": 85,
 			})
 		data = response["responseData"]["imageData"]
-		assert data.startswith("data:")
+		assert type(data) is str and data.startswith("data:")
 		return data
 
-	def save_source_screenshot(self, source_uuid:str, filename, image_format="jpeg"):
+	def save_source_screenshot(self, source_uuid:str, filename:str, image_format:str="jpeg"):
 		self.request("SaveSourceScreenshot", {
 			"sourceUuid": source_uuid,
 			"imageFormat": image_format,

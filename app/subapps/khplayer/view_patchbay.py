@@ -6,7 +6,7 @@ from ...utils.background import flash
 from ...utils.babel import gettext as _
 from ...utils.config import get_config, put_config, merge_config
 from . import menu
-from .views import blueprint
+from .blueprint import blueprint
 from .utils.pipewire import Patchbay
 
 if current_app.config["PATCHBAY"] == "virtual-cable":

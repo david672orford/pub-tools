@@ -1,10 +1,14 @@
 """Track the layout and speaker locations in a Zoom video conference window"""
 
-from struct import pack
 from dataclasses import dataclass
+from io import BytesIO
+from struct import pack
 from typing import Final
+import logging
 
 from PIL.Image import Image
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class CropBox:
@@ -61,6 +65,12 @@ class ZoomTracker:
 		"""Never treat the first box as the speaker, it is the OBS output"""
 		self.speaker_indexes.exclude_first_box = exclude_first_box
 
+	def set_speaker_index(self, index:int) -> None:
+		if 0 <= index < len(self.layout):
+			self.speaker_indexes.set_speaker_index(index)
+		else:
+			logger.error("Invalid speaker index: %d", speaker_index)
+
 	def reset_speakers(self):
 		"""Clear present and previous speaker until new detection"""
 		self.speaker_indexes.reset_speakers()
@@ -74,6 +84,18 @@ class ZoomTracker:
 			if self.debug:
 				print(f" Source \"Zoom Participant {i}\" -> Speaker {speaker_index} of {len(self.layout)}, crop_box={crop_box}")
 			zoom_scenes[i].set_crop_box(crop_box)
+
+	def get_gallery_image(self) -> BytesIO|None:
+		if hasattr(self, "gallery"):
+			g = self.gallery
+			image = self.img.crop((g.x, g.y, g.x+g.width, g.y+g.height))
+		else:
+			image = Image.new("RBG", (320, 160), color=(100, 100, 100))
+		assert type(image) is Image
+		buffer = BytesIO()
+		image.save(buffer, format="JPEG", quality=85)
+		_ = buffer.seek(0)
+		return buffer
 
 	def load_image(self, img:Image):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
