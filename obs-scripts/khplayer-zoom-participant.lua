@@ -21,14 +21,15 @@ source_def.create = function(settings, source)
 
     local function source_delay_callback()
 	    data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
-	    if data.parent_source ~= nil then
+        if data.parent_source ~= nil then
+        	print("Connecting " .. data.name .. " to " .. data.parent_source_name)
 	        if obs.obs_source_showing(source) then
 	            obs.obs_source_inc_showing(data.parent_source)
 			end
-        if obs.obs_source_active(source) then
+        	if obs.obs_source_active(source) then
 	            obs.obs_source_inc_active(data.parent_source)
 	        end
-		obs.timer_remove(source_delay_callback)
+			obs.timer_remove(source_delay_callback)
 		end
     end
 	obs.timer_add(source_delay_callback, 1000)
