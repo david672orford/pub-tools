@@ -2,16 +2,11 @@ import sys
 import traceback
 import logging
 
-from flask import current_app, Blueprint, request, render_template, redirect, make_response
-from flask_caching import Cache
+from flask import current_app, render_template, redirect, make_response
+
+from .blueprint import blueprint
 
 logger = logging.getLogger(__name__)
-
-blueprint = Blueprint("khplayer", __name__, template_folder="templates", static_folder="static")
-blueprint.display_name = "KH Player"
-blueprint.blurb = "Download videos and illustrations from JW.ORG and load them into OBS"
-
-blueprint.cache = Cache()
 
 @blueprint.route("/isup")
 def page_isup():
@@ -30,15 +25,17 @@ def page_index():
 # because we had trouble reloading OBS dockable webviews due to problems
 # getting the necessary context menu to open.
 @blueprint.errorhandler(500)
-def handle_500(error):
+def handle_500(error:Exception|int):
 	return render_template(
 		"khplayer/500.html",
 		top="/khplayer",
+		error = error,
 		exception=traceback.format_exc(),
 		), 500
 
 from . import view_scenes
 from . import view_scenes_composer
+from . import view_scenes_zoom
 from . import view_meetings
 from . import view_jwstream
 from . import view_songbook
