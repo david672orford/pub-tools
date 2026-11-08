@@ -55,7 +55,7 @@ $WINE python.exe -m pip install -r ../../../../requirements.txt --no-warn-script
 echo "Removing unnecessary package files..."
 $WINE python.exe -m pip uninstall -y setuptools
 rm -r Lib/site-packages/pip
-rm -r Scripts Include
+rm -r Scripts
 find Lib/site-packages -name '*.dist-info' | grep -v werkzeug | grep -v pymorphy3_dicts_ru | grep -v face_recognition | xargs rm -r
 find Lib/site-packages -name __pycache__ | xargs rm -rf
 find Lib/site-packages -name 'test*' -type d | xargs rm -rf
@@ -102,7 +102,7 @@ for i in \
 		urllib3 \
 		websocket \
 		werkzeug \
-		werkzeug-3.1.6.dist-info \
+		werkzeug-3.1.9.dist-info \
 		whoosh
 	do
 	mv $i ../tmp

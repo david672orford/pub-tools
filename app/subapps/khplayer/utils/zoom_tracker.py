@@ -30,9 +30,9 @@ class ZoomTracker:
 	"""
 
 	BYTES_PER_PIXEL = 3										# Red, Green, Blue
-	SEARCH_CELLSPACING = 10									# set greater than spacing between gallery cells
-	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# Green
-	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# smallest seems to be about 450px wide
+	SEARCH_CELLSPACING = 10									# Set greater than spacing between gallery cells
+	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# Green border around current speaker
+	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# Smallest seems to be about 450px wide
 
 	def __init__(self, debug=False):
 		self.debug = debug
@@ -75,7 +75,7 @@ class ZoomTracker:
 
 		# Take the bottom left pixel as the background color
 		offset = self.xy_to_offset(0, self.img.height-1)
-		self.background_color = pack("BBB", self.data[offset], self.data[offset+1], self.data[offset+2])
+		self.background_color = self.data[offset:offset+3]
 
 		main_width = self.measure_left_margin(self.img.height-1, raise_on_notfound=False)
 		if self.debug:
@@ -379,3 +379,4 @@ class SimpleSpeakerIndexes(list):
 		if speaker_index not in self[1:]:
 			self[self.speaker_switch_count % 2 + 1] = speaker_index
 			self.speaker_switch_count += 1
+

@@ -7,20 +7,26 @@
 	     	Manufacturer="Nuhub"
 	        UpgradeCode="$(var.ProductUpgradeCode)"
 	        Language="1033">
-    	<Package Compressed="yes" />
-        <Media Id="1" Cabinet="pub-tools.cab" EmbedCab="yes"/>
+
+    	<Package InstallerVersion="200"
+			Compressed="yes"
+			/>
+
+        <MediaTemplate EmbedCab="yes"/>
 
         <Icon Id="PubtoolsIcon" SourceFile="build/icons/pub-tools.ico"/>
         <Icon Id="KhplayerIcon" SourceFile="build/icons/khplayer.ico"/>
         <Icon Id="EpubsIcon" SourceFile="build/icons/epubs.ico"/>
+
+		<!-- Add/Remove Programs icon -->
         <Property Id="ARPPRODUCTICON" Value="PubtoolsIcon" />
 
         <MajorUpgrade
+			DowngradeErrorMessage="A newer version of [ProductName] is already installed."
 	        AllowDowngrades="no"
 			AllowSameVersionUpgrades="yes"
-			DowngradeErrorMessage="A newer version of this software is already installed."
+			Schedule="afterInstallInitialize"
         	/>
-        <Property Id="REINSTALLMODE" Value="amus" />
 
 		<Directory Id="TARGETDIR" Name="SourceDir">
 

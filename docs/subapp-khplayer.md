@@ -3,10 +3,10 @@
 NOTE: This document is in a state of flux as we attempt to simplify the setup of KH Player.
 Until this work is complete it may contain conflicting, incomplete, or confusing instructions.
 
-This is the most well-developed of the modules. It helps you to load the videos
-and illustrations for a congregation meeting into OBS Studio ready to play.
-This note describes how to set up OBS to play the videos at meetings while
-some participants are connected by Zoom.
+This is the most well-developed of the modules of Pub-Tools. It helps you to
+load the videos and illustrations for a congregation meeting into OBS Studio
+ready to play. This note describes how to set up OBS to play the videos at
+meetings while some participants are connected by Zoom.
 
 ## Install OBS Studio
 
@@ -52,6 +52,7 @@ and **Videos**.
 * Under the **Tools** menu find the OBS-Websocket plugin and enable it
 * Go to **Tools**, **Scripts** and add the following scripts from the **obs-scripts**
 directory of this project:
+  * **khplyaer-0logger.py** -- Redirect output from Python scripts to individual files in the instance/logs directory
   * **khplayer-server.py** -- Run the Pub-Tools web server inside of OBS so we will not need
   * **khplayer-automate.py** -- Simplify startup and playing of vidoes
     * At Startup:

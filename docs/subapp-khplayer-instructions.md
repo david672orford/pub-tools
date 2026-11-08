@@ -1,4 +1,4 @@
-# Instructions for KH Player, Zoom and OBS Studio
+# Instructions for Using KH Player with OBS-Studio and Zoom
 
 ## Initial Setup
 

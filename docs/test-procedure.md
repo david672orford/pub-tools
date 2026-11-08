@@ -2,7 +2,8 @@
 
 ## Meeting Loader
 
-To perform these tests, run **flask jworg get-meeting-media** with the indicated URL's as the parameter.
+To perform these tests, run **flask jworg get-meeting-media** with the
+indicated URL's as the parameter.
 
 * [MWB 16--22 September 2024](https://www.jw.org/finder?wtlocale=U&docid=202024323&srcid=share)
   Verify:
@@ -55,7 +56,7 @@ To perform these tests open the indicated articles and drag and drop the indicat
     * Drag and drop link under video in section 5. Verify that it uses
       the thumbnail of the girl from the brocure rather than the thumbnail
       with the young man from the video metadata.
-* [](https://www.jw.org/finder?wtlocale=U&docid=202021161&srcid=share)
+* [Расписание встречи «Жизнь и служение» с 3 по 9 мая 2021 года](https://www.jw.org/finder?wtlocale=U&docid=202021161&srcid=share)
   Try:
      * The Become Jehovah's Friends video
      * The Whiteboard Animation video

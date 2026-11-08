@@ -80,14 +80,15 @@ And install it:
 
 ## Making MSI Packages
 
-* [WiX Toolset v3 Manual](https://www.firegiant.com/wix3/)
 * MSI Tools (WiX compatible tools from the GNOME project)
   * [MSI Tools](https://wiki.gnome.org/msitools/)
   * [MSI Tools on Github](https://github.com/GNOME/msitools)
   * [Beginner's guide to MSI creation](https://wiki.gnome.org/msitools/HowTo/CreateMSI)
-* [WiX for the impatient](http://www.p-nand-q.com/programming/windows/wix/) -- Three blog articles
-* [A quick introduction: Create an MSI installer with WiX](https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with) -- Good example with Start Menu
-* [Real-World Example: WiX/MSI Application Installer](https://helgeklein.com/blog/real-world-example-wix-msi-application-installer/)
+* Wix Documentation
+  * [WiX Toolset v3 Manual](https://www.firegiant.com/wix3/)
+  * [WiX for the impatient](http://www.p-nand-q.com/programming/windows/wix/) -- Three blog articles
+  * [A quick introduction: Create an MSI installer with WiX](https://www.codeproject.com/Tips/105638/A-quick-introduction-Create-an-MSI-installer-with) -- Good example with Start Menu
+  * [Real-World Example: WiX/MSI Application Installer](https://helgeklein.com/blog/real-world-example-wix-msi-application-installer/)
 
 ## Considerations for Porting from Linux to Windows
 
@@ -103,7 +104,7 @@ And install it:
 * On Linux per-user application data is stored in $HOME/.config and $HOME/.local while on Windows
   it is stored in $HOME/AppData.
 * On Linux and Windows use diferent locale name formats. Examples from locale.getlocale():
-  * Linux: ('en_US', 'UTF-8')
-  * Windows: ('English_United States', '1252')
+  * Linux: ("en\_US", "UTF-8")
+  * Windows: ("English\_United States", "1252")
 * On Windows os.rename() raises FileExistsError if the target already exists.
   Use os.replace() instead.
