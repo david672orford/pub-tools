@@ -4,4 +4,7 @@ instance
 *.pot
 *.mo
 .venv
+
+# Temporarily excluded
 tests
+experiments/Jitsi
