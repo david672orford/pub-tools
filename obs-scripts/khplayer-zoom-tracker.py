@@ -240,7 +240,7 @@ class ZoomCropper:
 		obs.obs_source_release(self.source)
 		self.source = None
 
-	def set_crop(self, crop_box):
+	def set_crop_box(self, crop_box):
 		if crop_box != self.prev_crop_box:
 			source_settings = obs.obs_data_create()
 			if crop_box is False:

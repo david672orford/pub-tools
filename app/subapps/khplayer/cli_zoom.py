@@ -34,9 +34,9 @@ def cmd_zoom_setup():
 			os.remove(backup_file)
 		os.rename(tmpfile, zoom_configfile)
 
-@cli_zoom.command("tracker-test")
+@cli_zoom.command("tracker-test-image")
 @click.argument("filename")
-def cmd_zoom_tracker_test(filename):
+def cmd_zoom_tracker_image_test(filename):
 	"""Run the tracker on a screenshot file and show result"""
 	from .utils.zoom_tracker_tests import tracker_test_image
 	tracker_test_image(filename)

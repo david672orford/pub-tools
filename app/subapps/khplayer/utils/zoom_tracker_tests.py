@@ -4,9 +4,7 @@ from .zoom_tracker import ZoomTracker
 
 def tracker_test_image(filename):
 	"""Run the Zoom tracker on a screenshot image"""
-	from time import sleep
 	from PIL import Image, ImageDraw
-	from .controllers import obs, ObsError
 
 	# Load the screenshot the user supplied into our Zoom tracker
 	img = Image.open(filename)
@@ -19,9 +17,12 @@ def tracker_test_image(filename):
 	class BoxDrawer:
 		def __init__(self, img):
 			self.draw = ImageDraw.Draw(img)
-		def draw_box(self, box):
-			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=(255, 0, 0), width=1)
+		def draw_box(self, box, color=(255, 0, 0)):
+			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=color, width=1)
 	drawer = BoxDrawer(tracker.img)
+
+	if tracker.gallery is not None:
+		drawer.draw_box(tracker.gallery, color=(255, 255, 0))
 
 	print("Speaker indexes:", tracker.speaker_indexes)
 	for box in tracker.layout:
@@ -42,7 +43,7 @@ def tracker_track():
 		def __init__(self, source_name):
 			self.prev_crop_box = None
 			self.source_name = source_name
-		def set_crop(self, crop_box):
+		def set_crop_box(self, crop_box):
 			if crop_box != self.prev_crop_box:
 				if crop_box is False:
 					settings = {"enabled": False}
