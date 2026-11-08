@@ -7,16 +7,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from venv_tool import activate
 activate()
 
-from time import sleep, time
-from ctypes import string_at, byref
+from time import sleep
+from ctypes import string_at
 from subprocess import run
+from typing import override
 
 from PIL import Image
 import obspython as obs
 
 import gs_stagesurface_map
 from obs_wrap import ObsScript, ObsWidget
-from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker
+from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker, ZoomCropperBase, CropBox
 
 class ObsZoomTracker(ObsScript):
 	"""
@@ -135,6 +136,8 @@ class WindowCapture:
 			self.input_kind = "xcomposite_input"
 			self.window_key = "capture_window"
 			self.cursor_key = "show_cursor"
+		self.source_name = source_name
+		self.window = None
 		self.source = obs.obs_get_source_by_name(source_name)
 		if self.source is None:
 			self.source = obs.obs_source_create(self.input_kind, source_name, None, None)
@@ -145,6 +148,9 @@ class WindowCapture:
 			obs.obs_data_set_int(source_settings, "method", 2)		# Windows 10 (1903 and up)
 		obs.obs_source_update(self.source, source_settings)
 		obs.obs_data_release(source_settings)
+
+	def __str__(self):
+		return f"<WindowCapture {self.source_name!r} {self.window!r}>"
 
 	def destroy(self):
 		obs.obs_source_release(self.source)
@@ -159,6 +165,7 @@ class WindowCapture:
 
 	def set_window(self, window):
 		"""Set the window to be captured"""
+		self.window = window
 		source_settings = obs.obs_data_create()
 		obs.obs_data_set_string(source_settings, self.window_key, window)
 		obs.obs_source_update(self.source, source_settings)
@@ -223,7 +230,7 @@ class WindowCapture:
 			return None, None, None
 		return data, width, height
 
-class ZoomCropper:
+class ZoomCropper(ZoomCropperBase):
 	"""
 	Wrapper for a proxy source which crops a piece out of Zoom Capture.
 	"""
@@ -240,7 +247,8 @@ class ZoomCropper:
 		obs.obs_source_release(self.source)
 		self.source = None
 
-	def set_crop_box(self, crop_box):
+	@override
+	def set_crop_box(self, crop_box:CropBox|None|bool) -> None:
 		if crop_box != self.prev_crop_box:
 			source_settings = obs.obs_data_create()
 			if crop_box is False:

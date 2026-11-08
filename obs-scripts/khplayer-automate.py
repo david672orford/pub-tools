@@ -265,4 +265,4 @@ class DummySource:
 	uuid = "dummy_source"
 	settings = {}
 
-automate = ObsAutomate(debug=True)
+automate = ObsAutomate(debug=False)

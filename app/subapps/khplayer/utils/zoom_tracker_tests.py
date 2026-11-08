@@ -1,8 +1,31 @@
 """Tests for the Zoom tracker"""
 
-from .zoom_tracker import ZoomTracker
+from typing import override
 
-def tracker_test_image(filename):
+from .zoom_tracker import ZoomTracker, ZoomCropperBase, CropBox
+
+class ZoomCropper(ZoomCropperBase):
+	def __init__(self, obs, source_name:str):
+		self.obs = obs
+		self.source_name:str = source_name
+		self.prev_crop_box:CropBox|None|bool = None
+	@override
+	def set_crop_box(self, crop_box:CropBox|None|bool) -> None:
+		if crop_box != self.prev_crop_box:
+			if crop_box is False:
+				settings = {"enabled": False}
+			else:
+				settings = {
+					"enabled": True,
+					"crop_x": crop_box.x,
+					"crop_y": crop_box.y,
+					"crop_width": crop_box.width,
+					"crop_height": crop_box.height,
+					}
+			self.obs.set_input_settings(name=self.source_name, settings=settings)
+			self.prev_crop_box = crop_box
+
+def tracker_test_image(filename:str):
 	"""Run the Zoom tracker on a screenshot image"""
 	from PIL import Image, ImageDraw
 
@@ -17,12 +40,11 @@ def tracker_test_image(filename):
 	class BoxDrawer:
 		def __init__(self, img):
 			self.draw = ImageDraw.Draw(img)
-		def draw_box(self, box, color=(255, 0, 0)):
+		def draw_box(self, box:CropBox, color:tuple[int, int, int]=(255, 0, 0)):
 			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=color, width=1)
 	drawer = BoxDrawer(tracker.img)
 
-	if tracker.gallery is not None:
-		drawer.draw_box(tracker.gallery, color=(255, 255, 0))
+	drawer.draw_box(tracker.gallery, color=(255, 255, 0))
 
 	print("Speaker indexes:", tracker.speaker_indexes)
 	for box in tracker.layout:
@@ -39,28 +61,10 @@ def tracker_track():
 	from .controllers import obs, ObsError
 	zoom_input_name = "Zoom Capture"
 	filename = os.path.join(current_app.instance_path, zoom_input_name + ".png")
-	class ZoomCropper:
-		def __init__(self, source_name):
-			self.prev_crop_box = None
-			self.source_name = source_name
-		def set_crop_box(self, crop_box):
-			if crop_box != self.prev_crop_box:
-				if crop_box is False:
-					settings = {"enabled": False}
-				else:
-					settings = {
-						"enabled": True,
-						"crop_x": crop_box.x,
-						"crop_y": crop_box.y,
-						"crop_width": crop_box.width,
-						"crop_height": crop_box.height,
-						}
-				obs.set_input_settings(name=self.source_name, settings=settings)
-				self.prev_crop_box = crop_box
 	zoom_scenes = (
-		ZoomCropper("Zoom Participant 0"),
-		ZoomCropper("Zoom Participant 1"),
-		ZoomCropper("Zoom Participant 2"),
+		ZoomCropper(obs, "Zoom Participant 0"),
+		ZoomCropper(obs, "Zoom Participant 1"),
+		ZoomCropper(obs, "Zoom Participant 2"),
 		)
 	tracker = ZoomTracker(debug=True)
 	while True:

@@ -17,16 +17,22 @@ source_def.create = function(settings, source)
 	data.source = source
 	data.width = 1280
 	data.height = 720
-	data.parent_source_name = "Zoom Capture"
-	data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
-	if data.parent_source ~= nil then
-   		if obs.obs_source_showing(source) then
-			obs.obs_source_inc_showing(data.parent_source)
+    data.parent_source_name = "Zoom Capture"
+
+    local function source_delay_callback()
+	    data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
+	    if data.parent_source ~= nil then
+	        if obs.obs_source_showing(source) then
+	            obs.obs_source_inc_showing(data.parent_source)
+			end
+        if obs.obs_source_active(source) then
+	            obs.obs_source_inc_active(data.parent_source)
+	        end
+		obs.timer_remove(source_delay_callback)
 		end
-		if obs.obs_source_active(source) then
-	 		obs.obs_source_inc_active(data.parent_source)
-	 	end
-	end
+    end
+	obs.timer_add(source_delay_callback, 1000)
+
 	data.texrender = obs.gs_texrender_create(obs.GS_RGBA, obs.GS_ZS_NONE)
 	source_def.update(data, settings)
 	return data
@@ -42,7 +48,7 @@ source_def.destroy = function(data)
 end
 
 source_def.show = function(data)
-	print("Source showing: " .. data.name)
+    print("Source showing: " .. data.name)
 	if data.parent_source == nil then
 		data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
 	end
@@ -59,14 +65,14 @@ source_def.hide = function(data)
 end
 
 source_def.activate = function(data)
-	print("Source activated: " .. data.name)
+    print("Source activated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_active(data.parent_source)
 	end
 end
 
 source_def.deactivate = function(data)
-	print("Source deactivated: " .. data.name)
+    print("Source deactivated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_dec_active(data.parent_source)
 	end

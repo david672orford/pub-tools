@@ -2,6 +2,9 @@
 
 from struct import pack
 from dataclasses import dataclass
+from typing import Final
+
+from PIL.Image import Image
 
 @dataclass
 class CropBox:
@@ -20,6 +23,15 @@ class GalleryCropBox(CropBox):
 	x2: int				# left margin of last row
 	width2: int			# width in pixels of last row
 
+class Layout(list[CropBox]):
+	def __init__(self):
+		super().__init__()
+		self.speaker_index:int|None = None
+
+class ZoomCropperBase:
+	def set_crop_box(self, crop_box:CropBox|None|bool) -> None:
+		print("Not implemented:", crop_box)
+
 class ZoomTracker:
 	"""
 	Given an image of the main Zoom window, find the box which
@@ -29,40 +41,41 @@ class ZoomTracker:
 	https://realpython.com/image-processing-with-the-python-pillow-library/
 	"""
 
-	BYTES_PER_PIXEL = 3										# Red, Green, Blue
-	SEARCH_CELLSPACING = 10									# Set greater than spacing between gallery cells
-	SPEAKER_BORDER_COLOR = pack("BBB", 35, 217, 89)			# Green border around current speaker
-	SPEAKER_BORDER_COLOR_RUN = 300 * SPEAKER_BORDER_COLOR	# Smallest seems to be about 450px wide
+	BYTES_PER_PIXEL: Final[int] = 3											# Red, Green, Blue
+	SEARCH_CELLSPACING: Final[int] = 10										# Set greater than spacing between gallery cells
+	SPEAKER_BORDER_COLOR: Final[bytes] = pack("BBB", 35, 217, 89)			# Green border around current speaker
+	SPEAKER_BORDER_COLOR_RUN: Final[bytes] = 300 * SPEAKER_BORDER_COLOR		# Smallest seems to be about 450px wide
 
-	def __init__(self, debug=False):
-		self.debug = debug
-		self.background_color = None
-		self.speaker_indexes = SimpleSpeakerIndexes()
-		self.gallery = None
-		self.speaker_box = None
-		self.layout = None
+	def __init__(self, debug:bool=False):
+		self.debug:bool = debug
+		self.img:Image
+		self.data:bytes
+		self.row_length_in_bytes:int
+		self.background_color:bytes
+		self.speaker_indexes:SimpleSpeakerIndexes = SimpleSpeakerIndexes()
+		self.gallery:GalleryCropBox
+		self.speaker_box:SpeakerCropBox|None
+		self.layout:Layout
 
-	def set_exclude_first_box(self, exclude_first_box):
-		"""Never treat the first box as the speaker, it is our output"""
+	def set_exclude_first_box(self, exclude_first_box:bool):
+		"""Never treat the first box as the speaker, it is the OBS output"""
 		self.speaker_indexes.exclude_first_box = exclude_first_box
 
 	def reset_speakers(self):
 		"""Clear present and previous speaker until new detection"""
 		self.speaker_indexes.reset_speakers()
 
-	def do_cropping(self, zoom_scenes):
+	def do_cropping(self, zoom_scenes:list[ZoomCropperBase]):
 		"""Set the crop boxes on the supplied ZoomCropper objects"""
 		if self.debug:
 			print("Setting OBS croppers...")
-		i = 0
-		for speaker_index in self.speaker_indexes:
+		for i, speaker_index in enumerate(self.speaker_indexes):
 			crop_box = self.layout[speaker_index] if speaker_index is not None and speaker_index < len(self.layout) else False
 			if self.debug:
 				print(f" Source \"Zoom Participant {i}\" -> Speaker {speaker_index} of {len(self.layout)}, crop_box={crop_box}")
 			zoom_scenes[i].set_crop_box(crop_box)
-			i += 1
 
-	def load_image(self, img):
+	def load_image(self, img:Image):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
 
 		if self.debug:
@@ -77,7 +90,7 @@ class ZoomTracker:
 		offset = self.xy_to_offset(0, self.img.height-1)
 		self.background_color = self.data[offset:offset+3]
 
-		main_width = self.measure_left_margin(self.img.height-1, raise_on_notfound=False)
+		main_width = self.measure_left_margin(self.img.height-1)
 		if self.debug:
 			print(" Main pane width:", main_width)
 		if 0 < main_width < self.img.width:
@@ -91,20 +104,20 @@ class ZoomTracker:
 
 		# If someone is speaking, we know the size of a speaker box
 		# and can work out where all the boxes are.
-		if self.gallery is not None and self.speaker_box is not None:
-			self.layout, speaker_index = self.infer_layout()
-			self.speaker_indexes.set_speaker_index(speaker_index)
+		if self.speaker_box is not None:
+			self.layout = self.infer_layout()
+			self.speaker_indexes.set_speaker_index(self.layout.speaker_index)
 		else:
-			self.layout = []
+			self.layout = Layout()
 
-	def _load_image(self, img):
+	def _load_image(self, img:Image):
 		if self.debug:
 			print(" Image format:", img.format, img.width, img.height, img.mode)
 		self.img = img
 		self.data = self.img.tobytes()
 		self.row_length_in_bytes = self.img.width * self.BYTES_PER_PIXEL
 
-	def measure_left_margin(self, y:int, raise_on_notfound:bool=True) -> int:
+	def measure_left_margin(self, y:int) -> int:
 		"""Count the number of background-color pixels at the start of the indicated row"""
 		offset = self.xy_to_offset(0, y)
 		for x in range(self.img.width):
@@ -115,7 +128,7 @@ class ZoomTracker:
 			x += 1
 		return x
 
-	def find_gallery(self) -> CropBox:
+	def find_gallery(self) -> GalleryCropBox:
 		"""
 		Find the gallery view area by starting in the center of the screen
 		and moving up and down until we find all-black rows. Measure
@@ -132,28 +145,28 @@ class ZoomTracker:
 		data = memoryview(self.data)
 
 		# Move down through the header until we a background-color row
-		for offset in range(0, offset_limit, self.row_length_in_bytes):
-			if data[offset:offset+self.row_length_in_bytes] == background_color_row:
+		for offset1 in range(0, offset_limit, self.row_length_in_bytes):
+			if data[offset1:offset1+self.row_length_in_bytes] == background_color_row:
 				break
 
 		# Move down through the background color until we hit the gallery
-		for offset in range(offset+self.row_length_in_bytes, offset_limit, self.row_length_in_bytes):
-			if data[offset:offset+self.row_length_in_bytes] != background_color_row:
+		for offset2 in range(offset1+self.row_length_in_bytes, offset_limit, self.row_length_in_bytes):
+			if data[offset2:offset2+self.row_length_in_bytes] != background_color_row:
 				break
-		top = self.offset_to_y(offset)
+		top = self.offset_to_y(offset2)
 		if self.debug:
 			print(f" Top: {top}")
 
 		# Search downward from the middle until we hit a multiple background-color rows.
 		run_length = 0
-		for offset in range(int(offset_limit / 2), offset_limit, self.row_length_in_bytes):
-			if data[offset:offset+self.row_length_in_bytes] != background_color_row:
+		for offset3 in range(int(offset_limit / 2), offset_limit, self.row_length_in_bytes):
+			if data[offset3:offset3+self.row_length_in_bytes] != background_color_row:
 				run_length = 0
 			else:
 				run_length += 1
 				if run_length == self.SEARCH_CELLSPACING:
 					break
-		bottom = self.offset_to_y(offset) - run_length
+		bottom = self.offset_to_y(offset3) - run_length
 		if self.debug:
 			print(f" Bottom: {bottom}")
 
@@ -185,7 +198,7 @@ class ZoomTracker:
 
 		return gallery
 
-	def find_speaker_box(self) -> CropBox:
+	def find_speaker_box(self) -> SpeakerCropBox|None:
 		"""
 		Find the position and size of the green border which surrounds
 		the video box of the current speaker
@@ -223,14 +236,16 @@ class ZoomTracker:
 			raise AssertionError("Speaker border implausibly wide")
 		if self.debug:
 			print(" Border width:", border_width)
-		border_corner_radius = border_width * 4
-		border_lr = (border_width-1) * self.SPEAKER_BORDER_COLOR
 
 		# The X positions of the start of the top and bottom borders will be a bit
 		# different due to the fact that hit1 and hit2 hit it at different heights of the
 		# rounded corner, but they should be close.
-		if (x2 - x1) > border_corner_radius:
-			return None
+		# NOTE: This test is disabled because blending of the participant name at the lower left
+		# can sometimes alter the shade of the border.
+		border_corner_radius = border_width * 4
+		#if (x2 - x1) > border_corner_radius:
+		#	print(f" Funky values: ({x1}, {y1}) ({x2}, {y2})")
+		#	return None
 
 		# Distance between tops of the top and bottom borders, plus the
 		# border width, is the height of the speaker box.
@@ -245,6 +260,7 @@ class ZoomTracker:
 		if self.debug:
 			print(f" Estimates: x={x}, middle_y={middle_y}, border_width={border_width}, width={width}")
 		FUDGE = 10
+		border_lr = (border_width-1) * self.SPEAKER_BORDER_COLOR
 		lb_hit = self.data.find(
 			border_lr,
 			self.xy_to_offset(x - FUDGE, middle_y),
@@ -270,7 +286,7 @@ class ZoomTracker:
 
 		return SpeakerCropBox(x, y1, width, height, border_width)
 
-	def infer_layout(self):
+	def infer_layout(self) -> Layout:
 		"""
 		Given:
 		1) The dimensions of the gallery view
@@ -278,8 +294,8 @@ class ZoomTracker:
 		work out the rows and columns of the grid
 		"""
 
+		assert self.speaker_box is not None
 		FUDGE = 10
-		print(self.gallery, self.speaker_box)
 		columns = int((self.gallery.width+FUDGE) / self.speaker_box.width)
 		rows = int((self.gallery.height+FUDGE) / self.speaker_box.height)
 		x_cellspacing = self.gallery.width - (self.speaker_box.width * columns)
@@ -291,8 +307,7 @@ class ZoomTracker:
 			print(f" Cell spacing: {x_cellspacing} {y_cellspacing}")
 
 		y = self.gallery.y
-		layout = []
-		speaker_index = None
+		layout = Layout()
 		border_width = self.speaker_box.border_width
 		double_border_width = border_width * 2
 		for row in range(rows):
@@ -301,9 +316,9 @@ class ZoomTracker:
 				columns = int((self.gallery.width2 + FUDGE) / self.speaker_box.width)
 			else:
 				x = self.gallery.x
-			for column in range(columns):
+			for _ in range(columns):
 				if abs(x - self.speaker_box.x) < 10 and abs(y - self.speaker_box.y) < 10:
-					speaker_index = len(layout)
+					layout.speaker_index = len(layout)
 				layout.append(CropBox(
 					x = x + border_width,
 					y = y + border_width,
@@ -317,12 +332,11 @@ class ZoomTracker:
 
 		if self.debug:
 			for i in range(len(layout)):
-				print(f" Speaker box {i} at: {repr(layout[i])}")
-			print(f" Current speaker box: {speaker_index}")
+				print(f" Speaker box {i} at: {layout[i]!r}", "<-- Current" if i == layout.speaker_index else "")
 
-		return layout, speaker_index
+		return layout
 
-	def offset_to_xy(self, offset):
+	def offset_to_xy(self, offset:int):
 		"""Convert a byte offset into the PIL data array into the (x,y) pixel position"""
 		assert type(offset) is int
 		return (
@@ -330,11 +344,11 @@ class ZoomTracker:
 			self.offset_to_y(offset),
 			)
 
-	def offset_to_x(self, offset):
+	def offset_to_x(self, offset:int) -> int:
 		assert type(offset) is int
 		return offset % self.row_length_in_bytes // self.BYTES_PER_PIXEL
 
-	def offset_to_y(self, offset):
+	def offset_to_y(self, offset:int) -> int:
 		assert type(offset) is int
 		return offset // self.row_length_in_bytes
 
@@ -344,7 +358,7 @@ class ZoomTracker:
 		assert type(y) is int
 		return y * self.row_length_in_bytes + x * self.BYTES_PER_PIXEL
 
-class SimpleSpeakerIndexes(list):
+class SimpleSpeakerIndexes(list[None|int]):
 	"""
 	Track current speaker and current pair of speakers
 
@@ -354,15 +368,16 @@ class SimpleSpeakerIndexes(list):
 	As new speakers appear they will replace 1 and 2 alternately.
 	"""
 	def __init__(self):
+		super().__init__()
 		self.extend((None, None, None))
-		self.speaker_switch_count = 0
-		self.exclude_first_box = True
+		self.speaker_switch_count:int = 0
+		self.exclude_first_box:bool = True
 
 	def reset_speakers(self):
 		for i in range(len(self)):
 			self[i] = None
 
-	def set_speaker_index(self, speaker_index):
+	def set_speaker_index(self, speaker_index:int|None):
 
 		# First box is generally the one showing OBS output
 		if speaker_index == 0 and self.exclude_first_box:
@@ -379,4 +394,3 @@ class SimpleSpeakerIndexes(list):
 		if speaker_index not in self[1:]:
 			self[self.speaker_switch_count % 2 + 1] = speaker_index
 			self.speaker_switch_count += 1
-
