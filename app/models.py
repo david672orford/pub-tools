@@ -1,5 +1,5 @@
-from flask_sqlalchemy import SQLAlchemy
 from datetime import date
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
@@ -96,7 +96,7 @@ class VideoCategories(db.Model):
 	subcategory_name = db.Column(db.String)
 	videos = db.relationship("Videos", secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
 	def __str__(self):
-		return f"<VideoCategories id={self.id} {repr(self.category_key)} {repr(self.subcategory_name)}>"
+		return f"<VideoCategories id={self.id} {self.category_key!r} {self.subcategory_name!r}>"
 
 class Videos(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -109,4 +109,3 @@ class Videos(db.Model):
 	thumbnail = db.Column(db.String)		# URL of JPEG file
 	href = db.Column(db.String)				# finder link
 	categories = db.relationship(VideoCategories, secondary=videos_rel, back_populates="videos")
-

@@ -6,7 +6,7 @@ from time import sleep
 import logging
 from dataclasses import asdict
 
-from flask import current_app
+from flask import Flask, current_app
 from flask.cli import AppGroup
 import click
 
@@ -18,7 +18,7 @@ from .models import db, PeriodicalIssues, Articles, Weeks, Books, VideoCategorie
 from .models_whoosh import video_index, illustration_index
 from .jworg.publications import PubFinder
 from .jworg.meetings import MeetingLoader
-from .jworg.videos import VideoLister
+from .jworg.videos import VideoLister, VideoCategory
 from .jworg.epub import EpubLoader
 from .jworg.hrange import HighlightRange
 from .jworg.jwstream import StreamRequester
@@ -28,17 +28,18 @@ logger = logging.getLogger(__name__)
 
 cli_jworg = AppGroup("jworg", help="Download lists of publications and media from JW.ORG")
 
-def init_app(app):
+def init_app(app:Flask):
 	app.cli.add_command(cli_jworg)
 
 # Simple callback to print download progress
-def basic_callback(message, **kwargs):
+def basic_callback(message:str, **kwargs):
 	if "{" in message:
 		print(message.format(**kwargs))
 	else:
 		print(message)
 
-def print_query_result_table(result, title):
+def print_query_result_table(result, title:str):
+	"""Print an Sqalchemy query result as a table"""
 	table = Table(show_header=True, title=title, show_lines=True)
 	columns = result.column_descriptions[0]["type"].__table__.columns.keys()
 	for column in columns:
@@ -72,15 +73,15 @@ def print_dict_result_table(result, title, order=()):
 @click.option("--nweeks", default=8)
 @click.argument("year", required=False)
 @click.argument("week", required=False)
-def cmd_update_weeks(nweeks, year, week):
+def cmd_update_weeks(nweeks:int, year:str|int|None, week:str|int|None):
 	"""Load weekly meeting materials"""
 	logging.basicConfig(level=logging.DEBUG)
-	if year is not None:
+	if year is not None and week is not None:
 		year = int(year)
 		week = int(week)
 	update_weeks(year, week, nweeks, basic_callback)
 
-def update_weeks(year=None, week=None, nweeks=8, callback=None):
+def update_weeks(year:int|None=None, week:int|None=None, nweeks:int=8, callback=None):
 	if year is not None:
 		assert isinstance(year, int) and year >= 2016
 		assert isinstance(week, int) and 1 <= week <= 53
@@ -98,7 +99,8 @@ def update_weeks(year=None, week=None, nweeks=8, callback=None):
 	db.session.commit()
 	callback(_("Weeks loaded"), last_message=True)
 
-def upcoming_weeks(n):
+def upcoming_weeks(n:int):
+	"""Create a list of upcoming weeks which we have not yet loaded"""
 	current_day = date.today()
 	to_fetch = []
 	for i in range(n):
@@ -340,7 +342,7 @@ def cmd_show_books():
 @cli_jworg.command("update-videos")
 @click.argument("category_key", required=False)
 @click.argument("subcategory_key", required=False)
-def cmd_update_videos(category_key=None, subcategory_key=None):
+def cmd_update_videos(category_key:str|None=None, subcategory_key:str|None=None):
 	"""Update list of available videos"""
 	logging.basicConfig(level=logging.DEBUG)
 	language = current_app.config["PUB_LANGUAGE"]
@@ -352,7 +354,7 @@ def cmd_update_videos(category_key=None, subcategory_key=None):
 		print("Error: Use no arguments or two")
 
 # Update all video categories
-def update_videos(language, callback):
+def update_videos(language:str, callback):
 
 	# Start with an empty index
 	video_index.create()
@@ -396,17 +398,17 @@ def update_videos(language, callback):
 			subcategory_count += 1
 		top_level_count += 1
 
-def update_video_subcategory(language, category_key, subcategory_key, callback):
+def update_video_subcategory(language:str, category_key:str, subcategory_key:str, callback):
 	video_index.create(clear=False)
 	lister = VideoLister(language=language)
-	subcategory = lister.get_category(subcategory_key)
+	subcategory:VideoCategory = lister.get_category(subcategory_key)
 	category_db_obj = VideoCategories.query.filter_by(
 		lang = language,
 		category_key = category_key,
 		subcategory_key = subcategory_key,
 		).one_or_none()
 	if category_db_obj is None:
-		category = lister.get_category(category_key)
+		category:VideoCategory = lister.get_category(category_key)
 		category_db_obj = VideoCategories(
 			lang = subcategory.language,
 			category_key = category.key,
@@ -422,8 +424,9 @@ def write_video_category_to_db(category_db_obj, category, callback):
 		category_name = category_db_obj.category_name,
 		subcategory_name = category_db_obj.subcategory_name
 		)))
+	videos:list[Videos] = []
 	for video in category.videos:
-		video_obj = Videos.query.filter_by(lang=category.language, lank=video.lank).one_or_none()
+		video_obj:Videos|None = Videos.query.filter_by(lang=category.language, lank=video.lank).one_or_none()
 		if video_obj is None:
 			video_obj = Videos(
 				lang = category.language,
@@ -434,10 +437,10 @@ def write_video_category_to_db(category_db_obj, category, callback):
 		video_obj.duration = video.duration
 		video_obj.thumbnail = video.thumbnail
 		video_obj.href = video.href
-		if video_obj not in category_db_obj.videos:
-			category_db_obj.videos.append(video_obj)
+		videos.append(video_obj)
+	category_db_obj.videos = videos
 	db.session.commit()
-	video_index.add_videos(category_db_obj.videos)
+	video_index.add_videos(videos)
 	video_index.commit()
 
 @cli_jworg.command("show-videos")

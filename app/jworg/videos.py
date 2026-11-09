@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Retrieve a video category from JW.ORG. Returns a VideoCategory object.
 class VideoLister(Fetcher):
-	def get_category(self, category_key, category_dict=None):
+	def get_category(self, category_key:str, category_dict=None):
 		logger.debug("get_category(\"%s\", %s)", category_key, category_dict)
 		if category_dict is None or len(category_dict["media"]) == 0:
 			data = self.get_json(self.mediator_categories_url.format(meps_language=self.meps_language, category=category_key))
@@ -21,16 +21,16 @@ class VideoLister(Fetcher):
 #                   in this category
 # A VideoCategory will have either videos or subcategories, but not both.
 class VideoCategory:
-	def __init__(self, video_lister, category_dict):
-		self.video_lister = video_lister
+	def __init__(self, video_lister:VideoLister, category_dict):
+		self.video_lister:VideoLister = video_lister
 		self.category_dict = category_dict
 
-		self.meps_language = video_lister.meps_language
-		self.key = category_dict["key"]
-		self.name = category_dict["name"]
-		self.subcategories_count = len(category_dict.get("subcategories",[]))
+		self.meps_language:str = video_lister.meps_language
+		self.key:str = category_dict["key"]
+		self.name:str = category_dict["name"]
+		self.subcategories_count:int = len(category_dict.get("subcategories",[]))
 
-		self.videos = []
+		self.videos:list[Video] = []
 		for media in category_dict.get("media",[]):
 			logger.debug("Video title: %s", media["title"])
 			self.videos.append(Video(video_lister.meps_language, media))
@@ -66,8 +66,8 @@ class Video:
 		self.href = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
 
 		#self.files = {}
-		#for file in media['files']:
-		#	self.files[file['label']] = file['progressiveDownloadURL']
+		#for file in media["files"]:
+		#	self.files[file["label"]] = file["progressiveDownloadURL"]
 
 if __name__ == "__main__":
 	def print_videos(category, indent=0):
@@ -79,9 +79,8 @@ if __name__ == "__main__":
 
 	logging.basicConfig(level=logging.DEBUG)
 
-	video_lister = VideoLister()	
+	video_lister = VideoLister()
 	category = video_lister.get_category("VideoOnDemand")
 	#category = video_lister.get_category("VODMinistryTools")
 
 	print_videos(category)
-
