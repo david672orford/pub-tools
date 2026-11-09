@@ -33,7 +33,8 @@ from app import create_app
 class KHPlayer(ObsScript):
 	"""
 	<h2>KH Player—Server</h2>
-	<p>KH Player loads videos and illustrations from JW.ORG. Enable it and point a browser at
+	<p>KH Player loads videos and illustrations from JW.ORG. Enable it and point
+	a browser or browser dock at
 	<a href="http://127.0.0.1:5000/khplayer/">http://127.0.0.1:5000/khplayer/</a></p>
 	"""
 

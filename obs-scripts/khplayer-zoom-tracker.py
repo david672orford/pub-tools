@@ -1,5 +1,42 @@
 """Use window capture on Zoom to get video of individual participants"""
 
+#=============================================================================
+# Theory of Operation
+#=============================================================================
+#
+# 1) Create a screen capture source for the Zoom window. The Zoom window may
+#    be selected on this script's options screen.
+# 2) Create three Zoom Participant sources which show cropped segments of the
+#    screen capture source. Zoom Participant 0 is the current speaker. Zoom
+#    Participant 1 and 2 are the current and previous speaker.
+# 3) Whenever the Capture Source is visible (directly or indirectly), run
+#    a loop which pushes screenshots of Capture Source to code in
+#    ../app/subapps/khplayer/utils/zoom_tracker.py which finds the partipant
+#    video windows and fires callbacks into this script to adjust the
+#    Zoom Participant sources.
+#
+#=============================================================================
+# Debugging Methods
+#=============================================================================
+#
+# Method 1: Read this Scripts Log
+#
+# 1) Load khplayer-0logger.py
+# 2) Turn on debugging on this script's configuration screen
+# 3) Run tail -f instance/logs/khplayer-zoom-tracker
+#
+# Method 2: Run the Tracker Externally
+#
+# 1) Keep this script loaded, so that it will create the sources
+# 2) Pause tracking on this script's configuration screen
+# 3) Run the tracker externally: ./flask zoom track
+#
+# Method 3: Run the Tracker on a Screenshot
+#
+# 1) Make one or more screenshots of the Zoom window in PNG format
+# 2) Test the tracker on the image: ./flask zoom tracker-test-image Screenshot.png
+#
+
 import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
@@ -22,7 +59,8 @@ from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker, ZoomCropperBase
 class ObsZoomTracker(ObsScript):
 	"""
 	<h2>KH Player—Zoom Tracker</h2>
-	<p>Run screen capture on the main Zoom window and create sources which track the current and last two speakers.</p>
+	<p>Run screen capture on the main Zoom window and create sources which
+	track the current and last two speakers.</p>
 	"""
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -74,7 +112,8 @@ class ObsZoomTracker(ObsScript):
 		"""When a setting is changed in the GUI"""
 		if self.debug:
 			print("GUI change:", settings)
-		self.capture.set_window(settings.capture_window)
+		if self.capture is not None:	# TODO: Why might this be the case?
+			self.capture.set_window(settings.capture_window)
 		self.paused = settings.paused
 		self.tracker.set_exclude_first_box(settings.exclude_first_box)
 		self.debug = settings.debug

@@ -6,7 +6,7 @@ from struct import pack
 from typing import Final
 import logging
 
-from PIL.Image import Image
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 
@@ -19,20 +19,24 @@ class CropBox:
 	height: int
 
 @dataclass
-class SpeakerCropBox(CropBox):
-	border_width: int
-
-@dataclass
 class GalleryCropBox(CropBox):
+	"""Position of the Zoom participant gallery in the window"""
 	x2: int				# left margin of last row
 	width2: int			# width in pixels of last row
 
+@dataclass
+class SpeakerCropBox(CropBox):
+	"""Position of the green frame representing the current speaker"""
+	border_width: int
+
 class Layout(list[CropBox]):
+	"""The speaker positions and current speaker"""
 	def __init__(self):
 		super().__init__()
 		self.speaker_index:int|None = None
 
 class ZoomCropperBase:
+	"""Object used pass callbacks to do_cropping()"""
 	def set_crop_box(self, crop_box:CropBox|None|bool) -> None:
 		print("Not implemented:", crop_box)
 
@@ -52,24 +56,26 @@ class ZoomTracker:
 
 	def __init__(self, debug:bool=False):
 		self.debug:bool = debug
-		self.img:Image
+
+		self.gallery:GalleryCropBox
+		self.layout:Layout = Layout()
+		self.speaker_indexes:SimpleSpeakerIndexes = SimpleSpeakerIndexes()
+
+		self.img:Image.Image
 		self.data:bytes
 		self.row_length_in_bytes:int
 		self.background_color:bytes
-		self.speaker_indexes:SimpleSpeakerIndexes = SimpleSpeakerIndexes()
-		self.gallery:GalleryCropBox
-		self.speaker_box:SpeakerCropBox|None
-		self.layout:Layout
 
 	def set_exclude_first_box(self, exclude_first_box:bool):
 		"""Never treat the first box as the speaker, it is the OBS output"""
 		self.speaker_indexes.exclude_first_box = exclude_first_box
 
 	def set_speaker_index(self, index:int) -> None:
+		"""Force the current speaker"""
 		if 0 <= index < len(self.layout):
 			self.speaker_indexes.set_speaker_index(index)
 		else:
-			logger.error("Invalid speaker index: %d", speaker_index)
+			logger.error("Invalid speaker index: %d", index)
 
 	def reset_speakers(self):
 		"""Clear present and previous speaker until new detection"""
@@ -86,18 +92,19 @@ class ZoomTracker:
 			zoom_scenes[i].set_crop_box(crop_box)
 
 	def get_gallery_image(self) -> BytesIO|None:
+		"""Get a JPEG cropped to the Zoom participant gallery"""
 		if hasattr(self, "gallery"):
 			g = self.gallery
 			image = self.img.crop((g.x, g.y, g.x+g.width, g.y+g.height))
 		else:
-			image = Image.new("RBG", (320, 160), color=(100, 100, 100))
-		assert type(image) is Image
+			image = Image.new("RGB", (320, 160), color=(100, 100, 100))
+		assert type(image) is Image.Image
 		buffer = BytesIO()
 		image.save(buffer, format="JPEG", quality=85)
 		_ = buffer.seek(0)
 		return buffer
 
-	def load_image(self, img:Image):
+	def load_image(self, img:Image.Image):
 		"""Analyze an screenshot of the main Zoom window and figure out the speaker positions"""
 
 		if self.debug:
@@ -122,17 +129,17 @@ class ZoomTracker:
 		self.gallery = self.find_gallery()
 
 		# Look for the green border which indicates who is speaking
-		self.speaker_box = self.find_speaker_box()
+		speaker_box:SpeakerCropBox = self.find_speaker_box()
 
 		# If someone is speaking, we know the size of a speaker box
 		# and can work out where all the boxes are.
-		if self.speaker_box is not None:
-			self.layout = self.infer_layout()
+		if speaker_box is not None:
+			self.layout = self.infer_layout(speaker_box)
 			self.speaker_indexes.set_speaker_index(self.layout.speaker_index)
 		else:
 			self.layout = Layout()
 
-	def _load_image(self, img:Image):
+	def _load_image(self, img:Image.Image):
 		if self.debug:
 			print(" Image format:", img.format, img.width, img.height, img.mode)
 		self.img = img
@@ -308,7 +315,7 @@ class ZoomTracker:
 
 		return SpeakerCropBox(x, y1, width, height, border_width)
 
-	def infer_layout(self) -> Layout:
+	def infer_layout(self, speaker_box:SpeakerCropBox) -> Layout:
 		"""
 		Given:
 		1) The dimensions of the gallery view
@@ -316,12 +323,12 @@ class ZoomTracker:
 		work out the rows and columns of the grid
 		"""
 
-		assert self.speaker_box is not None
+		assert speaker_box is not None
 		FUDGE = 10
-		columns = int((self.gallery.width+FUDGE) / self.speaker_box.width)
-		rows = int((self.gallery.height+FUDGE) / self.speaker_box.height)
-		x_cellspacing = self.gallery.width - (self.speaker_box.width * columns)
-		y_cellspacing = self.gallery.height - (self.speaker_box.height * rows)
+		columns = int((self.gallery.width+FUDGE) / speaker_box.width)
+		rows = int((self.gallery.height+FUDGE) / speaker_box.height)
+		x_cellspacing = self.gallery.width - (speaker_box.width * columns)
+		y_cellspacing = self.gallery.height - (speaker_box.height * rows)
 
 		if self.debug:
 			print("Inferring gallery speaker layout...")
@@ -330,26 +337,26 @@ class ZoomTracker:
 
 		y = self.gallery.y
 		layout = Layout()
-		border_width = self.speaker_box.border_width
+		border_width = speaker_box.border_width
 		double_border_width = border_width * 2
 		for row in range(rows):
 			if row == (rows - 1):		# last row may not be full
 				x = self.gallery.x2
-				columns = int((self.gallery.width2 + FUDGE) / self.speaker_box.width)
+				columns = int((self.gallery.width2 + FUDGE) / speaker_box.width)
 			else:
 				x = self.gallery.x
 			for _ in range(columns):
-				if abs(x - self.speaker_box.x) < 10 and abs(y - self.speaker_box.y) < 10:
+				if abs(x - speaker_box.x) < 10 and abs(y - speaker_box.y) < 10:
 					layout.speaker_index = len(layout)
 				layout.append(CropBox(
 					x = x + border_width,
 					y = y + border_width,
-					width = self.speaker_box.width - double_border_width,
-					height = self.speaker_box.height - double_border_width,
+					width = speaker_box.width - double_border_width,
+					height = speaker_box.height - double_border_width,
 					))
-				x += self.speaker_box.width
+				x += speaker_box.width
 				x += x_cellspacing
-			y += self.speaker_box.height
+			y += speaker_box.height
 			y += y_cellspacing
 
 		if self.debug:

@@ -1,3 +1,11 @@
+function script_description()
+	return [[
+		<h2>KH Player—Zoom Participant Source</h2>
+		Adds a "Zoom Participant" source cropped from "Zoom Capture".
+		Use this with khplayer-zoom-tracker.py.
+		]]
+end
+
 obs = obslua
 bit = require("bit")
 
@@ -130,13 +138,6 @@ source_def.video_render = function(data)
 		--	print("Zoom Capture source missing")
 		end
 	end
-end
-
-function script_description()
-	return [[
-		<h2>KH Player—Zoom Participant Source</h2>
-		Adds a "Zoom Participant" source cropped from "Zoom Capture".
-		]]
 end
 
 obs.obs_register_source(source_def)

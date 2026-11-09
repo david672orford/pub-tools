@@ -7,6 +7,12 @@ import traceback
 import threading
 import logging
 
+def script_description():
+	return """
+	<h2>KH Player Logger</h2>
+	<p>Redirects stdout and stderr from Python scripts to pub-tools/instance/logs.</p>
+	"""
+
 logdir = os.path.join(os.path.dirname(__file__), "..", "instance", "logs")
 if not os.path.exists(logdir):
 	os.makedirs(logdir)
