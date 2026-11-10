@@ -18,7 +18,7 @@ meeting_loader = MeetingLoader(
 # OBS-Websocket client for controlling OBS Studio
 #=============================================================================
 
-from .obs_control import ObsControl, ObsError
+from .obs_control import ObsControl
 from .obs_config import ObsConfig
 
 # Read connection parameters for OBS-Websocket from config.py.

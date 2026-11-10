@@ -3,7 +3,10 @@
 import os
 import re
 from urllib.parse import urlparse, unquote, urlencode
+from typing import override
 import logging
+
+from flask import Flask
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +16,7 @@ from ....utils.config import get_config, put_config
 class ObsControl(ObsControlBase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-		self.app = None
+		self.app:Flask|None = None
 
 		# Scene list hooks. We have to install the event handler
 		# immediately, since it needs to come before the one
@@ -27,7 +30,7 @@ class ObsControl(ObsControlBase):
 		# Workaround for bug in OBS-Studio 32.1.0
 		self.scene_created_event_dedup:set[str] = set()
 
-	def init_app(self, app):
+	def init_app(self, app:Flask):
 		self.app = app
 
 	#============================================================================
@@ -122,7 +125,8 @@ class ObsControl(ObsControlBase):
 			case "SceneNameChanged":
 				self.scene_list["scenes"][self.get_scene_index(data["sceneUuid"])]["sceneName"] = data["sceneName"]
 
-	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int|None=None):
+	@override
+	def create_scene(self, scene_name:str, *, make_unique:bool=False, pos:int|None=None) -> dict[str, str]:
 		if pos is not None:
 			self._scene_pos[scene_name] = pos
 		return super().create_scene(scene_name, make_unique=make_unique)
@@ -149,7 +153,7 @@ class ObsControl(ObsControlBase):
 				return i
 		raise KeyError()
 
-	def get_scene_name(self, uuid):
+	def get_scene_name(self, uuid:str) -> str:
 		scenes = self.get_scene_list()["scenes"]
 		for i in range(len(scenes)):
 			if scenes[i]["sceneUuid"] == uuid:
@@ -175,7 +179,7 @@ class ObsControl(ObsControlBase):
 	# For videos enable audio monitoring.
 	#============================================================================
 
-	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str=None, subtitle_track:str=None, skiplist:str=None):
+	def add_media_scene(self, scene_name:str, media_type:str, media_file:str, *, thumbnail:str|None=None, subtitle_track:str|None=None, skiplist:str|None=None):
 		logger.info("Add media_scene: \"%s\" %s \"%s\"", scene_name, media_type, media_file)
 
 		# Get basename of media file
@@ -242,7 +246,7 @@ class ObsControl(ObsControlBase):
 				"css": "",
 				}
 		else:
-			raise AssertionError("Unsupported media_type: %s" % media_type)
+			raise AssertionError(f"Unsupported media_type: {media_type}")
 
 		logger.info(" Input: %s \"%s\"", input_kind, input_name)
 		logger.info(" Input settings: %s", input_setting)

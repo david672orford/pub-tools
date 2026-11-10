@@ -419,7 +419,7 @@ def update_video_subcategory(language:str, category_key:str, subcategory_key:str
 		db.session.add(category_db_obj)
 	write_video_category_to_db(category_db_obj, subcategory, callback)
 
-def write_video_category_to_db(category_db_obj, category, callback):
+def write_video_category_to_db(category_db_obj, category:VideoCategory, callback):
 	callback(_("Scanning \"{category_name} — {subcategory_name}\"...".format(
 		category_name = category_db_obj.category_name,
 		subcategory_name = category_db_obj.subcategory_name

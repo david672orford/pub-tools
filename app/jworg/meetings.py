@@ -435,7 +435,7 @@ class MeetingLoader(Fetcher):
 	# baseurl -- used to canonicalize hrefs (required if any are not canonical)
 	# title -- fallback title
 	# dnd -- return None if href is non-canononical and baseurl is None
-	def get_pub_from_a_tag(self, a:HtmlElement, baseurl:str|None=None, title:str|None=None, dnd:bool=False) -> MeetingMediaItem:
+	def get_pub_from_a_tag(self, a:HtmlElement, baseurl:str|None=None, title:str|None=None, dnd:bool=False) -> MeetingMediaItem|None:
 		assert isinstance(a, HtmlElement)
 		assert a.tag == "a"
 		assert isinstance(baseurl, str) or baseurl is None

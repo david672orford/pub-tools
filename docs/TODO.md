@@ -2,7 +2,6 @@
 
 ## Bugs
 
-* Exception thrown on expired JW Stream links (may be fixed)
 * Click on thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh of the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
@@ -14,6 +13,8 @@
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
 * Sound from remote feed should be monitored.
 * S-418mp-26\_U\_001.jwpub has bad video links
+* On laptop with Ubuntu 26.04 in Mate, dragging a file into ./pub-tools creates
+  a text item containing a file:/// URL. Why is this?
 
 ## Easy Stuff
 
@@ -24,14 +25,11 @@
 
 * Integration with Jitsi Meet
 * Load Bible verses. Could incorporate [Linkture](https://github.com/erykjj/linkture).
-* Figure out how to set up Python logging better:
-  * **flask cable** commands call logger.info(), but no output is produced
-  * CLI support for enabling debugging per module
 * When the user change the position of a scene by dragging and dropping send
   custom event to the other browsers so they can move it too
 * Auto-assign F-keys to scenes and show then in the Scenes tab (may not be supported in OBS-Websocket)
 
-## OBS Docs to Improve
+## OBS Docs to Help Improve
 
 * [Building OBS Studio](https://github.com/obsproject/obs-studio/wiki/Building-OBS-Studio)
 * [Getting Started With OBS Scripting](https://github.com/obsproject/obs-studio/wiki/Getting-Started-With-OBS-Scripting)

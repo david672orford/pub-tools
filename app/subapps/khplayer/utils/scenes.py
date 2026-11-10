@@ -1,7 +1,7 @@
 from flask import current_app
 import os.path
 import logging
-from urllib.parse import urlparse, parse_qsl, unquote
+from urllib.parse import urlparse, unquote
 
 from ....jworg.meetings import MeetingMediaItem
 from ....utils.babel import gettext as _
@@ -26,7 +26,7 @@ scene_name_prefixes = {
 #        (or a local file path starting with "/")
 # prefix -- media-type marker to put in front of scene name
 # close -- this is the last download in this group, close progress
-def load_video_url(scene_name:str|None, url:str, thumbnail_url:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
+def load_video_url(scene_name:str|None, url:str, thumbnail_url:str|None=None, prefix:str="▷", close:bool=True, skiplist:str|None=None):
 	loading_video_message = _("Loading video \"{scene_name}\"...")
 
 	if scene_name is not None:
@@ -78,7 +78,7 @@ def load_video_url(scene_name:str|None, url:str, thumbnail_url:str=None, prefix:
 
 	load_video_file(scene_name, video_file, thumbnail_file, subtitle_track, prefix, close, skiplist)
 
-def load_video_file(scene_name:str, video_file:str, thumbnail_file:str=None, subtitle_track:str=None, prefix:str="▷", close:bool=True, skiplist:str=None):
+def load_video_file(scene_name:str, video_file:str, thumbnail_file:str|None=None, subtitle_track:str|None=None, prefix:str="▷", close:bool=True, skiplist:str=None):
 	try:
 		obs.add_media_scene(
 			f"{prefix} {scene_name}",
@@ -100,13 +100,13 @@ def load_video_file(scene_name:str, video_file:str, thumbnail_file:str=None, sub
 # url -- direct download link to the image file
 # thumbnail_url -- link to a smaller version of the image (unused at present)
 # close -- this is the last download in this group, close progress
-def load_image_url(scene_name:str, url:str, thumbnail_url:str=None, skiplist:str=None, close:bool=True):
+def load_image_url(scene_name:str, url:str, thumbnail_url:str|None=None, skiplist:str|None=None, close:bool=True):
 	#assert thumbnail_url is None, "not supported yet"
 	progress_callback(_("Loading image \"{scene_name}\"...").format(scene_name=scene_name), cssclass="heading")
 	image_file = meeting_loader.download_media(url, callback=progress_callback)
 	load_image_file(scene_name, image_file, None, skiplist, close)
 
-def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+def load_image_file(scene_name:str, image_file:str, thumbnail_file:str|None=None, skiplist:str|None=None, close:bool=True):
 	assert thumbnail_file is None, "not supported yet"
 	try:
 		obs.add_media_scene(
@@ -127,9 +127,9 @@ def load_image_file(scene_name:str, image_file:str, thumbnail_file:str=None, ski
 #	pdf_file = meeting_loader.download_media(url, callback=progress_callback)
 #	load_pdf_file(scene_name, pdf_file, None, skiplist, close)
 
-def load_pdf_file(scene_name:str, pdf_file:str, thumbnail_file:str=None, skiplist:str=None, close:bool=True):
+def load_pdf_file(scene_name:str|None, pdf_file:str, thumbnail_file:str|None=None, skiplist:str|None=None, close:bool=True):
 	if scene_name is None:
-		scene_name = url.rsplit("/",1)[-1]
+		scene_name = os.path.basename(pdf_file)
 	try:
 		obs.add_media_scene(
 			f"▤ {scene_name}",
@@ -149,7 +149,7 @@ def load_pdf_file(scene_name:str, pdf_file:str, thumbnail_file:str=None, skiplis
 # url -- address of web page
 # thumbnail_url -- optional link to small image used in link to this webpage
 # close -- this is the last download in this group, close progress
-def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None, close:bool=True):
+def load_webpage(scene_name:str|None, url:str, thumbnail_url:str|None=None, skiplist:str|None=None, close:bool=True):
 	if scene_name is None or thumbnail_url is None:
 		metadata = meeting_loader.get_webpage_metadata(url)
 	if scene_name is None:
@@ -182,7 +182,7 @@ def load_webpage(scene_name:str, url:str, thumbnail_url:str=None, skiplist=None,
 # Add a scene which displays user-supplied text
 # scene_name -- name of scene to create in OBS
 # text -- the text to display
-def load_text(scene_name, text):
+def load_text(scene_name:str, text):
 	scene_uuid = obs.create_scene(scene_name, make_unique=True)["sceneUuid"]
 	source = obs.create_unique_input(
 		scene_uuid = scene_uuid,
@@ -215,7 +215,7 @@ def load_text(scene_name, text):
 	return progress_response(_("✔ Text has been added."), last_message=True, cssclass="success")
 
 # Download a media file and add a scene
-def load_media_url(scene_name:str, url:str, mimetype:str, thumbnail_url:str=None, skiplist:str=None, close:bool=True):
+def load_media_url(scene_name:str|None, url:str, mimetype:str, thumbnail_url:str|None=None, skiplist:str|None=None, close:bool=True):
 	filename = os.path.basename(unquote(urlparse(url).path))
 	save_as = make_media_cachefile_name(filename, mimetype)
 	progress_callback(_("Loading \"{url}\"...").format(url=url), cssclass="heading")

@@ -262,8 +262,8 @@ def page_scenes_upload():
 def page_scenes_add_url():
 	return add_url(request.form["add-url"])
 
-def add_url(url):
-	print(f"add_url({repr(url)})")
+def add_url(url:str):
+	print(f"add_url({url!r})")
 	def background_loader():
 		sleep(1)
 

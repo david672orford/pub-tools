@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Retrieve a video category from JW.ORG. Returns a VideoCategory object.
 class VideoLister(Fetcher):
-	def get_category(self, category_key:str, category_dict=None):
+	def get_category(self, category_key:str, category_dict=None) -> "VideoCategory":
 		logger.debug("get_category(\"%s\", %s)", category_key, category_dict)
 		if category_dict is None or len(category_dict["media"]) == 0:
 			data = self.get_json(self.mediator_categories_url.format(meps_language=self.meps_language, category=category_key))
@@ -51,26 +51,27 @@ class VideoCategory:
 # A single video from JW.ORG
 class Video:
 	finder_url = "https://www.jw.org/finder"
-	def __init__(self, language, media):
-		self.title = media["title"]
-		self.date = datetime.fromisoformat(media["firstPublished"][:-1])	# cut off Z
-		self.duration = int(media["duration"] + 0.5)
-		self.lank = media["languageAgnosticNaturalKey"]
+	def __init__(self, language:str, media):
+		self.title:str = media["title"]
+		self.date:datetime = datetime.fromisoformat(media["firstPublished"][:-1])	# cut off Z
+		self.duration:int = int(media["duration"] + 0.5)
+		self.lank:str = media["languageAgnosticNaturalKey"]
 
+		self.thumbnail:str
 		try:
 			self.thumbnail = media["images"]["wss"]["sm"]		# 16:9 aspect ratio, occassionally missing
 		except KeyError:
 			self.thumbnail = media["images"]["lss"]["lg"]		# 2:1 aspect ratio
 
 		# Shareable link to the video player page
-		self.href = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
+		self.href:str = self.finder_url + "?" + urlencode(dict(lank=self.lank, wtlocale=language))
 
 		#self.files = {}
 		#for file in media["files"]:
 		#	self.files[file["label"]] = file["progressiveDownloadURL"]
 
 if __name__ == "__main__":
-	def print_videos(category, indent=0):
+	def print_videos(category:VideoCategory, indent:int=0):
 		print("%s%s (%s)" % (" " * indent, category.name, category.key))
 		for video in category.videos:
 			print("%s%s" % (" " * (indent+2), video.title))
