@@ -1,21 +1,19 @@
+"""Get theme, possibly matching that of OBS"""
+
 from flask import current_app
 
-try:
-	import obspython as obs
-	in_obs = True
-except ImportError:
-	in_obs = False
+class Theme:
+	def __init__(self):
+		self.default = theme = current_app.config.get("THEME")
+		if self.default is None:
+			self.default = "yami-light"
+		self.name = None
+	def set(self, name:str) -> None:
+		assert type(name) is str
+		self.name = name
+	@property
+	def stylesheet(self) -> str:
+		name = self.name or self.default
+		assert type(name) is str
+		return "themes/" + name + "/theme.css"
 
-def get_theme():
-
-	# config.py has top priority
-	theme = current_app.config.get("THEME")
-
-	# Otherwise go with "basic-light" unless running inside OBS in and OBS is in dark mode.
-	if theme is None:
-		if in_obs and obs.obs_frontend_is_theme_dark():
-			theme = "basic-dark"
-		else:
-			theme = "basic-light"
-
-	return theme

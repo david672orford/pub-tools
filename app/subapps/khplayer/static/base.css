@@ -1,39 +1,40 @@
+/* Dark theme matching OBS's "Classic" */
 BODY {
-	/* Default color scene, override in themes */
+	--fg: white;
+	--bg: #1f1e1f;
+	--border: #c0c0c0;
 
-	--bg: white;
-	--fg: black;
-	--border: black;
-
-	--bg-header: #efefef;
-	--bg-tabs: #b0b0b0;
-	--bg-tab: #d0d0d0;
-	--bg-tab-current: #efefef;
+	--bg-header: #464546;
+	--bg-tabs: #262526;
+	--bg-tab: #313031;
+	--bg-tab-current: #464546;
 
 	--bg-progress-bar: #f8f8f8;
 	--fg-progress-bar: green;
 
-	--bg-buttons: #f0f0f0;
-	--fg-buttons: black;
+	--bg-buttons: #4c4c4c;
+	--fg-buttons: white;
 	--fg-buttons-disabled: grey;
-	--bg-input-text: white;
-	--fg-input-text: black;
+	--bg-input-text: #1f1e1f;
+	--fg-input-text: white;
 
 	--bg-flash: #C00000;
 	--fg-flash: white;
 
-	--bg-popup: #f8f8f8;
+	--bg-popup: #1f1e1f;
 
 	--bg-dnd: #f0f0ff;
 	--border-dnd: blue 2px solid;
 
-	--bg-scenes: #ffffffc0;
-	--fg-scenes: black;
+	--bg-scenes: #1f1e1fc0;
+	--fg-scenes: white;
 	--bg-scenes-preview: #ffff00c0;
 	--fg-scenes-preview: black;
 	--bg-scenes-program: #0080ffc0;
 	--fg-scenes-program: white;
+	}
 
+BODY {
 	display: flex;
 	flex-direction: column;
 	}
@@ -226,8 +227,9 @@ HEADER > NAV > UL > LI {
 	white-space: nowrap;
 	background-color: var(--bg-tab);
 	}
-HEADER > NAV > UL > LI:hover {
-	}
+/*
+HEADER > NAV > UL > LI:hover { }
+*/
 HEADER > NAV > UL > LI.current {
 	position: relative;
 	top: 1px;
@@ -327,10 +329,10 @@ TABLE.borders TH, TABLE.borders TD {
 TABLE.borders.selection TH:first-child, TABLE.borders.selection TD:first-child {
 	width: 1px;
 	}
-TABLE.borders TH {
-	}
-TABLE.borders TD {
-	}
+/*
+TABLE.borders TH { }
+TABLE.borders TD { }
+*/
 TABLE.borders TD:has(a:hover) {
 	background-color: #f0f0f0;
 	}

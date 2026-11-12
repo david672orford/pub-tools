@@ -1,0 +1,35 @@
+/* Light theme */
+BODY {
+	--bg: white;
+	--fg: black;
+	--border: black;
+
+	--bg-header: #efefef;
+	--bg-tabs: #b0b0b0;
+	--bg-tab: #d0d0d0;
+	--bg-tab-current: #efefef;
+
+	--bg-progress-bar: #f8f8f8;
+	--fg-progress-bar: green;
+
+	--bg-buttons: #f0f0f0;
+	--fg-buttons: black;
+	--fg-buttons-disabled: grey;
+	--bg-input-text: white;
+	--fg-input-text: black;
+
+	--bg-flash: #C00000;
+	--fg-flash: white;
+
+	--bg-popup: #f8f8f8;
+
+	--bg-dnd: #f0f0ff;
+	--border-dnd: blue 2px solid;
+
+	--bg-scenes: #ffffffc0;
+	--fg-scenes: black;
+	--bg-scenes-preview: #ffff00c0;
+	--fg-scenes-preview: black;
+	--bg-scenes-program: #0080ffc0;
+	--fg-scenes-program: white;
+	}

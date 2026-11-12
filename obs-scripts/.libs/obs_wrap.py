@@ -227,11 +227,14 @@ class ObsScript:
 		# Watch frontend events until OBS finishes loading and set the flag
 		# tested above. Then remove the handler. We adopted this cautious
 		# approach because the frontend event handler tends to cause crashes.
-		# See:
-		# https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
+		#
+		# For a discussion of the crashing problem, see:
+		#   https://stackoverflow.com/questions/73142444/obs-crashes-when-set-current-scene-function-called-within-a-timer-callback-pyth
+		#
 		# Timers set in the frontend event handler also seem to provoke "No
 		# active script, report this to Lain" errors which is why we stopped
 		# using self.enqueue() here and went with the polling timer above.
+		#
 		def on_frontend_event(event):
 			if self.debug:
 				print("*** event:", event)

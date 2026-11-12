@@ -1,6 +1,7 @@
 """Embed the web server for KHPlayer in OBS so we can be sure it will be running"""
 
 import os
+import re
 import sys
 
 scriptdir = os.path.dirname(__file__)
@@ -14,7 +15,6 @@ import threading
 import logging
 
 import obspython as obs
-#from werkzeug.serving import make_server
 from werkzeug.serving import ThreadedWSGIServer
 
 from obs_wrap import ObsScript, ObsWidget
@@ -60,6 +60,13 @@ class KHPlayer(ObsScript):
 		self.clean_cache = None
 		self.logger = logging.getLogger("app")	# logger of the Flask app
 
+	def on_load(self, settings):
+		def on_frontend_event(event):
+			if event == obs.OBS_FRONTEND_EVENT_THEME_CHANGED:
+				self.update_theme()
+		obs.obs_frontend_add_event_callback(on_frontend_event)
+		self.update_theme()
+
 	def on_gui_change(self, settings):
 		"""Accept settings from the script configuration GUI"""
 		if settings.debug != self.debug:
@@ -94,6 +101,22 @@ class KHPlayer(ObsScript):
 
 		self.logger.info("Shutdown complete")
 
+	def update_theme(self):
+		theme = None
+		config = obs.obs_frontend_get_user_config()
+		if config:
+			value = obs.config_get_string(config, "Appearance", "Theme")
+			if type(value) is str:
+				m = re.match(r"^com\.obsproject\.Yami\.(\w+)$", value)
+				if m:
+					theme = "yami-" + m.group(1).lower()
+		if theme is None:
+			if obs.obs_frontend_is_theme_dark():
+				theme = "yami-default"
+			else:
+				theme = "yami-light"
+		self.app.theme.set(theme)
+
 	def apply_server_thread_state(self):
 		"""Start or stop the HTTP server thread in accord with the current settings"""
 		self.logger.debug("apply_server_thread_state(): enable=%s thread=%s", self.enable, self.thread)
@@ -109,13 +132,6 @@ class KHPlayer(ObsScript):
 		if self.enable:
 			self.logger.debug("Starting server...")
 			try:
-				#self.server = make_server(
-				#	self.listen_address,
-				#	port = self.listen_port,
-				#	app = self.app,
-				#	request_handler = CleanlogWSGIRequestHandler,
-				#	threaded = True
-				#	)
 				self.server = MyThreadedWSGIServer(
 					self.listen_address,
 					self.listen_port,

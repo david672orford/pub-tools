@@ -1,18 +1,20 @@
 import os
 from .utils.runningtime import time_to_str
-from .utils.theme import get_theme
+from .utils.theme import Theme
 
 menu = []
 
 def init_app(app, url_prefix):
+
+	app.theme = Theme()
 
 	# Create the cache of fragments of zip files from Google Drive
 	if not os.path.exists(app.config["GDRIVE_CACHEDIR"]):
 		os.makedirs(app.config["GDRIVE_CACHEDIR"])
 
 	app.jinja_env.globals["menu"] = menu
+	app.jinja_env.globals["theme"] = app.theme
 	app.jinja_env.filters["runningtime"] = time_to_str
-	app.jinja_env.globals["get_theme"] = get_theme
 
 	from .views import blueprint
 	blueprint.cache.init_app(app, {

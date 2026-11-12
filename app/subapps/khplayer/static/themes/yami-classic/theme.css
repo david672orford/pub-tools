@@ -1,0 +1,34 @@
+BODY {
+	scrollbar-width: medium;
+	scrollbar-color: var(--bg) var(--bg-header);
+	}
+HEADER {
+	border-bottom: none;
+	}
+SECTION#scenes-controls {
+	border-top: none;
+	}
+INPUT, SELECT, BUTTON {
+	border: none;
+	}
+INPUT[type="checkbox"] {
+	appearance: none;
+	position: relative;
+	}
+INPUT[type="checkbox"]:checked::after {
+	content: '\2714';
+	top: 0; left: 0;
+	}
+BUTTON[class]::before {
+	filter: invert(100%);
+	}
+.patchbay {
+	background-color: #808080;
+	color: black;
+	}
+A {
+	color: var(--fg);
+	}
+A:visited {
+	color: #a0a0a0;
+	}
