@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 from .obs_ws_5 import ObsControlBase, ObsError
 from ....utils.config import get_config, put_config
 
+__all__ = [
+	"ObsControl",
+	"ObsError",
+	]
+
 class ObsControl(ObsControlBase):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)

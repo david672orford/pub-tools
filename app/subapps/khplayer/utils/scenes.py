@@ -36,11 +36,12 @@ def load_video_url(scene_name:str|None, url:str, thumbnail_url:str|None=None, pr
 		url,
 		resolution = current_app.config["VIDEO_RESOLUTION"],
 		)
-	assert video_metadata is not None, "Can't get metadata for %s" % url
+	assert video_metadata is not None, f"Can't get metadata for {url}"
 	logger.info("video_metadata: %s", video_metadata)
 
 	if scene_name is None:
 		scene_name = video_metadata["title"]
+		assert scene_name is not None
 		progress_callback(loading_video_message.format(scene_name=scene_name), cssclass="heading")
 
 	progress_callback(_("Downloading \"{url}\"...").format(url=unquote(video_metadata["url"])))

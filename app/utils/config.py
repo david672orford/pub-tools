@@ -1,13 +1,15 @@
+"""Pub-Tools configuration"""
+
 from ..models import db, Config
 from sqlalchemy.orm.attributes import flag_modified
 
-def get_config(name, default={}):
+def get_config(name:str, default={}):
 	conf = Config.query.filter_by(name=name).one_or_none()
 	if conf is None:
 		return default.copy()
 	return conf.data
 
-def put_config(name, data):
+def put_config(name:str, data):
 	conf = Config.query.filter_by(name=name).one_or_none()
 	if conf is None:
 		conf = Config(name=name)
@@ -15,7 +17,7 @@ def put_config(name, data):
 	conf.data = data
 	db.session.commit()
 
-def merge_config(name, data):
+def merge_config(name:str, data):
 	conf = Config.query.filter_by(name=name).one_or_none()
 	if conf is None:
 		conf = Config(name=name, data={})
@@ -23,4 +25,3 @@ def merge_config(name, data):
 	conf.data.update(data)
 	flag_modified(conf, "data")
 	db.session.commit()
-

@@ -1,6 +1,13 @@
 """Clients for interaction with OBS and JW.ORG"""
 
-from flask import current_app
+from flask import Flask, current_app
+
+__all__ = [
+	"ObsError",
+	"init_app",
+	"meeting_loader",
+	"obs",
+	]
 
 #=============================================================================
 # Web clinet for fetching articles and media files from JW.ORG
@@ -18,7 +25,7 @@ meeting_loader = MeetingLoader(
 # OBS-Websocket client for controlling OBS Studio
 #=============================================================================
 
-from .obs_control import ObsControl
+from .obs_control import ObsControl, ObsError
 from .obs_config import ObsConfig
 
 # Read connection parameters for OBS-Websocket from config.py.
@@ -32,5 +39,5 @@ if obs_websocket_config is None:
 obs = ObsControl(config = obs_websocket_config)
 
 # Client sometimes needs to create an app context so it can call put_config().
-def init_app(app):
+def init_app(app:Flask) -> None:
 	obs.init_app(app)

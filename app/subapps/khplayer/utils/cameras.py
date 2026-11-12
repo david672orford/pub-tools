@@ -1,9 +1,10 @@
+"""Lists the available cameras by device node and descriptive name"""
+
 import os
 import sys
 
 from flask import current_app
 
-# Define a function which lists the available cameras by device node and descriptive name
 try:
 	# Implementation using the OBS API. Available only if server is embedded in OBS.
 	import obspython as obs
@@ -41,3 +42,4 @@ except ImportError:
 			if name == "OBS Virtual Camera":
 				continue
 			yield ("v4l2_input", "/dev/" + os.path.basename(dev), name_overrides.get(name, name))
+

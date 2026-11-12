@@ -2,24 +2,26 @@
 
 ## Bugs
 
-* Click on thumbnail in scenes list (sometimes) does nothing.
+* Clicking on the thumbnail in scenes list (sometimes) does nothing.
   (This is likely the case only after a refresh of the thumbnail.)
 * Why no thumbnail if slide folder contains only a single video? (See talk №90)
+* S-418mp-26\_U\_001.jwpub has bad video links
 * Face detection sometimes gets horizontal position wrong (difficult to reproduce)
 * Progress when media file downloaded from inside playlist on Google Drive.
   (Downloading an MP4 file from the Google Drive itself *does* show progress.
   Download from within a zip playlist does not seem to.)
 * Problems with Unicode filenames on Windows when started from khplayer-server.py.
   (See https://docs.python.org/3/library/sys.html#sys.getfilesystemencoding)
-* Sound from remote feed should be monitored.
-* S-418mp-26\_U\_001.jwpub has bad video links
 * On laptop with Ubuntu 26.04 in Mate, dragging a file into ./pub-tools creates
   a text item containing a file:/// URL. Why is this?
 
-## Easy Stuff
+## Relatively-Simple Improvements
 
+* Wireplumber configuration for equalizer
+* Sound from remote VDO.Ninja feed should be monitored.
 * Drop support for old audio cable
 * Provide a way to see and set Wireplumber node priorities
+* Implement all six OBS themes: https://github.com/obsproject/obs-studio/tree/master/frontend/data/themes
 
 ## Hard Stuff
 
