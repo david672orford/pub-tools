@@ -1,5 +1,4 @@
 import os
-from re import I
 import sys
 import uuid
 from importlib import import_module
@@ -28,15 +27,15 @@ def create_app():
 		import secrets
 		os.mkdir(app.instance_path)
 		with open(os.path.join(app.instance_path, "config.py"), "w") as cf:
-			cf.write('SECRET_KEY = "%s"\n' % secrets.token_hex())
+			_ = cf.write(f'SECRET_KEY = "{secrets.token_hex()}"\n')
 
 	# Set up default configuration
-	app.config.from_mapping(
+	_ = app.config.from_mapping(
 		APP_DISPLAY_NAME = "Pub Tools",
 		FLASK_ADMIN_FLUID_LAYOUT = True,
 
 		# Database settings
-		SQLALCHEMY_DATABASE_URI = "sqlite:///%s/pub-tools.db" % os.path.abspath(app.instance_path),
+		SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.abspath(app.instance_path)}/pub-tools.db",
 		SQLALCHEMY_TRACK_MODIFICATIONS = False,
 		SQLALCHEMY_ECHO = False,
 		WHOOSH_PATH = os.path.join(os.path.abspath(app.instance_path), "pub-tools.whoosh"),
@@ -71,7 +70,7 @@ def create_app():
 		)
 
 	# Overlay default configuration above with values from instance/config.py
-	app.config.from_pyfile("config.py")
+	_ = app.config.from_pyfile("config.py")
 
 	# If UI_LANGUAGE is still unset, get default from environment
 	if app.config["UI_LANGUAGE"] is None:
@@ -221,8 +220,8 @@ def create_app():
 	# Load, initialize, and connect app components
 	with app.app_context():
 		for module_name in ("views", "subapps", "cli", "cli_jworg", "cli_cache", "cli_shortcut"):
-			logger.debug("Loading module %s..." % module_name)
-			module = import_module("app.%s" % module_name)
+			logger.debug("Loading module %s...", module_name)
+			module = import_module("app." + module_name)
 			module.init_app(app)
 
 	# Create the directory to which we download media.

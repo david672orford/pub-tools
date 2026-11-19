@@ -1,9 +1,12 @@
 from datetime import date
+from typing import override
+
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-def init_app(app):
+def init_app(app:Flask):
 	db.init_app(app)
 	db.create_all()
 
@@ -11,8 +14,9 @@ class Config(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String, nullable=False, unique=True)
 	data = db.Column(db.JSON)
+	@override
 	def __str__(self):
-		return "<Config name=%s data=%s>" % (self.name, self.data)
+		return f"<Config name={self.name!r} data={self.data!r}>"
 
 #=============================================================================
 # Meeting dates and links to the article used at each on JW.ORG
@@ -62,6 +66,7 @@ class PeriodicalIssues(db.Model):
 	formats = db.Column(db.String)
 	epub_filename = db.Column(db.String)
 	articles = db.relationship("Articles", order_by=lambda: Articles.docid)
+	@override
 	def __str__(self):
 		return "<PeriodicalIssues id=%d pub_code=%s issue_code=%s issue=\"%s\" href=\"%s\" epub_filename=\"%s\">" % (self.id, self.pub_code, self.issue_code, self.issue, self.href, self.epub_filename)
 
@@ -95,6 +100,7 @@ class VideoCategories(db.Model):
 	subcategory_key = db.Column(db.String)
 	subcategory_name = db.Column(db.String)
 	videos = db.relationship("Videos", secondary=videos_rel, back_populates="categories") #, lazy="dynamic")
+	@override
 	def __str__(self):
 		return f"<VideoCategories id={self.id} {self.category_key!r} {self.subcategory_name!r}>"
 

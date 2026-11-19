@@ -1,16 +1,17 @@
 # Reimplementation of Turbo-Flask using Server Side Events instead of Websocket
 # https://turbo-flask.readthedocs.io/en/latest/index.html
 
-from flask import request, Response
-from markupsafe import Markup
+import logging
 import queue
 from threading import Lock
-import logging
+
+from markupsafe import Markup
+from flask import Flask, request, Response
 
 logger = logging.getLogger(__name__)
 
 class Turbo:
-	def __init__(self, app=None):
+	def __init__(self, app:Flask=None):
 		self.user_id_callback = None
 		if app:
 			self.init_app(app)
@@ -19,15 +20,15 @@ class Turbo:
 
 		# Define the functions which create Turbo Stream messages
 		template = '<turbo-stream action="{action}" target="{target}"><template>{content}</template></turbo-stream>'
-		for action in ('append', 'prepend', 'replace', 'update', 'remove', 'after', 'before'):
-			def make_formatter(action):
+		for action in ("append", "prepend", "replace", "update", "remove", "after", "before"):
+			def make_formatter(action:str):
 				t = template.replace("{action}", action)
 				def formatter(content, target):
 					return t.format(content=content, target=target)
 				return formatter
 			setattr(self, action, make_formatter(action))
 
-	def init_app(self, app):
+	def init_app(self, app:Flask):
 
 		# The EventSource in the web page connects to this
 		@app.route("/turbo-sse")
@@ -48,7 +49,7 @@ class Turbo:
 					logger.debug("Pull message: %s %s", client_id, data)
 					yield ("id: %s\n" % seq) + "data: " + data.replace("\n", " ") + "\n\n"
 					seq += 1
-			return Response(stream(), mimetype="text/event-stream")	
+			return Response(stream(), mimetype="text/event-stream")
 
 		# Define a Jinja2 macro which generates Javascript code to load Hotwire Turbo
 		# and connect it to the event source route /turbo-sse defined above.
@@ -106,4 +107,3 @@ class Turbo:
 			except queue.Full:
 				logger.info("EventStream client %s disconnected" % client)
 				del self.clients[client]
-

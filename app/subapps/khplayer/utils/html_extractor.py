@@ -21,4 +21,3 @@ class HTML:
 
 	def text_content(self):
 		return self.doc.text_content()
-
