@@ -130,9 +130,10 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [OBS Source Record](https://github.com/exeldro/obs-source-record) -- Example of filter which reads frame data
 * [OBS Face Tracker](https://github.com/norihiro/obs-face-tracker) -- Another example of a filter which reads frame data
 
-### Useful-Looking OBS Plugins
+## Useful-Looking OBS Plugins
 
 * [OBS Studio Portable](https://github.com/wimpysworld/obs-studio-portable) -- OBS Studio built with 50 additional plugins
+* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which perform interesting and unusual functions
 * [Advanced Scene Switcher](https://obsproject.com/forum/resources/advanced-scene-switcher.395/) [Github](https://github.com/WarmUpTill/SceneSwitcher) -- Automatically triggered macros automate tasks
 * [Move Transition](https://obsproject.com/forum/resources/move.913/) [Github](https://github.com/exeldro/obs-move-transition) -- Smoothly moves and resizes common items during scene transitions
 * [Transitions Table](https://obsproject.com/forum/resources/transition-table.1174/) [Github](https://github.com/exeldro/obs-transition-table) -- More or maybe better control over transitions between particular scenes
@@ -141,11 +142,25 @@ do not generally run fast enough to process video, but Lua scripts do.
 * [Shaderfilter](https://github.com/exeldro/obs-shaderfilter/) -- Write video filters in shader language
 * [Background Removal](https://github.com/occ-ai/obs-backgroundremoval) -- Works, but not as well as Zoom's implementation
 * [Virtual Background](https://github.com/kounoike/obs-virtualbg) -- Crashes
-* [Some Plugins Under Development](https://obsproject.com/forum/threads/some-plugins-under-development.160557/) -- Whole collection of plugins which perform interesting and unusual functions
 * [Pthread Text](https://obsproject.com/forum/resources/pthread-text.1287/) -- Text rendering using Pango
 * [Source Clone](https://obsproject.com/forum/resources/source-clone.1632/) [Github](https://github.com/exeldro/obs-source-clone) -- Clone sources to allow different filters, clone current or previous scene
 * [jrDockie](https://obsproject.com/forum/resources/jrdockie-save-and-load-window-and-dock-layouts.1955/) [Github](https://github.com/dcmouser/obsPlugins/tree/main/jr/jrdockie) -- Load and save browser dock sets. Has OBS-Websocket integration.
 * [Scene Notes Dock](https://obsproject.com/forum/resources/scene-notes-dock.1398/) [Github](https://github.com/exeldro/obs-scene-notes-dock) -- stashes notes in a scene's source settings
+* [OBS-WebkitGTK](https://git.ove.rs/BitHeaven/OBS-WebKitGTK) -- Alternative browser source/dock
+* [Maidsuit: Draw](https://maidsuit.com/software/maidsuit-draw) -- Draw on transparent source
+* [Draw Source](https://obsproject.com/forum/resources/smart-black-board-draw-annotate.2706/) [Github](https://github.com/mmlTools/draw-source)
+
+## Plugin Loading in Linux
+
+These are defiend in frontend/plugin-manager/PluginModuleLoader\_Linux.cpp.
+
+1. Custom path: $OBS\_PLUGINS\_PATH/*plugin*/*plugin*.so, data/
+2. System path: /usr/lib/x86\_64-linux-gnu/obs-modules/plugins/*plugin*/*plugin*.so
+3. User path: $XDG\_DATA\_HOME/obs-studio/plugins/*plugin*/*plugin*.so, data/
+4. Legacy custom path: $OBS\_LEGACY\_PLUGINS\_PATH/*plugin*/bin/64bit/*plugin*.so, $OBS\_LEGACY\_PLUGINS\_DATA\_PATH/*plugin*/data/
+5. Legacy system path: ?
+6. Legacy user path: $XDG\_CONFIG\_HOME/obs-studio/plugins/*plugin*/bin/64bit/*plugin*.so, ../../data/
+7. Legacy fallback path: ?
 
 ## Audio Output
 
