@@ -172,7 +172,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		# Find the source filename
 		settings = source.settings
 		if source.id == "ffmpeg_source":
-			filename = settings["local_file"]
+			filename = settings.get("local_file","")
 		elif source.id == "vlc_source":
 			filename = settings["playlist"][0]["value"]
 		else:
@@ -182,7 +182,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		from_jworg = re.search(r"_r\d+P\.mp4$", filename) is not None
 
 		if self.debug:
-			print(f"is_from_jworg({source.name}): filename={filename} from_jworg={from_jworg}")
+			print(f"is_from_jworg({source.name!r}): filename={filename!r} from_jworg={from_jworg}")
 
 		return from_jworg
 
