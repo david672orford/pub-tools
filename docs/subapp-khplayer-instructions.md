@@ -172,14 +172,8 @@ Check the following:
     > next step.
 
 -   Go to the volume control on the computer's taskbar and make sure the
-    > microphone is not muted there and that its volume is turned up
-    > high enough.
-
--   Go to the Patchbay tab and make sure that sound from the microphone
-    > is routed through the virtual audio cable to Zoom. If the
-    > microphone was not yet plugged in when Zoom and OBS were started,
-    > it will not be. If not, go to the **Actions** tab and press the
-    > **Reconnect Audio** button.
+    > microphone is selected as the defualt input device, it is not muted
+    > there and that its volume is turned up high enough.
 
 ### Sound from microphone as heard in Zoom is too soft
 
@@ -220,14 +214,13 @@ this happens, do the following:
 This is generally because the microphone in the Kingdom Hall is picking
 up too much sound from the TV. To remedy, do one of the following:
 
+-   Install the script khplayer-automate.py in OBS so that the microphone is
+    > automatically muted while videos are playing.
+
 -   Press the button on top of the microphone to mute it.
 
 -   Open the volume control on the taskbar and mute the microphone or
     > turn it down.
-
--   Go to the **Patchbay** tab in **KH Player**. Click on the cable from
-    > the microphone to delete it. Later restore it by dragging the
-    > microphone output to the input of the **From-OBS** node.
 
 ### Video sound is heard in the Kingdom Hall but not in Zoom
 

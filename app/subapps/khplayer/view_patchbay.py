@@ -9,10 +9,7 @@ from . import menu
 from .blueprint import blueprint
 from .utils.pipewire import Patchbay
 
-if current_app.config["PATCHBAY"] == "virtual-cable":
-	from .utils.virtual_cable import connect_all
-else:
-	from .utils.virtual_camera_audio import connect_all
+from .utils.virtual_camera_audio import connect_all
 
 logger = logging.getLogger(__name__)
 

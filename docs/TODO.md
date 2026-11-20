@@ -19,7 +19,6 @@
 
 * Wireplumber configuration for equalizer
 * Sound from remote VDO.Ninja feed should be monitored.
-* Drop support for old audio cable
 * Provide a way to see and set Wireplumber node priorities
 * Implement all six OBS themes: https://github.com/obsproject/obs-studio/tree/master/frontend/data/themes
 

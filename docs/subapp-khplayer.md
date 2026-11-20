@@ -87,41 +87,17 @@ We need a way to have the sound from videos played over the loudspeakers in the 
 but we must not feed the sound from the microphones into the speakers. There are three known ways
 to accomplish this.
 
-### Option 1: Virtual Audio Cables in Pipewire
-
-Install the new audio subsystem called Pipewire on Ubuntu 22.04 following the instructions
-in the document [Pipewire on Debian](https://pipewire-debian.github.io/pipewire-debian/).
-Be sure to follow the part about installing Wireplumber.
-
-If you are running Ubuntu 24.04 or later, then Pipewire is already in the main package
-repository. Skip the part about added in the 3rd-party repository and proceed from there.
-
-Once you have Pipewire installed and working, add **khplayer-cable.py** to OBS. This script
-will create two virtual audio cables when OBS starts and tear them down when it exits.
-The cable will be used to connect OBS, Zoom, the Microphone, and the loadspeakers in the
-proper configuration.
-
-You can select the microphone and loudspeakers either in the options of the **khplayer-cable.py**
-script or in the **Audio** tab of KH Player. Press **Reconnect Audio** to connect then to Zoom and OBS.
-
-If you are using this method:
-
-* Select **From-OBS** as the audio input in Zoom
-* In the settings of OBS under **Audio** set the **Monitoring Device** to **Monitor of To-Zoom**
-* Under **Docks** uncheck **Audio Mixer** since we will not be using it
-
-### Option 2: Audio Output Plugin for OBS
+### Option 1: Audio Output Plugin for OBS
 
 OBS does not provide a way to output mixed audio. However, we have create a plugin which will
 add this function on Linux. To implement:
 
 * Install the plugin
-* Delete the pulse_linux.so plugin
 * Add the script audio-vcam.lua to OBS
 * Start OBS and select **Virtual Camera Audio** as the microphone
 * Select the desired speakers as the audio monitoring device in OBS
 
-### Option 3: Share System Sound in Zoom
+### Option 2: Share System Sound in Zoom
 
 This method requires no additional software or special configuration. To implement:
 
