@@ -58,7 +58,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 				),
 			ObsWidget("bool", "start_vcam", "Start Virtual Camera", default_value=True),
 			ObsWidget("select", "yeartext_scene", "Yeartext Scene", options=self.get_scene_options),
-			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=6.0),
+			ObsWidget("float", "end_trim", "JW.ORG Videos End Trim", min=0, max=10, step=0.5, default_value=5.5),
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
@@ -166,7 +166,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		# FIXME: Why does this have to be outside the if?
 		self.stopper.cancel(source)
 
-	def is_from_jworg(self, source):
+	def is_from_jworg(self, source) -> bool:
 		"""Does the filename of this video suggest it is a video from JW.ORG?"""
 
 		# Find the source filename
@@ -186,7 +186,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 		return from_jworg
 
-	def act(self, mute, return_to_previous):
+	def act(self, mute:bool, return_to_previous:bool) -> None:
 		"""
 		Mute or unmute the default audio source as indicated.
 		Optionally return to the home scene as well.
@@ -205,7 +205,7 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 
 class MediaStopper:
 	"""Used to set a timer to stop a media source a few minutes before the end"""
-	def __init__(self, automate):
+	def __init__(self, automate:ObsAutomate):
 		self.debug = False
 		self.automate = automate		# pointer to ObsAutomate object
 		self.end_trim = None			# will be set by .on_gui_change()
@@ -265,4 +265,4 @@ class DummySource:
 	uuid = "dummy_source"
 	settings = {}
 
-automate = ObsAutomate(debug=False)
+automate = ObsAutomate(debug=True)

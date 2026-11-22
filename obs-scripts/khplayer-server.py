@@ -59,13 +59,7 @@ class KHPlayer(ObsScript):
 		self.server = None						# HTTP server object
 		self.clean_cache = None
 		self.logger = logging.getLogger("app")	# logger of the Flask app
-
-	def on_load(self, settings):
-		def on_frontend_event(event):
-			if event == obs.OBS_FRONTEND_EVENT_THEME_CHANGED:
-				self.update_theme()
-		obs.obs_frontend_add_event_callback(on_frontend_event)
-		self.update_theme()
+		self.on_theme_changed()
 
 	def on_gui_change(self, settings):
 		"""Accept settings from the script configuration GUI"""
@@ -101,7 +95,7 @@ class KHPlayer(ObsScript):
 
 		self.logger.info("Shutdown complete")
 
-	def update_theme(self):
+	def on_theme_changed(self):
 		theme = None
 		config = obs.obs_frontend_get_user_config()
 		if config:
@@ -150,4 +144,4 @@ class MyThreadedWSGIServer(ThreadedWSGIServer):
 		threading.current_thread().name = "khplayer-server"
 		super().process_request_thread(request, client_address)
 
-khplayer = KHPlayer()
+khplayer = KHPlayer(debug=True)
