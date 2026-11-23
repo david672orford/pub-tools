@@ -29,6 +29,13 @@ def tracker_test_image(filename:str):
 	"""Run the Zoom tracker on a screenshot image"""
 	from PIL import Image, ImageDraw
 
+	class BoxDrawer:
+		"""Draw a CropBox on a PIL Image"""
+		def __init__(self, img):
+			self.draw = ImageDraw.Draw(img)
+		def draw_box(self, box:CropBox, color:tuple[int, int, int]=(255, 0, 0)):
+			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=color, width=1)
+
 	# Load the screenshot the user supplied into our Zoom tracker
 	img = Image.open(filename)
 	if img.mode != "RGB":
@@ -36,19 +43,13 @@ def tracker_test_image(filename:str):
 	tracker = ZoomTracker(debug=True)
 	tracker.load_image(img)
 
-	# We will use this to draw a box around the current speaker to show that we have correctly identified him.
-	class BoxDrawer:
-		def __init__(self, img):
-			self.draw = ImageDraw.Draw(img)
-		def draw_box(self, box:CropBox, color:tuple[int, int, int]=(255, 0, 0)):
-			self.draw.rectangle(((box.x, box.y), (box.x+box.width, box.y+box.height)), outline=color, width=1)
-	drawer = BoxDrawer(tracker.img)
-
-	drawer.draw_box(tracker.gallery, color=(255, 255, 0))
-
 	print("Speaker indexes:", tracker.speaker_indexes)
+
+	drawer = BoxDrawer(tracker.img)
+	drawer.draw_box(tracker.gallery, color=(255, 255, 0))
 	for box in tracker.layout:
 		drawer.draw_box(box)
+	drawer.draw_box(tracker.speaker_box, color=(0, 0, 255))
 
 	tracker.img.show()
 

@@ -3,18 +3,7 @@ from contextlib import contextmanager
 import inspect
 import json
 import obspython as obs
-
-# Monkey patch obspython to prevent lockups
-from ctypes import CDLL, c_void_p
-from ctypes.util import find_library
-def wrap_obs_frontend_set_current_scene():
-	frontend = CDLL(find_library("obs-frontend-api"))
-	frontend.obs_frontend_set_current_scene.argtypes = [c_void_p]
-	frontend.obs_frontend_set_current_scene.restype = None
-	def obs_frontend_set_current_scene(scene):
-		frontend.obs_frontend_set_current_scene(int(scene))
-	return obs_frontend_set_current_scene
-obs.obs_frontend_set_current_scene = wrap_obs_frontend_set_current_scene()
+import patch_obspython
 
 class ObsWidget:
 	"""Representation of a GUI widget on the script's configuration screen"""
@@ -108,36 +97,26 @@ def freeing(source_list):
 
 class ObsFrontendEvents:
 	"""Frontend events handler shared by all of the khplayer-*.py scripts"""
-	# See https://github.com/obsproject/obs-studio/issues/3385
 	def __init__(self):
-		self.subscriptions = []
+		self.event2name = {}
+		self.subscriptions = defaultdict(list)
+
+		for name, value in vars(obs).items():
+			if name.startswith("OBS_FRONTEND_EVENT_"):
+				self.event2name[value] = name.removeprefix("OBS_FRONTEND_EVENT_").lower().replace("_","-")
+		self.event_names = set(self.event2name.values())
+
 		def handler(event):
-			#print(f"#### EVENT {event} ####")
-			for callback in self.subscriptions:
-				callback(event)
-		self.handler = handler
-		#self.pause_count = 1
-		#self.unpause()
-		obs.obs_frontend_add_event_callback(self.handler)
+			event_name = self.event2name.get(event, event)
+			print("Frontend event:", event_name)
+			for callback in self.subscriptions.get(event_name, []):
+				callback(event_name)
+		obs.obs_frontend_add_event_callback(handler)
 
-	def subscribe(self, callback):
-		self.subscriptions.append(callback)
-
-	#def pause(self):
-	#	print(f"#### PAUSE {self.pause_count} ####")
-	#	assert self.pause_count >= 0
-	#	self.pause_count += 1
-	#	if self.pause_count == 1:
-	#		print("#### REMOVING HANDLER ####")
-	#		obs.obs_frontend_remove_event_callback(self.handler)
-
-	#def unpause(self):
-	#	print(f"#### UNPAUSE {self.pause_count} ####")
-	#	assert self.pause_count > 0
-	#	self.pause_count -= 1
-	#	if self.pause_count == 0:
-	#		print("#### INSTALLING HANDLER ####")
-	#		obs.obs_frontend_add_event_callback(self.handler)
+	def subscribe(self, event_name:str, callback):
+		if event_name not in self.event_names:
+			raise ValueError(f"Not a known frontend event: {event_name}")
+		self.subscriptions[event_name].append(callback)
 
 frontend_events = ObsFrontendEvents()
 
@@ -260,66 +239,15 @@ class ObsScript:
 
 		self.on_load(self._pythonize_settings(raw_settings))
 
-		def on_frontend_event(event):
-			if self.debug:
-				print("obs_wrap: Frontend event:", {
-					obs.OBS_FRONTEND_EVENT_STREAMING_STARTING: "STREAMING_STARTING",
-					obs.OBS_FRONTEND_EVENT_STREAMING_STARTED: "STREAMING_STARTED",
-					obs.OBS_FRONTEND_EVENT_STREAMING_STOPPING: "STREAMING_STOPPING",
-					obs.OBS_FRONTEND_EVENT_STREAMING_STOPPED: "STREAMING_STOPPED",
-					obs.OBS_FRONTEND_EVENT_RECORDING_STARTING: "RECORDING_STARTING",
-					obs.OBS_FRONTEND_EVENT_RECORDING_STARTED: "RECORDING_STARTED",
-					obs.OBS_FRONTEND_EVENT_RECORDING_STOPPING: "RECORDING_STOPPING",
-					obs.OBS_FRONTEND_EVENT_RECORDING_STOPPED: "RECORDING_STOPPED",
-					obs.OBS_FRONTEND_EVENT_SCENE_CHANGED: "SCENE_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: "SCENE_LIST_CHANGED",
-					obs.OBS_FRONTEND_EVENT_TRANSITION_CHANGED: "TRANSITION_CHANGED",
-					obs.OBS_FRONTEND_EVENT_TRANSITION_STOPPED: "TRANSITION_STOPPED",
-					obs.OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: "TRANSITION_LIST_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: "SCENE_COLLECTION_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: "SCENE_COLLECTION_LIST_CHANGED",
-					obs.OBS_FRONTEND_EVENT_PROFILE_CHANGED: "PROFILE_CHANGED",
-					obs.OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: "PROFILE_LIST_CHANGED",
-					obs.OBS_FRONTEND_EVENT_EXIT: "EXIT",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: "REPLAY_BUFFER_STARTING",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: "REPLAY_BUFFER_STARTED",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: "REPLAY_BUFFER_STOPPING",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: "REPLAY_BUFFER_STOPPED",
-					obs.OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: "STUDIO_MODE_ENABLED",
-					obs.OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: "STUDIO_MODE_DISABLED",
-					obs.OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: "PREVIEW_SCENE_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: "SCENE_COLLECTION_CLEANUP",
-					obs.OBS_FRONTEND_EVENT_FINISHED_LOADING: "FINISHED_LOADING",
-					obs.OBS_FRONTEND_EVENT_RECORDING_PAUSED: "RECORDING_PAUSED",
-					obs.OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: "RECORDING_UNPAUSED",
-					obs.OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: "TRANSITION_DURATION_CHANGED",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: "REPLAY_BUFFER_SAVED",
-					obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: "VIRTUALCAM_STARTED",
-					obs.OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: "VIRTUALCAM_STOPPED",
-					obs.OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: "TBAR_VALUE_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: "SCENE_COLLECTION_CHANGING",
-					obs.OBS_FRONTEND_EVENT_PROFILE_CHANGING: "PROFILE_CHANGING",
-					obs.OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: "SCRIPTING_SHUTDOWN",
-					obs.OBS_FRONTEND_EVENT_PROFILE_RENAMED: "PROFILE_RENAMED",
-					obs.OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: "SCENE_COLLECTION_RENAMED",
-					obs.OBS_FRONTEND_EVENT_THEME_CHANGED: "THEME_CHANGED",
-					obs.OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: "SCREENSHOT_TAKEN",
-					obs.OBS_FRONTEND_EVENT_CANVAS_ADDED: "CANVAS_ADDED",
-					obs.OBS_FRONTEND_EVENT_CANVAS_REMOVED: "CANVAS_REMOVED",
-					obs.OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVING: "REPLAY_BUFFER_SAVING",
-					}.get(event, event))
-			match event:
-				case obs.OBS_FRONTEND_EVENT_FINISHED_LOADING:
-					self.finished_loading = True
-					# If script_update() was called before this event, there will be settings in
-					# self._deferred_on_gui_change. Dispatch then using self.on_gui_change().
-					if self._deferred_on_gui_change is not None:
-						self.on_gui_change(self._deferred_on_gui_change)
-						self._deferred_on_gui_change = None
-					self.on_finished_loading()
-				case obs.OBS_FRONTEND_EVENT_THEME_CHANGED:
-					self.on_theme_changed()
-		self.frontend_events.subscribe(on_frontend_event)
+		def on_finished_loading(event):
+			self.finished_loading = True
+			# If script_update() was called before this event, there will be settings in
+			# self._deferred_on_gui_change. Dispatch then using self.on_gui_change().
+			if self._deferred_on_gui_change is not None:
+				self.on_gui_change(self._deferred_on_gui_change)
+				self._deferred_on_gui_change = None
+			self.on_finished_loading()
+		self.frontend_events.subscribe("finished-loading", on_finished_loading)
 
 	# Called just before settings screen is displayed to build the GUI
 	def _script_properties(self):	# why not settings?
@@ -415,12 +343,10 @@ class ObsScript:
 
 	def set_scene(self, scene_name:str):
 		if self.debug:
-			print("set_scene:", scene_name)
+			print(f"set_scene({scene_name!r})")
 		for scene in self.iter_scenes():
 			if scene.name == scene_name:
-				#self.frontend_events.pause()
 				obs.obs_frontend_set_current_scene(scene.scene)
-				#self.frontend_events.unpause()
 				break
 
 	def iter_scenes(self):

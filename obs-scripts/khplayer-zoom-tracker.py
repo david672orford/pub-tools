@@ -52,7 +52,6 @@ from typing import override
 from PIL import Image
 import obspython as obs
 
-import gs_stagesurface_map
 from obs_wrap import ObsScript, ObsWidget
 from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker, ZoomCropperBase, CropBox
 

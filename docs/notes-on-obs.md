@@ -185,7 +185,7 @@ of quite a number of users.
 * [PR: linux-v4l2: Give camera up to 2 seconds to start](https://github.com/obsproject/obs-studio/pull/10335)
 * [Bug: Browser Dock: Resize and DND signals become disconnected on Linux](https://github.com/obsproject/obs-browser/issues/437)
 * [PR: Enable building with CEF 6261](https://github.com/obsproject/obs-browser/pull/434)
-* [Lua: Deadlocks in scripts that implement video sources and call obs_enter_graphics](https://github.com/obsproject/obs-studio/issues/6674)
+* [Lua: Deadlocks in scripts that implement video sources and call obs\_enter\_graphics](https://github.com/obsproject/obs-studio/issues/6674)
 * [WHIP/WebRTC support missing on linux release](https://github.com/obsproject/obs-studio/issues/9484)
 
 ## Notes from Programming in OBS

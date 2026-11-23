@@ -59,6 +59,10 @@ class KHPlayer(ObsScript):
 		self.server = None						# HTTP server object
 		self.clean_cache = None
 		self.logger = logging.getLogger("app")	# logger of the Flask app
+
+		def on_theme_changed(event):
+			self.on_theme_changed()
+		self.frontend_events.subscribe("theme-changed", on_theme_changed)
 		self.on_theme_changed()
 
 	def on_gui_change(self, settings):
@@ -109,6 +113,7 @@ class KHPlayer(ObsScript):
 				theme = "yami-default"
 			else:
 				theme = "yami-light"
+		print(f"Theme is now {theme}")
 		self.app.theme.set(theme)
 
 	def apply_server_thread_state(self):

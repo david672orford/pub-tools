@@ -58,6 +58,7 @@ class ZoomTracker:
 		self.debug:bool = debug
 
 		self.gallery:GalleryCropBox
+		self.speaker_box:SpeakerCropBox
 		self.layout:Layout = Layout()
 		self.speaker_indexes:SimpleSpeakerIndexes = SimpleSpeakerIndexes()
 
@@ -129,12 +130,12 @@ class ZoomTracker:
 		self.gallery = self.find_gallery()
 
 		# Look for the green border which indicates who is speaking
-		speaker_box:SpeakerCropBox = self.find_speaker_box()
+		self.speaker_box:SpeakerCropBox = self.find_speaker_box()
 
 		# If someone is speaking, we know the size of a speaker box
 		# and can work out where all the boxes are.
-		if speaker_box is not None:
-			self.layout = self.infer_layout(speaker_box)
+		if self.speaker_box is not None:
+			self.layout = self.infer_layout(self.speaker_box)
 			self.speaker_indexes.set_speaker_index(self.layout.speaker_index)
 		else:
 			self.layout = Layout()
@@ -327,27 +328,30 @@ class ZoomTracker:
 		FUDGE = 10
 		columns = int((self.gallery.width+FUDGE) / speaker_box.width)
 		rows = int((self.gallery.height+FUDGE) / speaker_box.height)
-		x_cellspacing = self.gallery.width - (speaker_box.width * columns)
-		y_cellspacing = self.gallery.height - (speaker_box.height * rows)
+		x_cellspacing = (self.gallery.width - (speaker_box.width * columns)) / (columns - 1)
+		y_cellspacing = (self.gallery.height - (speaker_box.height * rows)) / (rows - 1)
 
 		if self.debug:
 			print("Inferring gallery speaker layout...")
 			print(f" Grid dimensions: {columns} x {rows}")
 			print(f" Cell spacing: {x_cellspacing} {y_cellspacing}")
 
-		y = self.gallery.y
+		# Step through the rows and columns finding the participant video panes
 		layout = Layout()
+		y = self.gallery.y				# top of gallery
 		border_width = speaker_box.border_width
 		double_border_width = border_width * 2
 		for row in range(rows):
-			if row == (rows - 1):		# last row may not be full
+			if row == (rows - 1):		# When last row is not full, it is centered
 				x = self.gallery.x2
 				columns = int((self.gallery.width2 + FUDGE) / speaker_box.width)
 			else:
 				x = self.gallery.x
 			for _ in range(columns):
+				# Is this the current speaker?
 				if abs(x - speaker_box.x) < 10 and abs(y - speaker_box.y) < 10:
 					layout.speaker_index = len(layout)
+				# Take the space inside the border
 				layout.append(CropBox(
 					x = x + border_width,
 					y = y + border_width,
@@ -360,8 +364,8 @@ class ZoomTracker:
 			y += y_cellspacing
 
 		if self.debug:
-			for i in range(len(layout)):
-				print(f" Speaker box {i} at: {layout[i]!r}", "<-- Current" if i == layout.speaker_index else "")
+			for i, participant in enumerate(layout):
+				print(f" Speaker box {i} at: {participant!r}", "<-- Current" if i == layout.speaker_index else "")
 
 		return layout
 
