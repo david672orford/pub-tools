@@ -60,9 +60,7 @@ class KHPlayer(ObsScript):
 		self.clean_cache = None
 		self.logger = logging.getLogger("app")	# logger of the Flask app
 
-		def on_theme_changed(event):
-			self.on_theme_changed()
-		self.frontend_events.subscribe("theme-changed", on_theme_changed)
+		self.frontend_events.subscribe("theme-changed", lambda event: self.on_theme_changed())
 		self.on_theme_changed()
 
 	def on_gui_change(self, settings):
@@ -149,4 +147,4 @@ class MyThreadedWSGIServer(ThreadedWSGIServer):
 		threading.current_thread().name = "khplayer-server"
 		super().process_request_thread(request, client_address)
 
-khplayer = KHPlayer(debug=True)
+khplayer = KHPlayer(debug=False)

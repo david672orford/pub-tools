@@ -157,11 +157,11 @@ class ObsScript:
 	# 1) script_properties()
 	# 2) script_update()
 	#
-	# Shutdown Call Sequence
+	# OBS Shutdown Call Sequence
 	# 1) script_save()
 	# 2) script_unload()
 	#
-	# Reload Call Sequence
+	# Reload Button Call Sequence
 	# 1) script_unload()
 	# 2) script_defaults()
 	# 3) script_load()
@@ -236,27 +236,26 @@ class ObsScript:
 	def _script_load(self, raw_settings):
 		if self.debug:
 			print("obs_wrap: script_load()")
-
 		self.on_load(self._pythonize_settings(raw_settings))
+		self.frontend_events.subscribe("finished-loading", lambda event: self._on_finished_loading())
 
-		def on_finished_loading(event):
-			self.finished_loading = True
-			# If script_update() was called before this event, there will be settings in
-			# self._deferred_on_gui_change. Dispatch then using self.on_gui_change().
-			if self._deferred_on_gui_change is not None:
-				self.on_gui_change(self._deferred_on_gui_change)
-				self._deferred_on_gui_change = None
-			self.on_finished_loading()
-		self.frontend_events.subscribe("finished-loading", on_finished_loading)
+	def _on_finished_loading(self):
+		self.finished_loading = True
+		# If script_update() was called before this event, there will be settings in
+		# self._deferred_on_gui_change. Dispatch then using self.on_gui_change().
+		if self._deferred_on_gui_change is not None:
+			self.on_gui_change(self._deferred_on_gui_change)
+			self._deferred_on_gui_change = None
+		self.on_finished_loading()
 
 	# Called just before settings screen is displayed to build the GUI
-	def _script_properties(self):	# why not settings?
+	def _script_properties(self):	# why not "settings"?
 		if self.debug:
 			print("obs_wrap: script_properties()")
 		if not self.finished_loading:
 			if self.debug:
-				print("obs_wrap: First load or reload, setting finished_loading")
-			self.finished_loading = True
+				print("obs_wrap: First load or reload, calling on_finished_loading()")
+			self._on_finished_loading()
 		self.on_before_gui()
 		self._apply_widget_values(self.raw_settings)
 		props = obs.obs_properties_create()
@@ -326,9 +325,6 @@ class ObsScript:
 		pass
 
 	def on_finished_loading(self):
-		pass
-
-	def on_theme_changed(self):
 		pass
 
 	#===================================================================

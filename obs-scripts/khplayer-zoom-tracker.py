@@ -301,7 +301,7 @@ class ZoomCropper(ZoomCropperBase):
 			obs.obs_data_release(source_settings)
 			self.prev_crop_box = crop_box
 
-zoom_tracker = ObsZoomTracker()
+zoom_tracker = ObsZoomTracker(debug=False)
 
 # The OBS documentation recommends against using this function, but if we
 # use a timer as they recommend, OBS segfaults in the graphics thread.
