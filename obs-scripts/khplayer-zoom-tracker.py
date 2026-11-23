@@ -52,7 +52,7 @@ from typing import override
 from PIL import Image
 import obspython as obs
 
-from obs_wrap import ObsScript, ObsWidget
+from obs_wrap import ObsScript, ObsWidget, ObsSettings
 from app.subapps.khplayer.utils.zoom_tracker import ZoomTracker, ZoomCropperBase, CropBox
 
 class ObsZoomTracker(ObsScript):
@@ -78,7 +78,7 @@ class ObsZoomTracker(ObsScript):
 
 		# External Python script which presses the unspotlight button in Zoom
 		if sys.platform == "linux":
-			self.zoom_unspotlight = os.path.join(os.path.dirname(__file__), ".libs", "zoom-unspotlight.py")
+			self.zoom_unspotlight:str|None = os.path.join(os.path.dirname(__file__), ".libs", "zoom-unspotlight.py")
 		else:
 			self.zoom_unspotlight = None
 
@@ -92,7 +92,8 @@ class ObsZoomTracker(ObsScript):
 			ObsWidget("bool", "debug", "Debug", default_value=False),
 			]
 
-	def on_finished_loading(self):
+	@override
+	def on_finished_loading(self) -> None:
 		"""Create the Zoom capture source and participant sources, if they do not exist yet"""
 
 		# Create the input which captures the main Zoom screen, or reuse the old one if it exists.
@@ -107,7 +108,8 @@ class ObsZoomTracker(ObsScript):
 			# FIXME: Needed to prevent lockup when more than one needs to be created
 			sleep(.1)
 
-	def on_gui_change(self, settings):
+	@override
+	def on_gui_change(self, settings:ObsSettings) -> None:
 		"""When a setting is changed in the GUI"""
 		if self.debug:
 			print("GUI change:", settings)
@@ -118,7 +120,8 @@ class ObsZoomTracker(ObsScript):
 		self.debug = settings.debug
 		self.tracker.debug = settings.debug
 
-	def on_unload(self):
+	@override
+	def on_unload(self) -> None:
 		"""Script or OBS shutting down. Free resources."""
 		if self.capture is not None:
 			self.capture.destroy()
@@ -187,6 +190,7 @@ class WindowCapture:
 		obs.obs_source_update(self.source, source_settings)
 		obs.obs_data_release(source_settings)
 
+	@override
 	def __str__(self):
 		return f"<WindowCapture {self.source_name!r} {self.window!r}>"
 
@@ -306,7 +310,7 @@ zoom_tracker = ObsZoomTracker(debug=False)
 # The OBS documentation recommends against using this function, but if we
 # use a timer as they recommend, OBS segfaults in the graphics thread.
 tick_count = 0
-def script_tick(seconds):
+def script_tick(seconds:float):
 	global tick_count
 	SCREENSHOT_INTERVAL = 15
 	if seconds > 0.034:

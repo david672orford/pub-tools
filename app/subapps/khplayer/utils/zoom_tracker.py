@@ -328,8 +328,12 @@ class ZoomTracker:
 		FUDGE = 10
 		columns = int((self.gallery.width+FUDGE) / speaker_box.width)
 		rows = int((self.gallery.height+FUDGE) / speaker_box.height)
-		x_cellspacing = (self.gallery.width - (speaker_box.width * columns)) / (columns - 1)
-		y_cellspacing = (self.gallery.height - (speaker_box.height * rows)) / (rows - 1)
+		x_cellspacing = (self.gallery.width - (speaker_box.width * columns))
+		if columns > 2:		# avoid division by zero
+			x_cellspacing /= (columns - 1)
+		y_cellspacing = (self.gallery.height - (speaker_box.height * rows))
+		if rows > 2:
+			y_cellspacing /= (rows - 1)
 
 		if self.debug:
 			print("Inferring gallery speaker layout...")

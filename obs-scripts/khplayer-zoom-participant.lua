@@ -6,13 +6,13 @@ function script_description()
 		]]
 end
 
-obs = obslua
-bit = require("bit")
+local obs = obslua
+local bit = require("bit")
 
-source_def = {}
+local source_def = {}
 source_def.id = "khplayer-zoom-participant"
 source_def.type = obs.OBS_SOURCE_TYPE_INPUT
-source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO, obs.OBS_SOURCE_CUSTOM_DRAW, obs.OBS_SOURCE_CONTROLLABLE_MEDIA)
+source_def.output_flags = bit.bor(obs.OBS_SOURCE_VIDEO, obs.OBS_SOURCE_CUSTOM_DRAW)
 
 source_def.get_name = function()
 	return "Zoom Participant"
@@ -20,44 +20,59 @@ end
 
 source_def.create = function(settings, source)
 	local data = {}
+	data.source = source
 	data.name = obs.obs_source_get_name(source)
 	print("Source create: " .. data.name)
-	data.source = source
 	data.width = 1280
 	data.height = 720
-    data.parent_source_name = "Zoom Capture"
+	data.parent_source_name = "Zoom Capture"
 
-    local function source_delay_callback()
-	    data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
-        if data.parent_source ~= nil then
-        	print("Connecting " .. data.name .. " to " .. data.parent_source_name)
-	        if obs.obs_source_showing(source) then
-	            obs.obs_source_inc_showing(data.parent_source)
+	-- Wait for the Zoom capture source to appear
+	data.source_delay_callback = function()
+		data.parent_source = obs.obs_get_source_by_name(data.parent_source_name)
+		if data.parent_source ~= nil then
+			print("Connecting " .. data.name .. " to " .. data.parent_source_name)
+			if obs.obs_source_showing(data.source) then
+				obs.obs_source_inc_showing(data.parent_source)
 			end
-        	if obs.obs_source_active(source) then
-	            obs.obs_source_inc_active(data.parent_source)
-	        end
-			obs.timer_remove(source_delay_callback)
+			if obs.obs_source_active(data.source) then
+				obs.obs_source_inc_active(data.parent_source)
+			end
+			obs.timer_remove(data.source_delay_callback)
+			data.source_delay_callback = nil
 		end
-    end
-	obs.timer_add(source_delay_callback, 1000)
+	end
+	obs.timer_add(data.source_delay_callback, 1000)
 
+	obs.obs_enter_graphics()
 	data.texrender = obs.gs_texrender_create(obs.GS_RGBA, obs.GS_ZS_NONE)
+	obs.obs_leave_graphics()
+
 	source_def.update(data, settings)
 	return data
 end
 
 source_def.destroy = function(data)
 	print("Source destroy: " .. data.name)
+	if data.source_delay_callback ~= nil then
+		obs.timer_remove(data.source_delay_callback)
+   		data.source_delay_callback = nil
+	end
 	if data.parent_source ~= nil then
 		obs.obs_source_release(data.parent_source)
 		data.parent_source = nil
 	end
-	obs.gs_texrender_destroy(data.texrender)
+	if data.gs_texrender ~= nil then
+		obs.obs_enter_graphics()
+		obs.gs_texrender_destroy(data.texrender)
+		obs.obs_leave_graphics()
+		data.texrender = nil
+	end
+	data.source = nil
 end
 
 source_def.show = function(data)
-    print("Source showing: " .. data.name)
+	print("Source showing: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_showing(data.parent_source)
 	end
@@ -71,14 +86,14 @@ source_def.hide = function(data)
 end
 
 source_def.activate = function(data)
-    print("Source activated: " .. data.name)
+	print("Source activated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_inc_active(data.parent_source)
 	end
 end
 
 source_def.deactivate = function(data)
-    print("Source deactivated: " .. data.name)
+	print("Source deactivated: " .. data.name)
 	if data.parent_source ~= nil then
 		obs.obs_source_dec_active(data.parent_source)
 	end

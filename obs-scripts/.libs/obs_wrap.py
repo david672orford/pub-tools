@@ -32,7 +32,7 @@ class ObsScene:
 		self.scene = scene
 
 	@property
-	def name(self):
+	def name(self) -> str:
 		"""Name of scene as seen by user"""
 		return obs.obs_source_get_name(self.scene)
 
@@ -122,7 +122,6 @@ frontend_events = ObsFrontendEvents()
 
 class ObsScript:
 	"""Derive your OBS script class from this"""
-	gui = []
 
 	def __init__(self, debug:bool=False):
 		self.debug:bool = debug
@@ -130,6 +129,7 @@ class ObsScript:
 		self.finished_loading = False
 		self._deferred_on_gui_change = None
 		self.frontend_events = frontend_events
+		self.gui:list[ObsWidget] = []
 
 	#===================================================================
 	# Here we install functions for all of the OBS callbacks. Don't
@@ -183,7 +183,7 @@ class ObsScript:
 		g["script_update"] = lambda settings: self._script_update(settings)
 
 	# Turn the C settings list into an array of ObsSetting objects
-	def _pythonize_settings(self, raw_settings):
+	def _pythonize_settings(self, raw_settings) -> ObsSettings:
 		settings = ObsSettings()
 		for widget in self.gui:
 			if widget.type == "bool":
@@ -312,19 +312,19 @@ class ObsScript:
 	# Override these as needed in derived classes
 	#===================================================================
 
-	def on_load(self, settings):
+	def on_load(self, settings:ObsSettings) -> None:
 		pass
 
-	def on_unload(self):
+	def on_unload(self) -> None:
 		pass
 
-	def on_before_gui(self):
+	def on_before_gui(self) -> None:
 		pass
 
-	def on_gui_change(self, settings):
+	def on_gui_change(self, settings:ObsSettings) -> None:
 		pass
 
-	def on_finished_loading(self):
+	def on_finished_loading(self) -> None:
 		pass
 
 	#===================================================================
@@ -374,8 +374,8 @@ class ObsScript:
 #=============================================================================
 
 class ObsScriptSourceEventsMixin:
-	def _script_load(self, settings):
-		super()._script_load(settings)
+	def _script_load(self, raw_settings):
+		super()._script_load(raw_settings)
 		sh = obs.obs_get_signal_handler()
 		obs.signal_handler_connect(sh, "source_create", lambda source: self._on_source_create(source))
 		obs.signal_handler_connect(sh, "source_destroy", lambda source: self._on_source_destroy(source))

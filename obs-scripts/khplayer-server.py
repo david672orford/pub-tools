@@ -1,7 +1,6 @@
 """Embed the web server for KHPlayer in OBS so we can be sure it will be running"""
 
 import os
-import re
 import sys
 
 scriptdir = os.path.dirname(__file__)
@@ -13,6 +12,8 @@ activate()
 
 import threading
 import logging
+import re
+from typing import override
 
 import obspython as obs
 from werkzeug.serving import ThreadedWSGIServer
@@ -63,7 +64,8 @@ class KHPlayer(ObsScript):
 		self.frontend_events.subscribe("theme-changed", lambda event: self.on_theme_changed())
 		self.on_theme_changed()
 
-	def on_gui_change(self, settings):
+	@override
+	def on_gui_change(self, settings:ObsSettings) -> None:
 		"""Accept settings from the script configuration GUI"""
 		if settings.debug != self.debug:
 			if settings.debug:
@@ -83,7 +85,8 @@ class KHPlayer(ObsScript):
 
 		self.clean_cache = settings.clean_cache
 
-	def on_unload(self):
+	@override
+	def on_unload(self) -> None:
 		"""OBS shutdown"""
 
 		# Shut down the KH Player web server
@@ -97,7 +100,7 @@ class KHPlayer(ObsScript):
 
 		self.logger.info("Shutdown complete")
 
-	def on_theme_changed(self):
+	def on_theme_changed(self) -> None:
 		theme = None
 		config = obs.obs_frontend_get_user_config()
 		if config:

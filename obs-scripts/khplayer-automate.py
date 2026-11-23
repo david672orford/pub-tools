@@ -2,13 +2,16 @@
 Automate startup and certain aspects of the playing of videos
 """
 
-import os, sys
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".libs"))
 
 import re
 from subprocess import run
+from typing import override
+
 import obspython as obs
-from obs_wrap import ObsScript, ObsScriptSourceEventsMixin, ObsWidget
+from obs_wrap import ObsScript, ObsScriptSourceEventsMixin, ObsWidget, ObsSettings
 
 class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 	"""
@@ -67,7 +70,8 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		for scene in self.iter_scenes():
 			yield (scene.name, scene.name)
 
-	def on_gui_change(self, settings):
+	@override
+	def on_gui_change(self, settings:ObsSettings) -> None:
 		"""Accept settings from this script's configuration GUI"""
 		self.yeartext_scene = settings.yeartext_scene
 		self.stopper.end_trim = settings.end_trim
@@ -84,47 +88,57 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 		if settings.screen != "":
 			obs.obs_frontend_open_projector("StudioProgram", int(settings.screen), "", "")
 
-	def on_finished_loading(self):
+	@override
+	def on_finished_loading(self) -> None:
 		"""OBS startup complete, scenes are loaded, switch to yeartext scene"""
 		if self.debug:
 			print("OBS startup complete, switching to yeartext scene")
 		self.set_scene(self.yeartext_scene)
 
-	def on_scene_activate(self, scene_name):
+	@override
+	def on_scene_activate(self, scene_name:str):
 		"""Activate a dummy source when Yeartext scene becomes active"""
 		if scene_name == self.yeartext_scene:
 			self.video_add(DummySource())
 
-	def on_scene_deactivate(self, scene_name):
+	@override
+	def on_scene_deactivate(self, scene_name:str):
 		"""Deactivate dummy source when Yeartext scene ceases to be active"""
 		if scene_name == self.yeartext_scene:
 			self.video_remove(DummySource(), return_to_previous=False)
 		self.previous_scene = scene_name
 
+	@override
 	def on_media_started(self, source):
 		"""Playing started for any reason"""
 		self.video_add(source)
 
+	@override
 	def on_media_ended(self, source):
 		"""Video played to the end without interfernce"""
 		self.video_remove(source, return_to_previous=True)
 
+	@override
 	def on_media_play(self, source):
 		"""User pressed the Play button"""
 		self.video_add(source)
 
+	@override
 	def on_media_stopped(self, source):
 		"""User pressed the stop button"""
 		self.video_remove(source, return_to_previous=True)
 
+	@override
 	def on_media_pause(self, source):
 		"""User pressed the play button"""
 		self.video_remove(source, return_to_previous=False)
 
+	@override
 	def on_source_deactivate(self, source):
 		"""Video stopped because user switched away from scene"""
 		self.video_remove(source, return_to_previous=False)
 
+	@override
 	def on_source_destroy(self, source):
 		"""Video was removed from scene"""
 		if source.id.endswith("_source"):	# i.e., not a scene
@@ -206,8 +220,8 @@ class ObsAutomate(ObsScriptSourceEventsMixin, ObsScript):
 class MediaStopper:
 	"""Used to set a timer to stop a media source a few minutes before the end"""
 	def __init__(self, automate:ObsAutomate):
-		self.debug = False
-		self.automate = automate		# pointer to ObsAutomate object
+		self.debug:bool = False
+		self.automate:ObsAutomate = automate
 		self.end_trim = None			# will be set by .on_gui_change()
 		self.timer_running = False
 		self.source = None
@@ -258,8 +272,8 @@ class MediaStopper:
 			self.timer_running = False
 		self.source = None
 
-# Used to represent the yeartext so we can mute when it is on screen
 class DummySource:
+	"""Used to represent the yeartext so we can mute when it is on screen"""
 	id = "dummy_source"
 	name = "dummy_source"
 	uuid = "dummy_source"

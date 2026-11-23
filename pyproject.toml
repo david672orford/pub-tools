@@ -8,5 +8,12 @@ build-backend = "setuptools.build_meta"
 venvPath = "."
 venv = ".venv"
 
+[[tool.pyright.executionEnvironments]]
+root = "obs-scripts"
+extraPaths = [
+    "obs-scripts/.libs",
+    ".",
+]
+
 [tool.ruff.lint]
 ignore = ["I001"]
