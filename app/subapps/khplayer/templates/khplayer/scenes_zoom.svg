@@ -1,0 +1,60 @@
+<svg
+	viewBox="0 0 {{ tracker.gallery.width }} {{ tracker.gallery.height }}"
+	xmlns="http://www.w3.org/2000/svg">
+
+	<image
+		href="gallery.png"
+		x="0"
+		y="0"
+		width="{{ tracker.gallery.width }}"
+		height="{{ tracker.gallery.height }}"
+	/>
+
+	{% for box in tracker.layout %}
+	<rect
+		x="{{ box.x - tracker.gallery.x }}"
+		y="{{ box.y - tracker.gallery.y }}"
+		width="{{ box.width }}"
+		height="{{ box.height }}"
+		data-pos="{{ loop.index0 }}"
+	/>
+	{% endfor %}
+
+<script>
+<![CDATA[
+async function post_rect(rect) {
+	try {
+		const url = new URL("select", location.href);
+		url.searchParams.set("pos", rect.dataset.pos);
+		const response = await fetch(url, { method: "POST" });
+		if (!response.ok) {
+			console.error("Selection failed:", response.status);
+		}
+	} catch (error) {
+		console.error("Selection failed:", error);
+	}
+}
+for(const rect of document.getElementsByTagName("rect")) {
+	rect.addEventListener("click", async () => { await post_rect (rect) });
+}
+
+setInterval(() => {
+	location.reload();
+	}, 2500);
+]]>
+</script>
+
+<style>
+	rect {
+		fill: transparent;
+		stroke: transparent;
+		stroke-width: 3;
+		cursor: pointer;
+	}
+
+	rect:hover {
+		stroke: yellow;
+	}
+</style>
+
+</svg>

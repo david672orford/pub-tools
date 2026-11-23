@@ -2,7 +2,7 @@
 Monkey patch obspython
 """
 
-from ctypes import CDLL, Structure, POINTER, cast, c_void_p, c_uint, c_ubyte, c_bool
+from ctypes import CDLL, Structure, POINTER, cast, byref, c_void_p, c_uint, c_ubyte, c_bool
 from ctypes.util import find_library
 
 import obspython as obs

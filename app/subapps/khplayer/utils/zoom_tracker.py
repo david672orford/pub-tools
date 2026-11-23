@@ -57,8 +57,8 @@ class ZoomTracker:
 	def __init__(self, debug:bool=False):
 		self.debug:bool = debug
 
-		self.gallery:GalleryCropBox
-		self.speaker_box:SpeakerCropBox
+		self.gallery:GalleryCropBox|None = None
+		self.speaker_box:SpeakerCropBox|None = None
 		self.layout:Layout = Layout()
 		self.speaker_indexes:SimpleSpeakerIndexes = SimpleSpeakerIndexes()
 
@@ -340,7 +340,8 @@ class ZoomTracker:
 		layout = Layout()
 		y = self.gallery.y				# top of gallery
 		border_width = speaker_box.border_width
-		double_border_width = border_width * 2
+		width = speaker_box.width - (2 * border_width)
+		height = speaker_box.height - (2 * border_width)
 		for row in range(rows):
 			if row == (rows - 1):		# When last row is not full, it is centered
 				x = self.gallery.x2
@@ -353,10 +354,10 @@ class ZoomTracker:
 					layout.speaker_index = len(layout)
 				# Take the space inside the border
 				layout.append(CropBox(
-					x = x + border_width,
-					y = y + border_width,
-					width = speaker_box.width - double_border_width,
-					height = speaker_box.height - double_border_width,
+					x = int(x + border_width + 0.5),
+					y = int(y + border_width + 0.5),
+					width = width,
+					height = height,
 					))
 				x += speaker_box.width
 				x += x_cellspacing
